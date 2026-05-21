@@ -1,0 +1,57 @@
+---
+/**
+ * BeforeAfter — maps to LaTeX `beforeafter` env with `\before` / `\after` markers.
+ * Default use: paired contrast (config before/after a CLAUDE.md fix, code before/after refactor).
+ * No scaffold equivalent. Uses the blue callout shell + a two-section grid inside.
+ *
+ * Usage:
+ *   <BeforeAfter>
+ *     <div slot="before">
+ *       ```markdown
+ *       # CLAUDE.md (vague)
+ *       ```
+ *     </div>
+ *     <div slot="after">
+ *       ```markdown
+ *       # CLAUDE.md (specific)
+ *       ```
+ *     </div>
+ *   </BeforeAfter>
+ */
+interface Props {
+  title?: string;
+}
+const { title = 'Before & After' } = Astro.props;
+---
+<aside class="callout callout-note before-after" role="note">
+  <strong class="callout-title">{title}</strong>
+  <div class="ba-grid">
+    <div class="ba-section">
+      <strong class="ba-label">Before</strong>
+      <slot name="before" />
+    </div>
+    <div class="ba-section">
+      <strong class="ba-label">After</strong>
+      <slot name="after" />
+    </div>
+  </div>
+</aside>
+
+<style>
+  .ba-grid {
+    display: grid;
+    gap: 0.75em;
+  }
+  .ba-section {
+    margin-top: 0.5em;
+  }
+  .ba-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    margin-bottom: 0.25em;
+    color: var(--callout-info);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+</style>

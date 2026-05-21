@@ -1,0 +1,37 @@
+---
+/**
+ * MaturityLevel — maps to LaTeX `\maturitylevel{N}` (N = 1..5).
+ * Inline chip rendering "L1" through "L5" in a structural-blue color.
+ * Same visual weight as <Tag> chips so the two coexist gracefully in prose.
+ *
+ * Usage:
+ *   Ready for <MaturityLevel n={4} />–<MaturityLevel n={5} />.
+ */
+interface Props {
+  n: 1 | 2 | 3 | 4 | 5;
+}
+const { n } = Astro.props;
+
+const TITLE: Record<number, string> = {
+  1: 'Level 1 — Conversational',
+  2: 'Level 2 — Configured',
+  3: 'Level 3 — Systematic',
+  4: 'Level 4 — Autonomous',
+  5: 'Level 5 — Organizational',
+};
+---
+<span class="maturity-level" title={TITLE[n]}>L{n}</span>
+
+<style>
+  .maturity-level {
+    display: inline-block;
+    font-family: var(--font-code);
+    font-size: 0.85em;
+    font-weight: 700;
+    padding: 0 0.35em;
+    margin: 0 0.1em;
+    color: var(--callout-info);
+    border-bottom: 1.5px solid var(--callout-info);
+    letter-spacing: 0.02em;
+  }
+</style>

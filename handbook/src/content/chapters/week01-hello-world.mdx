@@ -1,0 +1,33 @@
+---
+title: Hello world
+part: 1
+chapter: 1
+volatility: stable-principle
+tools_compared: [cross-tool]
+last_verified: 2026-05-19
+description: First chapter scaffolded by create-book — demonstrates frontmatter shape and the tools callout family.
+---
+
+import SkillBox from '@brandon_m_behring/book-scaffold-astro/components/SkillBox.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+
+# Hello world
+
+<KeyIdea>
+  This chapter was scaffolded by `create-book`. Frontmatter uses the tools schema —
+  `chapter` is numeric, `volatility` calibrates reader trust, `tools_compared` is
+  an explicit scope signal.
+</KeyIdea>
+
+## A skill
+
+<SkillBox title="Setting up">
+  Run `npm run dev` to preview at http://localhost:4321.
+</SkillBox>
+
+## What's next
+
+- Edit this chapter and add more under `src/content/chapters/`.
+- Capture sources in `sources/manifest.yaml` for the convergence dashboard.
+- Tag versions in `changelog/tools/<tool>.yaml` if tracking tool evolution.

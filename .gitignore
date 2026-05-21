@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Astro
+dist/
+.astro/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+**/dist-pdf/
+**/.pagefind/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# Per-Claude-Code
+.claude/settings.local.json
+.claude/scheduled_tasks.lock

@@ -1,0 +1,10 @@
+{
+  "name": "claude-books",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Claude Code book ecosystem on book-scaffold-astro. Workspace housing the handbook (port of claude-best-practices) and field-guide (port of claude-code-field-guide).",
+  "workspaces": [
+    "handbook"
+  ],
+  "license": "CC-BY-4.0"
+}

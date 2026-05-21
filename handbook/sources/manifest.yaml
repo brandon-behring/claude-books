@@ -1,0 +1,17 @@
+# sources/manifest.yaml — captured sources for the tools-profile dashboard.
+# Each entry is read by <SourceArchive> and the convergence page.
+#
+# Format: top-level YAML array of source objects. Each entry needs an
+# explicit `id` (used as the citation key in <Citation src="id" />),
+# plus the fields validated by the package's sourcesSchema:
+#   - id: example-source
+#     url: https://example.com
+#     title: Example source
+#     author: Author Name
+#     publish_date: 2025-01-01
+#     captured_at: 2026-05-19T00:00:00Z
+#     tier: T1-official          # T1-official | T2-release-notes | T3-practitioner | T4-conjecture
+#     tool: claude-code           # claude-code | gemini-cli | codex-cli | cross-tool
+#
+# See https://github.com/brandon-behring/book-scaffold-astro/blob/v3.0/PACKAGE_DESIGN.md
+[]

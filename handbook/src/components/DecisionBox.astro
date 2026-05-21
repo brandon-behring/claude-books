@@ -1,0 +1,26 @@
+---
+/**
+ * DecisionBox — maps to LaTeX `decisionbox` env.
+ * Default use: decision frameworks (when to choose X over Y).
+ * Family: green (action/decision). Scaffold ships no equivalent; this is consumer-side.
+ *
+ * Renders as the standard scaffold callout with a green left-bar so it inherits
+ * the tint background + spacing tokens from styles/callouts.css. The only consumer-
+ * shipped CSS is the optional darker accent on the title (rendering "decision" as
+ * a deliberate, weighty word vs the lighter "tip").
+ */
+interface Props {
+  title?: string;
+}
+const { title = 'Decision Framework' } = Astro.props;
+---
+<aside class="callout callout-tip decision-box" role="note">
+  <strong class="callout-title">{title}</strong>
+  <div class="callout-body"><slot /></div>
+</aside>
+
+<style>
+  .decision-box .callout-title {
+    color: color-mix(in srgb, var(--callout-tip) 80%, var(--dark-text));
+  }
+</style>
