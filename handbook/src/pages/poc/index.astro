@@ -1,0 +1,62 @@
+---
+/**
+ * /poc — index page listing all PoCs for visual side-by-side comparison.
+ */
+import { getCollection } from 'astro:content';
+
+const entries = await getCollection('poc');
+const byKind: Record<string, typeof entries> = {};
+for (const e of entries) {
+  (byKind[e.data.poc_kind] ??= []).push(e);
+}
+const kindOrder = ['tutorial', 'how-to', 'tldr', 'part-summary', 'cheat-sheet'];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Handbook PoCs — pedagogical visual exploration</title>
+    <style>
+      :root {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.6;
+        color: #1a1a1a;
+      }
+      body {
+        max-width: 72ch;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+      }
+      h1 { margin-bottom: 0.5rem; }
+      p.subtitle { color: #666; margin-top: 0; }
+      h2 { margin-top: 2rem; text-transform: capitalize; }
+      ul { padding-left: 1.2rem; }
+      li { margin-bottom: 0.5rem; }
+      a { color: #0066cc; }
+      .visual-intent { color: #888; font-size: 0.875rem; display: block; }
+    </style>
+  </head>
+  <body>
+    <h1>Handbook PoCs</h1>
+    <p class="subtitle">
+      Pedagogical proof-of-concepts for the handbook's content-type taxonomy.
+      Each PoC renders Ch 1 (or related material) under a different supplement format.
+      See <a href="/poc/comparison">COMPARISON</a> when synthesis is written.
+    </p>
+    {kindOrder.map((kind) => byKind[kind] && (
+      <>
+        <h2>{kind}</h2>
+        <ul>
+          {byKind[kind].map((e) => (
+            <li>
+              <a href={`/poc/${e.id}`}>{e.data.title}</a>
+              {e.data.description && <span class="visual-intent">{e.data.description}</span>}
+            </li>
+          ))}
+        </ul>
+      </>
+    ))}
+  </body>
+</html>

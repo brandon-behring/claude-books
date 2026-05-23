@@ -2,7 +2,10 @@
 
 Per-source primary-research notes for the `claude-books` three-volume series. Built during the 2026-05-22 research sprint per the approved plan ("Active execution plan: Research Sprint" in `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md`).
 
-**120 notes · 10 topics**. D4 multi-pass-review T1 coverage gap closed 2026-05-23 with 2 additional T1 notes in `06-multi-agent-patterns/` (`docs-code-review.md`, `docs-best-practices-writer-reviewer.md`).
+**~158 notes · 11 topics**. Most recent additions (2026-05-23):
+- D4 multi-pass-review T1 coverage gap closed with 2 new T1 notes in `06-multi-agent-patterns/`.
+- D4 few-shot + iterative refinement coverage closed with 3 new T1 notes in `05-claude-api/` + `07-structured-output/`.
+- **Topic 11 (Visual pedagogy) added** — 38 source notes across 4 sub-areas; feeds `handbook/PEDAGOGY.md`.
 
 ## Topics
 

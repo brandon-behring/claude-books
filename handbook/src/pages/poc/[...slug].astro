@@ -1,0 +1,101 @@
+---
+/**
+ * /poc/<slug> — render PoC entries from the `poc` content collection.
+ *
+ * Minimal shared layout. Each PoC's visual differentiation lives in its own
+ * MDX (custom components, styling). If layout-level differentiation becomes
+ * necessary (e.g., a cheat-sheet needs a different page shell), add per-kind
+ * layout selection here.
+ */
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('poc');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{entry.data.title} — PoC ({entry.data.poc_kind})</title>
+    <style>
+      :root {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.6;
+        color: #1a1a1a;
+      }
+      body {
+        max-width: 72ch;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+      }
+      header.poc-meta {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        font-size: 0.875rem;
+        color: #666;
+      }
+      header.poc-meta nav a {
+        color: #0066cc;
+        text-decoration: none;
+      }
+      header.poc-meta .kind-tag {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        margin-right: 0.5rem;
+        background: #eef;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.8em;
+      }
+      pre {
+        background: #f6f8fa;
+        padding: 1rem;
+        overflow-x: auto;
+        border-radius: 0.25rem;
+      }
+      code:not(pre code) {
+        background: #f6f8fa;
+        padding: 0.1em 0.3em;
+        border-radius: 0.2em;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      blockquote {
+        border-left: 3px solid #ccc;
+        padding-left: 1rem;
+        margin-left: 0;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="poc-meta">
+      <nav><a href="/poc">← All PoCs</a></nav>
+      <p>
+        <span class="kind-tag">{entry.data.poc_kind}</span>
+        {entry.data.visual_intent && <em>Visual intent: {entry.data.visual_intent}</em>}
+      </p>
+    </header>
+    <main>
+      <Content />
+    </main>
+  </body>
+</html>
