@@ -25,3 +25,10 @@ dist/
 # Per-Claude-Code
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# Playwright MCP runtime
+.playwright-mcp/
+
+# Confidential — Anthropic cert exam guide (marked "Need to Know" on every page).
+# Internal research aid only; not for public distribution. See plan + cert-tracking docs.
+instructor_*.pdf
