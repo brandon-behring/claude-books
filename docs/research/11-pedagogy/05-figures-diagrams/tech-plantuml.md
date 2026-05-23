@@ -102,4 +102,4 @@ superseded_by: []
 - See [[tech-mermaid]] for the lighter-weight alternative covering sequence/class diagrams.
 - See [[tech-d2]] for the modern alternative also supporting C4-style diagrams.
 - See [[tech-graphviz-dot]] for the layout engine PlantUML uses internally.
-- See [[README]] for the cross-tech synthesis.
+- See the topic README for the cross-tech synthesis.

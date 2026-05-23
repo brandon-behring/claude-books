@@ -97,4 +97,4 @@ superseded_by: []
 - See [[tech-mermaid]] for the rendered-SVG alternative the main narrative should use.
 - See [[tech-authored-svg]] for hero-quality narrative diagrams.
 - See `handbook/src/content/poc/ch01-cheat-sheet.mdx` for the existing PoC using this pattern.
-- See [[README]] for cross-tech synthesis + the "ASCII for cheat sheets only" guideline.
+- See the topic README for cross-tech synthesis + the "ASCII for cheat sheets only" guideline.

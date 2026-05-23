@@ -89,4 +89,4 @@ superseded_by: []
 - See [[site-astro-docs]] for an alternative four-mode top-nav pivot (Tutorial / Guide / Reference / Ecosystem) versus React's two-mode.
 - See [[site-tailwind-docs]] for an alternative "templates do the differentiation" approach to content-type signaling.
 - See [[site-mdn]] for the older-generation reference site that newer docs (incl. React.dev) iterate on.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

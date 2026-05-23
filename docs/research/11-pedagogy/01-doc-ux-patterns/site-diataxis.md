@@ -69,4 +69,4 @@ superseded_by: []
 - See [[site-react-dev]] for a clean two-mode (Learn / Reference) reduction of the four quadrants.
 - See [[site-cloudflare-docs]] for explicit content-type badges on every page — another Diátaxis-aware approach.
 - See [[site-linear-method]] for the "single quadrant = single surface" Linear-style approach (Method = pure explanation, no other quadrants).
-- See [[README]] for the cross-site synthesis (Diátaxis is the most-cited framework across the research).
+- See the topic README for the cross-site synthesis (Diátaxis is the most-cited framework across the research).

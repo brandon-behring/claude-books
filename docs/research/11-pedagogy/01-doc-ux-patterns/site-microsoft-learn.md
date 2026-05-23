@@ -78,4 +78,4 @@ superseded_by: []
 ## Cross-references
 - See [[site-mdn]] for a comparably-scaled reference (MDN is community-driven; MS Learn is corporate).
 - See [[site-cloudflare-docs]] for a smaller-scale multi-product portal with explicit content-type badging.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

@@ -104,4 +104,4 @@ The defining "tip-driven" practitioner handbook; a major influence on how techni
 
 - See [[book-effective-series]] for a comparable item-recipe model (Bloch/Slatkin/Meyers) — Effective uses a much heavier "Things to Remember" recap; Pragmatic uses tip pull-outs instead.
 - See [[book-skiena-algorithm-design]] for a complementary "war story" + "take-home lesson" model; Pragmatic's anecdotes are first-person, Skiena's are case-study driven.
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

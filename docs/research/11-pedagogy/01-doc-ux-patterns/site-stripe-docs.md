@@ -78,4 +78,4 @@ superseded_by: []
 - See [[site-tailwind-docs]] for a tighter version of the framework-tabs pattern Stripe uses for package managers.
 - See [[site-react-dev]] for an alternative ("split tutorial pages by content type") to Stripe's "one long quickstart per use case" approach.
 - See [[site-resend-docs]] for a more recent reading of the Stripe code+prose tradition.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

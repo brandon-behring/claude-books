@@ -67,4 +67,4 @@ superseded_by: []
 ## Cross-references
 - See [[site-linear-docs]] for the product-docs counterpart — same brand, different visual register.
 - See [[site-diataxis]] for the framework Linear's content separation effectively follows.
-- See [[README]] for the cross-site synthesis (Method is the clearest "essay-book on the web" reference).
+- See the topic README for the cross-site synthesis (Method is the clearest "essay-book on the web" reference).

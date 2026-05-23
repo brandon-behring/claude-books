@@ -98,4 +98,4 @@ The defining academic-textbook-with-handbook-DNA hybrid; included here despite b
 
 - See [[book-csapp-bryant]] for a related exercise-interleaving pedagogy with the practical improvement of inline-Practice-Problem solutions; CS:APP is "SICP-influenced but practitioner-tuned".
 - See [[book-ddia-kleppmann]] for the opposite tonal register — DDIA has chapter-end Summary, no exercises.
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

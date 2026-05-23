@@ -79,4 +79,4 @@ superseded_by: []
 - See [[site-resend-docs]] for another Mintlify-built site applying the same primitives.
 - See [[site-stripe-docs]] for the contrasting "polyglot code dump" approach to multi-language support.
 - See [[site-cloudflare-docs]] for an alternative Diátaxis-leaning content-type badging system.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

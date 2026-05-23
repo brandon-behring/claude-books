@@ -49,7 +49,7 @@ superseded_by: []
 - **Frontmatter is the IA layer**: `topic`, `cert_domains`, `cert_task_areas`, `tier`, `volatility`, `supersedes` form a controlled vocabulary that lets cross-cutting access (grep, dossier-build) bypass the linear chapter navigation.
 - **Define the IA before designing the chapter TOC**. The research cache (`docs/research/`) was built before chapter outlines for exactly this reason — chapters are derived from the IA, not the other way around.
 - **One name per concept**. The "hook count ~31" correction in the landscape doc is a controlled-vocabulary failure: "hook" meant different things in CLI vs Python SDK vs TS SDK. Fixed by separating the three counts (CLI: 29, Python: 10, TS: 19).
-- **Cross-references as IA artifacts**: the `[[slug]]` syntax in research notes is the IA layer made navigable — readers can follow conceptual relationships rather than just linear order.
+- **Cross-references as IA artifacts**: the double-bracket slug syntax used elsewhere in this cache is the IA layer made navigable — readers can follow conceptual relationships rather than just linear order.
 
 ## Quoted (citation-ready)
 

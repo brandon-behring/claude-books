@@ -94,4 +94,4 @@ superseded_by: []
 - See [[tech-authored-svg]] for the manual-SVG alternative used by some high-quality web books.
 - See [[tech-mermaid]] for the diagrams-as-code default for new diagrams.
 - See [[tech-graphviz-dot]] for the older programmatic-graphics tradition TikZ partially descends from.
-- See [[README]] for the cross-tech synthesis + how TikZ fits the dual-output (PDF + web) strategy.
+- See the topic README for the cross-tech synthesis + how TikZ fits the dual-output (PDF + web) strategy.

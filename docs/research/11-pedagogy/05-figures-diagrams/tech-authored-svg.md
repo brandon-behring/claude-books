@@ -101,4 +101,4 @@ superseded_by: []
 - See [[tech-mermaid]] for the "good enough" alternative for non-hero diagrams.
 - See [[tech-excalidraw]] for the hand-drawn aesthetic alternative.
 - See [[tech-tikz-svg-pipeline]] for the precision-math alternative inherited from the LaTeX source.
-- See [[README]] for the cross-tech synthesis + the "authored SVG = hero only" guideline.
+- See the topic README for the cross-tech synthesis + the "authored SVG = hero only" guideline.

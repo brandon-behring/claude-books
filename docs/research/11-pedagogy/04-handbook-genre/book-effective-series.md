@@ -95,4 +95,4 @@ A series umbrella note covering the four canonical Effective books (Bloch's Java
 
 - See [[book-pragmatic-programmer]] for an alternative tip-driven model — Pragmatic uses sentence-length tips, Effective uses essay-length items.
 - See [[book-refactoring-fowler]] for a comparable catalog-of-recipes model — Refactoring uses Motivation/Mechanics/Example, Effective uses motivation/code/Things-to-Remember.
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

@@ -106,4 +106,4 @@ The genre's exemplar of "war story" anecdotes as primary pedagogy. Skiena's book
 - See [[book-pragmatic-programmer]] for a complementary anecdote pedagogy — Pragmatic uses short first-person asides, Skiena uses long-form chapter-end War Stories.
 - See [[book-refactoring-fowler]] for a catalog-as-book-half model — Refactoring is all-catalog, Skiena uses catalog only for Part II.
 - See [[book-csapp-bryant]] for a sister textbook with similar Aside + Practice Problem apparatus.
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

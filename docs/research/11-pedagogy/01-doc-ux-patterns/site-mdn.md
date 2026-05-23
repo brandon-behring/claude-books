@@ -49,7 +49,7 @@ superseded_by: []
 ## What's worth borrowing for claude-books
 - **Breadcrumbs are non-optional at scale.** Any book chapter that nests beyond 2 levels deep needs them.
 - **Previous/Next at top and bottom** of articles is the right pattern for a book read sequentially. Save readers from scrolling to the end to navigate forward.
-- **Inline glossary cross-links** are the cleanest "progressive disclosure" pattern in any of the sites studied — keeping definitions out of prose while making them one click away. The book should have a top-level glossary with `[[term]]` cross-references inline.
+- **Inline glossary cross-links** are the cleanest "progressive disclosure" pattern in any of the sites studied — keeping definitions out of prose while making them one click away. The book should have a top-level glossary using the same double-bracket slug convention as this research cache.
 - **"In this article" sidebar** on long chapters is important once content exceeds ~3 H2 sections. Use the right rail.
 - Comparison tables for disambiguation (e.g., "Skill vs Subagent vs MCP Server" — three things readers conflate) are a great chapter-opener device.
 - **Last-modified + edit link + report-problem** in the footer of every page is a contribution-affordance pattern worth carrying into the book repo.
@@ -77,4 +77,4 @@ superseded_by: []
 - See [[site-microsoft-learn]] for a comparable scale of reference content (enterprise-scoped).
 - See [[site-diataxis]] for the framework MDN partly approximates (Guide / Reference split).
 - See [[site-react-dev]] for an example of "what newer reference docs took from MDN and improved on" (inline glossary, comparison tables, kept the Previous/Next pattern).
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

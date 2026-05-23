@@ -77,4 +77,4 @@ superseded_by: []
 - See [[site-stripe-docs]] for the alternative "polyglot code on one page" approach to multi-stack docs.
 - See [[site-react-dev]] for an even more sophisticated per-page-template approach (Learn template ≠ Reference template).
 - See [[site-resend-docs]] for the "13 framework cards" alternative to Tailwind's framework guide list.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

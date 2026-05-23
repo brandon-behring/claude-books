@@ -93,4 +93,4 @@ superseded_by: []
 ## Cross-references
 - See [[tech-mermaid]] for the more mature alternative claude-books should adopt first.
 - See [[tech-graphviz-dot]] for the older but battle-tested layout engine that backs ELK and informed D2's design.
-- See [[README]] for the cross-tech synthesis.
+- See the topic README for the cross-tech synthesis.

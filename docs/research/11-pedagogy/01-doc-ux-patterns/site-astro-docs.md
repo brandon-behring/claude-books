@@ -79,4 +79,4 @@ superseded_by: []
 - See [[site-react-dev]] for an alternative two-mode approach (Learn / Reference top-nav pivot) that's closer to Diátaxis than to Astro's four-mode pivot.
 - See [[site-docusaurus-showcase]] for the dominant open-source competitor to Starlight.
 - See [[site-diataxis]] for the framework Astro's IA most faithfully implements.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

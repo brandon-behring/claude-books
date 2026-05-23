@@ -83,4 +83,4 @@ superseded_by: []
 - See [[site-astro-docs]] for an alternative Diátaxis approach (top-nav pivots instead of pill badges).
 - See [[site-microsoft-learn]] for comparably-multi-product portal IA at larger enterprise scale.
 - See [[site-react-dev]] for two-mode reduction of the four Diátaxis quadrants.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

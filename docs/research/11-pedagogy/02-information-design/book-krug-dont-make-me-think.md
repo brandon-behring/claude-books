@@ -49,7 +49,7 @@ superseded_by: []
 - **"Get rid of half the words" applies to research-cache notes too**. The 7-column dossier tables enforce this naturally; the per-source notes can drift toward over-elaboration. Aim for signal-words ratio (cf. Tufte's data-ink ratio in [[book-tufte-visual-display]]).
 - **Mindless clicks → mindless navigation in docs**. Cross-reference links should announce what they point to ("see [[course-claude-101]] for the consumer-facing onboarding course") not "see here" or "more info."
 - **Visual hierarchy = Markdown heading hierarchy**. H1 > H2 > H3 should match the actual importance hierarchy. Do not use H2 for emphasis where H3 is logically correct.
-- **Conventions across the cache**: `[[slug]]` links, frontmatter shape, `Quoted` / `Cross-references` headings — these are conventions the reader learns *once* and then never has to think about again. Inventing a new format per note would burn cognitive budget.
+- **Conventions across the cache**: double-bracket slug links, frontmatter shape, `Quoted` / `Cross-references` headings — these are conventions the reader learns *once* and then never has to think about again. Inventing a new format per note would burn cognitive budget.
 
 ## Quoted (citation-ready)
 

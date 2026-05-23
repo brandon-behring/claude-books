@@ -73,4 +73,4 @@ superseded_by: []
 ## Cross-references
 - See [[site-anthropic-docs]] for Mintlify's house style applied to a larger product.
 - See [[site-stripe-docs]] for the alternative "polyglot code on one page" approach to multi-language support.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

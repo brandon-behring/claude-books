@@ -111,4 +111,4 @@ The exemplar of "long-form textbook with handbook-grade visual pedagogy". CS:APP
 - See [[book-sicp]] for the original exercise-interleaving model; CS:APP refines it with inline solutions and difficulty markings.
 - See [[book-ddia-kleppmann]] for a comparable long-form synthesis tone but without exercises.
 - See [[book-skiena-algorithm-design]] for a textbook-handbook hybrid with War Story sidebars (CS:APP uses Aside boxes for similar tangents).
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

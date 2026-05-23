@@ -113,4 +113,4 @@ This template is more rigid than Effective-series items — the visual+textual t
 - See [[book-effective-series]] for a complementary recipe-card model — Effective uses motivation/code/Things-to-Remember; Refactoring uses Sketch/Motivation/Mechanics/Example.
 - See [[book-skiena-algorithm-design]] for a half-catalog book — Skiena's Part II is structurally similar but with looser per-entry templating.
 - See [[book-pragmatic-programmer]] for the philosophical/topic-driven counterpart — Pragmatic is the inverse of Refactoring's all-recipe layout.
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

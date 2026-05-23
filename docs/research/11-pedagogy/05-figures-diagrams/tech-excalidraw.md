@@ -91,4 +91,4 @@ superseded_by: []
 ## Cross-references
 - See [[tech-authored-svg]] for the formal-aesthetic alternative.
 - See [[tech-mermaid]] for the no-aesthetic diagrams-as-code default.
-- See [[README]] for cross-tech synthesis + the "Excalidraw deferred to Volume 3" rationale.
+- See the topic README for cross-tech synthesis + the "Excalidraw deferred to Volume 3" rationale.

@@ -53,7 +53,7 @@ superseded_by: []
 
 - **The "big picture → drill down" principle is a CLT-aware sequencing**: the macro view establishes a *schema* (germane load: cheap because it's just the skeleton); the drill-down then loads detail *into* the schema (lower extraneous load because the reader has somewhere to put it).
 - **Frontmatter as cognitive offloading**: structured frontmatter means the reader doesn't have to hold "what's the tier? what cert domain? when verified?" in working memory — they look it up. Working memory freed for content.
-- **Cross-references over forward declarations**: rather than recap a concept inline, link `[[other-note]]` — readers who already know the concept skip; readers who don't follow the link. Either way working memory isn't burned on background.
+- **Cross-references over forward declarations**: rather than recap a concept inline, link to the relevant other note — readers who already know the concept skip; readers who don't follow the link. Either way working memory isn't burned on background.
 - **Hick's Law constrains TOC width**: a topic README with 25 sibling entries violates Hick; the existing 10-topic top-level grouping is well within bounds.
 - **Three usability gains from progressive disclosure (NN/g)** are explained by CLT: novices have less extraneous load (only see relevant options); experts have less intrinsic load (have learned the schema); errors are lower (less working-memory pressure means fewer slips). It's not three independent gains — it's one mechanism.
 - **The 7-column dossier table cap is CLT-aware**: 7 columns is near Miller's classical "7±2" working-memory bound; pushing to 12 columns would push the table past the comfort zone. Smaller per-row tables outperform wider ones for this reason.

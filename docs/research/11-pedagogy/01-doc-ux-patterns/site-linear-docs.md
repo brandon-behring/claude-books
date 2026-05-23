@@ -66,4 +66,4 @@ superseded_by: []
 ## Cross-references
 - See [[site-linear-method]] for the same company's manifesto-style content surface — same restraint, very different chrome.
 - See [[site-cloudflare-docs]] for the opposite IA choice (explicit content-type badges on every card).
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

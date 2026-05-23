@@ -104,4 +104,4 @@ superseded_by: []
 - See [[tech-mermaid]] for the static alternative for v1.0.
 - See [[tech-authored-svg]] for the higher-fidelity static alternative.
 - See `handbook/PEDAGOGY.md` "Visual presentation principles" for the static-default rationale.
-- See [[README]] for cross-tech synthesis + the v1.0/v1.5/v2.0 staging.
+- See the topic README for cross-tech synthesis + the v1.0/v1.5/v2.0 staging.

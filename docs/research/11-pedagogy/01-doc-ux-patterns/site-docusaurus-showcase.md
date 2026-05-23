@@ -87,4 +87,4 @@ superseded_by: []
 - See [[site-astro-docs]] for the main open-source competitor (Astro's Starlight theme).
 - See [[site-anthropic-docs]] for Mintlify, the main commercial competitor.
 - See [[site-react-dev]] for an example of "custom theme built specifically for React, ignoring generic generator defaults" — a useful contrast.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.

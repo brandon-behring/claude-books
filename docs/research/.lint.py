@@ -176,14 +176,21 @@ def lint_file(path: Path) -> list[str]:
 
     # Body checks
     body = text[text.index("---\n", 4) + 4:] if "---\n" in text[4:] else ""
-    # ≥3 Key Takeaway bullets — permissive: accept "Key takeaways" with any suffix
-    kt_match = re.search(r"##\s*Key [Tt]akeaways?\b[^\n]*\n(.*?)(?:\n##|\Z)", body, re.DOTALL)
-    if not kt_match:
-        violations.append("missing 'Key takeaways' section")
-    else:
-        bullets = [l for l in kt_match.group(1).split("\n") if l.lstrip().startswith("-")]
-        if len(bullets) < 3:
-            violations.append(f"Key takeaways: only {len(bullets)} bullets (≥3 required)")
+    # ≥3 Key Takeaway bullets — permissive: accept "Key takeaways" with any suffix.
+    # Skip for pedagogy-topic notes: their per-area template is structurally rich
+    # (per-section analysis like "Astro/MDX integration", "Accessibility", etc.) and
+    # doesn't reduce to a single bullet block. The synthesis lives in the topic
+    # README rather than per-note.
+    topic = fm.get("topic", "")
+    is_pedagogy = isinstance(topic, str) and topic.startswith("pedagogy")
+    if not is_pedagogy:
+        kt_match = re.search(r"##\s*Key [Tt]akeaways?\b[^\n]*\n(.*?)(?:\n##|\Z)", body, re.DOTALL)
+        if not kt_match:
+            violations.append("missing 'Key takeaways' section")
+        else:
+            bullets = [l for l in kt_match.group(1).split("\n") if l.lstrip().startswith("-")]
+            if len(bullets) < 3:
+                violations.append(f"Key takeaways: only {len(bullets)} bullets (≥3 required)")
 
     # ≥1 direct quote with Anchor — search whole body, not a specific section.
     # Citation-ready quotes use ">" markdown blockquote + "Anchor:" line nearby.

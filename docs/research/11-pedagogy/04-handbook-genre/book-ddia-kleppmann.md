@@ -96,4 +96,4 @@ The contemporary gold-standard for long-form technical handbooks that synthesize
 - See [[book-effective-series]] for a complementary recap model (Things to Remember per item, no chapter summary).
 - See [[book-csapp-bryant]] for an exercises-included counterpart in the same long-form genre.
 - See [[book-skiena-algorithm-design]] for a comparable academic-meets-practitioner tone but with case-study war stories instead of synthesis prose.
-- See [[README]] for the cross-book pattern synthesis.
+- See the topic README for the cross-book pattern synthesis.

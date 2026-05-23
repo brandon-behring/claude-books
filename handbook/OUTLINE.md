@@ -39,9 +39,11 @@ All entries below are currently 🟡.
 **Cert domains**: D1 (agent architecture concept), D4 (fail-fast).
 **Stale signals**: None. Mental-model content is durable.
 **MDX-native**:
-- Agent-loop SVG diagram (already exists as PDF in source — re-render)
+- Agent-loop diagram — per [PEDAGOGY.md § Figures + diagrams](./PEDAGOGY.md#figures--diagrams) this is a **Tier 2 (TikZ→SVG inherited)** diagram since the source repo already has it. The `<BeforeAfter>` and `<InsightBox>` usage below follow the visual conventions in PEDAGOGY.md.
 - `<BeforeAfter>` for "chatbot mindset" vs "agent mindset" prompt examples
 - `<InsightBox>` for "Why the Mental Model Matters"
+**Pedagogy + visual conventions**: see [`PEDAGOGY.md`](./PEDAGOGY.md) — applies to every chapter in this outline, but Ch 1 is the canonical first application.
+**PoC artifacts** (2026-05-23): five supplement-format prototypes of Ch 1's material live at [`src/content/poc/`](./src/content/poc/) and render at `/poc` in dev. They demonstrate tutorial / how-to / TL;DR / part-summary / cheat-sheet shapes side-by-side. See [`poc/COMPARISON.md`](./poc/COMPARISON.md) for the synthesis memo. Ch 1 prose-rewrite is **blocked on user review of these PoCs** (PEDAGOGY decision-log #7 OPEN: supplement-format adoption).
 **Rewrites needed**: The existing `ch01-principles.mdx` (smoke test) is a starting draft only — re-do per these conventions with `cert_domains: [1, 4]` frontmatter and new `last_updated`/`introduced_in_version` fields.
 
 ### Ch 2. Your First CLAUDE.md

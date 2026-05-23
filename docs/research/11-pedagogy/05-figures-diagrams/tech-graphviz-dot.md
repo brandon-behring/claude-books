@@ -98,4 +98,4 @@ superseded_by: []
 - See [[tech-mermaid]] for the higher-integration alternative covering the same diagram types.
 - See [[tech-d2]] for the modern descendant influenced by DOT/Graphviz.
 - See [[tech-plantuml]] for an alternative declarative-diagram language with broader UML support.
-- See [[README]] for the cross-tech synthesis.
+- See the topic README for the cross-tech synthesis.

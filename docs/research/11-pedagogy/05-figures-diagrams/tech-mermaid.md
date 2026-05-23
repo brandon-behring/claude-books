@@ -106,4 +106,4 @@ superseded_by: []
 - See [[tech-d2]] for the next-gen alternative when Mermaid's layout fails.
 - See [[tech-authored-svg]] for hero diagrams beyond Mermaid's pay-grade.
 - See [[tech-ascii-boxdrawing]] for the cheat-sheet/print-only alternative the PoC already uses.
-- See [[README]] for the cross-tech synthesis + adoption shortlist.
+- See the topic README for the cross-tech synthesis + adoption shortlist.

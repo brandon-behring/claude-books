@@ -74,4 +74,4 @@ superseded_by: []
 ## Cross-references
 - See [[site-stripe-docs]] for an alternative — denser polyglot code instead of Vercel's lighter framework picker.
 - See [[site-cloudflare-docs]] for explicit content-type badges as an alternative to URL-prefix separation.
-- See [[README]] for the cross-site synthesis.
+- See the topic README for the cross-site synthesis.
