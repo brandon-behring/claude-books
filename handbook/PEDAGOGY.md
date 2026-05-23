@@ -304,6 +304,81 @@ Rationale: worked examples are valuable but interrupt prose flow. Closed-by-defa
 
 ---
 
+## Figures + diagrams
+
+Backed by 9 tech-comparison notes at [[../docs/research/11-pedagogy/05-figures-diagrams/]] surveying Mermaid, D2, TikZ→SVG, authored SVG, ASCII, Excalidraw, Graphviz, PlantUML, and the deferred interactive set (D3 / React Flow).
+
+**Core commitment** — every diagram in the handbook is **SVG in production**, regardless of how it was authored. SVG is the universal output target: accessibility hooks (`<title>` / `<desc>` / `role="img"`), dark-mode via CSS-variable substitution, print-clean vectors, and uniform tooling all assume SVG. ([[tech-mermaid]] cross-cutting finding 1.)
+
+### Four-tier adoption stack (v1.0)
+
+Pick by use case, not by author preference. Per-figure decisions go through the tree at the end of this section.
+
+| Tier | Tech | Best for | Est. count (across 3 volumes) |
+|---|---|---|---|
+| 1 (default) | **Mermaid** | Flowcharts, sequence diagrams, state machines, simple ER, decision trees | 30–50 figures |
+| 2 (inherited) | **TikZ → SVG pipeline** | Diagrams already authored in the LaTeX source repo (agent loop, L1–L5 pyramid, context-budget charts, configuration hierarchy) | 8–15 figures |
+| 3 (hero) | **Authored SVG** (Figma → export → process) | Chapter-opening visuals, volume-pivot illustrations, "this metaphor unlocks the chapter" diagrams | 6–10 figures |
+| 4 (text-native) | **ASCII / box-drawing** | Cheat-sheet supplements, code-context diagrams, print-dense reference; the Ch 1 cheat-sheet PoC already uses this | 5–10 figures |
+
+**Deferred to v1.5+ or rejected for v1.0**:
+- **D2** ([[tech-d2]]) — defer unless Mermaid's layout proves insufficient
+- **Excalidraw** ([[tech-excalidraw]]) — possibly for Volume 3 (Field-Guide) where the hand-drawn register fits the empirical voice
+- **Graphviz / DOT** ([[tech-graphviz-dot]]) — do not adopt; Mermaid covers the same use cases with better author UX + built-in accessibility
+- **PlantUML** ([[tech-plantuml]]) — do not adopt for v1.0; revisit only if Volume 2 (Architect's Reference) needs C4 architecture diagrams Mermaid can't render acceptably
+- **D3.js + React Flow** ([[tech-interactive-d3-reactflow]]) — defer all runtime/interactive rendering to v1.5+. v1.0 ships static
+- **KaTeX** (for math) — implicit: adopt for any token-economics / sampling / cost-formula notation. Build-time, accessible by default. Filed as a follow-up if MDX integration friction surfaces
+
+### Why Mermaid is the default (not just "common")
+
+Mermaid wins for *one specific reason* that none of the alternatives match: **built-in accessibility primitives** (`accTitle` + `accDescr` directives that emit `<title>` / `<desc>` on the resulting SVG). Every other diagrams-as-code tool requires post-processing or manual SVG editing to inject those tags. Combined with native MDX integration via `remark-mermaidjs` (build-time SVG emission), this is the single tilt that locks Mermaid as the default. ([[tech-mermaid]] § Accessibility.)
+
+### Per-figure decision tree
+
+For each new diagram an author adds, the algorithm is:
+
+```
+Is this diagram already in the LaTeX source repo (~/claude-best-practices)?
+├── YES → Tier 2 (TikZ → SVG). Preserve the source-repo work.
+└── NO ↓
+    Is this a hero / chapter-opener / metaphor diagram?
+    ├── YES → Tier 3 (authored SVG). Budget design time.
+    └── NO ↓
+        Is this a cheat-sheet or code-context diagram (lives next to dense text)?
+        ├── YES → Tier 4 (ASCII / box-drawing).
+        └── NO → Tier 1 (Mermaid). Default.
+```
+
+**Authors should never weigh "D2 vs Mermaid" per-diagram.** One default, held. ([[../docs/research/11-pedagogy/05-figures-diagrams/README]] § Recommended decision posture.)
+
+### Cross-cutting requirements (apply to all tiers)
+
+1. **Accessibility is mandatory, not optional.** Every figure ships with `<title>` + `<desc>` (or `accTitle` + `accDescr` in Mermaid source) + a prose figcaption. The scaffold validator (Phase 2.6+) should fail the build on figures missing these.
+
+2. **Dark mode via CSS-variable substitution.** SVG fills/strokes use `var(--diagram-primary, #fallback)`; page CSS swaps the variable per theme. One SVG, two themes — no JS swap, no dual files. Tools that don't emit CSS-variable SVG (TikZ, Excalidraw, some Mermaid themes) need a post-export rewrite step in the scaffold's diagram pipeline. ([[../docs/research/11-pedagogy/05-figures-diagrams/README]] § cross-cutting finding 4.)
+
+3. **Build-time, not runtime.** Mermaid + D2 + TikZ + authored SVG all render to static `public/figures/*.svg` at build. The static site has zero diagram-rendering toolchain in production. Source-hash caching avoids re-rendering unchanged diagrams.
+
+4. **Source and artifact separate.** The `.mermaid` fence (or `.tex` file, or Figma export) lives in repo as the editable source; the `.svg` in `public/figures/` is the build artifact. Diff review reads source; readers consume artifact.
+
+5. **Working-memory cap.** Diagrams obey the same Miller/Cowan ≤7-node limit as prose chunks ([[theory-miller-chunking-schemas]]). Bigger architectures get decomposed across multiple linked diagrams, not crammed into one.
+
+6. **Print-friendly fonts.** Print/PDF pipelines either embed font outlines as `<path>` or restrict to system-available fonts. Decision deferred until v2 PDF work begins.
+
+### Math notation
+
+For inline + display math (token-economics, sampling, cost formulas), adopt **KaTeX** via `rehype-katex`. Build-time, accessible (KaTeX emits `<math>` MathML alongside the rendered output), no runtime dependency. MathJax is more feature-complete but heavier; KaTeX covers what a practitioner book needs. Filed as Phase 0.7 scaffold work item if the integration doesn't already exist.
+
+### Open questions for the figure pipeline
+
+- **Mermaid plugin choice**: `remark-mermaidjs` (Puppeteer-based, mature) vs `@theguild/remark-mermaid` (newer, lighter). Needs a small PoC before settling.
+- **TikZ pipeline ownership**: does `book-scaffold-astro` own the LaTeX → SVG conversion, or does the LaTeX source repo build its own SVG artifacts that `handbook/` consumes? Leaning source-repo-owns (cleaner separation), but needs CI alignment.
+- **CSS-variable injection step**: a regex-replace pass that rewrites Mermaid's emitted `fill="#xxx"` → `fill="var(--diagram-x, #xxx)"`. Build once in the scaffold; reuse across volumes.
+- **C4 architecture diagrams** (Volume 2): Mermaid added C4 in v9.4 but quality is uneven. C4-PlantUML is the best-in-class option. Defer decision until Volume 2 outlines exist.
+- **Interactive figure scaffold** (v1.5+): when scoped, design `<InteractiveFigure>` to enforce keyboard nav + `aria-live` + no-JS fallback as a structural constraint, not per-figure manual responsibility.
+
+---
+
 ## Source attribution + freshness (already in place)
 
 Two existing conventions stay as the v1.0 baseline:
@@ -357,6 +432,12 @@ State of each pedagogical choice as of 2026-05-23. **OPEN** = still exploring; *
 | 18 | Numbered Tips à la Pragmatic Programmer | **OPEN** | ~50 total cap across volumes if adopted. Decision deferred — could enrich the handbook but adds editorial coordination cost |
 | 19 | Two-tier exercise model (inline + end-of-chapter) | **OPEN** | Recommended per [[book-csapp-bryant]]; needs Phase 0.7 `<Practice>` component. Decision deferred until that scaffold work is sized |
 | 20 | `llms.txt` + "for agents" pivot page per volume | **DECIDED** (2026-05-23) — yes | Becoming table-stakes per [[site-resend-docs]] + [[site-vercel-docs]]. Implementation in Phase 1.5 (deploy) per existing roadmap |
+| 21 | Four-tier figure stack (Mermaid / TikZ-inherited / authored SVG / ASCII) | **DECIDED** (2026-05-23) | See "Figures + diagrams" section. Backed by 9 tech-comparison notes in `docs/research/11-pedagogy/05-figures-diagrams/`. Per-figure decision tree locked |
+| 22 | Mermaid as the diagrams-as-code default (not D2, not Graphviz, not PlantUML) | **DECIDED** (2026-05-23) | Tilt: built-in `accTitle`/`accDescr` accessibility primitives ([[tech-mermaid]]). No other diagrams-as-code tool emits a11y tags without post-processing |
+| 23 | SVG as universal output target (regardless of source tech) | **DECIDED** (2026-05-23) | Enables uniform accessibility hooks, CSS-variable dark mode, print-clean vectors, source-hash caching. Source format diverges; production artifact does not |
+| 24 | Dark mode via CSS-variable substitution (one SVG, two themes) | **DECIDED** (2026-05-23) | Avoid dual-file swap pattern (doubles build cost, duplicates a11y tags, breaks print-CSS). Post-export rewrite step in scaffold's diagram pipeline handles tools that don't emit CSS-variable SVG natively |
+| 25 | KaTeX for math notation (not MathJax, not images) | **DECIDED** (2026-05-23) | KaTeX is faster and lighter; emits MathML for a11y. Phase 0.7 scaffold work if not already wired |
+| 26 | D3 / React Flow / runtime-rendered interactive figures | **DEFERRED to v1.5+** | All static for v1.0. When scoped, `<InteractiveFigure>` enforces keyboard nav + `aria-live` + no-JS fallback as structural constraints |
 
 ---
 

@@ -1,8 +1,8 @@
 # Topic 11 — Visual pedagogy + multi-format content design
 
-The research foundation for `handbook/PEDAGOGY.md` and the handbook's chapter-rewrite conventions. Sprint executed 2026-05-23 across 4 parallel sub-area agents.
+The research foundation for `handbook/PEDAGOGY.md` and the handbook's chapter-rewrite conventions. Initial sprint executed 2026-05-23 across 4 parallel sub-area agents; figure/diagram sub-topic added 2026-05-23 as a focused 5th slice.
 
-**Stats**: 38 source notes + 4 sub-topic READMEs across 4 nested directories. All notes follow the standard cache template (per-source frontmatter, citation-ready quotes with Anchor lines, `[[slug]]` cross-references).
+**Stats**: 47 source notes + 5 sub-topic READMEs across 5 nested directories. All notes follow the standard cache template (per-source frontmatter, citation-ready quotes with Anchor lines, `[[slug]]` cross-references).
 
 ## Sub-topics
 
@@ -12,6 +12,7 @@ The research foundation for `handbook/PEDAGOGY.md` and the handbook's chapter-re
 | 02 | Information design + IA literature | [02-information-design/](./02-information-design/) | 10 (Tufte ×2, NN/g ×3, Wurman, Krug, Boulton, CLT + Hick's, Diátaxis framework) | All T1 (foundational primary sources) |
 | 03 | Multimedia learning + pedagogy theory | [03-multimedia-learning/](./03-multimedia-learning/) | 7 (Mayer, Sweller, Paivio, Bjork, Bruner, Bloom, Miller/Cowan) | All T1 (academic primary sources) |
 | 04 | Established handbook-genre examples | [04-handbook-genre/](./04-handbook-genre/) | 7 (Pragmatic Programmer, Effective-* series, DDIA, SICP, CS:APP, Skiena, Refactoring) | T2/T3 (publisher metadata + practitioner reviews) |
+| 05 | Figure / diagram rendering technologies | [05-figures-diagrams/](./05-figures-diagrams/) | 9 (Mermaid, D2, TikZ, authored SVG, ASCII, Excalidraw, Graphviz, PlantUML, D3+React-Flow) | Mixed T1/T3 (official docs + practitioner comparisons) |
 
 ## Headline findings (synthesized across sub-topics)
 
