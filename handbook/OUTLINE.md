@@ -82,6 +82,7 @@ All entries below are currently 🟡.
 **Moved to Appendix A**: 1M-window strategy (absolute tokens not percentages), compaction protocol, PreCompact/PostCompact hooks, context-curation concentric-rings model, horizontal-scaling strategies.
 **Rationale for split**: Core context hygiene (window management) is Part II material everyone needs. Scaling strategies are Part III/advanced — keep them in the book but as a focused appendix.
 **PoC artifacts** (2026-05-23): 4 supplement-format PoCs at [`src/content/poc/ch05-*`](./src/content/poc/) render at `/poc/ch05-tutorial`, `/poc/ch05-howto-recover-runaway-context`, `/poc/ch05-tldr`, `/poc/ch05-cheat-sheet`. Tutorial worked example: "30 messages in, context bloated, mid-task" → recovery.
+**Figure + v4 components** (2026-05-24): tutorial PoC adopts `<YouWillLearn>` / `<WorkedExample>` / `<Pitfall>` × 4 / `<Figure>`. Tutorial figure: `figures/context-budget/context-budget.svg` (3 stacked bars: Fresh / Working / Degraded sessions; 60% degradation + 83% auto-compaction thresholds annotated). Cheat-sheet uses the compact variant; ASCII budget chart retired.
 
 ### Ch 6. Thinking Together
 **Source**: `05_thinking_partner.tex` (515 lines) → ~500 lines (minimal trim).

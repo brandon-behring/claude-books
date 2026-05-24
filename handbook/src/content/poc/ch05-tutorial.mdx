@@ -12,9 +12,18 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 
-> **You will learn**: why context degrades over a long session, how to read the warning signs, and the four commands that recover a session (`/clear`, `/compact`, `/rewind`, `/btw`). Plus: the **two-failure rule** for knowing when to stop debugging and start over. Targeted at readers with at least one real Claude Code session under their belt (Ch 1–4 prerequisites).
+<YouWillLearn prerequisites="Ch 1–4 — at least one real Claude Code session under your belt.">
+- Why context degrades over a long session — and how to read the warning signs
+- The four commands that recover a session: `/clear`, `/compact`, `/rewind`, `/btw`
+- The **two-failure rule** for knowing when to stop debugging and start over
+- How `CURRENT_WORK.md` + session naming preserve state across resets
+</YouWillLearn>
 
 ## The chapter in one paragraph
 
@@ -56,7 +65,7 @@ session start    ░░░░░░░░░░░░░░░░░░░░░
 
 The first lesson: **tool results are the dominant cost**. A chat-only session can run for hours; a tool-heavy session fills the budget in 30-40 turns. The second lesson: **degradation is gradual**, so you cannot rely on Claude to tell you it is happening. You have to recognize the symptoms yourself.
 
-## Worked example: a session that fills its context
+<WorkedExample id="context-fill-example" title="A session that fills its context — and the signal that says it has">
 
 You are 30 messages into a debugging session. The original task was "find and fix the bug in the auth flow that drops sessions after 5 minutes." You have:
 
@@ -70,6 +79,15 @@ You ask Claude for fix #4. Claude suggests setting the cookie's `max_age` to `36
 <InsightBox title="The signal Claude just gave you">
   Claude proposed a fix it already discarded. That is not Claude getting worse at coding — it is Claude's attention saturating. Context is now bloated enough that earlier conversation is competing with newer information for relevance, and the older discussion lost. This is the **first failure** in the two-failure rule. One repeat suggestion is data; a second one is a verdict.
 </InsightBox>
+
+</WorkedExample>
+
+<Figure
+  src="/figures/context-budget/context-budget.svg"
+  alt="Three horizontal stacked bars representing context-window usage in Fresh, Working, and Degraded session states. Each bar is divided into CLAUDE.md (blue), task context (teal), noise (orange), and available (gray) regions. Fresh: 75% available. Working: 40% available with 15% noise. Degraded: 25% available with 40% noise. Two vertical orange threshold lines at the ~60% mark (degradation onset, pre-1M models) and ~83% mark (auto-compaction trigger)."
+  caption="Context composition over a session. Noise (errors, retries, abandoned approaches) grows fastest, crowding signal. The ~60% threshold marks where pre-1M quality drops non-linearly; auto-compaction triggers at ~83%. Ported from the LaTeX source repo's `05_context.tex` via the v4.2.0 TikZ pipeline."
+  width="100%"
+/>
 
 You have four options, each suited to a different situation. Knowing which to reach for is the chapter's central skill.
 
@@ -193,10 +211,21 @@ The "after" pattern costs you 30 seconds at session end and saves 5-10 minutes o
 
 ## Pitfalls (common context mistakes)
 
-- **Ignoring auto-compaction prompts.** When Claude Code asks to compact, accept. Declining buys you a few minutes and costs you the rest of the session's quality.
-- **`/clear`-ing too aggressively.** If the task continues and the history is still relevant, `/compact` preserves more value. Reach for `/clear` at task boundaries, not in the middle of one.
-- **Skipping `CURRENT_WORK.md`.** Every session that ends without a note costs the next session a slow re-orientation. Three sentences is enough.
-- **Treating the 1M window as infinite.** Auto-compaction at ~83% exists for a reason: even 1M tokens degrades when full. Same discipline applies; the budget is just bigger.
+<Pitfall title="Ignoring auto-compaction prompts">
+When Claude Code asks to compact, accept. Declining buys you a few minutes and costs you the rest of the session's quality. The prompt fires at ~83% because that's where degradation accelerates — the system has measured the cliff, and you do not have better data than the system on your current trajectory.
+</Pitfall>
+
+<Pitfall title="`/clear`-ing too aggressively">
+If the task continues and the history is still relevant, `/compact` preserves more value than `/clear`. Reach for `/clear` at task *boundaries*, not in the middle of one. A useful rule of thumb: if you can write the next prompt in a sentence after `/clear`-ing, the boundary was real. If the next prompt needs three paragraphs of re-context, you should have `/compact`-ed instead.
+</Pitfall>
+
+<Pitfall title="Skipping `CURRENT_WORK.md`">
+Every session that ends without a note costs the next session a slow re-orientation. Three sentences is enough: what you were doing, what is done, what is next. The 30 seconds at session end save 5-10 minutes at session start — that compounding return makes it one of the highest-leverage habits in the handbook.
+</Pitfall>
+
+<Pitfall title="Treating the 1M window as infinite">
+Auto-compaction at ~83% exists for a reason: even 1M tokens degrades when full. Same discipline applies; the budget is just bigger. The 60-70% degradation threshold is pre-1M; the 83% auto-compaction trigger is stable across model sizes. Bigger windows let you run longer between resets — they don't eliminate the need to reset.
+</Pitfall>
 
 ## Retrieve before you summarize
 
