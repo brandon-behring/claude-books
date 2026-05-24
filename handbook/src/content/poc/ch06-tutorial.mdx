@@ -1,0 +1,258 @@
+---
+title: "Ch 6 — Thinking Together (Tutorial)"
+poc_kind: tutorial
+chapter_source: 6
+description: "Narrative tutorial — Claude as collaborative thinking partner. Mindset shift from delegate to collaborate via the interview pattern. Covers hypothesis debugging, pre-mortem, Feynman, and interview prompts."
+last_updated: "2026-05-23"
+visual_intent: "Narrative + worked debugging arc where Claude starts wrong, the reader notices the sycophantic fix, and the interview pattern recovers. BeforeAfter for delegate-vs-collaborate prompt pairs. Retrieval prompts and TryThis at end."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+
+> **You will learn**: why "delegate vs collaborate" is the wrong frame for working with Claude, how to recognize sycophantic agreement before it costs you a bad decision, and four named patterns — **hypothesis debugging**, **pre-mortem**, **Feynman**, and **interview** — that turn Claude from a confident pattern-matcher into a thinking partner. Targeted at readers comfortable with basic Claude Code usage who are ready to change *how they prompt*, not what they prompt for.
+
+## The chapter in one paragraph
+
+Most developers oscillate between two modes when working with Claude: **delegate** (hand off a task, accept what comes back) and **collaborate** (pair-program in real time). Both leave value on the table. Delegation invites sycophancy — Claude pattern-matches a plausible-looking answer and you ship it. Collaboration without structure burns context on conversation that could have been a focused prompt. The third frame is **interview**: you ask Claude to interview *you* about the problem before proposing a solution, or you interview Claude about its proposed solution before accepting it. Four named patterns operationalize the interview frame at different stages of a task.
+
+<KeyIdea>
+Delegate and collaborate are both about who is doing the work. Interview is about who is doing the thinking. The default failure mode of LLMs is to produce a fluent answer that looks right; the cure is to make the model surface its reasoning, its uncertainty, and its alternatives before you commit.
+</KeyIdea>
+
+## A debugging session that starts wrong
+
+Here is a real-shaped session. The reader's pasted error is on top; Claude's response follows. Watch what happens.
+
+```
+You: Tests are failing in CI but pass locally. Here's the failure:
+
+  AssertionError: expected 1717027200000 to equal 1717023600000
+
+  at tests/billing.spec.ts:84
+
+How do I fix this?
+
+Claude: This is a timezone issue. CI runs in UTC and your local
+machine is probably in a different timezone, so the expected
+timestamp is shifted by one hour. Wrap the assertion in a
+timezone-normalized comparison:
+
+  expect(toUTC(actual)).toEqual(toUTC(expected))
+
+Would you like me to apply this change to billing.spec.ts?
+```
+
+The answer looks confident, names a plausible cause, and offers a one-line fix. Most readers would say "yes, apply it." That is the failure.
+
+<MarginNote variant="warning" label="Warning">
+  Confidence is not evidence. The fluency of a fix is uncorrelated with its correctness.
+</MarginNote>
+
+Look at the numbers: `1717027200000 - 1717023600000 = 3600000` milliseconds = exactly one hour. The timezone hypothesis matches *the pattern of the numbers*, but Claude has not looked at `billing.spec.ts` line 84 to see how the timestamp was constructed. It pattern-matched and proposed. If the actual cause is a DST boundary, a leap-second-adjacent test, a billing-cycle off-by-one, or a frozen-clock mock that differs between environments, the proposed fix will paper over the symptom and the bug will return.
+
+## The interview pattern recovers
+
+Instead of accepting, the reader switches mode:
+
+```
+You: Before applying anything, interview me about this failure.
+What would you need to see in the codebase to be confident in
+your diagnosis, and what are 2-3 alternative hypotheses for
+why this specific pair of timestamps differs by exactly
+3,600,000 ms?
+
+Claude: Good questions to ask:
+
+  1. How is the expected timestamp constructed in the test?
+     (Hardcoded? Computed from `new Date()`? Read from a
+     fixture?)
+  2. How is the actual timestamp produced in the code under
+     test? Is it using the system clock, a clock abstraction,
+     or a fixture?
+  3. Is there a clock-mocking library (`vi.useFakeTimers`,
+     `sinon.useFakeTimers`) in this suite?
+
+Alternative hypotheses, ranked by my confidence:
+
+  A. DST boundary — if the test runs near a spring-forward
+     date, the local-to-UTC offset shifts by exactly 1h
+     during the test window.
+  B. Frozen-clock mock with a hardcoded UTC value that the
+     code-under-test bypasses (reading `Date.now()` directly).
+  C. The fixture was generated on a machine with TZ=America/
+     New_York and assumes EST, but the test runs in EDT (or
+     vice versa). The 1h delta is the EST/EDT difference, not
+     a UTC offset.
+
+To distinguish: read billing.spec.ts:84 and look at how
+`expected` is constructed.
+```
+
+Now there is something to verify. The reader reads the test file, finds that `expected` is hardcoded from a fixture generated months ago in EST, and the test runs in EDT in CI. Hypothesis C wins. The fix is to compute the expected value from the same clock the code uses, not to wrap a `toUTC()` call that would have silently masked the fixture rot.
+
+<InsightBox title="What changed in the second exchange">
+  The first prompt asked for a solution; Claude produced a plausible one and the reader had no way to evaluate it. The second prompt asked Claude to enumerate what it would need to know and to rank alternative hypotheses. The reader now had a *decision procedure*: read the file, check which hypothesis matches the evidence, apply the matching fix. The interview pattern moved the thinking from Claude's first guess to the reader's evidence.
+</InsightBox>
+
+## Delegate vs collaborate vs interview
+
+<BeforeAfter>
+<div slot="before">
+
+```
+You: Fix the failing test in billing.spec.ts.
+```
+
+</div>
+<div slot="after">
+
+```
+You: Interview me about the failing test in billing.spec.ts
+before proposing a fix. What would you need to read or know
+to be confident in a diagnosis? Then list 2-3 alternative
+hypotheses with the evidence that would distinguish them.
+```
+
+</div>
+</BeforeAfter>
+
+<MarginNote variant="tip" label="Tip">
+  "Interview me" is a load-bearing phrase. It flips the conversational role from answerer to questioner.
+</MarginNote>
+
+The "before" delegates. Claude will fix something — possibly the right thing, possibly not, and you will not know which. The "after" interviews. Claude surfaces what it does not know, you decide what to investigate, and the fix lands on evidence rather than pattern match.
+
+## Four named patterns
+
+These four patterns share a common shape: **make Claude do work that is harder to fake than producing a fluent answer**. Each fits a different stage of a task.
+
+### 1. Hypothesis debugging
+
+**When**: a test fails, a service errors, a metric drifts — anything where the visible symptom under-determines the cause.
+
+**Shape**: ask Claude to enumerate 2-4 hypotheses ranked by confidence, with the evidence that would distinguish each. Then go gather that evidence before accepting any fix.
+
+```
+Symptom: <paste error, log, stack trace, or metric anomaly>
+
+Don't fix this yet. List 3 hypotheses for the root cause,
+ranked by your confidence. For each, name the single piece
+of evidence that would confirm or rule it out. Identify the
+cheapest evidence to gather first.
+```
+
+The "cheapest evidence first" clause matters. Without it Claude tends to propose investigations that involve reading half the codebase. With it, Claude scopes to the one log line or the one test that resolves the question fastest.
+
+### 2. Pre-mortem
+
+**When**: you are about to make an irreversible decision — pick a database, deprecate an API, restructure a directory, lock in a vendor.
+
+**Shape**: ask Claude to imagine the project six months in the future, after this decision has failed badly, and to describe what went wrong. Inversion produces risks that planning misses.
+
+```
+Imagine it is six months from now. We adopted <decision> and
+it failed badly. Write the post-mortem: what specifically
+went wrong, what signals we missed, and what we should have
+asked at decision time. Be concrete and harsh — name the
+specific failure mode, not just "scaling problems."
+```
+
+The how-to companion to this chapter ([Ch 6 how-to: pre-mortem](#)) walks through one end-to-end.
+
+### 3. Feynman
+
+**When**: you suspect you do not understand a thing as well as you think you do — a regex, a SQL query, an algorithm, a config flag.
+
+**Shape**: explain it to Claude as if Claude were a smart undergraduate, then ask Claude to identify the parts of your explanation that are vague, hand-wavy, or probably wrong.
+
+```
+I'm going to explain how <topic> works in my own words. Read
+it as if you were a smart undergrad encountering this for the
+first time. Then identify:
+
+  1. Sentences that are vague or use jargon I haven't defined
+  2. Claims I'm asserting without justification
+  3. Places where you'd ask me a clarifying question
+
+<your explanation>
+```
+
+Named after the physicist Richard Feynman's "if you can't explain it simply, you don't understand it." The mistake to avoid: do not skip the explanation and ask Claude to summarize the topic for you. The point is to surface *your own* gaps.
+
+### 4. Interview
+
+**When**: at the start of any non-trivial task — implementing a feature, writing a migration, designing an API.
+
+**Shape**: have Claude interview *you* before producing anything. Reverses the usual flow where you produce requirements and Claude produces code.
+
+```
+Before you start: interview me. Ask 5-7 questions whose
+answers would substantially change what you build. Number
+them so I can answer in batch. Don't propose a solution until
+I've answered.
+```
+
+The "5-7" range is deliberate. Fewer and Claude under-probes; more and the conversation gets tedious. The "substantially change what you build" clause filters out softball questions ("what framework?" when the framework is obvious) in favor of decision-shaping ones ("should this fail loudly or silently if the source data is missing a column?").
+
+## Anti-sycophancy: a quick guide
+
+Sycophancy is the failure mode where Claude agrees with a wrong premise in your prompt because the prompt frames it as obvious. The patterns above all push against it. Three quick red flags:
+
+- **"You're absolutely right"** in response to a claim you have not actually verified. If you said "I think the bug is in the cache layer" and Claude opens with "you're absolutely right, the cache layer is the issue" *before reading the cache code*, that is sycophancy.
+- **A fluent fix produced before any file was read**. If Claude proposes a code change and there is no `Read` tool call in the transcript above it, the change is based on pattern not evidence.
+- **No alternatives mentioned**. A real diagnosis usually has competitors. If Claude proposes exactly one cause and one fix, ask for the alternatives explicitly.
+
+<MarginNote variant="warning" label="Warning">
+  Sycophancy is highest at the start of a session when Claude has the least context. The interview pattern at session-start is partly a sycophancy vaccine.
+</MarginNote>
+
+The rewording fix is mechanical: take the load-bearing claim out of your prompt, and ask Claude to reach the claim from the evidence. Instead of "the cache layer is broken — fix it," try "something is producing stale reads in this endpoint. Before proposing a fix, list the components in the request path and rank which is most likely the source."
+
+## ADRs: writing decisions down
+
+Architecture Decision Records (ADRs) are the durable artifact that the four patterns produce. Each ADR has three sections:
+
+- **Context** — what was true at decision time; what alternatives existed; what constraints applied
+- **Decision** — what was chosen and why
+- **Consequences** — what becomes easier; what becomes harder; what signals would tell us we chose wrong
+
+<InsightBox title="Why ADRs matter for AI-assisted work">
+  Claude has no memory across sessions by default. ADRs become the persistent reasoning trace that lets a future you (or a future Claude session) understand *why* a decision was made, not just *what* was decided. Without ADRs, every cross-session decision review starts from zero.
+</InsightBox>
+
+The cheat sheet has the full 3-section ADR template. The how-to walks through a pre-mortem that produces one.
+
+## Where this goes next
+
+- **Ch 5 — Context as currency** — the interview pattern is most valuable when context budget is precious. Use it early in a session before context fills.
+- **Ch 7 — Verification** — the hypothesis-debugging output is verifiable; the delegated fix is not. Ch 7 builds the validation architecture that turns "Claude proposed it" into "Claude proposed it and the test proves it."
+- **Ch 11 — Memory and decision provenance** — ADRs feed into the long-term memory layer for project decisions.
+
+## Pitfalls
+
+- **Asking the interview question, then ignoring the questions** — Claude lists 7 things it would need to know and you answer one and ask for the code anyway. The questions are the deliverable; answer all of them.
+- **Pre-mortem with vague decisions** — "we will use microservices" is too vague; "we will split the billing module into its own service with its own database by Q3" is concrete enough for Claude to imagine specific failures.
+- **Feynman as a summarization shortcut** — asking "explain X to me" is not Feynman. Feynman is *you* explaining, Claude critiquing.
+
+## Retrieve before you summarize
+
+Close this page and answer:
+
+1. What is the third frame, and what does it flip about the conversation?
+2. Name the four patterns and the stage of a task each one fits.
+3. What are the three sycophancy red flags?
+4. What are the three sections of an ADR, and which one captures "what signals would tell us we chose wrong"?
+
+<TryThis>
+  Pick a decision you are about to make this week — a library choice, an API design, a refactor, a deprecation. Before you commit:
+
+  1. Run the **interview** pattern: ask Claude to ask you 5-7 decision-shaping questions. Answer them in writing.
+  2. Run the **pre-mortem** pattern on the resulting design. Write down the three most concrete failure modes Claude names.
+  3. Draft a 3-section ADR (Context / Decision / Consequences). The Consequences section should incorporate the failure modes from step 2.
+
+  Total time: ~30 minutes. Output: one ADR, one prompt history, and a substantially better-evidenced decision than the one you would have made by delegating.
+</TryThis>

@@ -1,0 +1,150 @@
+---
+title: "Extending Claude — pick the lightest extension that does the job"
+poc_kind: tutorial
+chapter_source: 8
+description: "Long-form tutorial — the decision framework for choosing among commands, skills, hooks, MCP servers, plugins, CLI, and IDE integrations. The lever is the decision, not the mechanics of any single extension."
+last_updated: "2026-05-23"
+visual_intent: "Narrative + worked example. The Diátaxis tutorial mode. Decision framework as the spine; a single real use case walked through the framework live. Tour of the four main extension types follows. Retrieval prompts + TryThis at end."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+
+> **You will learn**: a decision framework for picking among Claude Code's extension types (commands, skills, hooks, MCP servers, plugins, the CLI, and IDE integrations) — and why "which extension?" is the actual lever, not the mechanics of any single one. Targeted at **L2 (Configured) → L3 (Systematic)** maturity; assumes you have a CLAUDE.md in place and have run at least one configured session.
+
+## The chapter in one paragraph
+
+Claude Code is extensible at seven layers, ordered roughly by weight: **slash commands**, **agent skills**, **hooks**, **MCP servers**, **plugins**, the **CLI itself**, and **IDE integrations**. Most teams reach for the wrong one — they build an MCP server when a 12-line slash command would have done the job, or they jam everything into CLAUDE.md when a hook would enforce the rule mechanically. The decision is almost always: **reach for the lightest extension that does the job**, and **prefer consuming an existing extension over building one**. This chapter teaches the framework, then walks a real use case through it live, then tours the four most common types.
+
+<KeyIdea>
+Reach for the lightest extension that does the job; build new only when consuming fails. The hierarchy goes command → skill → hook → MCP server. Each step up is more power, more surface area, and more maintenance — only step up when the layer below cannot express what you need.
+</KeyIdea>
+
+## The decision framework
+
+Five questions, in order. Stop at the first one whose answer commits you to a layer.
+
+1. **Is this a reusable prompt?** Same instructions, used across many sessions, no need for tool-access changes or external services. → **Slash command** (`.claude/commands/<name>.md`).
+2. **Is this a reusable *procedure* with its own tool access or sub-agent feel?** A multi-step workflow with its own context envelope (e.g., "run our release checklist"). → **Agent skill** (`.claude/skills/<name>.md`).
+3. **Does this need to fire automatically at a lifecycle event?** Block dangerous commands, format on save, log every tool call, gate every prompt. → **Hook** (`.claude/settings.json` `hooks` field).
+4. **Does Claude need access to data or tools that live outside this repo?** A database, a SaaS API, an internal service. → **MCP server** (`.mcp.json`) — **and almost always consume an existing one**, not build your own.
+5. **None of the above fits, or the answer is "all of them packaged together"?** → **Plugin**, **CLI** (for headless), or **IDE integration** (for in-editor surfacing).
+
+<MarginNote variant="tip" label="Tip">
+  Walk the questions in order. Stopping early is the goal. A team that stops at #1 every time is winning; a team that always reaches #4 is building too much.
+</MarginNote>
+
+## Worked example: "every PR gets a security-review pass"
+
+A concrete use case. Walk it through the framework live so you see the reasoning.
+
+**The need**: every time a teammate opens a PR, we want Claude to run a security-review pass and post inline comments on suspicious changes.
+
+**Question 1 — Is this a reusable prompt?** Partly. The instructions ("look for SQL injection, leaked secrets, auth bypass; cite line numbers; suggest fixes") *are* reusable. We *could* package them as `/security-review` and ask a teammate to run it manually after opening every PR. Useful — but it doesn't fire automatically, and "remember to run /security-review" is the kind of step humans forget.
+
+→ **A slash command is part of the answer**, but not the whole answer.
+
+**Question 2 — Is this a reusable procedure?** Yes. There's a sequence: fetch the PR diff, scan for the categories above, produce structured findings, format as a comment, post. That's procedural — it benefits from being a skill so Claude reaches for it consistently and has the right tool access (gh for PR ops, Read/Grep for code scan).
+
+→ **A skill is part of the answer.** Specifically, `.claude/skills/security-review.md` that knows the procedure end-to-end.
+
+**Question 3 — Does this need to fire automatically?** Yes, on PR open. That's not a Claude Code hook — Claude Code hooks fire on *Claude's* lifecycle events (`PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `Stop`, etc.), not GitHub's. The automation layer for GitHub events is **GitHub Actions**, which invokes Claude via the CLI in headless mode.
+
+→ **A hook is not the right tool here.** A GitHub Action that calls the Claude CLI in headless mode + invokes the skill is the right tool.
+
+**Question 4 — Does Claude need external data?** Yes — the GitHub API. But there's already a well-supported way to access it: the `gh` CLI. No need for a custom MCP server. (If we needed *structured*, *typed* GitHub access from inside a long-running Claude session, MCP would be on the table — but for a one-shot scan, `gh` via Bash is sufficient.)
+
+→ **No new MCP server.** Consume `gh`.
+
+**Question 5 — Anything else?** The CLI piece is doing the headless invocation. That's already covered.
+
+**Final composition**: a **skill** (`.claude/skills/security-review.md`) that uses `gh` and the file-reading tools, invoked by the **CLI** in **headless mode** from a **GitHub Action** on PR open. Three layers, each doing the lightest job that gets the result. **Zero custom MCP server built.**
+
+<InsightBox title="Why this composition wins">
+  The naive answer — "build an MCP server that integrates Claude with GitHub" — is a six-week project that duplicates what `gh` already does. The decision-framework answer — "skill + CLI + Action" — is a one-afternoon project that uses existing infrastructure. The lever was knowing which extension type each piece of the problem actually needs.
+</InsightBox>
+
+## The four main extension types — what each is for
+
+### Slash commands
+
+<MarginNote variant="note" label="Official">
+  Slash commands live at <code>.claude/commands/&lt;name&gt;.md</code> (project-scoped) or <code>~/.claude/commands/&lt;name&gt;.md</code> (user-scoped). Invoked as <code>/name</code>. <a href="https://docs.claude.com/en/docs/claude-code/slash-commands">docs.claude.com/en/docs/claude-code/slash-commands</a>
+</MarginNote>
+
+The cheapest, lightest extension. A markdown file that becomes a reusable prompt. Examples: `/release-notes`, `/format-pr-description`, `/explain-this-error`. If you find yourself typing the same instructions into Claude more than twice, package them as a command.
+
+**When to reach for**: any repeatable prompt that doesn't need to fire automatically, doesn't need its own tool-access envelope, and doesn't need external services.
+
+**When NOT to reach for**: when the work is procedural with multiple distinct phases — that's a skill. When the work needs to fire on a lifecycle event — that's a hook.
+
+### Agent skills
+
+A skill is a markdown file with frontmatter that packages a *procedure*, not just a prompt. Skills have their own tool-access declarations and feel more like a sub-agent invocation than a prompt expansion. Examples: `/release-checklist`, `/security-review`, `/migration-runbook`.
+
+**When to reach for**: multi-step procedures with their own logical envelope. Things you'd otherwise type as "first do X, then Y, then Z, checking W along the way."
+
+**When NOT to reach for**: a single-step reusable prompt — that's a command. Cross-cutting enforcement — that's a hook.
+
+<MarginNote variant="tip" label="Tip">
+  Skills are the right home for "the way our team does X" workflows. They become the institutional memory of your repo.
+</MarginNote>
+
+### Hooks
+
+Hooks fire on Claude's lifecycle events. The most common are `PreToolUse` (block or modify a tool call before it runs), `PostToolUse` (react to a result), `UserPromptSubmit` (gate or augment every prompt), and `Stop` (run something when Claude finishes). They live in `.claude/settings.json` under the `hooks` field and execute shell commands.
+
+**When to reach for**: enforcement that must happen *mechanically*, not on the model's discretion. Examples: deny-list dangerous bash commands; auto-format files after Edit; log every tool call to a JSON file; require a confirmation before any `git push`.
+
+**When NOT to reach for**: anything you can express as instructions in CLAUDE.md *and trust the model to follow*. Hooks are for the cases where you don't trust the model to follow instructions — typically because the cost of a slip is too high (destructive ops) or the rule is mechanical (formatting).
+
+### MCP servers
+
+MCP (Model Context Protocol) servers expose external tools and resources to Claude. They live in `.mcp.json` and run as separate processes (often via npx). Examples of common consumed servers: a Postgres MCP for typed DB access, a Sentry MCP for log queries, a Slack MCP for posting messages.
+
+**When to reach for** (consuming): Claude needs structured, typed access to an external system *during* a session, and there's an existing MCP server for it. Adopt it.
+
+**When NOT to reach for**: when a `Bash` invocation of an existing CLI (`gh`, `aws`, `kubectl`, `psql`) covers the need. CLI-via-Bash is lighter than MCP for one-shot tasks.
+
+<MarginNote variant="warning" label="Warning">
+  Building an MCP server is a real software project — protocol, transport, tool schemas, error handling, deployment. Consume first; build only when consuming fails.
+</MarginNote>
+
+## Boundary: what this chapter does NOT cover
+
+This chapter is about **which extension to reach for and how to consume them**. The chapter does **not** teach:
+
+- How to **design** an MCP server (transport choice, tool schemas, resource model, sampling, prompts). → **Architect's Reference** (Phase 2).
+- How to **write Agent SDK hooks programmatically** (versus declarative `.claude/settings.json` hooks). → **Architect's Reference**.
+- How to **build a plugin** for distribution. → **Architect's Reference**.
+
+If you've identified that the right answer is "build a new MCP server" or "write a custom hook handler that does X via the SDK," your next stop is the Architect's Reference, not deeper into this chapter.
+
+## Retrieve before you summarize
+
+Close this page and answer:
+
+1. What are the five questions in the decision framework, in order?
+2. Why is a Claude Code hook **not** the right tool for "fire when a teammate opens a PR"?
+3. When should you build a new MCP server instead of consuming one?
+4. What's the difference between a slash command and a skill — when would you pick each?
+
+<TryThis>
+  Pick one repeatable task you currently re-prompt Claude for in your own work (something you've typed similar instructions for three or more times). Walk it through the decision framework:
+
+  1. Is this a reusable prompt? If yes, draft `.claude/commands/&lt;name&gt;.md`.
+  2. If it's procedural, draft `.claude/skills/&lt;name&gt;.md` instead.
+  3. If it needs to fire automatically on a Claude lifecycle event (e.g., "block every git push to main"), draft a hook in `.claude/settings.json`.
+
+  Commit whichever you produced. This is your first deliberate climb of the extension hierarchy — and the start of your repo's institutional memory.
+</TryThis>
+
+## Where this goes next
+
+This chapter spirals into two other parts of the handbook and one sibling volume:
+
+- **Skills, deeper** — the next handbook chapter on customization patterns builds on the skill examples here with more advanced templates (forked skills as sub-agents, skill composition).
+- **Hooks for verification** — Ch 7's verification architecture uses `PostToolUse` hooks as one of the six validation layers.
+- **Designing MCP servers** — the **Architect's Reference** picks up where this chapter stops. If the framework here landed you on "build a new MCP server," that's where to go.

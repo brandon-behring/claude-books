@@ -1,0 +1,290 @@
+---
+title: "Testing & Verification — six layers, plus the one Claude can't see"
+poc_kind: tutorial
+chapter_source: 7
+description: "Long-form tutorial — the 6-layer validation architecture plus the 7th 'domain correctness' layer. Phase-appropriate standards. Verification criteria in CLAUDE.md. Hooks as enforcement. Targeted at L2–L3 maturity."
+last_updated: "2026-05-23"
+visual_intent: "Narrative + worked example. Opens with a session where every test passes and the code is still wrong. Progressive disclosure through the six layers. Phase table near the end. Retrieval prompts close it."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import MaturityLevel from '../../components/MaturityLevel.astro';
+
+> **You will learn**: the six layers of validation that catch progressively expensive classes of bugs, the seventh layer (**domain correctness**) that no automated check can replace, how to choose which layers are required at which project phase, and how to encode verification criteria in `CLAUDE.md` plus enforce them with hooks so "done" actually means done. Targeted at <MaturityLevel n={2} />–<MaturityLevel n={3} /> maturity; written for readers who've configured Claude (Ch 2–4) and want a reliability discipline.
+
+## The chapter in one paragraph
+
+Tests passing is not the same as the code being correct. Six automated layers — **type checking, linting, unit tests, integration tests, end-to-end / smoke tests, manual verification** — each catch a distinct class of bug, ordered from cheapest (compile-time) to most expensive (human eyes). Above all six sits a seventh layer Claude *cannot* check on its own: **domain correctness** — "the code runs, but does it solve the actual problem?" The discipline that prevents wasted sessions is to (1) declare which layers are required at this project's phase, (2) write those layers' criteria into `CLAUDE.md` so Claude executes them before claiming done, and (3) use hooks to make skipping them impossible.
+
+<KeyIdea>
+Verification is the difference between "Claude said it works" and "it actually works." Tests can pass because the assertion was wrong, the data was synthetic, or the spec was misunderstood. A six-layer validation stack catches automatable bugs; the seventh layer — domain correctness — requires you.
+</KeyIdea>
+
+## Worked example: every test passes, the code is wrong
+
+A session from last week. The task was small: write a function that returns the **median** weekly active users (WAU) across the last 12 weeks, from a Postgres query result.
+
+Claude wrote this:
+
+```python
+def median_wau(weeks: list[int]) -> float:
+    """Return the median of the last 12 weeks' WAU counts."""
+    if not weeks:
+        raise ValueError("Need at least one week of data")
+    sorted_weeks = sorted(weeks)
+    mid = len(sorted_weeks) // 2
+    return float(sorted_weeks[mid])
+```
+
+And these tests:
+
+```python
+def test_median_wau_basic():
+    assert median_wau([1, 2, 3]) == 2.0
+
+def test_median_wau_single_value():
+    assert median_wau([100]) == 100.0
+
+def test_median_wau_empty_raises():
+    with pytest.raises(ValueError):
+        median_wau([])
+```
+
+<MarginNote variant="tip" label="Tip">
+  Both tests pass. Type checker passes. Linter passes. The session looked complete.
+</MarginNote>
+
+Layer 1 (type checking): pass. Layer 2 (lint): pass. Layer 3 (unit tests): pass. Layer 4 (integration): pass — the function is pure, no integration surface. Layer 5 (e2e smoke): pass — the dashboard renders a number. Layer 6 (manual review of the diff): pass — the code is short and reads cleanly.
+
+The dashboard shipped. A week later a stakeholder noticed the "median" number was systematically a little high. The bug:
+
+```python
+return float(sorted_weeks[mid])   # wrong for even-length lists
+```
+
+For a list of length 12 (the actual production case), `mid = 6`, and the function returns the **7th** element of the sorted list — not the average of the 6th and 7th. The unit tests used **odd-length** inputs, so the bug never surfaced. The integration and e2e tests rendered *some* number on the page; they never checked it was the *right* number.
+
+<InsightBox title="What failed wasn't the tests — it was the spec">
+  Six automated layers passed because none of them asked "is this actually the median, by the standard mathematical definition, for the input shape that production will hand it?" That question is **layer 7** — domain correctness — and it is the one layer Claude cannot reliably check on its own, because Claude is reading the same spec that produced the bug. You are the only validator who can hold the spec accountable.
+</InsightBox>
+
+The fix took one line. The 90 minutes of debugging stakeholder confusion took longer. The lesson is not "write better unit tests" — it's "domain correctness is a separate layer, and you own it."
+
+## The six automated layers (cheap to expensive)
+
+Each layer catches a class of bug the layers below it can't catch. Each layer also costs more — in compute, in author time, or in maintenance — than the layer below it. The discipline is to run the cheap layers always, and to escalate to expensive ones only when the cheap ones aren't enough.
+
+<MarginNote variant="note" label="Note">
+  Ordering matters: a type error caught by `tsc` is one second of feedback. The same bug caught by an e2e test is 30 seconds of feedback, plus an unclear stack trace.
+</MarginNote>
+
+### Layer 1 — Type checking
+
+**Catches**: shape errors, nullability bugs, accidental `any`, refactors that drift signatures out of sync.
+
+**Cost**: milliseconds per file. The cheapest signal you will ever buy.
+
+**Skip when**: you literally cannot run a type checker (untyped legacy code, single-file scripts where the typing overhead exceeds the script's value). Almost never.
+
+In Python: `mypy`, `pyright`, or `ty`. In TS: `tsc --noEmit`. In Rust / Go / Haskell: the compiler does it for you on every build.
+
+### Layer 2 — Linting
+
+**Catches**: style violations, dead code, common bug patterns (unused imports, mutable default args, missing await, eqeqeq mismatches).
+
+**Cost**: seconds. Usually pre-commit or save-time.
+
+**Skip when**: you've inherited a codebase that hasn't been linted in years and the noise floor would drown out signal. Even then, lint **new files** in isolation.
+
+### Layer 3 — Unit tests
+
+**Catches**: logic bugs in a single function or class, given controlled inputs. Edge cases (empty list, negative number, off-by-one).
+
+**Cost**: depends on test count and isolation. A 200-test suite that runs in 4 seconds is healthy; a 200-test suite that needs a database is not actually unit-tested.
+
+**Skip when**: the function is provably trivial (a single return of a literal). Almost never otherwise.
+
+<InsightBox title="Property-based tests catch what example-based tests miss">
+  The median bug above survived example-based tests because the author chose odd-length inputs. A **property-based test** — "the median should satisfy `sum(x <= m) >= len(x)/2 and sum(x >= m) >= len(x)/2`" — would have failed on every even-length input the property-based test generator threw at it.
+</InsightBox>
+
+Hypothesis-style example (annotated):
+
+```python
+from hypothesis import given, strategies as st
+
+@given(st.lists(st.integers(min_value=0, max_value=10_000), min_size=1, max_size=52))
+#      ^ generator: random lists of 1-52 non-negative ints (the WAU shape)
+def test_median_is_actually_the_median(weeks):
+    m = median_wau(weeks)
+    below = sum(1 for x in weeks if x <= m)
+    above = sum(1 for x in weeks if x >= m)
+    assert below >= len(weeks) / 2   # at least half are <= m
+    assert above >= len(weeks) / 2   # at least half are >= m
+    #      ^ the mathematical definition of median, asserted directly
+```
+
+Hypothesis runs this on ~100 generated inputs by default, shrinking any failure to a minimal reproducer. **It would have found the even-length bug on the first run.**
+
+### Layer 4 — Integration tests
+
+**Catches**: bugs at boundaries between modules — your function vs. the actual database, your function vs. the real HTTP client, your function vs. the real config loader.
+
+**Cost**: seconds to tens of seconds. Often requires test infrastructure (a test database, a mock server, fixtures).
+
+**Skip when**: you have very few inter-module boundaries (a script with one function and no I/O). Otherwise: required at <MaturityLevel n={3} />+.
+
+### Layer 5 — End-to-end / smoke tests
+
+**Catches**: bugs in the full stack — the user's browser hits the real backend, the real frontend renders, the real data flows. The "did we actually ship a working product" check.
+
+**Cost**: tens of seconds to minutes. Slow, flaky, expensive to maintain. **One smoke test per critical user path** is usually sufficient.
+
+**Skip when**: you're writing a library (no "end" to test). Otherwise: at least one happy-path smoke for production systems.
+
+### Layer 6 — Manual verification
+
+**Catches**: things you didn't think to write a test for — UX regressions, weird visual glitches, "the number on the dashboard looks wrong," accessibility issues, copy errors.
+
+**Cost**: human attention. Expensive, irreplaceable.
+
+**Skip when**: never, for user-facing changes. Always for internal refactors with full automated coverage.
+
+## The seventh layer — domain correctness
+
+The six layers above are about **code that runs**. The seventh layer is about **code that solves the right problem**.
+
+<KeyIdea>
+Layers 1–6 verify "this function does what its tests say it does." Layer 7 — domain correctness — verifies "what the function does is actually what the business needed." Claude cannot reliably check layer 7 on its own because Claude is reading the same spec you are.
+</KeyIdea>
+
+Domain correctness is where the median bug lived. The tests asserted what the author *believed* about medians; the function did what the tests said; the spec said "show the median WAU." Every layer was internally consistent. The only failure was the gap between the math and the implementation — and that gap is the kind of thing that only a human with **domain knowledge** (or a much more carefully specified test) can close.
+
+**Practical heuristics for layer 7**:
+
+- After every nontrivial change, ask: *"if I describe what this code does in one sentence, does that sentence match the user-facing requirement?"*
+- For statistical / numerical code, **run the change on a known example with a known answer** before trusting any test.
+- For UX changes, **load the page and click the thing**. Tests can pass with the button still broken.
+- For data pipelines, **eyeball a row of output**. Schema validation does not catch wrong-but-well-typed values.
+
+## Phase-appropriate standards
+
+Not every project needs all six layers. The discipline is to declare — explicitly, in `CLAUDE.md` — which layers are required at this project's current phase, and to enforce that declaration with hooks.
+
+<MarginNote variant="warning" label="Warning">
+  The failure mode is *not* "we used too few layers" — it's "we never decided which layers were required, so each session relitigates the question." Decide once, encode it, enforce it.
+</MarginNote>
+
+| Phase | What it is | Required layers | Skip / defer |
+|---|---|---|---|
+| **Prototype** (<MaturityLevel n={1} />–<MaturityLevel n={2} />) | Exploring whether a thing is possible; lifespan = days | 1, 2, 3 (smoke only) | 4, 5, 6 deferred |
+| **MVP / internal tool** (<MaturityLevel n={2} />–<MaturityLevel n={3} />) | A small group depends on it; lifespan = weeks | 1, 2, 3, 4 | 5 if no UI; 6 on each change |
+| **Production / user-facing** (<MaturityLevel n={3} />+) | External users; uptime matters | 1, 2, 3, 4, 5 | None |
+| **Critical-path / regulated** (<MaturityLevel n={4} />+) | Failure = money / safety / compliance cost | 1–6, plus formal review + audit log | None; expand layer 6 |
+
+The mistake of using **prototype** standards on production code is well-known. The opposite mistake — using **production** standards on a 2-day spike — is just as expensive: it makes exploration slow and discourages the experiments that find out whether the thing is worth building at all.
+
+## Encode the criteria in CLAUDE.md
+
+Once you've picked your phase, write the verification criteria *into* `CLAUDE.md` so Claude executes them before claiming a task is done. Verification criteria that live in your head live in your head only.
+
+<BeforeAfter>
+<div slot="before">
+
+```markdown
+# CLAUDE.md
+Write tests for new code.
+Run tests before saying you're done.
+```
+
+</div>
+<div slot="after">
+
+```markdown
+# CLAUDE.md
+
+## Verification criteria (this project = MVP phase)
+
+Before claiming a task is complete, run and report:
+
+1. `mypy src/` — must pass with zero errors
+2. `ruff check src/ tests/` — must pass
+3. `pytest tests/ -x` — must pass; report which tests
+   covered the change
+4. For numerical changes: include one worked example with
+   a known answer in the response
+
+Never say "done" if any of 1-3 fails. If 4 doesn't apply,
+say so explicitly.
+```
+
+</div>
+</BeforeAfter>
+
+The "after" version is longer but it converts a vague aspiration ("write tests") into an executable checklist Claude can complete and report on. The fourth criterion — the worked example — is layer 7 enforcement: Claude can't verify domain correctness, but it can show you the evidence you need to verify it yourself.
+
+## Hooks as enforcement
+
+`CLAUDE.md` is guidance. **Hooks are enforcement.** When a verification criterion is non-negotiable, encode it as a `PostToolUse` hook on `Edit`/`Write` (or a `PreCompact` / `Stop` hook) that runs the check and **fails the action** if the check fails.
+
+<MarginNote variant="tip" label="Tip">
+  See Ch 12 for the full hook taxonomy. The shorthand here: hooks fire at fixed lifecycle events; a non-zero exit blocks the action that triggered them.
+</MarginNote>
+
+A minimal example — block any session from ending while tests are red:
+
+```json
+// .claude/settings.json (sketch)
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          { "type": "command", "command": "pytest tests/ -x --quiet" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Now `Stop` (the event Claude tries to fire when it thinks the task is complete) will fail if `pytest` does. Claude sees the failure and continues working. The full pattern — including which event blocks which action and how to write hooks that don't slow the loop to a crawl — is the subject of [the how-to](#).
+
+## Where this goes next
+
+- **Ch 5 — Context as currency**: the cost of verification is context tokens. Choose your layers with the token budget in mind.
+- **Ch 6 — Prompting for verification**: how to ask Claude to verify, not just claim. ("Run the tests and paste the output" is a better prompt than "make sure the tests pass.")
+- **Ch 12 — Hooks deep-dive**: full event taxonomy, exit-code semantics, common patterns.
+- **Ch 14 — Antipatterns**: the specific failure modes of skipping verification, and how to recover.
+
+## Pitfalls
+
+- **Confusing "tests pass" with "code correct"** — see the median example. Tests can pass for many reasons that are not "the code is right."
+- **Using prototype standards on production code** — the asymmetric cost: a layer-1 bug shipped to prod is 100× more expensive than a layer-1 bug caught in a prototype.
+- **Using production standards on a 2-day spike** — exploration grinds to a halt; nothing ever gets validated because nothing ever gets *built*.
+- **Verification criteria in your head, not in `CLAUDE.md`** — every session relitigates the question. Encode once.
+- **Trusting `CLAUDE.md` without a hook** — Claude follows the spirit of `CLAUDE.md` most of the time. "Most of the time" is not "always." For non-negotiable checks, use hooks.
+
+## Retrieve before you summarize
+
+Close this page and answer:
+
+1. Name the six automated layers in cheap-to-expensive order. What class of bug does each catch that the layer below it can't?
+2. The median example: which layers passed? Why did the bug survive? What was the layer that was missing?
+3. What's the difference between encoding a verification criterion in `CLAUDE.md` vs. enforcing it with a hook? When would you use each?
+4. Your project is in the "MVP / internal tool" phase. Which layers are required, and which can you defer?
+
+<TryThis>
+Pick the most recent task Claude finished for you. For each of the six automated layers, ask:
+
+1. Did Claude run it? (Or just claim it?)
+2. If yes, was the output reported in the session, or did you have to ask?
+3. For the seventh layer — domain correctness — did **you** verify the change does what the requirement actually wanted, by running it on a real example?
+
+If any layer was skipped that shouldn't have been, add it to your project's `CLAUDE.md` under a `## Verification criteria` section. This is your first investment in the verification stack.
+</TryThis>

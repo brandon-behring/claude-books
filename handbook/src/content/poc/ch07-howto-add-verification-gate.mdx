@@ -1,0 +1,185 @@
+---
+title: "How to add a verification gate that blocks 'done' until tests pass"
+poc_kind: how-to
+chapter_source: 7
+description: "Task-oriented how-to: add a CLAUDE.md verification-criteria block + a Stop hook so Claude can't claim a task is done while tests are red. Concrete, copy-pasteable. Assumes Ch 7 background."
+last_updated: "2026-05-23"
+visual_intent: "Procedural. Numbered steps, code-heavy. The reader is shipping a verification gate in 15 minutes."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+
+> **You have**: a project where Claude regularly says "done!" and then you discover the tests were never run, or were run and failed silently. **You want**: a verification gate that (1) tells Claude exactly which checks to run before claiming completion, and (2) makes it physically impossible to end the session while those checks are red.
+
+## Prerequisites
+
+- Claude Code installed; you can edit `.claude/settings.json` for this project.
+- A test runner that exits 0 on pass and non-zero on fail (`pytest`, `vitest`, `go test`, etc.).
+- 15 minutes.
+- Familiarity with [Ch 7's six-layer model](#) — this how-to operationalizes layers 1–3 as a gate; layer 7 (domain correctness) stays human.
+
+## Steps
+
+### 1. Decide which layers your gate covers
+
+Match the gate to your project phase. (Full table in the [cheat sheet](#).)
+
+| Phase | Gate covers | Out of scope for the gate |
+|---|---|---|
+| Prototype | Type check + lint | Tests (still run, but not gated) |
+| MVP | Type check + lint + unit tests | Integration + e2e |
+| Production | All of 1–5 | Manual review (human) + domain correctness (human) |
+
+This how-to walks the **MVP** case: type check + lint + unit tests are gated. Adapt the commands for other phases.
+
+### 2. Write the verification criteria into `CLAUDE.md`
+
+At the project root, add (or extend) `CLAUDE.md`:
+
+```markdown
+## Verification criteria
+
+This project is in the **MVP** phase. Before claiming any
+task is complete, you MUST:
+
+1. Run `mypy src/` — report the output. Must be zero errors.
+2. Run `ruff check src/ tests/` — report the output. Must pass.
+3. Run `pytest tests/ -x --quiet` — report the output.
+   Must pass; mention which tests covered the change.
+4. For numerical or statistical changes, include one
+   worked example with a known answer in your response so
+   the reviewer can spot-check domain correctness.
+
+Never claim "done" if 1, 2, or 3 fails. If you cannot run
+them, say so explicitly — do not assume they pass.
+```
+
+<MarginNote variant="tip" label="Tip">
+  Be explicit about the failure mode ("Never claim 'done' if..."). Claude is good at following explicit prohibitions and bad at inferring them from positive instructions.
+</MarginNote>
+
+### 3. Add a `Stop` hook that enforces the gate
+
+`CLAUDE.md` is guidance; the hook is enforcement. In `.claude/settings.json` (create it if it doesn't exist):
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/scripts/verify.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The `Stop` event fires when Claude tries to end its turn (i.e., when it would say "done"). If the hook exits non-zero, the action is blocked and Claude sees the failure as feedback.
+
+<MarginNote variant="note" label="Cross-Ref">
+  Full hook event taxonomy + exit-code semantics: see Ch 12. The shorthand: non-zero exit on a `Stop` hook blocks the turn-end and surfaces the message to Claude.
+</MarginNote>
+
+### 4. Write the verify script
+
+Create `.claude/scripts/verify.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Verification gate — MVP phase
+# Each layer fails fast with a clear message.
+
+echo "[1/3] type check..."
+mypy src/ || { echo "FAIL: mypy errors above. Fix before claiming done." >&2; exit 1; }
+
+echo "[2/3] lint..."
+ruff check src/ tests/ || { echo "FAIL: lint errors above." >&2; exit 1; }
+
+echo "[3/3] unit tests..."
+pytest tests/ -x --quiet || { echo "FAIL: tests above. Fix before claiming done." >&2; exit 1; }
+
+echo "OK: all 3 verification layers passed."
+```
+
+Make it executable: `chmod +x .claude/scripts/verify.sh`.
+
+The `||` pattern with an explicit failure message is the **fail-fast with diagnostics** principle from Ch 1 — Claude reads the failure message and knows exactly which layer to fix.
+
+### 5. Test the gate with a deliberately broken change
+
+Ask Claude to do something small and verifiable, e.g.:
+
+```
+Add a function `add(a: int, b: int) -> int` to src/math.py.
+Return `a - b` instead of `a + b` — I want to test the gate.
+Then try to end your turn.
+```
+
+You should see Claude:
+1. Make the change.
+2. Try to end its turn.
+3. The `Stop` hook fires, runs `verify.sh`.
+4. The unit test (if you have one for `add`) fails.
+5. Claude sees the failure and continues — usually fixing the bug.
+
+If Claude ends its turn successfully despite the broken code, your test coverage for the function is missing. **The gate only enforces what your tests cover.**
+
+### 6. Tune the gate's cost
+
+A `Stop` hook runs on every turn-end. If `pytest` takes 30 seconds, every interaction now costs 30 seconds extra. Mitigations:
+
+- **Scope the test run**: `pytest tests/ -x --quiet -k "not slow"` for the hook; full suite in CI.
+- **Use `--lf` (last-failed)**: only re-run tests that failed last time. Fast feedback when iterating on one bug.
+- **Move slow checks to `PreCompact` or CI**: integration + e2e are often too expensive for a `Stop` hook. Run them on PR.
+
+<KeyIdea>
+A gate that's too slow gets disabled. A gate that's too fast (because it skips real coverage) provides false confidence. The right gate runs the layers cheap enough to tolerate on every turn-end, and ensures the more expensive layers run somewhere (CI, pre-merge).
+</KeyIdea>
+
+### 7. Document the gate in `CLAUDE.md`
+
+So future-you (or a teammate) understands what the gate enforces and how to bypass it intentionally:
+
+```markdown
+## Verification gate (enforced by hook)
+
+A `Stop` hook runs `.claude/scripts/verify.sh` on every
+turn-end. It runs mypy + ruff + pytest. If any fails,
+Claude cannot claim "done" until fixed.
+
+To skip the gate intentionally (e.g., for a WIP commit),
+run with `claude --no-hooks` or set
+`CLAUDE_DISABLE_HOOKS=1` for one session.
+
+The integration + e2e layers run in CI, not in the gate.
+```
+
+## Expected outcome
+
+When Claude finishes a task, it now:
+
+1. Runs the three checks before saying "done" (because `CLAUDE.md` told it to).
+2. If it forgets, the `Stop` hook catches it and the failure is surfaced as feedback.
+3. The 7th layer (domain correctness) stays with you — but the worked-example requirement in step 4 of `CLAUDE.md` gives you the evidence you need to verify it quickly.
+
+## When this fails
+
+- **Hook doesn't fire** — `Stop` is the right event for "Claude is about to end the turn." Check `claude --debug` to see hook resolution. If you see `PostToolUse` firing but not `Stop`, the session might not be reaching turn-end (still working). That's fine.
+- **Hook fires too often / too slow** — see step 6. Trim the test selection or move slow checks to CI.
+- **Claude bypasses the gate by claiming "I checked"** — the gate catches the action, not the claim. If Claude says "I ran the tests" without actually invoking the hook-blocked path, that's a `CLAUDE.md` wording issue — strengthen the prohibition.
+- **Gate fails on unrelated existing breakage** — fix the existing breakage first, or add an explicit "known failures" allowlist to the script. The gate is binary; partial failures are not a useful signal.
+
+## See also
+
+- [Ch 7 — Testing & Verification (tutorial)](#) — the 6+1 layer model.
+- [Ch 7 — Cheat sheet](#) — phase matrix + hook event reference.
+- [Ch 12 — Hooks deep-dive](#) — full event taxonomy, exit codes, and patterns beyond `Stop`.

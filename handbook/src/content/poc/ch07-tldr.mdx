@@ -1,0 +1,60 @@
+---
+title: "Ch 7 — Testing & Verification (TL;DR)"
+poc_kind: tldr
+chapter_source: 7
+description: "1-page compressed version of Ch 7. The 6+1 layer reference table is the punchline. ~5-min read."
+last_updated: "2026-05-23"
+visual_intent: "Compressed. Single KeyIdea + the 6+1 layer table. No worked example, no retrieval prompts — those live in the tutorial."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want the chapter's central claim before deciding whether to read the full tutorial — or who finished it and need a refresher. ~5-min read.
+
+<KeyIdea>
+Verification is the difference between "Claude said it works" and "it actually works." Six automated layers catch progressively expensive classes of bug. A seventh — **domain correctness** — only you can check. Pick the layers your project's phase requires, encode them in `CLAUDE.md`, and enforce the non-negotiable ones with hooks.
+</KeyIdea>
+
+## The 6+1 layers
+
+| # | Layer | Catches | Cost | Skip if |
+|---|---|---|---|---|
+| 1 | **Type checking** | Shape errors, nullability, refactor drift | ms / file | You literally can't run a type checker. Almost never. |
+| 2 | **Linting** | Style violations, dead code, common bug patterns | seconds | Inherited codebase with massive noise floor — even then, lint new files. |
+| 3 | **Unit tests** | Logic bugs in single functions; edge cases | sec–min | Provably trivial function. Almost never otherwise. |
+| 4 | **Integration tests** | Bugs at module boundaries (DB, HTTP, config) | sec–min | Very few inter-module boundaries. |
+| 5 | **End-to-end / smoke** | Full-stack regressions; "did we ship a working product?" | min | You're writing a library (no "end"). |
+| 6 | **Manual verification** | UX, visual, accessibility, "the number looks wrong" | human attention | Internal refactor with full automated coverage. |
+| **7** | **Domain correctness** *(human-only)* | "Code runs, but does it solve the actual problem?" | judgement | Never — Claude can't check this for you. |
+
+<MarginNote variant="warning" label="Warning">
+  Tests passing is not the same as the code being correct. The example-based unit test for a `median()` function passes with a sorted-array off-by-one bug, because the author chose odd-length inputs. Layer 7 is real.
+</MarginNote>
+
+## Phase-appropriate standards
+
+The mistake is *not* using too few layers — it's never **deciding** which layers are required, so each session relitigates the question. Decide once:
+
+- **Prototype**: 1, 2, 3 (skip 4–6).
+- **MVP / internal**: 1, 2, 3, 4 (manual review per change).
+- **Production**: 1, 2, 3, 4, 5 (manual on user-facing surface).
+- **Critical-path**: 1–6 + formal review + audit.
+
+## Encode + enforce
+
+- `CLAUDE.md` declares the criteria so Claude runs them before claiming done.
+- **Hooks** make the non-negotiable ones impossible to skip. A `Stop` hook that runs `verify.sh` blocks the turn-end when tests are red.
+- Layer 7 stays with you — but a `CLAUDE.md` clause requiring a worked example on numerical changes gives you the evidence to verify it fast.
+
+## What spirals from here
+
+- **Ch 5 — Context as currency** — verification consumes tokens. Choose layers with the budget in mind.
+- **Ch 12 — Hooks deep-dive** — full event taxonomy, exit codes, patterns beyond `Stop`.
+- **Ch 14 — Antipatterns** — the specific failure modes of skipping verification.
+
+## Drill in
+
+- **[Full tutorial](#)** — the median worked example + all six layers + the seventh, with annotated Hypothesis code. ~15-min read.
+- **[How-to: add a verification gate](#)** — `CLAUDE.md` snippet + `Stop` hook + `verify.sh` in 15 minutes.
+- **[Cheat sheet](#)** — ASCII layer pyramid, phase × layer matrix, hook event reference. Look-up oriented.
