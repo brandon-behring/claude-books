@@ -20,6 +20,14 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — PR routing + issue routing + upstream-label policy + round-closeout discipline
 - [`../LICENSE`](../LICENSE) (CC BY 4.0, content) + [`../LICENSE-SCRIPTS`](../LICENSE-SCRIPTS) (MIT, scripts). TikZ figure sources are content (CC BY 4.0), not scripts.
 
+**Design docs** (in-repo, date-prefixed superseded chain — per `docs/guides-recon.md` §9):
+
+- [`../docs/design/2026-05-22_initial-bootstrap.md`](../docs/design/2026-05-22_initial-bootstrap.md) — project roadmap (three volumes, decisions, cert ecosystem, Phase 0 → 5+, cross-cutting concerns)
+- [`../docs/design/2026-05-23_visual-pedagogy.md`](../docs/design/2026-05-23_visual-pedagogy.md) — theoretical rationale for PEDAGOGY decisions (Bruner / Bjork / Mayer / Sweller / Miller-Cowan; companion to [`PEDAGOGY.md`](./PEDAGOGY.md) which holds the decisions + author-facing rules)
+- [`../docs/guides-recon.md`](../docs/guides-recon.md) — 13-category comparative analysis of `~/guides/` patterns; drives ongoing adoption rounds
+
+**Style guide** (planned next commit in current round): [`./docs/style-guide.md`](./docs/style-guide.md) — author-facing rules derived from PEDAGOGY decisions + LaTeX-era lint rules.
+
 ## Frontmatter conventions (per `OUTLINE.md`)
 
 Every chapter MDX file uses this frontmatter shape:

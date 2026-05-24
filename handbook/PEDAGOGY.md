@@ -299,7 +299,7 @@ The MDX component `<WorkedExample>` is now available at `@brandon_m_behring/book
 - An `id` prop that becomes `#worked-example-{id}` (prefixed to avoid heading-anchor collisions) for direct linking from TL;DRs and cheat-sheets
 - Optional `expanded` prop to ship open by default for small examples
 
-Rationale: worked examples are valuable but interrupt prose flow. Closed-by-default collapsibles let scanners skip them; learners click to expand. This is **Sweller's worked-example effect** ([[theory-sweller-cognitive-load]] — the principle that complete examples reduce extraneous load for novices) layered with **hierarchical disclosure** ([[nng-progressive-disclosure]]).
+Rationale (Sweller's worked-example effect + NN/g progressive disclosure): full theoretical justification in [`../docs/design/2026-05-23_visual-pedagogy.md`](../../docs/design/2026-05-23_visual-pedagogy.md) § "Worked-example collapsible — why this specific UX".
 
 **Adoption plan**: PoCs use inline worked examples for now (the existing Ch 1 / Ch 5-8 tutorial PoCs); chapter v1.0 prose adopts `<WorkedExample>` opportunistically when worked examples exceed ~30 lines. Round 1 / 2 cross-chapter observation: worked examples are the spine of every tutorial; collapsing the heaviest ones lets the surrounding narrative breathe.
 
@@ -395,15 +395,16 @@ These give readers **epistemic transparency**: they see *where* claims come from
 
 Why the spiral curriculum + scattered worked examples + cross-references — instead of "introduce a concept fully, then never revisit it"?
 
-**Bruner's spiral curriculum** ([[theory-bruner-spiral-curriculum]]) — concepts are revisited at increasing depth as the learner matures. Each revisit explicitly connects back to the earlier treatment so the learner perceives accumulating mastery, not redundancy. The LaTeX source's `00_preamble.tex` already enacts this. The cache note distills it as a design rule: *"designate 4–6 spine concepts per volume that recur in ≥ 3 chapters at increasing depth, with each pass targeting a higher Bloom verb (Remember → Understand → Apply → Analyze → Evaluate → Create)."*
+**Full theoretical rationale extracted to [`../docs/design/2026-05-23_visual-pedagogy.md`](../../docs/design/2026-05-23_visual-pedagogy.md)** during the 2026-05-24 design-doc refactor. That doc cites the five load-bearing bodies of theory (Bruner spiral, Bjork desirable difficulties, Mayer signaling, Sweller worked-example effect, Miller/Cowan chunking) and explains how they combine to justify the decisions below.
 
-**Bjork's "desirable difficulties"** ([[theory-bjork-desirable-difficulties]]) — making learning *harder* in specific ways (spaced retrieval, interleaved practice, varying contexts) **improves long-term retention** even though it makes initial learning slower and feel harder. The cross-references between chapters force readers to integrate concepts across contexts; the worked-example placements interleave abstract principle with concrete application. Applied as: *"every chapter ends with 2–4 retrieval prompts ('close the book and answer') before any recap. Summaries are rereading; retrieval is what builds long-term retention."*
+Quick reference:
+- **Bruner spiral** → decision #1 + #10 (concepts recur at depth; ≥3-chapter spine)
+- **Bjork desirable difficulties** → decision #15 (retrieval prompts at chapter end, not summary recap)
+- **Mayer signaling** → decision #5 (8-category margin notes) + #11 (visual presentation principles) + #14 (rich callout vocabulary)
+- **Sweller worked-example effect** → decision #8 (`<WorkedExample>` collapsible; SHIPPED + ADOPTED)
+- **Miller/Cowan chunking** → visual presentation principles + figures-section node-cap rule (≤7 per diagram)
 
-**Mayer's signaling principle** ([[theory-mayer-multimedia-principles]]) — visual + verbal cues that direct attention to essential material improve learning. The 8-category margin-note system is signaling: `Cost` directs financial attention; `Warning` directs failure-mode attention; etc. Differentiating them visually (color + label) makes the signal actionable.
-
-**Sweller's worked-example effect** ([[theory-sweller-cognitive-load]]) — complete worked examples reduce extraneous load for novices and outperform unguided problem-solving early in learning. The handbook's plan: *"open conceptual chapters with a complete, annotated worked example before any 'your turn' exercise. Fade from worked → partial → exercise across chapters."* The `<WorkedExample>` MDX component (Phase 0.7) renders these collapsibly so expert readers can skip.
-
-**Working-memory budget** ([[theory-miller-chunking-schemas]]) — Miller's 7±2 + Cowan's 4 chunks for novices. Hard limits per section: ≤4–5 bullets per list; ≤5 boxes per architecture diagram; ≤30 words per sentence; ≤3 new concepts per section.
+Decisions below operationalize these theories as engineering constraints on chapter authoring.
 
 ---
 
@@ -444,13 +445,16 @@ State of each pedagogical choice as of 2026-05-23. **OPEN** = still exploring; *
 
 ## Open questions deferred to v1.1+
 
-These are real questions but not blockers for v1.0:
+Full list moved to [`../docs/design/2026-05-23_visual-pedagogy.md`](../../docs/design/2026-05-23_visual-pedagogy.md) § "Open questions deferred to v1.1+" during the 2026-05-24 refactor (includes the original 5 items plus 2 added from guides-recon: PFL transfer-model adoption + multi-paradigm presentation lint).
 
-- **Sub-chapter prerequisite tagging** — currently each chapter has one maturity level. Should sections within a chapter be tagged "this section assumes L3+ background"? Useful for advanced material in an L1-tagged chapter; complexity tradeoff. Revisit after 4-5 chapters land in v1.0.
-- **Reader profile router on landing page** — explicit MDX-rendered version of the four-persona "How to Read" pathways. Blocked on Phase 0.7 scaffold component work.
-- **Glossary integration** — `<TermDef>` + `<Term>` MDX components + a `glossary/` workspace member. Blocked on Phase 0.7 scaffold work. Will replace the implicit `[Vocab]` margin-note category once landed.
-- **Live API playgrounds** — interactive Claude API examples embedded in chapters. Deferred to post-v1.0 per the project roadmap.
-- **Re-audit cadence for fast-moving content** — the staleness banner triggers at 90 days but doesn't enforce a refresh. Add a CI check that fails the build for content > 90 days stale + `volatility: fast-moving` once Ch 1–5 are in v1.0.
+Quick reference:
+- Sub-chapter prerequisite tagging (DEFERRED to v1.1 per decision #9)
+- Reader profile router on landing page (blocked on Phase 0.7 scaffold work)
+- Glossary integration (`<TermDef>` / `<Term>`, blocked on Phase 0.7)
+- Live API playgrounds (deferred to post-v1.0 per roadmap)
+- Re-audit cadence CI check (after Ch 1-5 land in v1.0)
+- PFL transfer-model adoption (P2 per guides-recon)
+- Multi-paradigm presentation lint (P3 per guides-recon)
 
 ---
 
