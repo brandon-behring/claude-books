@@ -11,9 +11,18 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 
-> **You will learn**: why "delegate vs collaborate" is the wrong frame for working with Claude, how to recognize sycophantic agreement before it costs you a bad decision, and four named patterns — **hypothesis debugging**, **pre-mortem**, **Feynman**, and **interview** — that turn Claude from a confident pattern-matcher into a thinking partner. Targeted at readers comfortable with basic Claude Code usage who are ready to change *how they prompt*, not what they prompt for.
+<YouWillLearn prerequisites="Comfortable with basic Claude Code usage; ready to change how you prompt, not what you prompt for.">
+- Why "delegate vs collaborate" is the wrong frame for working with Claude
+- How to recognize **sycophantic agreement** before it costs you a bad decision
+- Four named patterns — **hypothesis debugging**, **pre-mortem**, **Feynman**, **interview** — that turn Claude from a confident pattern-matcher into a thinking partner
+- The **interview pattern** as the third frame between delegate and collaborate
+</YouWillLearn>
 
 ## The chapter in one paragraph
 
@@ -23,7 +32,9 @@ Most developers oscillate between two modes when working with Claude: **delegate
 Delegate and collaborate are both about who is doing the work. Interview is about who is doing the thinking. The default failure mode of LLMs is to produce a fluent answer that looks right; the cure is to make the model surface its reasoning, its uncertainty, and its alternatives before you commit.
 </KeyIdea>
 
-## A debugging session that starts wrong
+<WorkedExample id="sycophancy-interview" title="Claude pattern-matches a sycophantic timezone hypothesis — the interview pattern recovers">
+
+### A debugging session that starts wrong
 
 Here is a real-shaped session. The reader's pasted error is on top; Claude's response follows. Watch what happens.
 
@@ -54,7 +65,7 @@ The answer looks confident, names a plausible cause, and offers a one-line fix. 
 
 Look at the numbers: `1717027200000 - 1717023600000 = 3600000` milliseconds = exactly one hour. The timezone hypothesis matches *the pattern of the numbers*, but Claude has not looked at `billing.spec.ts` line 84 to see how the timestamp was constructed. It pattern-matched and proposed. If the actual cause is a DST boundary, a leap-second-adjacent test, a billing-cycle off-by-one, or a frozen-clock mock that differs between environments, the proposed fix will paper over the symptom and the bug will return.
 
-## The interview pattern recovers
+### The interview pattern recovers
 
 Instead of accepting, the reader switches mode:
 
@@ -97,6 +108,22 @@ Now there is something to verify. The reader reads the test file, finds that `ex
 <InsightBox title="What changed in the second exchange">
   The first prompt asked for a solution; Claude produced a plausible one and the reader had no way to evaluate it. The second prompt asked Claude to enumerate what it would need to know and to rank alternative hypotheses. The reader now had a *decision procedure*: read the file, check which hypothesis matches the evidence, apply the matching fix. The interview pattern moved the thinking from Claude's first guess to the reader's evidence.
 </InsightBox>
+
+</WorkedExample>
+
+<Figure
+  src="/figures/collaboration-flowchart/collaboration-flowchart.svg"
+  alt="Vertical decision tree with 4 yes/no questions in orange diamonds. Each 'yes' branches right to a teal pattern node. Top: 'Is Claude about to act on a fluent but unverified proposal?' → Interview pattern. Below: 'Debugging a symptom that just appeared?' → Hypothesis Debugging. Below: 'About to commit to a costly architectural choice?' → Pre-mortem. Bottom: 'Want to test your own understanding of something complex?' → Feynman."
+  caption="Which collaboration pattern to reach for. Stop at the first 'yes'. Same stop-at-first-match shape Ch 8's extension-decision tree uses."
+  width="100%"
+/>
+
+<Figure
+  src="/figures/collaboration-quadrant/collaboration-quadrant.svg"
+  alt="2x2 axis. X-axis: Pre-action on left, Post-symptom on right. Y-axis: You probe Claude on top, Claude probes you on bottom. Four patterns plotted as teal nodes: top-left Feynman (you teach; Claude critiques), top-right Hypothesis Debugging (you ask; Claude enumerates), bottom-left Pre-mortem (Claude asks; you imagine failure), bottom-right Interview pattern (Claude asks; you supply evidence)."
+  caption="The same four patterns plotted by *direction of inquiry* (who is probing whom) and *workflow stage* (pre-action vs post-symptom). The flowchart says which to pick; the quadrant says how they relate."
+  width="100%"
+/>
 
 ## Delegate vs collaborate vs interview
 
@@ -234,9 +261,17 @@ The cheat sheet has the full 3-section ADR template. The how-to walks through a 
 
 ## Pitfalls
 
-- **Asking the interview question, then ignoring the questions** — Claude lists 7 things it would need to know and you answer one and ask for the code anyway. The questions are the deliverable; answer all of them.
-- **Pre-mortem with vague decisions** — "we will use microservices" is too vague; "we will split the billing module into its own service with its own database by Q3" is concrete enough for Claude to imagine specific failures.
-- **Feynman as a summarization shortcut** — asking "explain X to me" is not Feynman. Feynman is *you* explaining, Claude critiquing.
+<Pitfall title="Asking the interview question, then ignoring the questions">
+Claude lists 7 things it would need to know and you answer one and ask for the code anyway. The questions are the deliverable; answer all of them. The interview pattern only works if you treat Claude's questions as a checklist, not as conversational noise to push through.
+</Pitfall>
+
+<Pitfall title="Pre-mortem with vague decisions">
+"We will use microservices" is too vague to pre-mortem; Claude can only enumerate generic risks. "We will split the billing module into its own service with its own database by Q3, with all writes going through a new transactional API" is concrete enough for Claude to imagine specific failures — race conditions on the dual-write boundary, schema drift between services, observability gaps. Specificity in the decision unlocks specificity in the failure imagining.
+</Pitfall>
+
+<Pitfall title="Feynman as a summarization shortcut">
+Asking "explain X to me" is not Feynman; it is delegation. Feynman is *you* explaining the concept in your own words, Claude critiquing what you got wrong. Reversing the direction defeats the pattern — the value is in surfacing your own gaps, not in receiving a fluent summary.
+</Pitfall>
 
 ## Retrieve before you summarize
 

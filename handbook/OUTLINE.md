@@ -92,6 +92,7 @@ All entries below are currently 🟡.
 **MDX-native**: `<BeforeAfter>` for "delegate" vs "collaborate" prompt patterns. Collapsible code-block prompt templates for pre-mortem / Feynman.
 **Renumbering note**: This is the second `05_` in the source. Renumbered to `06_` here.
 **PoC artifacts** (2026-05-23): 4 supplement-format PoCs render at `/poc/ch06-tutorial` (Claude-starts-wrong → interview-pattern recovery on a CI failure), `/poc/ch06-howto-pre-mortem`, `/poc/ch06-tldr`, `/poc/ch06-cheat-sheet`.
+**Figures + v4 components** (2026-05-24): tutorial PoC adopts `<YouWillLearn>` / `<WorkedExample>` / `<Pitfall>` × 3 / two `<Figure>` references back-to-back. Tutorial figures: `figures/collaboration-flowchart/collaboration-flowchart.svg` (stop-at-first-match decision tree picking among the 4 patterns) + `figures/collaboration-quadrant/collaboration-quadrant.svg` (2×2 axis: workflow stage × direction of inquiry). Cheat-sheet uses the compact flowchart variant.
 
 ### Ch 7. Testing & Verification
 **Source**: `06_testing.tex` (331 lines) → ~330 lines (minimal trim).

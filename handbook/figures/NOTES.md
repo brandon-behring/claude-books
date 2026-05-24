@@ -49,6 +49,25 @@ For figures that don't fit the agent-loop semantics (e.g., stacked bars, pyramid
 
 **Cycles to "looks right"**: 1 (port from source LaTeX was direct; compact variant added on second pass).
 
+### `collaboration-flowchart` + `collaboration-quadrant` (Ch 6) — first author-from-scratch
+
+**Pattern (flowchart)**: vertical stop-at-first-match decision tree. 4 yes/no questions (orange diamonds) cascading downward; each "yes" branches right to a teal pattern endpoint; each "no" continues down. Same shape Ch 8's extension-decision will use — visual consistency across decision-heavy chapters.
+
+**Pattern (quadrant)**: 2×2 axis with patterns plotted in quadrants. X-axis: workflow stage (Pre-action ← → Post-symptom). Y-axis: direction of inquiry (You probe Claude ↑ vs Claude probes you ↓). Subtle italic quadrant-hint labels in faded gray near corners explain what each quadrant represents.
+
+**Techniques used**:
+- **Decision tree spacing**: `node distance=0.7cm and 1.6cm` — first value is vertical (between questions); second is horizontal (between question and pattern endpoint). The "and" syntax for asymmetric spacing is key.
+- **Question text wrapping**: `text width=3.6cm, font=\sffamily\small` inside the diamond. Without `text width`, the diamond stretches horizontally to fit single-line text and looks wrong.
+- **Arrow labels with white background**: `arrowlabel/.style={fill=white, inner sep=1.5pt}` — punches out the arrow line behind the "yes"/"no" label so it reads cleanly.
+- **2×2 axis**: simple `\draw[axisarrow] (-4.2, 0) -- (4.2, 0)` for horizontal axis; same vertical. Axis end-labels positioned at axis tips with `axislabel/.style={font=\sffamily\small, text=gray!55!black}` for subtle de-emphasis. End-labels use `rotate=90` for Y-axis to read along the axis.
+
+**Tricky bits**:
+- Compact variant of the flowchart: shortened "yes"/"no" labels to "y"/"n" — at the cheat-sheet's smaller font size, the full words felt visually heavy. Question text shortened ("about to commit to a costly architectural choice?" → "Committing to costly choice?"). The pattern endpoint labels stayed the same (they're already short).
+- Quadrant axes are positioned with arrow heads on both ends only on the positive side per axis (Y-arrow points up only; X-arrow points right only). This is intentional — the axis labels read left-to-right / bottom-to-top, and the arrows indicate direction of increase. Bidirectional arrows would suggest the axes are gradients with both directions equally valid; the chosen single-arrow direction implies a "preferred" or "stronger" end.
+- Plotting 4 patterns in 4 quadrants required mapping each to its dominant attribute. Pre-mortem and Interview both involve Claude probing — they share the bottom half. Differentiated by X: pre-mortem is pre-action (left), interview is mid-action (right).
+
+**Cycles to "looks right"**: flowchart 2 (initial draft + arrow-label tweak); quadrant 3 (axis-label placement → quadrant-hint position → pattern coordinates fine-tune).
+
 ## Cross-figure patterns (emerging)
 
 After 2 figures (agent-loop + context-budget), these patterns are starting to recur:
