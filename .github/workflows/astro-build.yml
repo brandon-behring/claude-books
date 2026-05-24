@@ -1,0 +1,43 @@
+name: astro-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'handbook/src/**'
+      - 'handbook/astro.config.mjs'
+      - 'handbook/package.json'
+      - 'handbook/package-lock.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/astro-build.yml'
+  pull_request:
+    paths:
+      - 'handbook/src/**'
+      - 'handbook/astro.config.mjs'
+      - 'handbook/package.json'
+      - 'handbook/package-lock.json'
+      - 'package.json'
+      - 'package-lock.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build handbook
+        run: npm run build --prefix handbook
+        env:
+          BOOK_PRESET: tools
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: handbook-dist
+          path: handbook/dist/
+          retention-days: 7
