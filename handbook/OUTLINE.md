@@ -81,6 +81,7 @@ All entries below are currently 🟡.
 **MDX-native**: Animated context-degradation chart (degradation increases with usage). Session-naming generator.
 **Moved to Appendix A**: 1M-window strategy (absolute tokens not percentages), compaction protocol, PreCompact/PostCompact hooks, context-curation concentric-rings model, horizontal-scaling strategies.
 **Rationale for split**: Core context hygiene (window management) is Part II material everyone needs. Scaling strategies are Part III/advanced — keep them in the book but as a focused appendix.
+**PoC artifacts** (2026-05-23): 4 supplement-format PoCs at [`src/content/poc/ch05-*`](./src/content/poc/) render at `/poc/ch05-tutorial`, `/poc/ch05-howto-recover-runaway-context`, `/poc/ch05-tldr`, `/poc/ch05-cheat-sheet`. Tutorial worked example: "30 messages in, context bloated, mid-task" → recovery.
 
 ### Ch 6. Thinking Together
 **Source**: `05_thinking_partner.tex` (515 lines) → ~500 lines (minimal trim).
@@ -89,6 +90,7 @@ All entries below are currently 🟡.
 **Stale signals**: None. Mindset content is durable.
 **MDX-native**: `<BeforeAfter>` for "delegate" vs "collaborate" prompt patterns. Collapsible code-block prompt templates for pre-mortem / Feynman.
 **Renumbering note**: This is the second `05_` in the source. Renumbered to `06_` here.
+**PoC artifacts** (2026-05-23): 4 supplement-format PoCs render at `/poc/ch06-tutorial` (Claude-starts-wrong → interview-pattern recovery on a CI failure), `/poc/ch06-howto-pre-mortem`, `/poc/ch06-tldr`, `/poc/ch06-cheat-sheet`.
 
 ### Ch 7. Testing & Verification
 **Source**: `06_testing.tex` (331 lines) → ~330 lines (minimal trim).
@@ -96,6 +98,7 @@ All entries below are currently 🟡.
 **Cert domains**: D5 (verification = reliability), D4 (verification criteria), D3 (hooks).
 **Stale signals**: None.
 **MDX-native**: Expandable 6-layer validation grid. Phase-transitions table with checklists per phase. Hypothesis (property-based) code example with annotations.
+**PoC artifacts** (2026-05-23): 4 supplement-format PoCs render at `/poc/ch07-tutorial` ("all 6 automated layers pass and the code is still wrong" worked example), `/poc/ch07-howto-add-verification-gate`, `/poc/ch07-tldr`, `/poc/ch07-cheat-sheet`.
 
 ### Ch 8. Extending Claude
 **Source**: `07_extending.tex` (822 lines — second-longest) → ~450 lines (substantially trimmed).
@@ -105,6 +108,7 @@ All entries below are currently 🟡.
 **MDX-native**: **Interactive extension-decision flowchart** (command → skill → hook → MCP). Sortable hook-events table (Appendix C). Skill frontmatter templates with copy-paste.
 **Moved to Appendix C**: Full 25-event hook reference with examples, hook debugging walkthrough, sandboxing edge cases.
 **Boundary note**: This chapter teaches *which extension to reach for and how to consume one*. **Designing MCP servers, designing custom tools, Agent SDK hook authoring → Architect's Reference**.
+**PoC artifacts** (2026-05-23): 4 supplement-format PoCs render at `/poc/ch08-tutorial` ("security review on every PR" walked through the decision tree → skill + CLI + GitHub Action, zero new MCP server), `/poc/ch08-howto-first-skill`, `/poc/ch08-tldr`, `/poc/ch08-cheat-sheet`.
 
 ---
 
