@@ -14,6 +14,12 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 - Cross-references: ids on labeled components → `src/data/labels.json` via `npm run build:labels`
 - Outline + per-chapter rationale: [`OUTLINE.md`](./OUTLINE.md)
 
+**Workspace-level conventions** (apply across handbook + future Architect's Reference + Field-Guide volumes):
+
+- [`../AUTHORS.md`](../AUTHORS.md) — AI-collaboration scope + out-of-scope HITL disciplines
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — PR routing + issue routing + upstream-label policy + round-closeout discipline
+- [`../LICENSE`](../LICENSE) (CC BY 4.0, content) + [`../LICENSE-SCRIPTS`](../LICENSE-SCRIPTS) (MIT, scripts). TikZ figure sources are content (CC BY 4.0), not scripts.
+
 ## Frontmatter conventions (per `OUTLINE.md`)
 
 Every chapter MDX file uses this frontmatter shape:
