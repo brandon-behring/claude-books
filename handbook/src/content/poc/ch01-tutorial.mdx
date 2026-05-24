@@ -11,9 +11,17 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 
-> **You will learn**: what Claude Code actually is (agent loop, finite context, tool use, configuration layers), four engineering principles that govern every recommendation in this handbook, and why the codebase is the primary teacher Claude learns from. Targeted at **L1 (Conversational)** maturity; written assuming this is your first deliberate engagement with Claude Code.
+<YouWillLearn prerequisites="L1 (Conversational) — first deliberate engagement with Claude Code.">
+- What Claude Code actually is — the **agent loop**, **finite context**, **tool use**, and **configuration layers**
+- The four **engineering principles** that govern every recommendation in this handbook
+- Why the **codebase is the primary teacher** Claude learns from
+</YouWillLearn>
 
 ## The chapter in one paragraph
 
@@ -31,6 +39,13 @@ The same tool produces dramatically different results depending on which mental 
 
 Claude Code runs an **agent loop**: it reads your prompt, reasons about the task, selects a tool (read a file, edit code, run a command), observes the result, and decides what to do next. This cycle repeats until the task is complete or Claude asks for clarification.
 
+<Figure
+  src="/figures/agent-loop/agent-loop.svg"
+  alt="Agent-loop flowchart: prompt flows into reason, which routes via 'tool needed?' to either end_turn (no path) or pick & call tool (yes path). The tool call's result flows into observe result, which loops back to reason."
+  caption="The agent loop: reason → decide → call → observe → repeat. Compiled from TikZ source at figures/agent-loop/agent-loop.tex via the v4.2.0 build-figures pipeline."
+  width="80%"
+/>
+
 Three properties define the system:
 
 - **Context window** — Everything Claude knows about your task (your prompt, files it has read, tool results, conversation history) occupies a finite window. When the window fills, older information fades. Context is not infinite memory; it is a workspace.
@@ -41,9 +56,9 @@ Three properties define the system:
   Developers who treat Claude as a chatbot prompt it like one: vague requests, no verification, no context management. Developers who understand the agent loop prompt it like a system: clear inputs, verification criteria, deliberate context control. The same tool produces dramatically different results depending on which mental model the developer holds.
 </InsightBox>
 
-## Worked example: the agent loop in one session
+<WorkedExample id="agent-loop-walkthrough" title="The agent loop in one session — &quot;find the auth function&quot;">
 
-Here is what happens when you ask Claude Code to "find the function that handles user authentication." Annotated step by step so you can see the loop:
+Annotated step by step so you can see the loop:
 
 ```
 You: "Find the function that handles user authentication."
@@ -67,6 +82,8 @@ Claude responds: "src/auth.py line 47 is `authenticate_user(...)`.
 ```
 
 Each `← tool call` is the loop iterating. The conversation includes everything from your prompt through Claude's response — that whole transcript stays in context until you `/clear` or `/compact`. **A 30-tool-call session can spend half its context budget on tool outputs alone.** This is why "context as currency" (Ch 5) becomes a load-bearing concept later in the handbook.
+
+</WorkedExample>
 
 ## Four engineering principles
 
@@ -158,9 +175,17 @@ The spiral structure is deliberate. Each revisit explicitly connects back to thi
 
 ## Pitfalls (common first-session mistakes)
 
-- **Treating Claude as a chatbot** — vague requests, no verification, no context management. Reads like the "before" of every example in this chapter.
-- **Ignoring tool-call cost** — letting Claude read 30 files when 3 would do. Burns context for no signal.
-- **Skipping CLAUDE.md** — relying on prompt-only configuration. CLAUDE.md is the persistent layer that survives `/clear`; prompts are session-only.
+<Pitfall title="Treating Claude as a chatbot">
+Vague requests, no verification, no context management. Reads like the "before" of every example in this chapter. The fix is the rest of this chapter — but specifically: write verification criteria in your prompt, ask Claude to read before it edits, and `/clear` between unrelated tasks.
+</Pitfall>
+
+<Pitfall title="Ignoring tool-call cost">
+Letting Claude read 30 files when 3 would do. Burns context for no signal. Always start by naming the files or directories Claude should look at, even when you don't know the exact path — Claude is better at scoping a `Grep` to a directory than at deciding which of 100 files to read first.
+</Pitfall>
+
+<Pitfall title="Skipping CLAUDE.md">
+Relying on prompt-only configuration. CLAUDE.md is the **persistent** layer that survives `/clear`; prompts are session-only. The two-minute investment in a 60-line CLAUDE.md pays back every session, forever.
+</Pitfall>
 
 ## Retrieve before you summarize
 

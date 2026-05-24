@@ -15,3 +15,11 @@ public/pagefind/
 # OS / editor
 .DS_Store
 *.swp
+
+# LaTeX intermediates from build-figures TikZ pipeline (v4.2.0+).
+# Commit the .pdf alongside the .tex so consumers without TeX Live still get figures.
+figures/**/*.aux
+figures/**/*.log
+figures/**/*.fdb_latexmk
+figures/**/*.fls
+figures/**/*.synctex.gz
