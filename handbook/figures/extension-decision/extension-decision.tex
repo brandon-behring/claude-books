@@ -1,0 +1,56 @@
+% Extension decision tree — 5-question stop-at-first-match flowchart.
+% Same shape as Ch 6's collaboration-flowchart for visual consistency
+% across decision-heavy chapters. Stop at the first "yes".
+\documentclass[tikz,border=4mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes.geometric, arrows.meta, calc}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\sffamily,
+  node distance=0.7cm and 1.6cm,
+  question/.style={
+    draw=orange!70!black, fill=orange!10, diamond, aspect=2.6,
+    inner sep=1pt, align=center, text width=3.8cm, font=\sffamily\small
+  },
+  pattern/.style={
+    draw=teal!70!black, fill=teal!10, rounded corners=4pt,
+    minimum width=3.2cm, minimum height=0.85cm, align=center,
+    font=\sffamily\small\bfseries
+  },
+  packaging/.style={pattern,
+    draw=blue!70!black, fill=blue!10
+  },
+  arrow/.style={-Stealth, thick, draw=gray!60!black},
+  arrowlabel/.style={font=\sffamily\small, fill=white, inner sep=1.5pt},
+]
+
+% Cascading questions (top → bottom) with extensions to the right
+\node[question] (q1) {Reusable \emph{prompt}?};
+\node[pattern, right=of q1] (cmd) {Slash command \\ \scriptsize\texttt{.claude/commands/}};
+
+\node[question, below=of q1] (q2) {Reusable \emph{procedure} \\ (multi-step + own \\ tool envelope)?};
+\node[pattern, right=of q2] (skill) {Agent skill \\ \scriptsize\texttt{.claude/skills/}};
+
+\node[question, below=of q2] (q3) {Must fire on a \\ Claude lifecycle event?};
+\node[pattern, right=of q3] (hook) {Hook \\ \scriptsize\texttt{settings.json}};
+
+\node[question, below=of q3] (q4) {Need external data \\ or typed tools mid- \\ session?};
+\node[pattern, right=of q4] (mcp) {MCP server \\ \scriptsize\texttt{.mcp.json} \\ \scriptsize\emph{consume before build}};
+
+\node[question, below=of q4] (q5) {Packaging \\ multiple of \\ the above?};
+\node[packaging, right=of q5] (plug) {Plugin / CLI / IDE};
+
+% Arrows
+\draw[arrow] (q1) -- node[arrowlabel] {yes} (cmd);
+\draw[arrow] (q1) -- node[arrowlabel] {no} (q2);
+\draw[arrow] (q2) -- node[arrowlabel] {yes} (skill);
+\draw[arrow] (q2) -- node[arrowlabel] {no} (q3);
+\draw[arrow] (q3) -- node[arrowlabel] {yes} (hook);
+\draw[arrow] (q3) -- node[arrowlabel] {no} (q4);
+\draw[arrow] (q4) -- node[arrowlabel] {yes} (mcp);
+\draw[arrow] (q4) -- node[arrowlabel] {no} (q5);
+\draw[arrow] (q5) -- node[arrowlabel] {yes} (plug);
+
+\end{tikzpicture}
+\end{document}

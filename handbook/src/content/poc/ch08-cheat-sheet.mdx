@@ -8,37 +8,20 @@ visual_intent: "Reference-card density. ASCII flowchart, tables, matrices, snipp
 ---
 
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 
 > **Use this when**: you need to look up *one specific thing* about extending Claude — which file path a skill lives at, which hook event fires when, whether to consume vs build an MCP server. Not a tutorial; not a TL;DR. Look-up oriented.
 
 ## Decision flowchart
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ START: what do you need?                                        │
-│   │                                                             │
-│   ▼                                                             │
-│ Reusable prompt only?                                           │
-│   ├── YES ─► .claude/commands/<name>.md          (cheapest)     │
-│   └── NO ▼                                                      │
-│ Reusable procedure (multi-step, own tool envelope)?             │
-│   ├── YES ─► .claude/skills/<name>.md                           │
-│   └── NO ▼                                                      │
-│ Must fire on Claude lifecycle event (PreToolUse, Stop, etc.)?   │
-│   ├── YES ─► .claude/settings.json  "hooks": {...}              │
-│   └── NO ▼                                                      │
-│ Need external service / typed tools during the session?         │
-│   ├── YES ─► Does an existing MCP server cover it?              │
-│   │           ├── YES ─► add to .mcp.json (CONSUME)             │
-│   │           └── NO  ─► Architect's Ref before building        │
-│   └── NO ▼                                                      │
-│ Packaging multiple of the above for distribution?               │
-│   ├── YES ─► Plugin                                             │
-│   └── NO  ─► Reconsider — you may not need an extension         │
-└─────────────────────────────────────────────────────────────────┘
-```
+<Figure
+  src="/figures/extension-decision/extension-decision-compact.svg"
+  alt="Compact 5-question decision tree. Each 'y' branches to an extension type. Reusable prompt? → Slash command. Reusable procedure? → Agent skill. Fires on lifecycle event? → Hook. Need external data/tools? → MCP server (consume first). Packaging multiple? → Plugin / CLI."
+  caption="Stop at the first 'y'. Compact variant of the tutorial flowchart."
+  width="100%"
+/>
 
-**Stop at the first YES.** Stopping early is the goal.
+**Stop at the first YES.** Stopping early is the goal. If you reach the bottom, reconsider whether you need an extension at all.
 
 ## Extension type × file location × scope × invocation
 

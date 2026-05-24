@@ -112,6 +112,7 @@ All entries below are currently 🟡.
 **Moved to Appendix C**: Full 25-event hook reference with examples, hook debugging walkthrough, sandboxing edge cases.
 **Boundary note**: This chapter teaches *which extension to reach for and how to consume one*. **Designing MCP servers, designing custom tools, Agent SDK hook authoring → Architect's Reference**.
 **PoC artifacts** (2026-05-23): 4 supplement-format PoCs render at `/poc/ch08-tutorial` ("security review on every PR" walked through the decision tree → skill + CLI + GitHub Action, zero new MCP server), `/poc/ch08-howto-first-skill`, `/poc/ch08-tldr`, `/poc/ch08-cheat-sheet`.
+**Figures + v4 components** (2026-05-24): tutorial PoC adopts `<YouWillLearn>` / `<WorkedExample>` / 2 new `<Pitfall>` ("Building MCP when consuming works" + "Reaching for hooks before commands or skills") / `<Figure>`. Tutorial figure: `figures/extension-decision/extension-decision.svg` (5-question stop-at-first-match flowchart; same shape as Ch 6's collaboration-flowchart for visual consistency). Cheat-sheet ASCII decision tree retired in favor of the compact SVG variant.
 
 ---
 

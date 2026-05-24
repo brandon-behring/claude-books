@@ -11,8 +11,17 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 
-> **You will learn**: a decision framework for picking among Claude Code's extension types (commands, skills, hooks, MCP servers, plugins, the CLI, and IDE integrations) — and why "which extension?" is the actual lever, not the mechanics of any single one. Targeted at **L2 (Configured) → L3 (Systematic)** maturity; assumes you have a CLAUDE.md in place and have run at least one configured session.
+<YouWillLearn prerequisites="L2–L3 maturity — CLAUDE.md in place; at least one configured session under your belt.">
+- A **decision framework** for picking among Claude Code's extension types (commands, skills, hooks, MCP servers, plugins, CLI, IDE integrations)
+- Why **"which extension?" is the lever**, not the mechanics of any single one
+- The **lightest-extension-that-does-the-job** principle, and why escalating prematurely is the most expensive antipattern
+- The boundary: **consume-vs-build** for MCP servers — and when designing one belongs in the Architect's Reference, not here
+</YouWillLearn>
 
 ## The chapter in one paragraph
 
@@ -36,7 +45,7 @@ Five questions, in order. Stop at the first one whose answer commits you to a la
   Walk the questions in order. Stopping early is the goal. A team that stops at #1 every time is winning; a team that always reaches #4 is building too much.
 </MarginNote>
 
-## Worked example: "every PR gets a security-review pass"
+<WorkedExample id="security-review-composition" title="Every PR gets a security-review pass — walking the framework live">
 
 A concrete use case. Walk it through the framework live so you see the reasoning.
 
@@ -65,6 +74,15 @@ A concrete use case. Walk it through the framework live so you see the reasoning
 <InsightBox title="Why this composition wins">
   The naive answer — "build an MCP server that integrates Claude with GitHub" — is a six-week project that duplicates what `gh` already does. The decision-framework answer — "skill + CLI + Action" — is a one-afternoon project that uses existing infrastructure. The lever was knowing which extension type each piece of the problem actually needs.
 </InsightBox>
+
+</WorkedExample>
+
+<Figure
+  src="/figures/extension-decision/extension-decision.svg"
+  alt="Vertical decision tree with 5 yes/no questions in orange diamonds cascading downward. Each 'yes' branches right to a teal extension-type node, except the bottom 'packaging' question which branches to a blue Plugin/CLI/IDE node. Top: 'Reusable prompt?' → Slash command. Next: 'Reusable procedure (multi-step + own tool envelope)?' → Agent skill. Next: 'Must fire on a Claude lifecycle event?' → Hook. Next: 'Need external data or typed tools mid-session?' → MCP server (consume before build). Bottom: 'Packaging multiple of the above?' → Plugin / CLI / IDE."
+  caption="The extension decision framework as a stop-at-first-match flowchart. Same shape as Ch 6's collaboration-flowchart, by design — picking an extension is the same shape of decision as picking a collaboration pattern."
+  width="100%"
+/>
 
 ## The four main extension types — what each is for
 
@@ -121,6 +139,16 @@ This chapter is about **which extension to reach for and how to consume them**. 
 - How to **build a plugin** for distribution. → **Architect's Reference**.
 
 If you've identified that the right answer is "build a new MCP server" or "write a custom hook handler that does X via the SDK," your next stop is the Architect's Reference, not deeper into this chapter.
+
+## Pitfalls
+
+<Pitfall title="Building an MCP server when consuming one would work">
+The most expensive mistake in this chapter. MCP servers feel architecturally satisfying — typed tools, structured schemas, clean integration boundaries — and the temptation to build "ours" instead of consuming "theirs" is real. Almost every external system worth talking to already has a CLI (`gh`, `aws`, `kubectl`, `psql`, `gcloud`) that Claude can invoke via `Bash` for a fraction of the engineering cost. **Spend a day mapping the existing landscape before spending a week building.** The protocol design + transport + schema + deployment + maintenance overhead of "your" MCP server is rarely worth what it buys over `gh ... | Claude reads the JSON`.
+</Pitfall>
+
+<Pitfall title="Reaching for hooks before commands or skills">
+Hooks are powerful — they fire automatically, enforce mechanically, and feel like the "real" engineering layer. That power makes them the wrong default. A hook that runs `pytest` on every edit looks elegant; in practice, it slows the iteration loop, fires on irrelevant edits, and turns into a workflow-fighting annoyance you eventually disable. **Reach for a slash command first** (`/run-tests`); if that grows into a multi-step procedure (test → coverage → smoke), promote to a skill; only escalate to a hook when *non-execution* is unacceptable (e.g., blocking a `rm -rf` or enforcing CI). Hooks are for guardrails, not for convenience automation.
+</Pitfall>
 
 ## Retrieve before you summarize
 

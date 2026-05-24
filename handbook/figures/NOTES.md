@@ -86,6 +86,21 @@ For figures that don't fit the agent-loop semantics (e.g., stacked bars, pyramid
 
 **Cycles to "looks right"**: 2 (initial draft with even spacing → adjusted layer 7 gap and cost-annotation indents).
 
+### `extension-decision` (Ch 8) — second decision-tree, visual consistency with Ch 6
+
+**Pattern**: stop-at-first-match decision tree, same shape as Ch 6's `collaboration-flowchart`. 5 questions cascading down (one more than Ch 6's 4); 4 teal pattern endpoints + 1 blue "packaging" endpoint to signal it's a different *kind* of answer (a wrapper, not a sibling extension type).
+
+**Techniques used (reusing patterns from Ch 6)**:
+- Same `question` / `pattern` / `arrow` / `arrowlabel` styles as collaboration-flowchart. Confirms the recipe transfers cleanly.
+- Multi-line text in endpoint nodes: `Slash command \\ \scriptsize\texttt{.claude/commands/}` — first line is the extension name (small bold), second line is the file path (scriptsize teletype). Pattern is reusable: heading + subtitle in one node.
+- `packaging/.style={pattern, draw=blue!70!black, fill=blue!10}` — style inheritance via the comma syntax. The packaging endpoint inherits everything from `pattern` then overrides the colors. This is the cleanest way to express "same shape, different color" without duplicating dimensions.
+
+**Tricky bits**:
+- Question text "Reusable \emph{procedure} (multi-step + own tool envelope)?" needed careful wrapping — `text width=3.8cm` plus `\\` line breaks for the parenthetical. Long parenthetical descriptions in decision diamonds are the most common reason figures look cramped.
+- Compact variant: question text shortened ("Reusable prompt?" instead of "Reusable \emph{prompt}?"); kept the 5-question structure but dropped the file-path subtitles in the endpoint nodes (those live in the file-path table below the figure in the cheat-sheet).
+
+**Cycles to "looks right"**: 1 (recipe from Ch 6 transferred directly; only tweak was the parenthetical wrapping in question 2).
+
 ## Cross-figure patterns (emerging)
 
 After 2 figures (agent-loop + context-budget), these patterns are starting to recur:
