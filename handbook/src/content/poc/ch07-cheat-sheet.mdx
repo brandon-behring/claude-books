@@ -8,45 +8,20 @@ visual_intent: "Reference-card density. ASCII pyramid + matrices + snippets. Min
 ---
 
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 
 > **Use this when**: you need to look up *one specific thing* about verification — which layer catches which bug, which layers are required at which phase, or which hook event blocks which action.
 
 ## The layer pyramid
 
-Cheaper at the bottom, more expensive at the top. Layer 7 (domain correctness) is *above* the automated stack — human-only.
+Cheaper at the bottom, more expensive at the top. Layer 7 (domain correctness) sits *above* the automated stack — human-only.
 
-```
-                ┌─────────────────────────┐
-                │  7. domain correctness   │  ← human only
-                │       (you check)        │
-                └─────────────────────────┘
-              ┌───────────────────────────────┐
-              │   6. manual verification       │  ← human attention
-              │      (UX, visuals, vibes)      │
-              └───────────────────────────────┘
-            ┌─────────────────────────────────────┐
-            │   5. end-to-end / smoke              │  ← minutes
-            │   (real browser + real backend)      │
-            └─────────────────────────────────────┘
-          ┌─────────────────────────────────────────┐
-          │   4. integration                          │  ← seconds–min
-          │   (real DB, real HTTP, real config)       │
-          └─────────────────────────────────────────┘
-        ┌─────────────────────────────────────────────┐
-        │   3. unit tests                                │  ← seconds
-        │   (one function, controlled inputs)            │
-        └─────────────────────────────────────────────┘
-      ┌─────────────────────────────────────────────────┐
-      │   2. lint                                          │  ← seconds
-      │   (style, dead code, common bug patterns)          │
-      └─────────────────────────────────────────────────┘
-    ┌─────────────────────────────────────────────────────┐
-    │   1. type check                                        │  ← ms / file
-    │   (shape, nullability, refactor drift)                 │
-    └─────────────────────────────────────────────────────┘
-```
-
-Each layer catches a class of bug the layer below can't. Each layer costs more than the one below.
+<Figure
+  src="/figures/validation-pyramid/validation-pyramid-compact.svg"
+  alt="Compact pyramid of six automated validation layers stacked widest-to-narrowest: 1. Type check (base), 2. Lint, 3. Unit, 4. Integration, 5. End-to-end, 6. Manual (apex, orange). Layer 7 Domain correctness floats above as a separate teal-bordered block. Vertical 'cost' arrow on the left."
+  caption="Each layer catches a class of bug the layer below can't. Each layer costs more than the one below."
+  width="100%"
+/>
 
 ## Layer reference
 

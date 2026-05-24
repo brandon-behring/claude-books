@@ -68,6 +68,24 @@ For figures that don't fit the agent-loop semantics (e.g., stacked bars, pyramid
 
 **Cycles to "looks right"**: flowchart 2 (initial draft + arrow-label tweak); quadrant 3 (axis-label placement → quadrant-hint position → pattern coordinates fine-tune).
 
+### `validation-pyramid` (Ch 7) — silhouette via decreasing-width rectangles
+
+**Pattern**: pyramid silhouette built from stacked rectangles centered on x=0 with progressively decreasing widths. Bottom = widest = cheapest validation layer. Apex = narrowest = most expensive automatable layer. Layer 7 floats separately above with a vertical gap to signal "outside the automated stack."
+
+**Why rectangles, not trapeziums**: TikZ's `shapes.geometric.trapezium` has fiddly anchor semantics (top-edge vs bottom-edge width, asymmetric angle constraints, north/south anchor mismatches when stacking). Plain rectangles with `minimum width` decreasing by ~10-15% per layer give the same pyramid silhouette without any positioning quirks. The "trapezium" shape might give cleaner angled sides, but the rectangle version is robust and reads as a pyramid at any zoom.
+
+**Techniques used**:
+- **Centered stacking**: `\node at (0, Y)` with absolute Y coordinates rather than relative `above=`. Each layer's Y is `prev + 0.7` (one layer-height + a small gap). Direct coordinate control beats `above=` for pyramid layouts because `above=` anchors at node boundaries which complicates uniform spacing when widths differ.
+- **Separate apex styling for layer 6**: `apex/.style={layer, draw=orange!70!black, fill=orange!10, font=\sffamily\small\bfseries}` — layer 6 (manual verification) is the apex of the *automated* stack; orange palette signals "still automatable but the most expensive automation tier." Bold font adds emphasis.
+- **Layer 7 break-out**: `human/.style` uses teal (not blue or orange) + larger `rounded corners=6pt` + greater vertical gap (`y=4.6` vs `y=3.5` for layer 6, a 1.1 gap vs 0.7 for adjacent layers). Visually punches it out of the stack.
+- **Cost annotations follow the pyramid edge**: cost text positioned at `(5.3 - 0.5*layer_index, layer_y)` — each label moves slightly inward (closer to the centered apex) so the text column tracks the pyramid's right edge instead of running parallel.
+
+**Tricky bits**:
+- The "cost per run" vertical axis on the left needed a fairly long arrow (`(-6, -0.4) -- (-6, 5.0)`) and `rotate=90, anchor=south` on the label to read along the axis bottom-to-top.
+- Compact variant for the cheat-sheet: width decreased from 10cm base to 6cm base; layer heights from 0.65cm to 0.5cm; font dropped to `\scriptsize`; dropped the cost-annotation column entirely (the cheat-sheet's layer-reference table below the figure carries that info, no need to duplicate).
+
+**Cycles to "looks right"**: 2 (initial draft with even spacing → adjusted layer 7 gap and cost-annotation indents).
+
 ## Cross-figure patterns (emerging)
 
 After 2 figures (agent-loop + context-budget), these patterns are starting to recur:

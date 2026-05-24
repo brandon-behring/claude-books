@@ -101,6 +101,7 @@ All entries below are currently 🟡.
 **Stale signals**: None.
 **MDX-native**: Expandable 6-layer validation grid. Phase-transitions table with checklists per phase. Hypothesis (property-based) code example with annotations.
 **PoC artifacts** (2026-05-23): 4 supplement-format PoCs render at `/poc/ch07-tutorial` ("all 6 automated layers pass and the code is still wrong" worked example), `/poc/ch07-howto-add-verification-gate`, `/poc/ch07-tldr`, `/poc/ch07-cheat-sheet`.
+**Figures + v4 components** (2026-05-24): tutorial PoC adopts `<YouWillLearn>` / `<WorkedExample>` / `<Pitfall>` × 5 / `<Figure>`. Tutorial figure: `figures/validation-pyramid/validation-pyramid.svg` (6-layer pyramid silhouette with layer 7 domain-correctness floating above; cost-per-run vertical axis). Cheat-sheet ASCII pyramid retired in favor of the compact SVG variant.
 
 ### Ch 8. Extending Claude
 **Source**: `07_extending.tex` (822 lines — second-longest) → ~450 lines (substantially trimmed).

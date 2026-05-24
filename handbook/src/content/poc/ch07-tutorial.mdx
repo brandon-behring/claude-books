@@ -11,10 +11,19 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 import MaturityLevel from '../../components/MaturityLevel.astro';
 
-> **You will learn**: the six layers of validation that catch progressively expensive classes of bugs, the seventh layer (**domain correctness**) that no automated check can replace, how to choose which layers are required at which project phase, and how to encode verification criteria in `CLAUDE.md` plus enforce them with hooks so "done" actually means done. Targeted at <MaturityLevel n={2} />–<MaturityLevel n={3} /> maturity; written for readers who've configured Claude (Ch 2–4) and want a reliability discipline.
+<YouWillLearn prerequisites="L2–L3 maturity — Ch 2-4 configuration in place; ready for a reliability discipline.">
+- The **six automated layers** of validation that catch progressively expensive classes of bugs
+- The **seventh layer (domain correctness)** that no automated check can replace
+- How to choose which layers are required at which **project phase** (prototype → MVP → production)
+- How to encode verification criteria in `CLAUDE.md` and enforce them with **hooks** so "done" actually means done
+</YouWillLearn>
 
 ## The chapter in one paragraph
 
@@ -24,7 +33,7 @@ Tests passing is not the same as the code being correct. Six automated layers �
 Verification is the difference between "Claude said it works" and "it actually works." Tests can pass because the assertion was wrong, the data was synthetic, or the spec was misunderstood. A six-layer validation stack catches automatable bugs; the seventh layer — domain correctness — requires you.
 </KeyIdea>
 
-## Worked example: every test passes, the code is wrong
+<WorkedExample id="median-bug" title="Every test passes — and the code is still wrong">
 
 A session from last week. The task was small: write a function that returns the **median** weekly active users (WAU) across the last 12 weeks, from a Postgres query result.
 
@@ -73,6 +82,15 @@ For a list of length 12 (the actual production case), `mid = 6`, and the functio
 </InsightBox>
 
 The fix took one line. The 90 minutes of debugging stakeholder confusion took longer. The lesson is not "write better unit tests" — it's "domain correctness is a separate layer, and you own it."
+
+</WorkedExample>
+
+<Figure
+  src="/figures/validation-pyramid/validation-pyramid.svg"
+  alt="A six-layer pyramid stack with a separate seventh layer floating above. Bottom to top, decreasing in width: 1. Type check (ms per file), 2. Lint (seconds), 3. Unit tests (seconds), 4. Integration (sec to min), 5. End-to-end / smoke (minutes), 6. Manual verification (human attention, shown in orange as the apex of the automated stack). Above with a vertical gap: 7. Domain correctness (teal, human only — above the automated stack). A vertical 'cost per run' arrow runs up the left side."
+  caption="The validation pyramid. Six automated layers ordered cheap → expensive; layer 7 (domain correctness) is human-only and sits above the automated stack. Each layer catches a class of bug the layers below it can't."
+  width="100%"
+/>
 
 ## The six automated layers (cheap to expensive)
 
@@ -264,11 +282,25 @@ Now `Stop` (the event Claude tries to fire when it thinks the task is complete) 
 
 ## Pitfalls
 
-- **Confusing "tests pass" with "code correct"** — see the median example. Tests can pass for many reasons that are not "the code is right."
-- **Using prototype standards on production code** — the asymmetric cost: a layer-1 bug shipped to prod is 100× more expensive than a layer-1 bug caught in a prototype.
-- **Using production standards on a 2-day spike** — exploration grinds to a halt; nothing ever gets validated because nothing ever gets *built*.
-- **Verification criteria in your head, not in `CLAUDE.md`** — every session relitigates the question. Encode once.
-- **Trusting `CLAUDE.md` without a hook** — Claude follows the spirit of `CLAUDE.md` most of the time. "Most of the time" is not "always." For non-negotiable checks, use hooks.
+<Pitfall title="Confusing 'tests pass' with 'code is correct'">
+See the median example. Tests can pass for many reasons that are not "the code is right" — the assertion was wrong, the input was unrepresentative, the spec was misunderstood. Treat passing tests as one signal among seven, not as proof. The full pyramid is the proof; any single layer is data.
+</Pitfall>
+
+<Pitfall title="Using prototype standards on production code">
+The asymmetric cost: a layer-1 bug (type error) shipped to prod is 100× more expensive than the same bug caught in a prototype — incidents, customer-facing breaks, on-call pages. Production code earns the full pyramid; prototype code earns layers 1-3. Don't blur the line.
+</Pitfall>
+
+<Pitfall title="Using production standards on a 2-day spike">
+The opposite failure. Exploration grinds to a halt; nothing ever gets validated because nothing ever gets *built*. Spike work earns layers 1-2 (type-check + lint to keep the code parseable) and that's it. Save the deeper layers for when the spike survives to "we're building this."
+</Pitfall>
+
+<Pitfall title="Verification criteria in your head, not in `CLAUDE.md`">
+Every session relitigates the question: does "done" mean tests pass? Includes the type checker? Requires manual review? Encode the answer once in CLAUDE.md and every session inherits it. The 5-minute investment pays back every session, forever.
+</Pitfall>
+
+<Pitfall title="Trusting `CLAUDE.md` without a hook">
+Claude follows the spirit of CLAUDE.md most of the time. "Most of the time" is not "always" — Claude can be persuaded by a confident-sounding prompt to skip a verification step, or simply forget under context pressure. For non-negotiable checks (CI must pass before commit; type-check must run before edit), use a `Stop` or `PreToolUse` hook that returns non-zero. CLAUDE.md is guidance; hooks are enforcement.
+</Pitfall>
 
 ## Retrieve before you summarize
 
