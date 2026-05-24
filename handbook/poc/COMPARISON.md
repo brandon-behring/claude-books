@@ -177,3 +177,49 @@ If accepted, the v1.0 commitment per chapter becomes: **tutorial + TL;DR + 1 how
 - Sprint: 2026-05-23. 4 parallel agents (one per chapter), each capped at ~25 tool calls per `references/agent_discipline.md`. Total ~80 calls research + ~15 calls part-summary/synthesis = ~95 calls.
 - 17 new PoC artifacts (16 chapter PoCs + 1 part-summary). All render at `/poc/*`. Build clean (30 HTML pages total).
 - Cross-agent collision: 1 (Ch 6's broken JSX briefly blocked Ch 5's build); self-resolving via per-agent file ownership.
+
+---
+
+# Round 3 (2026-05-24): hand-authored TikZ figures + v4 component adoption across Ch 1 + Ch 5-8
+
+**Sprint shape**: deliberately sequential, hand-authored, per-chapter iteration cycles (write TikZ → `build:figures` → visually inspect → refine → component adoption in tutorial PoC → cheat-sheet ASCII swap or net-new figure → OUTLINE pointer → commit). Four chapter commits (Ch 5/6/7/8) + this synthesis commit + the earlier Ch 1 component-adoption commit (`6e3aba8`) = 6 commits total touching this concern.
+
+## What landed (count)
+
+- **10 TikZ figures** across 5 chapters (Ch 1 + Ch 5-8). Tutorial-size + compact cheat-sheet variants, plus Ch 6's third figure (flowchart + quadrant):
+  - Ch 1: `agent-loop.svg` (tutorial only — the canonical pattern, shipped 2026-05-23)
+  - Ch 5: `context-budget.svg` + `context-budget-compact.svg`
+  - Ch 6: `collaboration-flowchart.svg` + `collaboration-flowchart-compact.svg` + `collaboration-quadrant.svg`
+  - Ch 7: `validation-pyramid.svg` + `validation-pyramid-compact.svg`
+  - Ch 8: `extension-decision.svg` + `extension-decision-compact.svg`
+- **5 tutorial PoCs** now adopt the v4 pedagogy components (`<YouWillLearn>` + `<WorkedExample>` + `<Pitfall>` × N + `<Figure>`).
+- **2 cheat-sheet ASCII-to-SVG swaps** (Ch 7 pyramid, Ch 8 decision tree); **2 net-new cheat-sheet figures** (Ch 5 context-budget compact, Ch 6 collaboration-flowchart compact).
+- **`handbook/figures/NOTES.md`** captures per-figure technique observations + cross-figure patterns + open questions, ~200 lines. Intended for upstream promotion to scaffold's `recipes/16-tikz-figures.md` extension once stable.
+
+## Cross-chapter observations
+
+**The decision-tree shape recurs across chapters.** Ch 6 (collaboration-flowchart) and Ch 8 (extension-decision) both ended up as 4-5 question stop-at-first-match flowcharts with the same node styling. Same shape carries because both chapters answer "which Y for which X" questions in the same cognitive shape. **Pattern emerging**: any chapter whose central skill is "pick the right [tool/pattern/extension] for this situation" wants this flowchart shape.
+
+**Pyramid / hierarchy shape is specific to ordered tiers.** Ch 7 (validation-pyramid) is the only chapter where the spine is "cheap → expensive" with a clear hierarchy. The pyramid silhouette signals "cost-ordered" in a way no other shape does. Future chapters with this dynamic (e.g., a hypothetical "cost-tiers of testing" or "tiers of CLAUDE.md scope") would reuse this recipe.
+
+**Stacked-bars shape works for "composition over time".** Ch 5's context-budget shows the same window evolving through 3 states. The recipe (anchor offsets via `\def`, stacked bar segments) generalizes to any "composition shifts as state changes" chart.
+
+**The 2×2 quadrant is the most contentious.** Ch 6's `collaboration-quadrant` required 3 rounds of axis-label tweaking; the axes ended up communicating *direction of inquiry* × *workflow stage* but neither axis is a "natural" continuous spectrum. Quadrants work best when the axes are genuinely independent dimensions; when the patterns being plotted share dimensions, quadrant placement starts to feel forced. **Provisional rule**: only reach for quadrant when each pattern can be unambiguously placed in exactly one quadrant. If two patterns share a quadrant, the axes are wrong.
+
+**The locked palette held across all 4 author-from-scratch figures.** Blue boxes / orange diamonds / teal endpoints / gray arrows + `\sffamily` worked for: stacked bars (Ch 5), decision flowcharts (Ch 6, Ch 8), 2×2 axis (Ch 6), and pyramid (Ch 7). Palette saturation shifts (`!8`, `!10`, `!20` fills with `!70!black` strokes) accommodated the different figure types without requiring new colors. **The palette did not feel limiting** — confirmation that the locked-palette decision was right.
+
+**Hand-authoring beats agent dispatch for "practice" framing.** Each figure was 1-3 iteration cycles to settle (pdflatex compile is fast; `open` on the SVG renders instantly). Compare to the Part II round where parallel agents wrote PoCs in ~15 min each but I never saw the iteration. The "practice" framing surfaced patterns (when to use trapezium vs rectangle, when stylistic palette saturation matters, what's worth a `\def`) that agent-dispatch wouldn't have surfaced. **For figure work specifically, hand-authoring is the right default.**
+
+## What's still open
+
+- **Accessibility hooks on the SVGs**: `alt` text via the `<Figure>` component is in place, but the SVG itself has no `<title>` / `<desc>` inner elements. PEDAGOGY cross-cutting requirement #1 wants both. Needs a post-export step or a TikZ extension. Filing as scaffold upstream concern.
+- **Dark mode**: SVGs ship hard-coded fills. PEDAGOGY cross-cutting #4 commits to CSS-variable substitution. Needs a post-export rewrite hook. Also scaffold upstream.
+- **Print-PDF quality**: untested for these figures. Defer to v2 PDF work.
+- **Recipe upstream**: NOTES.md is the draft. Promote to scaffold `recipes/16-tikz-figures.md` extension once Part III/IV chapters add 2-3 more figure types (state machine? sequence diagram? ER?).
+
+## Provenance (Round 3)
+
+- Sprint: 2026-05-24. Hand-authored, sequential, per-chapter pairing.
+- Commits: `2c68f00` Ch 5 / `7b7761e` Ch 6 / `0306cb2` Ch 7 / `56c8a7c` Ch 8 / (this synthesis commit).
+- Per-chapter wall-clock: ~30-45 min (figure iteration + component adoption + build verify + commit prose).
+- Total tool calls: ~140 across the round.
