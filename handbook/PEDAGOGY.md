@@ -291,16 +291,17 @@ The user's "quick read supplements" need has several candidate shapes. Phase C b
 
 ## Worked-example labeling + collapsible disclosure
 
-**Proposed convention** (waits on Phase 0.7 scaffold work):
+**Adopted convention** (shipped in scaffold v4.1.0, 2026-05-23):
 
-A new MDX component `<WorkedExample>` with:
-- A summary line (1-sentence: "Example: configuring CLAUDE.md for a monorepo")
-- A collapsible body (by default closed — hierarchical disclosure)
-- Optional `level` prop (e.g., `level={3}` to mark "this example assumes L3+ familiarity") — defers this to v1.1; v1.0 has flat per-chapter maturity tagging.
+The MDX component `<WorkedExample>` is now available at `@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro`:
+- A `title` prop (1-sentence summary: "Example: configuring CLAUDE.md for a monorepo")
+- A collapsible body via native `<details>` (closed by default — hierarchical disclosure; zero JS)
+- An `id` prop that becomes `#worked-example-{id}` (prefixed to avoid heading-anchor collisions) for direct linking from TL;DRs and cheat-sheets
+- Optional `expanded` prop to ship open by default for small examples
 
-Rationale: worked examples are valuable but interrupt prose flow. Closed-by-default collapsibles let scanners skip them; learners click to expand. This is **Sweller's worked-example effect** (the principle that complete examples reduce extraneous load for novices) layered with **hierarchical disclosure**.
+Rationale: worked examples are valuable but interrupt prose flow. Closed-by-default collapsibles let scanners skip them; learners click to expand. This is **Sweller's worked-example effect** ([[theory-sweller-cognitive-load]] — the principle that complete examples reduce extraneous load for novices) layered with **hierarchical disclosure** ([[nng-progressive-disclosure]]).
 
-<!-- TODO Phase A: confirm/refine with citations from docs/research/11-pedagogy/03-multimedia-learning/theory-sweller-cognitive-load.md and theory-sweller-worked-example-effect.md -->
+**Adoption plan**: PoCs use inline worked examples for now (the existing Ch 1 / Ch 5-8 tutorial PoCs); chapter v1.0 prose adopts `<WorkedExample>` opportunistically when worked examples exceed ~30 lines. Round 1 / 2 cross-chapter observation: worked examples are the spine of every tutorial; collapsing the heaviest ones lets the surrounding narrative breathe.
 
 ---
 
@@ -372,7 +373,7 @@ For inline + display math (token-economics, sampling, cost formulas), adopt **Ka
 ### Open questions for the figure pipeline
 
 - **Mermaid plugin choice**: `remark-mermaidjs` (Puppeteer-based, mature) vs `@theguild/remark-mermaid` (newer, lighter). Needs a small PoC before settling.
-- **TikZ pipeline ownership**: does `book-scaffold-astro` own the LaTeX → SVG conversion, or does the LaTeX source repo build its own SVG artifacts that `handbook/` consumes? Leaning source-repo-owns (cleaner separation), but needs CI alignment.
+- ~~**TikZ pipeline ownership**: does `book-scaffold-astro` own the LaTeX → SVG conversion, or does the LaTeX source repo build its own SVG artifacts that `handbook/` consumes?~~ **RESOLVED 2026-05-23 in scaffold [v4.2.0](https://github.com/brandon-behring/book-scaffold-astro/releases/tag/v4.2.0)**: `book-scaffold build-figures` now auto-compiles TikZ `\documentclass{standalone}` `.tex` sources via `pdflatex` → `pdf2svg` pipeline. Source `.tex` lives in `figures/<topic>/`; output `.svg` in `public/figures/<topic>/`. Recipe at `package/recipes/16-tikz-figures.md`. Consumers without TeX Live get a clear ERROR + skip; pre-built `.pdf` files still convert normally.
 - **CSS-variable injection step**: a regex-replace pass that rewrites Mermaid's emitted `fill="#xxx"` → `fill="var(--diagram-x, #xxx)"`. Build once in the scaffold; reuse across volumes.
 - **C4 architecture diagrams** (Volume 2): Mermaid added C4 in v9.4 but quality is uneven. C4-PlantUML is the best-in-class option. Defer decision until Volume 2 outlines exist.
 - **Interactive figure scaffold** (v1.5+): when scoped, design `<InteractiveFigure>` to enforce keyboard nav + `aria-live` + no-JS fallback as a structural constraint, not per-figure manual responsibility.
@@ -419,13 +420,13 @@ State of each pedagogical choice as of 2026-05-23. **OPEN** = still exploring; *
 | 5 | Adopt 8-category margin-note system | **DECIDED** (predates this doc) | Continue; consider Vocab as `<TermDef>` link once glossary lands |
 | 6 | Adopt Diátaxis content-type quadrant explicitly | **DECIDED** (2026-05-23) — adopt, but volume names lead | Diátaxis vocabulary in PEDAGOGY.md + research notes; reader-facing nomenclature uses volume names (Handbook / Architect's Ref / Field-Guide) rather than "tutorial/reference/how-to" labels. Volumes inherently map: Handbook=tutorial+explanation, Architect's Ref=reference+explanation, Field-Guide=how-to+explanation |
 | 7 | Final supplement format(s) | **OPEN** (Round 2 evidence strengthens but doesn't close) | Round 1 (Ch 1 × 5): tutorial / how-to / TL;DR / cheat-sheet visually distinct + worth keeping; Part-summary OPEN. Round 2 (Part II × 5; Ch 5-8 × 4 formats + part2-summary) on 2026-05-23: tutorial-vs-cheat-sheet distinction holds across 4 chapters with different content registers; recommend tightening to **tutorial + TL;DR + 1 how-to + 1 cheat-sheet = 4 per chapter** as the v1.0 commitment (60 artifacts × 15 chapters). Part-summary slot still OPEN — Round 2 found it structurally repetitive vs longer TL;DR. Pending final user review |
-| 8 | `<WorkedExample>` collapsible component | **DECIDED** (2026-05-23) — adopt, file as Phase 0.7 scaffold work | Renders collapsed by default; supports Sweller worked-example effect ([[theory-sweller-cognitive-load]]) + two-level disclosure ([[nng-progressive-disclosure]]) |
+| 8 | `<WorkedExample>` collapsible component | **DECIDED + SHIPPED** (2026-05-23 in scaffold v4.1.0) | Component available at `@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro` with `#worked-example-{id}` anchor pattern. Adopt in tutorial PoCs at next chapter-prose pass |
 | 9 | Sub-chapter prerequisite tagging (e.g., section-level maturity) | **DEFERRED to v1.1** | Adds complexity; top-level chapter maturity tag sufficient for v1.0 |
 | 10 | Interleaving rationale section in PEDAGOGY.md | **DECIDED** (this doc) | See "Interleaving rationale" above |
 | 11 | Visual presentation principles (concrete) | **DECIDED** (2026-05-23) — 8 principles | See "Visual presentation principles" section. Backed by 38 source notes in `docs/research/11-pedagogy/` |
 | 12 | Visual separation conventions for multi-format coexistence | **DECIDED** (2026-05-23) — template + URL-prefix, not badges | See "Visual-separation conventions" section. Reader recognizes content type by template structure + volume chrome, not by reading a content-type label |
 | 13 | Framework citation strategy (cite Bruner/Bjork/Mayer explicitly vs not) | **DECIDED** (this doc) | Cite explicitly in interleaving rationale; references in `docs/research/11-pedagogy/03-multimedia-learning/` |
-| 14 | Rich callout vocabulary (`<Pitfall>` etc.) vs generic info/warn | **DECIDED** (2026-05-23) — rich; ~10 named callouts | See "Callout-level separation". `<Pitfall>` + others added to Phase 0.7 scaffold work list |
+| 14 | Rich callout vocabulary (`<Pitfall>` etc.) vs generic info/warn | **DECIDED + SHIPPED** (2026-05-23 in scaffold v4.1.0) | `<Pitfall>` / `<WorkedExample>` / `<YouWillLearn>` pedagogy family available. Adopt in chapter prose at first-pass; PoCs adopt opportunistically |
 | 15 | Retrieval prompts at chapter end (vs summary recap) | **DECIDED** (2026-05-23) — retrieval prompts | 2-4 "close the book and answer" prompts before any recap ([[theory-bjork-desirable-difficulties]]) |
 | 16 | War-story sidebars in chapters | **OPEN** (recommended) | Per [[book-skiena-algorithm-design]]; 1 per chapter when a named anecdote exists. Decision deferred until first 2-3 chapters land — does the format work for Anthropic-specific content? |
 | 17 | Volume-level chrome differentiation (typography / accent color per volume) | **DECIDED** (2026-05-23) — yes | See "Volume-level separation". Visual register signals reader-mode without needing labels |

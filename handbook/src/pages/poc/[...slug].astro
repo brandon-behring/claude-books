@@ -2,12 +2,13 @@
 /**
  * /poc/<slug> — render PoC entries from the `poc` content collection.
  *
- * Minimal shared layout. Each PoC's visual differentiation lives in its own
- * MDX (custom components, styling). If layout-level differentiation becomes
- * necessary (e.g., a cheat-sheet needs a different page shell), add per-kind
- * layout selection here.
+ * Per-PoC-kind layout via scaffold v4.1.0+ <PocLayout> (closes upstream #56).
+ * Each `poc_kind` swaps line-length / vertical-rhythm / heading-weight via
+ * CSS variables exported by the scaffold's poc-layouts.css.
  */
 import { getCollection, render } from 'astro:content';
+import PocLayout from '@brandon_m_behring/book-scaffold-astro/components/PocLayout.astro';
+import '@brandon_m_behring/book-scaffold-astro/styles/poc-layouts.css';
 
 export async function getStaticPaths() {
   const entries = await getCollection('poc');
@@ -95,7 +96,9 @@ const { Content } = await render(entry);
       </p>
     </header>
     <main>
-      <Content />
+      <PocLayout kind={entry.data.poc_kind}>
+        <Content />
+      </PocLayout>
     </main>
   </body>
 </html>

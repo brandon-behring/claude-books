@@ -17,10 +17,10 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@brandon_m_behring/book-scaffold-astro": "^3.5.0",
+    "@brandon_m_behring/book-scaffold-astro": "^4.2.0",
     "@astrojs/mdx": "^5.0.3",
     "@astrojs/preact": "^5.1.1",
-    "astro": "^6.1.7",
+    "astro": "^6.3.7",
     "preact": "^10.29.1"
   }
 }
