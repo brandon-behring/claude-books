@@ -9,7 +9,7 @@
     "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run validate --if-present",
     "build:bib": "book-scaffold build-bib",
     "build:labels": "book-scaffold build-labels",
-    "build:tips": "book-scaffold build-tips",
+    "build:tips": "BOOK_CHAPTERS_DIR=src/content/chapters book-scaffold build-tips",
     "build:figures": "book-scaffold build-figures",
     "build:notebooks": "book-scaffold render-notebooks",
     "validate": "book-scaffold validate",

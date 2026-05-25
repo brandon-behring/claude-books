@@ -4,43 +4,131 @@ part: 1
 chapter: 1
 volatility: stable-principle
 tools_compared: [claude-code]
-last_verified: 2026-05-20
-description: Mental model and four engineering principles that underlie every recommendation in the handbook.
+cert_domains: [1, 4]
+introduced_in_version: "1.0.0"
+last_updated: 2026-05-25
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_verified: 2026-05-25
+sources:
+  - claude-code-overview
+  - anthropic-building-effective-agents
+  - anthropic-claude-code-best-practices
+description: The agent loop, finite context, tool use, and configuration layers — and the four engineering principles behind every recommendation in this handbook.
 ---
 
-import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
-import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 
-_You have just installed Claude Code. Before your first prompt, take five minutes to understand what you are working with — not a chatbot, not an autocomplete engine, but an agent with a specific architecture and specific constraints. The principles in this chapter will inform every decision in this handbook._
+<YouWillLearn prerequisites="Claude Code installed. No prior sessions assumed — this is your first deliberate engagement.">
+- What Claude Code actually is — the **agent loop**, **finite context**, **tool use**, and **configuration layers**
+- The four **engineering principles** that govern every recommendation in this handbook
+- Why the **codebase is the curriculum** Claude learns from — and what to do about it before your first prompt
+</YouWillLearn>
 
-## What Claude Code Actually Is
+_You have just installed Claude Code. Before your first prompt, take five minutes to understand what you are working with — not a chatbot, not an autocomplete engine, but an agent with a specific architecture and specific constraints. The principles in this chapter inform every decision in the rest of the book._
 
-<MarginNote variant="note" label="Official">
-  Claude Code is an agentic coding tool that operates directly in your terminal. <a href="https://code.claude.com/docs/en/overview">code.claude.com/docs/en/overview</a>
-</MarginNote>
+## What Claude Code actually is
 
-Claude Code runs an **agent loop**: it reads your prompt, reasons about the task, selects a tool (read a file, edit code, run a command), observes the result, and decides what to do next. This cycle repeats until the task is complete or Claude asks for clarification.
+Claude Code is an agentic coding tool that operates directly in your terminal.<Citation src="claude-code-overview" /> It runs an **agent loop**: it reads your prompt, reasons about the task, selects a tool (read a file, edit code, run a command), observes the result, and decides what to do next.<Citation src="anthropic-building-effective-agents" /> The cycle repeats until the task is complete or Claude stops to ask you something.
 
-Three properties define the system:
+<Figure
+  src="/figures/agent-loop/agent-loop.svg"
+  alt="Agent-loop flowchart: prompt flows into reason, which routes via a 'tool needed?' decision to either end the turn (no) or pick and call a tool (yes). The tool result flows into observe, which loops back to reason."
+  caption="The agent loop: reason → decide → call → observe → repeat. Compiled from TikZ source at figures/agent-loop/agent-loop.tex via the build-figures pipeline."
+  width="80%"
+/>
 
-- **Context window** — Everything Claude knows about your task — your prompt, files it has read, tool results, conversation history — occupies a finite window. When the window fills, older information fades. Context is not infinite memory; it is a workspace.
-- **Tool use** — Claude does not type code into a file. It calls tools: `Read`, `Edit`, `Write`, `Bash`, `Glob`, `Grep`. Each tool call consumes context (the request and the result) and produces observable effects. Understanding this matters because every tool call has a cost in context tokens.
-- **Configuration layers** — Claude's behavior is shaped by four layers: `CLAUDE.md` (project knowledge), rules (conditional context), settings (permissions and behavior), and output styles (communication patterns). These layers are not suggestions — they are the operating system through which Claude interprets your project.
+Three properties define the system. Every technique in this book is, at bottom, a way of working _with_ one of them rather than against it.
 
-<InsightBox title="Why the Mental Model Matters">
+- **Context window** — Everything Claude knows about your task (your prompt, files it has read, tool results, conversation history) occupies a finite window. When the window fills, older information fades. Context is not infinite memory; it is a workspace.
+- **Tool use** — Claude does not type code into a file. It calls tools: `Read`, `Edit`, `Write`, `Bash`, `Glob`, `Grep`. Each tool call consumes context (both the request and the result) and produces observable effects. Every call has a cost in tokens.
+- **Configuration layers** — Claude's behavior is shaped by four layers: `CLAUDE.md` (project knowledge), rules (conditional context), settings (permissions and behavior), and output styles (communication patterns). These are not suggestions — they are the operating system through which Claude interprets your project.
+
+<InsightBox title="Why the mental model matters">
   Developers who treat Claude as a chatbot prompt it like one: vague requests, no verification, no context management. Developers who understand the agent loop prompt it like a system: clear inputs, verification criteria, deliberate context control. The same tool produces dramatically different results depending on which mental model the developer holds.
 </InsightBox>
 
-## Four Engineering Principles
+That difference is visible in a single prompt:
+
+<BeforeAfter title="Chatbot mindset vs. agent mindset">
+<div slot="before">
+
+```text
+fix the bug in the auth code
+```
+
+</div>
+<div slot="after">
+
+```text
+In src/auth.py, authenticate_user() rejects valid
+logins after the token refresh. Read the function and
+its test, find the root cause, and show me the diff
+before applying. The auth tests must still pass.
+```
+
+</div>
+</BeforeAfter>
+
+The second prompt names the files, states the symptom, sets a verification bar, and asks to see the change before it lands. It treats Claude as a system with inputs and checks — not a oracle you hope guesses right.
+
+<WorkedExample id="agent-loop-walkthrough" title="The agent loop in one session">
+
+Watch the loop iterate on a real request:
+
+```text
+You: "Find the function that handles user authentication."
+
+Claude reasons: "Search the codebase for auth symbols."
+Claude calls Grep:        ← tool call (~50 tokens of context)
+  pattern: "auth"
+  output: 23 matches across 8 files
+
+Claude reasons: "Too many. Narrow it."
+Claude calls Grep:        ← tool call (~50 tokens)
+  pattern: "def authenticate" OR "def login"
+  output: 2 matches in src/auth.py
+
+Claude calls Read:        ← tool call (~400 tokens — the whole file)
+  file: src/auth.py
+
+Claude responds: "src/auth.py:47 is authenticate_user().
+  It validates credentials and issues a JWT."
+```
+
+Each `← tool call` is one turn of the loop. The whole transcript — your prompt, every tool request and result, Claude's reasoning — stays in context until you `/clear` or `/compact`. **A 30-tool-call session can spend half its context budget on tool outputs alone**, which is why "context as currency" becomes a load-bearing idea in Chapter 5.
+
+</WorkedExample>
+
+<Tip n="1" title="Treat Claude as a system, not a chatbot.">
+The same tool produces chatbot-quality or system-quality output depending on the mental model you bring to it: clear inputs, observable tool calls, deliberate context.
+</Tip>
+
+<Exercise id="ch1-ex-1">
+A session reads 6 files and runs the test suite 3 times before editing one function. Roughly where does the context budget go — into the code edits, or into the file reads and test outputs? What does that imply for how you'd scope the _next_ similar task?
+</Exercise>
+
+## Four engineering principles
 
 These four principles underlie every recommendation in this handbook. They apply to code written by AI, code written by humans, and code written by both together.
 
-### Never Fail Silently
+### 1. Never fail silently
 
-Every error must be explicitly reported with recovery options. Silent failures are the most expensive kind of bug: they produce incorrect results that look correct, propagate through downstream systems undetected, and surface only when the damage is difficult to reverse.
+Every error must be explicitly reported with recovery options. Silent failures are the most expensive kind of bug: they produce incorrect results that look correct, propagate through downstream systems undetected, and surface only when the damage is hard to reverse.
 
 <BeforeAfter>
 <div slot="before">
@@ -56,8 +144,8 @@ Handle errors gracefully.
 ```markdown
 # CLAUDE.md
 If you encounter an error, report it immediately
-with the error message, your analysis of the root cause,
-and 2-3 options for resolution.
+with the error message, your analysis of the root
+cause, and 2-3 options for resolution.
 Never work around errors silently.
 ```
 
@@ -65,81 +153,121 @@ Never work around errors silently.
 </BeforeAfter>
 
 <MarginNote variant="tip">
-  The "after" version is longer but produces better outcomes. Precision in error handling instructions compounds across every session.
+  The "after" version is longer but produces better outcomes. Precision in error-handling instructions compounds across every session.
 </MarginNote>
 
-In AI-assisted development, this principle has an additional dimension: Claude must be configured to surface problems rather than work around them. A vague instruction to "handle errors" invites Claude to catch and suppress. An explicit instruction to "report errors with analysis" makes every failure visible and actionable.
+In AI-assisted development this has an extra dimension: Claude must be _configured_ to surface problems rather than route around them. A vague "handle errors" invites Claude to catch and suppress; an explicit "report errors with analysis" makes every failure visible and actionable.
 
-### Simplicity Over Complexity
+<Exercise id="ch1-ex-2">
+Rewrite this CLAUDE.md rule so a failure becomes loud and actionable instead of silent: _"If the data file is missing, use sensible defaults."_
+</Exercise>
+
+### 2. Simplicity over complexity
 
 Short functions. Flat structure. Self-documenting code. A 20-line function with a clear name is superior to a 5-line function with three levels of abstraction.
 
-<MarginNote variant="tip">
-  In notebooks, this means: one cell, one purpose. Cells that do loading, cleaning, AND analysis violate this principle.
-</MarginNote>
-
-<InsightBox title="Why Simplicity Matters More with AI">
-  Simple code is easier for Claude to reason about, test, and modify correctly. Complex abstractions increase the probability of subtle bugs in AI-generated code because each layer of indirection is another opportunity for misunderstanding. When Claude reads your codebase to learn conventions, simple patterns propagate accurately; complex patterns propagate errors.
+<InsightBox title="Why simplicity matters more with AI">
+  Simple code is easier for Claude to reason about, test, and modify correctly. Each layer of indirection is another opportunity for misunderstanding, so complex abstractions raise the probability of subtle bugs in AI-generated code. And when Claude reads your codebase to learn its conventions, simple patterns propagate accurately while complex ones propagate errors.
 </InsightBox>
 
-### Immutability by Default
+### 3. Immutability by default
 
 Return new data structures; mark mutations explicitly. Pure functions are easier to test, easier to parallelize, and easier for Claude to reason about.
 
-When mutation is necessary (performance, I/O, state management), make it explicit: name the function `update_`, use mutable types, and document the side effects. The reader — human or AI — should never be surprised by what a function modifies.
+When mutation is necessary (performance, I/O, state management), make it explicit: name the function `update_`, use mutable types deliberately, and document the side effects. The reader — human or AI — should never be surprised by what a function modifies.
 
-### Fail Fast with Diagnostics
+### 4. Fail fast with diagnostics
 
-Stop immediately on problems with full context: what failed, what was expected, what was received, and what the caller can do about it.
+Stop immediately on problems, with full context: what failed, what was expected, what was received, and what the caller can do about it.
 
 ```python
-def process_data(
-    df: pd.DataFrame, min_rows: int
-) -> pd.DataFrame:
+def process_data(df: pd.DataFrame, min_rows: int) -> pd.DataFrame:
     if len(df) < min_rows:
         raise ValueError(
             f"Need {min_rows} rows, got {len(df)}. "
-            f"Check data source or reduce "
-            f"min_rows parameter."
+            f"Check data source or reduce min_rows parameter."
         )
     # ... process
 ```
 
 <MarginNote variant="tip">
-  Error messages that include both the violation and a suggested fix reduce debugging time dramatically.
+  Error messages that include the violation _and_ a suggested fix turn a 30-minute investigation into a 10-second fix.
 </MarginNote>
 
-The error message includes: what went wrong (`Need N, got M`), where to look (`data source`), and what to do about it (`reduce min_rows`). This is the difference between a 10-second fix and a 30-minute investigation.
+The message says what went wrong (`Need N, got M`), where to look (`data source`), and what to do (`reduce min_rows`). That is the whole distance between a fast fix and a long investigation.
 
-## The Codebase Is the Curriculum
+## The codebase is the curriculum
 
 <KeyIdea>
-  These principles are not Claude-specific — they are engineering principles that become _more_ important when AI is generating code. AI amplifies both good and bad patterns. If your codebase follows these principles, Claude's contributions will follow them too. If your codebase is silent about errors, full of mutable state, and deeply abstracted, Claude's contributions will be the same. The codebase is the curriculum. Make it teach the right lessons. For data scientists, this includes your notebooks, pipeline scripts, and feature engineering code — Claude learns patterns from all of them.
+These principles are not Claude-specific — they are engineering principles that become _more_ important when AI generates code. AI amplifies both good and bad patterns. If your codebase follows these principles, Claude's contributions will too. If your codebase is silent about errors, full of mutable state, and deeply abstracted, Claude's contributions will be the same.
 </KeyIdea>
 
-This insight has a practical consequence: the single most valuable thing you can do before using Claude on an existing project is to ensure that the code Claude will read exemplifies the patterns you want Claude to produce. Configuration (covered in the next chapter) reinforces this, but the codebase itself is the primary teacher.
+This has a direct practical consequence: the single most valuable thing you can do before pointing Claude at an existing project is to make sure the code it will read **exemplifies the patterns you want it to produce**. Configuration reinforces this — your first `CLAUDE.md` (Chapter 2) and best-practice conventions<Citation src="anthropic-claude-code-best-practices" /> sharpen it further — but the codebase itself is the primary teacher.
 
-{/* XRef refs to ch:first-claude-md and ch:thinking-partner deferred until those chapters are ported in Phase 1; the validator blocks the build on unknown ids. See docs/scaffold-gaps.md. */}
+<Tip n="2" title="The codebase is the curriculum.">
+Claude amplifies the patterns it reads, so the highest-leverage preparation is making the code it will see exemplary — before you write a single prompt.
+</Tip>
 
-<MarginNote variant="note" label="Cross-Ref">
-  For concrete techniques to make your codebase a better teacher, see the chapter on thinking together.
-</MarginNote>
+<Exercise id="ch1-ex-3">
+You're about to point Claude at a five-year-old codebase with inconsistent error handling. Per "the codebase is the curriculum," what is the highest-leverage thing to do first — and why isn't the answer "write a better prompt"?
+</Exercise>
 
-## Quick Reference
+## Where this goes next
 
-- Claude Code is an agent loop: prompt → reason → tool → observe → repeat
-- Context window is finite — every tool call costs tokens
-- Four principles: never fail silently, simplicity, immutability, fail fast
-- The codebase teaches Claude patterns — good and bad
-- Configuration (next chapter) reinforces but does not replace good code
+This chapter plants three concepts that spiral through the handbook. Each returns at greater depth, and each revisit connects back here so you perceive accumulating mastery, not repetition:
 
-<TryThis>
-  Pick one function in your feature pipeline or data loading code — ideally one Claude will read often. Audit it against the four principles:
+- **Context as currency** — Chapter 5 builds on the finite-context property with the full toolkit (`/clear`, `/compact`, `/rewind`, the two-failure rule, session naming, auto-memory).
+- **Configuration layers** — Chapter 2 walks you through your first `CLAUDE.md`; later chapters scale it across multiple projects.
+- **Verification** — Chapter 7 builds on "fail fast with diagnostics" into a full validation architecture and verification criteria you encode in `CLAUDE.md`.
 
-  1. Does it fail silently anywhere? (e.g., silently dropping NaN rows without logging)
-  2. Is it under 30 lines? If not, can you extract the transformation logic from the I/O?
-  3. Does it mutate its input DataFrame? If so, is that explicit in the name?
-  4. Do its error messages include what went wrong AND what to do about it?
+## Common pitfalls
 
-  Fix one issue. This is your first investment in the codebase-as-curriculum.
-</TryThis>
+<Pitfall title="Treating Claude as a chatbot">
+Vague requests, no verification, no context management — the "before" of every example in this chapter. The fix is the rest of the book, but start here: put verification criteria in your prompt, ask Claude to read before it edits, and `/clear` between unrelated tasks.
+</Pitfall>
+
+<Pitfall title="Ignoring tool-call cost">
+Letting Claude read 30 files when 3 would do burns context for no signal. Name the files or directories worth looking at up front — Claude is far better at scoping a `Grep` to a directory than at guessing which of 100 files to open first.
+</Pitfall>
+
+<Pitfall title="Skipping CLAUDE.md">
+Relying on prompt-only configuration. `CLAUDE.md` is the **persistent** layer that survives `/clear`; prompts are session-only. A two-minute investment in a 60-line `CLAUDE.md` pays back every session, forever.
+</Pitfall>
+
+## Quick reference
+
+- Claude Code is an agent loop: prompt → reason → tool → observe → repeat.
+- The context window is finite — every tool call costs tokens.
+- Four principles: never fail silently, simplicity, immutability, fail fast.
+- The codebase teaches Claude patterns — good and bad.
+- Configuration reinforces good code but does not replace it.
+
+## Practice
+
+<Practice id="ch1-pr-1" difficulty="2">
+Pick one function in your codebase that Claude will read often — an entry point, a frequently-imported utility, or a data loader. Audit it against the four principles: does it fail silently? Is it under ~30 lines? Does it mutate its input without saying so? Do its error messages say both what broke and what to do? Fix one issue. This is your first investment in the codebase-as-curriculum.
+</Practice>
+
+<Practice id="ch1-pr-2" difficulty="3">
+Take a recent multi-step Claude session (or a transcript). Mark each tool call and estimate which consumed the most context. Identify one point where a `/clear` or a tighter file scope would have saved budget without losing needed information.
+</Practice>
+
+<Practice id="ch1-pr-3" difficulty="4">
+Translate the four principles into a `CLAUDE.md` section for one real project — one concrete, testable instruction per principle (not the principle's name restated). Then deliberately phrase one instruction the vague "before" way, run a comparable task twice, and note whether the output degrades as the mental model predicts.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch1-ex-1">
+Most of the budget goes into the **file reads and test outputs**, not the edit. A `Read` pulls an entire file into context and each test run pulls its full output; the edit itself is a small diff. Implication: scope the next task to the few files that actually matter and capture test output narrowly (or `/clear` between attempts) rather than letting Claude explore freely — the reads, not the writes, are what fill the window.
+</Solution>
+
+<Solution for="ch1-ex-2">
+Make the failure loud and actionable, for example: _"If the data file is missing, stop and report the path you expected, that it was not found, and 2-3 options — point me at the correct path, regenerate the file, or proceed with an explicitly named default that you call out. Never substitute defaults silently."_ The rewrite turns a silent substitution into a visible decision with recovery options.
+</Solution>
+
+<Solution for="ch1-ex-3">
+Make the specific files Claude will read most — entry points and frequently-imported utilities — exemplary first. A better prompt can't override what the surrounding code consistently teaches: Claude amplifies the patterns it reads, so inconsistent error handling in the files it learns from will resurface in its output no matter how the prompt is worded. Fix the curriculum, then prompt.
+</Solution>
+
+</ExerciseSolutions>

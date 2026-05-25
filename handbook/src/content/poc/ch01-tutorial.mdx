@@ -3,8 +3,8 @@ title: "Principles and Mental Model"
 poc_kind: tutorial
 chapter_source: 1
 description: "Long-form tutorial — the baseline. Applies the 8 visual principles from PEDAGOGY.md: macro-then-micro, two-level disclosure, data-ink discipline, LATCH, parallel structure, diagram-or-example, scanning-friendly, mode discipline."
-last_updated: "2026-05-23"
-visual_intent: "Narrative + worked example. The Diátaxis tutorial mode. Wide line-height, callouts spaced, retrieval prompts at end."
+last_updated: "2026-05-25"
+visual_intent: "Narrative + worked example. The Diátaxis tutorial mode. Wide line-height, callouts spaced, retrieval prompts at end. Differentiated from the canonical chapter: this is the hands-on walkthrough (worked example, retrieval prompts, TryThis); the chapter carries the numbered Tips, two-tier exercises, and citations."
 ---
 
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
@@ -22,6 +22,8 @@ import BeforeAfter from '../../components/BeforeAfter.astro';
 - The four **engineering principles** that govern every recommendation in this handbook
 - Why the **codebase is the primary teacher** Claude learns from
 </YouWillLearn>
+
+> **Guided walkthrough.** Work through this alongside your own project. For the canonical reference — with inline exercises, end-of-chapter practice, numbered Tips, and citations — read the chapter [Principles and Mental Model](/chapters/ch01-principles).
 
 ## The chapter in one paragraph
 
@@ -161,7 +163,7 @@ These principles are not Claude-specific — they are engineering principles tha
 
 If your codebase follows these principles, Claude's contributions will follow them too. If your codebase is silent about errors, full of mutable state, and deeply abstracted, Claude's contributions will be the same.
 
-The single most valuable thing you can do before using Claude on an existing project is to ensure that the code Claude will read **exemplifies the patterns you want Claude to produce**. Configuration (covered in [Ch 2](#) and revisited in [Ch 9](#)) reinforces this, but the codebase itself is the primary teacher.
+The single most valuable thing you can do before using Claude on an existing project is to ensure that the code Claude will read **exemplifies the patterns you want Claude to produce**. Configuration (your first CLAUDE.md in Chapter 2, then scaled across projects in later chapters) reinforces this, but the codebase itself is the primary teacher.
 
 ## Where this goes next
 
