@@ -85,3 +85,21 @@
   captured_at: 2026-05-25T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- Appended for Ch 4 (Working Productively). PROVISIONAL — see HITL note above. ---
+
+- id: anthropic-prompt-engineering-xml-tags
+  url: https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags
+  title: "Use XML tags to structure your prompts"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-choosing-a-model
+  url: https://docs.claude.com/en/docs/about-claude/models/choosing-a-model
+  title: "Choosing the right model"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code

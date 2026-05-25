@@ -1,0 +1,242 @@
+---
+title: Working Productively
+part: 1
+chapter: 4
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [4, 5]
+introduced_in_version: "1.0.0"
+last_updated: 2026-05-25
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_verified: 2026-05-25
+sources:
+  - anthropic-claude-code-best-practices
+  - anthropic-prompt-engineering-xml-tags
+  - anthropic-choosing-a-model
+  - anthropic-claude-code-permission-modes
+description: A precision vocabulary that replaces vague verbs, XML-tagged multi-component prompts, scope control that stops Claude from sprawling, and matching model strength to task difficulty — the prompting craft that makes daily work consistent.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+
+<YouWillLearn prerequisites="Chapter 3 (the session loop and the three prompting basics). Claude Code installed, pointed at a real project.">
+- A **precision vocabulary** that replaces vague verbs with checkable instructions
+- How to structure complex requests with **XML-tagged, multi-component prompts**
+- **Scope control** — the three techniques that stop Claude from sprawling into files you did not name
+- **Model selection** at a durable level: matching model strength to task difficulty
+</YouWillLearn>
+
+_Your prompts work, but they are inconsistent. Sometimes Claude nails it on the first try; sometimes you spend three rounds correcting the same misunderstanding. The gap is not randomness — it is precision. Chapter 3 gave you three prompting basics: be specific, structure multi-part tasks, include a verification bar. This chapter sharpens each one into a craft you can practise, and adds the last Part I skill: choosing how hard Claude should work on a given task._
+
+## A precision vocabulary
+
+Vague verbs are where Claude guesses. "Clean this data" could mean five different operations, and Claude picks one — sometimes yours, sometimes not. The fix is to build a shared vocabulary in which each request names the actual operations, not a category of them.<Citation src="anthropic-claude-code-best-practices" />
+
+| Vague request | Precise version |
+|---|---|
+| "Clean this data" | validate the schema, impute nulls with the median, drop rows where the target is `NaN` |
+| "Train a model" | fit XGBoost on the train split, evaluate AUC on validation, log the params |
+| "Check if this works" | run `pytest`, confirm no data leakage, verify feature distributions match production |
+| "Add error handling" | in `build_features()`, raise `ValueError` on schema mismatch; log and skip rows with >50% `NaN` |
+
+Each precise version is longer, but every clause is a thing Claude can do and you can verify. The vague version forces a guess; the precise version removes it.
+
+<MarginNote variant="tip" label="Tip">
+  Precision compounds: practitioners report shared vocabulary noticeably cuts correction rounds. Hard to measure exactly, and workload-dependent — but the direction is reliable.
+</MarginNote>
+
+The deeper payoff is alignment between your prompts and your `CLAUDE.md`. When the file from Chapter 2 says "validate the schema" and your prompts say "validate the schema," Claude interprets both the same way. Your prompts get shorter as the vocabulary stabilises, your `CLAUDE.md` rules land more reliably, and the correction rate drops. Building the vocabulary is a four-step habit: after an interaction, note how the request could have been clearer; spot the recurring verbs (create, diagnose, refactor, validate); write the precise form into your project's conventions; use it next time.
+
+<Tip n="7" title="Replace vague verbs with checkable operations.">
+A precise prompt names the actual operations ("impute nulls with the median, drop NaN-target rows"), not a category of them ("clean the data") — so Claude acts instead of guessing, and you can verify each clause.
+</Tip>
+
+<Exercise id="ch4-ex-1">
+Here is a prompt: _"Make the report better."_ Using the precision-vocabulary habit, rewrite it for a concrete task of your choosing — name the operations Claude should perform and at least one way to check the result. What did naming the operations remove that the vague verb left in?
+</Exercise>
+
+## Multi-component prompts: XML tags
+
+A precise vocabulary handles short requests. For a complex one — context, a task, constraints, and a verification bar all at once — running them together in a paragraph makes Claude work to separate them. XML tags do that separation for it.<Citation src="anthropic-prompt-engineering-xml-tags" /> The tags are not magic syntax; they are visible section headers that tell Claude *this part is context, this part is the task, this part is a hard constraint.*
+
+```xml
+<context>
+The churn model uses features from src/features/customer.py.
+Current AUC is 0.72 on validation.
+</context>
+
+<task>
+Add recency features: days since last purchase, days since
+last login. Compute them from the events table.
+</task>
+
+<constraints>
+- No data leakage: features must use only pre-churn data.
+- Must work with the existing FeatureStore interface.
+- Include unit tests for the new features.
+</constraints>
+
+<verification>
+Run: pytest tests/features/ -v
+All existing tests must still pass; no future-dated
+features may appear in the test set.
+</verification>
+```
+
+The win is not the angle brackets — it is the discipline they impose on *you*. Writing the four sections forces you to state the context Claude needs, the task, the boundaries it must not cross, and how it will know it succeeded. A prompt that names all four rarely needs a correction round, because the ambiguity that would have caused one is gone before Claude starts.
+
+<MarginNote variant="tip" label="Tip">
+  Reach for XML tags when a prompt has three or more distinct parts. For a one-line request, tags are ceremony — just be precise.
+</MarginNote>
+
+### Rich inputs
+
+Real data beats a verbal description of it. Rather than describing code or pasting an error from memory, hand Claude the source directly.<Citation src="anthropic-claude-code-best-practices" /> An `@file` reference loads the content *before* Claude reasons, so the relevant code is in context from the first step rather than fetched mid-task:
+
+```text
+Look at @src/features/customer.py and
+@tests/features/test_customer.py. The builder
+computes 12 features but has no validation for
+missing values. Add validation following the
+existing patterns.
+```
+
+You can also paste screenshots, diagrams, and error messages straight into the prompt, and pipe data from other tools — `tail -100 app.log | claude -p "Diagnose the errors"` hands Claude the real log instead of your paraphrase of it. The principle is the same in every case: give Claude the artifact, not a description of the artifact.
+
+<MarginNote variant="note" label="Official">
+  `@` references load file content before Claude responds — more efficient than asking it to `Read` the file mid-task. <a href="https://www.anthropic.com/engineering/claude-code-best-practices">anthropic.com/engineering/claude-code-best-practices</a>
+</MarginNote>
+
+<Exercise id="ch4-ex-2">
+You need Claude to add caching to a function, but only if the change keeps an existing benchmark green, and it must not alter the public signature. Sketch this as a four-section XML prompt (`context` / `task` / `constraints` / `verification`). Which requirement goes in `constraints` versus `verification`, and why does the split matter?
+</Exercise>
+
+## Controlling scope
+
+Claude's default behaviour is helpful: it reads broadly, notices related issues, and fixes them. That same helpfulness becomes **scope creep** when it edits a file you were not working on, refactors a function you did not mention, or "improves" code that was intentionally written that way. The most common daily annoyance with Claude is a change to a file you never asked it to touch.
+
+The lever is the prompt, and it has a spectrum:
+
+- **Too restrictive** — "Only modify line 42 of `auth.py`." Claude cannot make the supporting changes the fix actually requires.
+- **Too permissive** — "Fix the auth system." Claude may rewrite half the codebase.
+- **Right scope** — "Fix the session-expiry bug in `src/auth/session.py`. You may also modify `src/auth/middleware.py` if the fix requires it. Do not touch other files without asking."
+
+Three techniques hit the right scope, in rough order of how often you will reach for them:
+
+1. **Name the files.** List exactly which files Claude may modify: "Modify `src/auth/session.py` and its tests. Do not modify other files." Simplest and most effective.
+2. **Separate discovery from action.** First ask Claude to *analyse* without changing anything: "Read `src/payments/` and tell me what needs to change to support refunds. Do not make changes yet." Review the analysis, then approve specific edits.
+3. **Use Plan Mode.** The read-only mode from Chapter 3 enforces "discovery before action" with the permission system rather than relying on the instruction — Claude *cannot* edit while you review the plan and adjust the scope.<Citation src="anthropic-claude-code-permission-modes" />
+
+<KeyIdea>
+Scope creep is not a model deficiency — it is a prompting gap. Claude modifies extra files because the prompt did not say not to. The fix is always in the prompt — name the files, separate discovery from action, or use Plan Mode — never in hoping Claude will guess your boundaries.
+</KeyIdea>
+
+When Claude does make an unsolicited change, the practitioner move is not to silently undo it — it is to add a scope constraint to the next prompt: _"Good fix for the session bug. But you also changed `user_model.py` — please revert that, and for the rest of this session, only modify files I explicitly name."_ Claude carries that constraint forward for the remainder of the session.
+
+<Tip n="8" title="Name the files Claude may modify.">
+Scope creep is a prompting gap, not a model fault. State which files are in bounds — "modify `session.py` and its tests, nothing else" — and the unsolicited edit you would have had to revert never happens.
+</Tip>
+
+<Exercise id="ch4-ex-3">
+You ask Claude to "speed up the slow query in `reports.py`," and it edits `reports.py`, the shared `db/pool.py`, and a `config.py` timeout — two of which you did not want touched. Which scope-control technique would have prevented this, and write the one sentence you would add to the prompt to apply it.
+</Exercise>
+
+## Matching the model to the task
+
+The last Part I prompting skill is choosing how hard Claude should work. Claude Code offers a small lineup of models that trade speed against reasoning depth, and the durable principle is simple: **match model strength to task difficulty.**<Citation src="anthropic-choosing-a-model" />
+
+- **Faster, lighter models** — well-specified, mechanical work: formatting, boilerplate, simple lookups, high-volume batch edits where speed dominates.
+- **Balanced models** — most day-to-day development: standard coding tasks, code review, the bulk of the session loop. A sensible default.
+- **Frontier models** — ambiguous or complex work: architecture decisions, multi-file refactors, debugging where the root cause is unclear.
+
+<MarginNote variant="warning" label="Warning">
+  Model names, context windows, and knowledge cutoffs change with most releases. Treat the *principle* (match strength to difficulty) as durable; verify the current lineup in the docs.
+</MarginNote>
+
+The rule of thumb that follows: default to a balanced model for development, escalate to a frontier model when the problem is ambiguous or spans many files, and drop to a faster model for bulk or trivial work. You do not need to memorise a capability table — you need to notice which of the three buckets the task in front of you falls into. Knowledge cutoffs and exact model names drift per release, so confirm the current lineup against Anthropic's model documentation rather than trusting a number printed in a book.
+
+This chapter deliberately stops at *selection*. The deeper knobs — extended thinking and its effort controls, prompt caching and the Batch API for cost, and fast mode — are covered in Appendix B; reach for them when you are optimising cost or driving complex multi-step reasoning, not while you are learning to prompt well.
+
+<InsightBox title="Difficulty, not prestige">
+  The instinct to "use the best model for everything" wastes speed on work that does not need it and trains a habit of not thinking about fit. The skill is reading task *difficulty* — is this well-specified and mechanical, standard, or genuinely ambiguous? — and spending reasoning depth where ambiguity actually lives. That judgement outlasts any specific model lineup.
+</InsightBox>
+
+## Where this goes next
+
+This chapter completes the Part I prompting arc. Three threads continue it:
+
+- **Context as currency** — Chapter 5 develops the context discipline from Chapter 3 (`/clear`, `/compact`, the two-failure rule) into the full toolkit: `/rewind`, session naming, `CURRENT_WORK.md`, and auto-memory.
+- **Thinking together** — Chapter 6 takes precise prompting into collaborative reasoning: hypothesis debugging, pre-mortems, and treating Claude as a thinking partner rather than an order-taker.
+- **Advanced prompting and cost** — Appendix B picks up extended thinking, prompt caching, the Batch API, and fast mode for readers optimising cost or complex reasoning.
+
+## Common pitfalls
+
+<Pitfall title="Vague verbs in the prompt">
+"Clean it," "fix it," "make it better" — each is a category, not an operation, so Claude guesses which one you meant. Name the operations and a way to check them. The precision-vocabulary table is the antidote.
+</Pitfall>
+
+<Pitfall title="Cramming a complex request into one paragraph">
+Context, task, constraints, and a verification bar run together force Claude to untangle them — and it sometimes untangles wrong. For three-or-more-part requests, use XML tags so each section is unambiguous.
+</Pitfall>
+
+<Pitfall title="Letting scope sprawl, then just undoing it">
+Reverting an unsolicited edit without adding a constraint invites the same edit next turn. Name the in-bounds files in the prompt, and add a session-wide scope rule the moment Claude strays.
+</Pitfall>
+
+<Pitfall title="Reaching for the frontier model by reflex">
+Using the heaviest model for trivial work burns speed and dulls the habit of matching strength to difficulty. Read the task's difficulty first; escalate only when the work is genuinely ambiguous or large.
+</Pitfall>
+
+## Quick reference
+
+- Replace vague verbs with checkable operations; build a shared vocabulary with your `CLAUDE.md`.
+- For three-or-more-part requests, use XML tags: `context` / `task` / `constraints` / `verification`.
+- Hand Claude real artifacts — `@file` references, pasted screenshots, piped logs — not descriptions.
+- Scope creep is a prompting gap: name the files, separate discovery from action, or use Plan Mode.
+- Match model strength to task difficulty — faster for mechanical, balanced by default, frontier for ambiguous.
+- Model names and cutoffs drift; verify the current lineup in the docs.
+- Extended thinking, caching, Batch API, and fast mode live in Appendix B.
+
+## Practice
+
+<Practice id="ch4-pr-1" difficulty="2">
+Take your last three prompts to Claude (check your terminal history). Rewrite each with the precision-vocabulary habit: replace any vague verb ("clean," "train," "check") with the operations you actually meant, and add a verification criterion to any prompt that lacked one. For each rewrite, estimate how many correction rounds it would have saved.
+</Practice>
+
+<Practice id="ch4-pr-2" difficulty="3">
+Pick a real task with at least three parts (context + work + a boundary). Write it once as a single paragraph, then again as a four-section XML prompt. Run both on comparable work and note which produced the result you wanted with fewer corrections — and whether writing the `constraints` section surfaced a requirement you had not consciously stated.
+</Practice>
+
+<Practice id="ch4-pr-3" difficulty="4">
+Audit one session for scope creep: find a turn where Claude touched a file you had not named. Reconstruct the prompt, then rewrite it with one of the three scope-control techniques applied. Separately, take three upcoming tasks and classify each as mechanical / standard / ambiguous, then pick the model bucket for each — and notice whether your default was already the right call.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch4-ex-1">
+A strong rewrite names operations and a check — for example, for a data summary report: _"Regenerate `report.md`: recompute the weekly aggregates from `data/events.parquet`, add a row count and a null-rate column per metric, and flag any metric whose value moved more than 20% week-over-week. Verify the totals match `SELECT count(*)` on the source table."_ Naming the operations removed the open question "*better how?*" — the vague verb left Claude to choose between formatting, adding detail, fixing accuracy, or restructuring, and a guess there is exactly the wrong-problem risk precision exists to eliminate.
+</Solution>
+
+<Solution for="ch4-ex-2">
+The signature requirement is a **constraint** (a boundary Claude must respect *while* working — "do not change the public signature"); the benchmark is **verification** (a check applied *after* — "the existing benchmark must still pass"). For example: `<constraints>` — "Public signature of `get_user()` must not change; cache is internal only." `<verification>` — "Run `pytest bench/test_user_perf.py`; the p95 latency must not regress." The split matters because the two play different roles: a constraint shapes the approach Claude takes, while a verification criterion is the bar it (and you) check the result against — collapsing them loses the distinction between *how to work* and *how to know it worked*, which is the whole reason the four-section structure helps.
+</Solution>
+
+<Solution for="ch4-ex-3">
+**Naming the files** would have prevented it — the simplest and most direct technique. Add a sentence such as: _"Modify only `reports.py`; do not touch `db/pool.py`, `config.py`, or any other file — if the fix genuinely requires changing a shared file, stop and ask first."_ That converts an open-ended optimisation (which invites Claude to "improve" the connection pool and a timeout it noticed along the way) into a bounded one, and the request to *ask first* leaves room for a legitimately necessary cross-file change without surrendering control of the boundary.
+</Solution>
+
+</ExerciseSolutions>
