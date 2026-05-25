@@ -61,3 +61,27 @@
   captured_at: 2026-05-25T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+- id: anthropic-claude-code-interactive-mode
+  url: https://code.claude.com/docs/en/interactive-mode
+  title: "Claude Code interactive mode (keyboard shortcuts)"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-permission-modes
+  url: https://code.claude.com/docs/en/permissions
+  title: "Claude Code permission modes (Plan Mode)"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-common-workflows
+  url: https://code.claude.com/docs/en/common-workflows
+  title: Common workflows with Claude Code
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code

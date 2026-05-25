@@ -1,0 +1,132 @@
+---
+title: "Ch 3 cheat sheet — session loop, prompting basics, /clear vs /compact, course-correction, Plan Mode"
+poc_kind: cheat-sheet
+chapter_source: 3
+description: "Dense reference card: the session loop, the prompt template, /clear-vs-/compact, the two-failure rule, the course-correction move table, the plan-or-skip decision, and the four-phase Plan Mode workflow. Look-up oriented; print-friendly. Not meant to be read linearly."
+last_updated: "2026-05-25"
+visual_intent: "Reference-card density. Tables, matrices, snippets, flowcharts. Minimal prose. Reader is here to find one specific thing, not to learn. Visually distinct from the narrative tutorial."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **Use this when**: you need to look up *one specific thing* about running a session — a step of the loop, what a good prompt contains, `/clear` vs `/compact`, which course-correction move fits, or whether to plan. Not a tutorial; not a TL;DR. Look-up oriented.
+
+## The session loop
+
+```text
+PROMPT  ──▶  OBSERVE  ──▶  REFINE  ──▶  COMMIT
+  │            │             │            │
+  │            │             │            └─ one logical change, then commit
+  │            │             └─ specific feedback, OR /clear if wrong
+  │            └─ read the diff, run the tests — don't approve on faith
+  └─ what + context + verification bar
+        ▲                     │
+        └──── refine loops back; a wrong turn /clears (not loops) ────┘
+```
+
+## Prompt template (the three basics)
+
+```text
+[WHAT]      <symptom + location + goal — be specific about what, not how>
+[STRUCTURE] <for multi-part tasks: 1. … 2. … 3. … — think step by step>
+[VERIFY]    Verify: <command to run> AND <behavior to confirm>
+```
+
+| Basic | Weak | Strong |
+|---|---|---|
+| Specific *what* | "Fix the broken pipeline." | "`temporal.py` raises `KeyError: 'timestamp'` on line 34 — diagnose + fix." |
+| Step by step | "Refactor the pipeline." | "1. List the steps. 2. Find load+transform mixes. 3. Extract pure fns. 4. Test each." |
+| Verification | (none) | "Verify: `pytest tests/features/` passes; empty input raises ValueError." |
+
+<MarginNote variant="tip" label="Tip">
+  The verification bar is the highest-leverage line: it lets Claude self-correct before you ever read the output.
+</MarginNote>
+
+## `/clear` vs `/compact`
+
+| | `/clear` | `/compact` |
+|---|---|---|
+| **Does** | Wipes the context, starts fresh | Summarizes, keeps key decisions |
+| **Use when** | Switching to an *unrelated* task | *Continuing* a long task, context large |
+| **Keeps** | `CLAUDE.md` (reloads); nothing else | A summary of the conversation so far |
+| **Aggressiveness** | Total reset | Selective compression |
+
+## The two-failure rule
+
+```text
+Corrected Claude on the SAME issue…
+   once  → fine, refine again
+   twice → STOP. /clear and write the prompt you wish you'd written first.
+   thrice → you're arguing with a cluttered desk; the rejected
+            approaches now dominate the context.
+```
+
+Cost of `/clear` + re-prompt ≈ 30s. Cost of a third correction ≈ more, and it usually fails.
+
+## Course-correction moves (lightest → heaviest)
+
+| Move | Binding* | Does | Reach for it when |
+|---|---|---|---|
+| **Interrupt** | Esc | Stop mid-action, context preserved | Claude is wrong *right now*, still typing |
+| **Rewind** | `/rewind` (or Esc Esc) | Restore conversation / code / both to a checkpoint | A few steps went wrong |
+| **Undo** | "Undo that" | Revert the last change in plain language | One specific edit was wrong |
+| **Reset** | `/clear` | Wipe the context entirely | The whole *direction* was wrong |
+
+<MarginNote variant="warning" label="Warning">
+  *Bindings drift between releases. Esc / Esc-Esc / `Shift+Tab` are the current-era keys; the *moves* are durable. Verify keys in the docs.
+</MarginNote>
+
+Every Claude action is an automatic checkpoint — rewind is a free save point.
+
+## Plan or skip?
+
+```text
+Could you describe the final diff in ONE sentence?
+        │
+        ├─ YES  → skip planning. Ask Claude directly.
+        │         (typo, log line, rename, one-liner)
+        │
+        └─ NO   → PLAN.
+                  (multi-file · unfamiliar code · hard to reverse:
+                   migration, auth path, shared utility)
+```
+
+## Plan Mode — the four phases
+
+```text
+1. EXPLORE   (Plan Mode, read-only)  "Read src/auth/ and explain how
+                                       tokens are issued. No changes."
+2. PLAN      (Plan Mode, read-only)  "Write a plan: files, order, tests,
+                                       risks. Don't edit yet."
+3. IMPLEMENT (default mode)          "Implement the plan. Tests first,
+                                       then code, then run the suite."
+4. COMMIT                            "Commit: <descriptive message>"
+```
+
+Plan Mode = read files + answer questions, **no edits / writes / destructive commands**. The misunderstanding surfaces in the *plan* (Phase 2), not in code you must unwind. Enter via `Shift+Tab` cycling or `claude --permission-mode plan`.
+
+## Prevention vs. recovery
+
+| | Plan Mode | Course-correction |
+|---|---|---|
+| **Timing** | *Before* edits | *After* a wrong turn starts |
+| **Mechanism** | No tool can modify a file | Stop / rewind / clear |
+| **Catches the error in** | A plan you read | Code already on disk |
+| **Use for** | Risky / unfamiliar / multi-file | Anything that slips through anyway |
+
+## Session checklist
+
+- [ ] Prompt carried *what* + context + a verification bar
+- [ ] Read the diff and ran the verification before approving (observe)
+- [ ] Refinements were specific (one behavior), not re-descriptions
+- [ ] `/clear` between unrelated tasks; never argued past two corrections
+- [ ] Risky / multi-file change went explore → plan → implement → commit
+- [ ] One logical change per commit
+
+## Drill in
+
+- **[Ch 3 full tutorial](/poc/ch03-tutorial)** — narrative version with the four-phase worked example
+- **[Ch 3 TL;DR](/poc/ch03-tldr)** — compressed essence (1 page)
+- **[How-to: use Plan Mode for a risky change](/poc/ch03-howto-plan-mode-risky-change)** — the explore-then-plan procedure in full
+- **[Chapter: Your First Working Session](/chapters/ch03-first-session)** — the canonical reference (exercises + citations)
+- **[Ch 2 — Your First CLAUDE.md](/chapters/ch02-first-claude-md)** — the configuration the session loop runs on top of

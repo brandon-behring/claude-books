@@ -1,0 +1,311 @@
+---
+title: Your First Working Session
+part: 1
+chapter: 3
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3, 4, 5]
+introduced_in_version: "1.0.0"
+last_updated: 2026-05-25
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_verified: 2026-05-25
+sources:
+  - anthropic-claude-code-best-practices
+  - anthropic-claude-code-permission-modes
+  - anthropic-claude-code-interactive-mode
+  - anthropic-claude-code-common-workflows
+description: The repeatable session loop, three prompting basics, context hygiene with /clear and /compact, Plan Mode for risky changes, and how to course-correct when Claude takes a wrong turn.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+
+<YouWillLearn prerequisites="Chapter 1 (the agent loop and finite context) and Chapter 2 (a CLAUDE.md with deny rules). Claude Code installed, pointed at a real project.">
+- The repeatable **session loop** — prompt → observe → refine → commit
+- Three **prompting basics** that handle most daily interactions
+- A **context-hygiene** discipline — two commands and one rule
+- **Plan Mode** for risky or unfamiliar changes, and how to **course-correct** when Claude takes a wrong turn
+</YouWillLearn>
+
+_Your `CLAUDE.md` is set up and your secrets are protected. You open Claude Code, type a prompt — and where do you start? How do you structure a request so Claude does what you mean? How do you know when to keep going versus start fresh? Chapter 2 gave Claude its briefing; this chapter gives you the loop you run on top of it. None of it is about writing code — it is about defining what "correct" means precisely enough that Claude can produce it._
+
+## The session loop
+
+A productive session with Claude is not one long prompt. It is a short cycle you repeat — the same loop an experienced developer runs while pair programming, just faster.<Citation src="anthropic-claude-code-common-workflows" />
+
+```text
+   ┌──────────────────────────────────────────────┐
+   │                                                │
+   ▼                                                │
+ PROMPT  ──▶  OBSERVE  ──▶  REFINE  ──▶  COMMIT     │
+ describe     read the     specific     one logical │
+ the task     diff, run    feedback,    change,     │
+ + context    the tests    or /clear    then commit │
+                              │                      │
+                              └──────────────────────┘
+              refine loops back; a wrong turn /clears and restarts
+```
+
+The four steps:
+
+- **Prompt** — describe what you want, with enough context for Claude to act without guessing.
+- **Observe** — read what Claude did. Check the diff, run the tests, examine the output. Do not approve on faith.
+- **Refine** — if the result is close, give specific feedback. If it is wrong, do not keep arguing; `/clear` and write a better prompt.
+- **Commit** — when the change is verified, commit it. One logical change per commit.
+
+<MarginNote variant="tip" label="Tip">
+  The loop is the same one pair-programmers run. Claude just iterates faster, so the cost of a sloppy prompt compounds quicker.
+</MarginNote>
+
+The rest of this chapter teaches the two steps that decide everything: how to **prompt** so Claude acts precisely, and how to **refine** — including when to stop refining and start fresh.
+
+## Three prompting basics
+
+Three techniques handle most daily interactions. Chapter 4 covers advanced prompting in depth; this is enough to be productive today.
+
+### 1. Be specific about what, not how
+
+State the symptom, the location, and the goal — and leave the implementation to Claude.
+
+<BeforeAfter title="Vague request vs. precise request">
+<div slot="before">
+
+```text
+Fix the broken pipeline.
+```
+
+</div>
+<div slot="after">
+
+```text
+The feature pipeline in src/features/temporal.py
+raises KeyError: 'timestamp' on line 34. The column
+exists in training data but is missing from the
+inference schema. Diagnose and fix.
+```
+
+</div>
+</BeforeAfter>
+
+The "before" makes Claude guess which pipeline, what kind of failure, and what "fix" means — three guesses, three chances to solve the wrong problem. The "after" names the file, the error, and the likely cause, so Claude can act precisely instead of exploring.
+
+### 2. Tell Claude to think step by step
+
+For multi-part tasks, give Claude an explicit reasoning structure instead of one all-at-once instruction:<Citation src="anthropic-claude-code-best-practices" />
+
+```text
+Refactor the feature pipeline:
+1. Read the current implementation and list every
+   transformation step.
+2. Identify steps that mix data loading with transformation.
+3. Extract the pure transformation functions.
+4. Run the existing tests after each extraction to confirm
+   nothing broke.
+```
+
+Without that structure, Claude may attempt the whole refactor in one pass, raising the risk of subtle regressions. The numbered steps also give you natural checkpoints to observe between.
+
+### 3. Include verification criteria
+
+Always say how to check the result. This is the same "fail fast with diagnostics" principle from Chapter 1, moved into the prompt — and Anthropic names "give Claude a way to verify its own work" as the single highest-leverage practice.<Citation src="anthropic-claude-code-best-practices" />
+
+```text
+Add input validation to build_features().
+Verify: pytest tests/features/test_build.py passes,
+and `build_features(pd.DataFrame())` raises ValueError
+(not a silent empty return).
+```
+
+When Claude knows the success criteria, it can self-correct before you ever see the result — turning a refinement round you would have driven into one Claude drives itself.
+
+<InsightBox title="From typing to defining">
+  Notice what all three techniques have in common: none of them are about writing code. Specificity, step-by-step structure, and verification criteria are about defining what "correct" means precisely enough that Claude can produce it. Your value moved from implementation to specification. The rest of this chapter protects that investment — keeping the context clean so these techniques keep working.
+</InsightBox>
+
+<Tip n="5" title="Put a verification bar in the prompt.">
+State how Claude should check its own work — the command to run, the behavior to confirm — and it self-corrects before the result ever reaches you.
+</Tip>
+
+<Exercise id="ch3-ex-1">
+Here is a prompt: _"Make the data loader more robust."_ It names a goal but fails all three prompting basics. Rewrite it so it is specific about _what_ (not how), gives a reasoning structure if the task warrants one, and includes a verification criterion. What did each of the three additions buy you?
+</Exercise>
+
+## Context hygiene: the basics
+
+The context window from Chapter 1 is your workspace. Like a physical desk, it gets less effective as it fills with unrelated material. Two commands keep it clean.<Citation src="anthropic-claude-code-common-workflows" />
+
+- **`/clear`** — wipe the context and start fresh. Use it between *unrelated* tasks: after fixing a bug, before writing a new feature. Your `CLAUDE.md` reloads automatically, so you lose the conversation, not the project knowledge.
+- **`/compact`** — summarize the conversation while preserving key decisions. Less aggressive than `/clear`; use it when you need to *continue* a long task but the context is getting large.
+
+<MarginNote variant="note" label="Official">
+  `/clear` between unrelated tasks; `/compact` for selective summarization. Command names are stable; verify against current docs. <a href="https://code.claude.com/docs/en/common-workflows">code.claude.com/docs/en/common-workflows</a>
+</MarginNote>
+
+### The two-failure rule
+
+Each correction adds noise: the original error, your correction, Claude's apology, its retry. After two rounds the context is dominated by *failure patterns* rather than the task itself, and a third correction is arguing with a cluttered desk.
+
+<KeyIdea>
+After two failed corrections on the same issue, stop correcting. `/clear` and write the prompt you wish you had written the first time. Starting fresh costs thirty seconds; a third correction round costs more and usually fails — because the context is now full of the wrong approaches, and Claude keeps pattern-matching to them.
+</KeyIdea>
+
+This is your first taste of "context as currency," which Chapter 5 develops into a full discipline (`/rewind`, session naming, auto-memory). For now, one rule: if you are typing _"no, that's not what I meant"_ for the third time, `/clear`.
+
+<Exercise id="ch3-ex-2">
+You are four corrections deep on one stubborn bug. The context now holds the original failing code, three rejected fixes, and Claude's three apologies. Per the two-failure rule, what do you do — and *why* is a fresh prompt likely to beat a fifth correction, given everything already in the window?
+</Exercise>
+
+## Course-correcting
+
+The best results come from tight feedback loops: correct Claude the moment you notice it drifting, rather than letting it finish a wrong direction.<Citation src="anthropic-claude-code-best-practices" /> The durable idea is **interrupt early and recover cheaply**. Claude Code gives you four moves, from lightest to heaviest:
+
+| Move | What it does | When to reach for it |
+|---|---|---|
+| Interrupt key | Stop Claude mid-action; context is preserved so you can redirect | Claude is heading the wrong way *right now* |
+| Rewind | Restore the conversation, the code, or both to an earlier checkpoint | A few steps have gone wrong and you want them undone |
+| "Undo that" | Ask Claude to revert its last change in plain language | One specific edit was wrong |
+| `/clear` | Reset the context entirely | The whole direction is wrong — start over (the two-failure rule) |
+
+Every action Claude takes creates a checkpoint automatically, so rewinding is a free save point — you can always go back if Claude takes a wrong turn.
+
+<MarginNote variant="warning" label="Warning">
+  Exact key bindings (the interrupt key, the rewind chord, `Shift+Tab` mode cycling) shift between releases. Learn the *moves*; confirm the current keys in Claude Code docs.
+</MarginNote>
+
+In current Claude Code, the interrupt is the **Esc** key and rewind is reachable via the **`/rewind`** command (historically also a double-**Esc** chord). Treat those specific bindings as the volatile part: the durable skill is knowing that *interrupt-now* and *rewind-to-a-checkpoint* both exist and are cheap. If a key does not do what this book says, check the interactive-mode reference rather than fighting it.<Citation src="anthropic-claude-code-interactive-mode" />
+
+<Tip n="6" title="Interrupt early; recover with a checkpoint.">
+Stop Claude the moment it drifts and rewind to a checkpoint — both are cheap and reversible. The expensive mistake is letting a wrong direction run to completion.
+</Tip>
+
+<Exercise id="ch3-ex-3">
+Two scenarios. (a) Claude is halfway through editing the *wrong file* and still typing. (b) Claude finished a three-file change that compiles but took an approach you have decided against. For each, name which of the four course-correction moves fits best — and say what makes (a) and (b) call for different moves.
+</Exercise>
+
+## Plan Mode: explore before you build
+
+Course-correction recovers from wrong turns. **Plan Mode** makes them happen less often. For a complex or unfamiliar task, let Claude understand the code *before* it changes anything.<Citation src="anthropic-claude-code-permission-modes" />
+
+Plan Mode is a permission mode in which Claude can read files and answer questions but **cannot modify anything** — no edits, no writes, no destructive commands. You separate research from implementation, so a misunderstanding surfaces in a plan you can read rather than in code you have to unwind.
+
+<MarginNote variant="warning" label="Warning">
+  Permission-mode names and the keys that switch them have evolved across releases. The read-only-planning *concept* is durable; verify the current name and shortcut in the docs.
+</MarginNote>
+
+You typically enter Plan Mode by cycling permission modes with **`Shift+Tab`**, or by starting in it from the command line (historically `claude --permission-mode plan`). Both the mode name and the binding are the volatile part — frame the workflow around the durable four phases, not the exact keys.<Citation src="anthropic-claude-code-permission-modes" />
+
+The recommended workflow for a non-trivial change has four phases:<Citation src="anthropic-claude-code-best-practices" />
+
+1. **Explore** (Plan Mode) — _"Read `src/features/` and explain how we compute temporal features."_
+2. **Plan** (Plan Mode) — _"I want to add recency features. What files change? Write a plan."_
+3. **Implement** (default mode) — _"Implement the plan. Write tests first, then code, then run the suite."_
+4. **Commit** — _"Commit with a descriptive message."_
+
+<Pitfall title="Planning every small change">
+Planning has overhead, and using it for a typo, a log line, or a rename is wasted ceremony. The test: if you could describe the diff in one sentence, skip planning and ask directly. Plan when the approach is uncertain, the change spans multiple files, or you do not yet know the code — exactly the cases where a wrong turn is expensive to unwind.
+</Pitfall>
+
+<WorkedExample id="ch3-session-loop" title="The loop in one mini-session">
+
+A realistic session, annotated so you can see each step of the loop:
+
+```text
+You: Add missing-value imputation to the preprocessing
+     pipeline. Strategy: median for numeric columns, mode
+     for categorical. Write tests first.
+     Verify: pytest tests/preprocessing/ passes.
+                                      ← PROMPT: what + how + verification
+
+Claude: [writes tests, then the implementation, runs the suite]
+  "3 of 4 pass. test_categorical_imputation fails because
+   it fits on the test batch, not the training set."
+                                      ← OBSERVE: you read the diff + test output
+
+You: Fit the imputer on the training set distribution,
+     not the test batch.            ← REFINE: specific, one behavior
+
+Claude: [fixes the fit, reruns] "All 4 tests pass. Commit?"
+
+You: Yes — commit as "feat: add missing-value imputation"
+                                      ← COMMIT: one logical change
+```
+
+Three things make this work, and they are the whole chapter in miniature: the **prompt** carried *what*, *how*, and a *verification* bar; the **refinement** named one specific behavior to change rather than re-describing the whole task; and the result was **one logical change, one commit**. No course-correction was needed because the prompt was specific enough — which is the point.
+
+</WorkedExample>
+
+## Where this goes next
+
+This chapter gave you the loop. Three threads deepen it later in the handbook:
+
+- **Prompting** — Chapter 4 takes the three basics into precision vocabulary, multi-component prompts, and scope control.
+- **Context as currency** — Chapter 5 turns the two-failure rule and `/clear` / `/compact` into a full discipline: `/rewind`, session naming, `CURRENT_WORK.md`, and auto-memory.
+- **Verification** — Chapter 7 grows the prompt-level verification bar into a full validation architecture, with checks encoded in `CLAUDE.md` and enforced by hooks.
+
+## Common pitfalls
+
+<Pitfall title="Approving on faith">
+Skipping the observe step — accepting a diff or a "done" without reading it or running the tests. The loop only works if you actually check; an unobserved wrong change is a silent failure waiting to ship. Read the diff, run the verification you put in the prompt.
+</Pitfall>
+
+<Pitfall title="Arguing past two corrections">
+Sending a third, fourth, fifth _"no, like this"_ into a context already full of rejected approaches. Each round dilutes the task further. After two failures, `/clear` and write the better prompt — it is faster and it works.
+</Pitfall>
+
+<Pitfall title="Skipping Plan Mode on a risky change">
+Letting Claude edit straight into a multi-file change in unfamiliar code. A misunderstanding then surfaces as code you must unwind instead of a plan you could have corrected in one line. Explore and plan first when the change is large or the code is new to you.
+</Pitfall>
+
+## Quick reference
+
+- Session loop: prompt → observe → refine → commit. One logical change per commit.
+- Be specific about *what*, not *how*; give a step-by-step structure for multi-part tasks.
+- Put a verification criterion in every prompt — it lets Claude self-correct.
+- `/clear` between unrelated tasks; `/compact` to continue a long one.
+- Two-failure rule: after two corrections, `/clear` and re-prompt.
+- Interrupt early (Esc), rewind to a checkpoint (`/rewind`) — both cheap, both reversible.
+- Plan Mode (read-only) before risky or unfamiliar changes; skip it for one-sentence diffs.
+- Key bindings and permission-mode names drift between releases — verify against current docs.
+
+## Practice
+
+<Practice id="ch3-pr-1" difficulty="2">
+Start a session on a real project and run the full loop once on a small change: write a prompt that includes *what* you want, the relevant context (a file, a schema, an error), and a verification criterion (e.g. `pytest tests/`). Let Claude work, read the diff, refine once if needed, then commit. Note how many refinement rounds it took — if it was more than two, the initial prompt was the weak link.
+</Practice>
+
+<Practice id="ch3-pr-2" difficulty="3">
+Take a change you would normally dive straight into and run it through the four-phase Plan Mode workflow instead: explore, plan, implement, commit. Compare the outcome to your usual approach — did reading the plan before any edit catch a misunderstanding that would otherwise have surfaced as code? Decide where *your* threshold for "worth planning" sits.
+</Practice>
+
+<Practice id="ch3-pr-3" difficulty="4">
+Deliberately drive a session into the two-failure wall: pick a moderately ambiguous task, prompt it vaguely on purpose, and correct twice without improving the framing. Watch the context fill with rejected approaches. Now `/clear` and write the prompt you wish you had written first. Measure the difference in rounds-to-correct between the two paths — this is "context as currency" (Chapter 5) in miniature.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch3-ex-1">
+A strong rewrite names the *what*, structures the work, and sets a bar — for example: _"`load_dataset()` in `src/data/loader.py` crashes on a missing file and on empty CSVs. (1) Read the function and its test. (2) Make it raise a clear error naming the missing path, and reject an empty frame instead of returning it. (3) Verify: `pytest tests/data/test_loader.py` passes and `load_dataset('nonexistent.csv')` raises FileNotFoundError with the path in the message."_ The **specificity** stops Claude guessing which "robust" you mean; the **structure** gives you a checkpoint between reading and editing; the **verification criterion** lets Claude confirm success before you see it — converting a refinement round you would have driven into one Claude drives itself.
+</Solution>
+
+<Solution for="ch3-ex-2">
+You `/clear` and re-prompt. A fifth correction loses to a fresh start because the window is now dominated by the *wrong* approaches: three rejected fixes and three apologies are still in context, and Claude keeps pattern-matching to them — the noise crowds out the signal of what you actually want. Wiping the context and writing the prompt you wish you had written first (specific symptom, location, verification bar) gives Claude a clean desk and the better framing in one move, for the cost of about thirty seconds.
+</Solution>
+
+<Solution for="ch3-ex-3">
+(a) Use the **interrupt key (Esc)** — Claude is mid-action, and interrupting preserves the context so you can immediately redirect to the right file; you do not want to discard the session, just stop the current move. (b) Use **rewind** (or "undo that" if it is a single edit) to restore the code to the checkpoint before the unwanted approach. The difference: (a) is *in-flight* — nothing has fully landed yet, so a cheap stop-and-redirect is enough; (b) is *already committed to context and disk*, so you need to roll back to a checkpoint rather than just halt. Reserve `/clear` for when the whole direction — not just one change — was wrong.
+</Solution>
+
+</ExerciseSolutions>
