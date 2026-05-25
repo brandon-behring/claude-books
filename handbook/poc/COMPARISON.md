@@ -223,3 +223,27 @@ If accepted, the v1.0 commitment per chapter becomes: **tutorial + TL;DR + 1 how
 - Commits: `2c68f00` Ch 5 / `7b7761e` Ch 6 / `0306cb2` Ch 7 / `56c8a7c` Ch 8 / (this synthesis commit).
 - Per-chapter wall-clock: ~30-45 min (figure iteration + component adoption + build verify + commit prose).
 - Total tool calls: ~140 across the round.
+
+---
+
+# Round 4 (2026-05-25): Part I v1.0 prose — Ch 1-4 + summary
+
+Promoted Part I from PoCs to **v1.0 chapters**: Ch 1 hand-authored to spec as the template; Ch 2-4 by sequential sub-agents (one per chapter), each shipping a canonical chapter + 4 supplements. Adds the v4.3.0 pedagogy (numbered `<Tip>` 1-8, two-tier `<Exercise>`+`<Practice>`) + `<Citation>` sourcing. 5 chapter/summary commits + synthesis.
+
+## Cross-chapter findings
+
+**The part-summary earns its keep** (Round 1's open question, line 29 — now resolved). With all four chapters real + linked supplement navigation + the L1→L2 arc, `part1-summary.mdx` reads as a Part-level index, not a redundant longer-TL;DR. The arc + "what you'll have built" + "what's NOT in Part I" give it a register the per-chapter TL;DRs lack.
+
+**Chapter vs. tutorial differentiation resolved.** The canonical chapter owns the reference treatment + numbered Tips + two-tier Exercises/Practice + Citations; the tutorial supplement is the hands-on walkthrough (worked example + "retrieve before you summarize" + `<TryThis>`) with a pointer to the chapter. Distinct reader modes, no redundancy.
+
+**How-to use-case selection validates the "not 1:1" Round 1 recommendation.** Each chapter's how-to picks a distinct sharp task (monorepo CLAUDE.md / deny rules / Plan Mode risky change / multi-component prompt) rather than restating the chapter. Written-when-a-task-warrants holds.
+
+**The numbered-Tip registry works across chapters.** Tips 1-8 extract into `tips.json` via `build-tips` (once `BOOK_CHAPTERS_DIR` is pinned); each chapter owns a 2-Tip range, no collisions. Tips live in the chapter only, not supplements.
+
+**`<Citation src>` is the tools-profile citation mechanism** (not `<Cite>`, which needs a `.bib`). Manifest grew to 11 provisional T1 sources; style-guide §3 corrected to match.
+
+## Scaffold gaps surfaced (4 — logged in `docs/scaffold-gaps.md`, HITL to file)
+`/tips` route workspace-hoisting hard-fail · `build-tips` chapters-dir resolution · v4.3.0 `/chapters` route conflict with a hand-written route · frontmatter convention vs `toolsChapterSchema`.
+
+## Process note
+Agents ran **sequentially**, not in parallel — Ch 2-4 share `manifest.yaml` + the build output, so parallel agents would race. Each agent: own chapter + 4 supplements + manifest append + build-verify; the orchestrator verified + committed before dispatching the next.
