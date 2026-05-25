@@ -5,10 +5,11 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "predev": "npm run build:bib --if-present && npm run build:labels --if-present",
-    "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run validate --if-present",
+    "predev": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present",
+    "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run validate --if-present",
     "build:bib": "book-scaffold build-bib",
     "build:labels": "book-scaffold build-labels",
+    "build:tips": "book-scaffold build-tips",
     "build:figures": "book-scaffold build-figures",
     "build:notebooks": "book-scaffold render-notebooks",
     "validate": "book-scaffold validate",
@@ -17,9 +18,9 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@brandon_m_behring/book-scaffold-astro": "^4.2.0",
     "@astrojs/mdx": "^5.0.3",
     "@astrojs/preact": "^5.1.1",
+    "@brandon_m_behring/book-scaffold-astro": "^4.3.0",
     "astro": "^6.3.7",
     "preact": "^10.29.1"
   }
