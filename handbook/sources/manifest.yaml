@@ -45,3 +45,19 @@
   captured_at: 2026-05-25T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+- id: anthropic-claude-code-memory
+  url: https://code.claude.com/docs/en/memory
+  title: "Manage Claude's memory (CLAUDE.md)"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-settings
+  url: https://code.claude.com/docs/en/settings
+  title: Claude Code settings and permissions
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code

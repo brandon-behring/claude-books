@@ -1,0 +1,256 @@
+---
+title: Your First CLAUDE.md
+part: 1
+chapter: 2
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3, 5]
+introduced_in_version: "1.0.0"
+last_updated: 2026-05-25
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_verified: 2026-05-25
+sources:
+  - anthropic-claude-code-memory
+  - anthropic-claude-code-settings
+  - anthropic-claude-code-best-practices
+description: What belongs in a starter CLAUDE.md and what does not — generate one with /init, trim it to the conventions Claude needs every session, and add deny rules on day one.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+
+<YouWillLearn prerequisites="Chapter 1 (the agent loop and configuration layers). Claude Code installed, pointed at a real project.">
+- What `CLAUDE.md` actually does — the **briefing document** Claude reads at the start of every session
+- How to generate a starter with **`/init`** and trim it to the conventions Claude needs every time
+- What to **include**, what to **exclude**, and why a short file beats a long one
+- Your first **deny rules** — the one configuration that is never wrong to add on day one
+</YouWillLearn>
+
+_Claude keeps asking the same questions about your project. It does not know your build command, your test runner, or where things live. Every session starts with you re-explaining context that should be obvious. Chapter 1 ended on "the codebase is the curriculum" — this chapter adds the configuration layer that reinforces it. The fix takes five minutes._
+
+## What CLAUDE.md does
+
+`CLAUDE.md` is the most important configuration artifact you will write.<Citation src="anthropic-claude-code-best-practices" /> Claude reads it at the start of every session and uses it to understand your project's conventions, build commands, architecture, and rules of engagement — before you type a single prompt.<Citation src="anthropic-claude-code-memory" />
+
+The mental model that makes everything else click: **treat `CLAUDE.md` as a briefing for a new teammate who is fast, capable, and amnesiac.** They forget everything between sessions unless you write it down. You would not paste your whole README into a Slack message to a new hire — you would tell them the three things they cannot guess. `CLAUDE.md` is that message.
+
+<KeyIdea>
+`CLAUDE.md` is the **persistent** configuration layer. Prompts are session-only — they vanish on `/clear`. Everything in `CLAUDE.md` survives every session, forever. That permanence is the whole reason a two-minute investment pays back indefinitely: you write the briefing once and Claude reads it every time.
+</KeyIdea>
+
+### Where Claude looks for it
+
+Claude merges `CLAUDE.md` files from several locations, in order of increasing specificity — and more-specific files override less-specific ones on conflict (the hierarchy you saw as "configuration layers" in Chapter 1).<Citation src="anthropic-claude-code-memory" />
+
+```text
+1. ~/.claude/CLAUDE.md          your global preferences (all projects)
+2. <repo-root>/CLAUDE.md        project conventions          ← start here
+3. <subdir>/CLAUDE.md           subdirectory overrides (most specific wins)
+```
+
+<MarginNote variant="note" label="Official">
+  Enterprise deployments add a managed-policy layer above all of these. Covered later in the book; ignore it for your first file.
+</MarginNote>
+
+For your first file you only need line 2 — one `CLAUDE.md` at the project root, committed to version control so your whole team (and every future session) shares it. Scaling across packages and global preferences comes later in the book.
+
+## Generate it: `/init`
+
+The fastest path to a useful `CLAUDE.md` is to not write it from scratch.<Citation src="anthropic-claude-code-best-practices" /> Open your project in Claude Code and run:
+
+```text
+/init
+```
+
+Claude examines your project structure — languages, package files, test setup, directory layout — and proposes a starter `CLAUDE.md`. Review it, edit it, commit it. The auto-generated version is a solid starting point but rarely the finished article: `/init` is good at describing *what your project is* and weaker at capturing *how you want Claude to work in it*. The rest of this chapter is the refinements that close that gap.
+
+<MarginNote variant="tip" label="Tip">
+  Re-run `/init` after a big refactor and diff the result against your current file. It re-discovers structure you may have outgrown.
+</MarginNote>
+
+<Exercise id="ch2-ex-1">
+You run `/init` and it produces a 12-line file that lists your language, framework, and directory tree — all things Claude could discover by reading the repo. What single category of information, absent from that draft, would do the most to change how Claude *behaves* on your next task?
+</Exercise>
+
+## What to include
+
+The governing rule is one sentence: **include what Claude cannot infer; exclude what it can.**<Citation src="anthropic-claude-code-best-practices" /> Claude reads your code already, so restating standard language conventions wastes the file's most scarce resource — your reader's attention. Four categories earn their place:
+
+- **Build and verify commands** — `pytest tests/`, `mypy src/`, `ruff check src/`. Anything non-standard or project-specific. Claude cannot guess that your tests live behind `make check`.
+- **Architecture decisions** — where things go and why. "Feature pipelines in `src/features/`. Models in `src/models/`. Immutable source data in `data/raw/`." This saves Claude a directory crawl every session.
+- **Code-style rules that differ from the default** — only the deltas. Do not restate PEP 8 or Prettier defaults; state the house rule that contradicts them.
+- **Verification criteria** — the single highest-leverage inclusion. "Always run tests after code changes. Never commit without passing lint." This is how you encode the "fail fast" principle from Chapter 1 into every session.
+
+The difference between a file that *describes* your project and one that tells Claude *how to work* in it:
+
+<BeforeAfter title="Describes the project vs. directs the work">
+<div slot="before">
+
+```markdown
+# My Project
+This is an ML project. We use
+scikit-learn and pandas.
+Tests are important to us.
+```
+
+</div>
+<div slot="after">
+
+```markdown
+# Demand Forecasting
+
+## Build & Verify
+- `pytest tests/` — run the suite
+- `mypy src/` — type checking
+- `ruff check src/` — lint
+
+## Architecture
+- src/features/ — feature pipelines
+- src/models/ — training + eval
+- data/raw/ — immutable source data
+- tests/ — mirrors src/ structure
+
+## Standards
+- Type hints on all signatures
+- Run tests after every change
+- Never commit without lint + tests
+```
+
+</div>
+</BeforeAfter>
+
+<MarginNote variant="tip" label="Tip">
+  The "before" tells Claude *about* your project. The "after" tells Claude how to *work* on it — commands, locations, and rules, not descriptions.
+</MarginNote>
+
+"Tests are important to us" is aspirational; Claude cannot act on it. "Run tests after every change" is a behavior Claude can execute and you can check. Every line in the "after" version is a command, a location, or a rule — each one a thing Claude could not have inferred and now does not have to ask about.
+
+<Tip n="3" title="Include what Claude cannot infer; exclude what it can.">
+A `CLAUDE.md` line earns its place only if it tells Claude something the codebase does not already say — commands, locations, house rules, and verification bars, not restated language defaults.
+</Tip>
+
+<Exercise id="ch2-ex-2">
+Two candidate `CLAUDE.md` lines: (a) "We follow PEP 8." (b) "Line length is 100, not the Black default of 88 — configured in `pyproject.toml`." One earns its place and one wastes attention. Which is which, and what is the test you applied?
+</Exercise>
+
+## What to exclude
+
+A long `CLAUDE.md` is not a thorough one — it is a diluted one. Every line competes for attention with every other line, so padding a file with inferable facts makes the load-bearing rules *harder* for Claude to follow, not easier. Leave these out:
+
+- **What Claude can infer from the codebase** — standard language conventions, the framework you obviously use, how to install dependencies (that belongs in the README).
+- **Long explanations** — keep instructions terse and actionable. A rule is an imperative, not an essay.
+- **Aspirational rules nobody follows** — document what *is*, not what you wish were true. If half the codebase ignores a rule, Claude will learn the half that ignores it (the codebase is the curriculum) and your rule just adds noise.
+- **Fast-changing information** — current sprint focus, the file you happen to be editing this week. That belongs in session memory, covered later in the book — not in the file every session reads.
+
+<InsightBox title="Write positive instructions, not prohibitions">
+  Replace negative constraints with positive alternatives. "Never use raw SQL" leaves Claude uncertain what to do *instead* — and uncertainty is where it improvises. "Always use the query builder in `src/db/queries.py`" names the target. Positive instructions are clearer, more actionable, and far more reliably followed, because they point at the behavior you want rather than fencing off one of the many you don't.
+</InsightBox>
+
+<Pitfall title="The CLAUDE.md that keeps getting ignored">
+If Claude repeatedly violates a rule, the rule is rarely the problem — the file is. One of three things is true: (1) the file is too long and the rule is lost in the noise, (2) the rule silently contradicts another rule, or (3) the rule should be enforced mechanically by a hook rather than requested as an instruction (hooks come later in the book). Shorten, de-conflict, or mechanize — do not just write the rule in bold.
+</Pitfall>
+
+<Exercise id="ch2-ex-3">
+Your 180-line `CLAUDE.md` includes the full install sequence, a paragraph on the project's history, and "always write meaningful commit messages." For each, name where it should live instead (or whether it should exist at all) — and state the one-sentence principle that decides every case.
+</Exercise>
+
+## Your first deny rules
+
+Before Claude reads a single file, protect your secrets. `CLAUDE.md` instructions are **advisory** — Claude does its best to honor them, but a cleverly-worded prompt or an injected instruction can talk it out of one. Deny rules are **absolute**: they are enforced by the permission system, not interpreted by the model, so they cannot be overridden by conversation or prompt injection.<Citation src="anthropic-claude-code-settings" />
+
+Create `.claude/settings.json` at the project root:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(.env*)",
+      "Read(secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/credentials*)"
+    ]
+  }
+}
+```
+
+<MarginNote variant="warning" label="Warning">
+  Deny rules are enforced, not advised. A `CLAUDE.md` line saying "don't read secrets" can be overridden by a prompt; a `deny` rule cannot.
+</MarginNote>
+
+Deny rules are the one configuration that is never wrong to add on day one. They cost nothing in context (they live in `settings.json`, not the prompt), they never cause false negatives in normal work — Claude has no business reading your `.env` anyway — and they prevent the one class of mistake that is genuinely irreversible: leaking a secret into a commit, a log, or a transcript. Commit `.claude/settings.json` alongside `CLAUDE.md` so the protection travels with the repo.
+
+<Tip n="4" title="Add deny rules for secrets before the first prompt.">
+Deny rules are enforced by the permission system, cost nothing in context, and block the one irreversible mistake — a leaked secret — so they are the safest thing to configure on day one.
+</Tip>
+
+## Two files, version-controlled
+
+You now have two artifacts, and they do different jobs. Keeping the distinction crisp is what makes both effective:
+
+| Artifact | Nature | Holds | Override |
+|---|---|---|---|
+| `CLAUDE.md` | Advisory context | Commands, architecture, conventions, verification bars | Prompt can talk Claude out of a rule |
+| `.claude/settings.json` deny rules | Enforced policy | Paths Claude must never read or touch | Cannot be overridden by conversation |
+
+Commit both to version control. They are part of how your project is built, the same as your linter config — and like the codebase itself, they teach every session and every teammate the same lesson without you in the room.
+
+## Where this goes next
+
+This chapter gave you the *starter* configuration. Three threads pick it up later in the handbook:
+
+- **Scaling `CLAUDE.md`** — a later chapter takes the single root file to a hub-and-spoke hierarchy across packages and repos, where "most specific wins" does real work.
+- **Session memory** — the fast-changing information you excluded here (sprint focus, current work) gets its own home in the context-management chapter.
+- **Verification and hooks** — the rule that "should be a hook instead of an instruction" becomes a full validation architecture, turning advisory `CLAUDE.md` lines into enforced checks.
+
+## Quick reference
+
+- Run `/init` to generate a starter `CLAUDE.md`, then trim it.
+- Include: build/verify commands, architecture, house-rule style deltas, verification criteria.
+- Exclude: what Claude can infer, long prose, aspirational rules, fast-changing info.
+- Write positive instructions ("use the query builder") over prohibitions ("never use raw SQL").
+- Add deny rules for secrets in `.claude/settings.json` on day one — they are enforced, not advisory.
+- Commit both files to version control.
+
+## Practice
+
+<Practice id="ch2-pr-1" difficulty="2">
+Run `/init` on a real project. Diff the generated file against the four "include" categories: does it state your *non-standard* build/verify commands? Does it name a verification bar Claude can act on? Add the single most valuable missing line, then delete one line that merely restates something Claude could infer from the code.
+</Practice>
+
+<Practice id="ch2-pr-2" difficulty="3">
+Take a `CLAUDE.md` rule phrased as a prohibition ("never X") and rewrite it as a positive instruction that names the target ("always Y, defined in `path`"). Run a comparable task before and after the rewrite and note whether Claude's choice of approach becomes more predictable — the mechanism the chapter claims.
+</Practice>
+
+<Practice id="ch2-pr-3" difficulty="4">
+Audit a real repo's secret-handling surface. List every path that could leak a credential (`.env*`, key files, a `secrets/` dir, fixture data with tokens), then write the `.claude/settings.json` `deny` block that covers all of them. Verify by asking Claude to read one denied path and confirming it refuses — the enforced-not-advisory distinction in action.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch2-ex-1">
+**Verification criteria.** A directory tree and language list are exactly what Claude can rediscover by reading the repo, so they change what Claude *knows*, not what it *does*. A line like "run `pytest tests/` after every change and never commit on a red suite" changes behavior on the very next task — it sets a bar Claude must clear before considering work done. Of the four "include" categories, verification criteria are the one `/init` most reliably omits, because it can see your structure but cannot see your standards.
+</Solution>
+
+<Solution for="ch2-ex-2">
+Line (b) earns its place; line (a) wastes attention. The test is *"can Claude infer this from the codebase?"* — "We follow PEP 8" is the default a linter and the surrounding code already imply, so it adds nothing. The 100-character limit *contradicts* a well-known default (Black's 88) and points at the file that configures it, so it tells Claude something it would otherwise get wrong. Include the delta, drop the default.
+</Solution>
+
+<Solution for="ch2-ex-3">
+The install sequence belongs in the README (it is onboarding, not a per-session convention). The history paragraph belongs in `git log` or a design doc, not in the file every session pays attention to. "Always write meaningful commit messages" is too vague to act on — either delete it or sharpen it into a checkable rule (e.g. "commits use Conventional Commits: `feat:` / `fix:` / `chore:`"). The one-sentence principle deciding all three: *include only what Claude cannot infer and needs every session — commands, locations, house rules, and verification bars — and put everything else where it actually lives.*
+</Solution>
+
+</ExerciseSolutions>
