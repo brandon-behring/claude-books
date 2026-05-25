@@ -2,18 +2,18 @@
 title: "Part I — Foundations (executive summary)"
 poc_kind: part-summary
 part_source: 1
-description: "Covers Ch 1-4 in 2 pages. Shows the reader's journey from L1 (Conversational) to L2 (Configured). Ch 1 content is real; Ch 2-4 are placeholders since those chapters aren't rewritten yet."
-last_updated: "2026-05-23"
-visual_intent: "Wide synthesis. Reader-journey framing. Diagrams showing the L1→L2 progression. Bullet-dense; minimal prose. Cross-links to each chapter's TL;DR and tutorial."
+description: "Covers Ch 1-4 in two pages — the reader's journey from L1 (Conversational) to L2 (Configured). All four chapters are now v1.0."
+last_updated: "2026-05-25"
+visual_intent: "Wide synthesis. Reader-journey framing. Diagram of the L1→L2 progression. Bullet-dense; minimal prose. Cross-links to each chapter + its supplements."
 ---
 
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 
-> **You are at L1 (Conversational)** — you've installed Claude Code, run a few prompts, and noticed it sometimes does great things and sometimes does frustrating things. By the end of Part I, you'll be at **L2 (Configured)** — Claude reliably picks up your project's conventions, errors are visible and recoverable, and your sessions don't drift.
+> **You are at L1 (Conversational)** — you've installed Claude Code, run a few prompts, and noticed it sometimes does great things and sometimes does frustrating things. By the end of Part I you'll be at **L2 (Configured)** — Claude reliably picks up your project's conventions, errors are visible and recoverable, and your sessions don't drift.
 
 <KeyIdea>
-Part I is the smallest investment that produces reliable Claude Code sessions. Each chapter adds one piece of permanent infrastructure (mental model → CLAUDE.md → session habits → prompting vocabulary) that survives across every future session.
+Part I is the smallest investment that produces reliable Claude Code sessions. Each chapter adds one piece of permanent infrastructure — mental model → CLAUDE.md → session habits → prompting vocabulary — that survives across every future session.
 </KeyIdea>
 
 ## The arc
@@ -30,36 +30,43 @@ Ch 1 — Mental model ──→ Ch 2 — CLAUDE.md ──→ Ch 3 — Session ha
 
 ### Ch 1 — Principles & Mental Model
 
-**The mental model**: Claude Code is an agent loop with finite context, observable tool use, and configurable behavior. Four engineering principles (never fail silently, simplicity, immutability, fail fast) govern every recommendation in the handbook. The codebase Claude reads becomes the curriculum it learns from.
+**The mental model**: Claude Code is an agent loop with finite context, observable tool use, and configurable behavior. Four engineering principles — never fail silently, simplicity, immutability, fail fast — govern every recommendation in the handbook. The codebase Claude reads becomes the curriculum it learns from.
 
-- Tutorial: full chapter with worked example + retrieval prompts (~15 min)
-- TL;DR: compressed essence (~5 min)
-- How-to: CLAUDE.md for a monorepo (~5 min)
-- Cheat sheet: agent-loop diagram + principle reference card
+- [Chapter](/chapters/ch01-principles) — the canonical reference (exercises + citations)
+- [Tutorial](/poc/ch01-tutorial): worked example + retrieval prompts (~15 min)
+- [TL;DR](/poc/ch01-tldr): compressed essence (~5 min)
+- [How-to](/poc/ch01-howto-claudemd-monorepo): CLAUDE.md for a monorepo (~5 min)
+- [Cheat sheet](/poc/ch01-cheat-sheet): agent-loop diagram + principle reference card
 
 ### Ch 2 — Your First CLAUDE.md
 
-*Placeholder summary — chapter not yet rewritten.*
+**The first permanent layer**: A starter CLAUDE.md captures what Claude cannot infer — build and test commands, architecture, verification criteria — and excludes what it can read from the codebase. Deny rules in `settings.json` protect secrets and destructive paths from day one. CLAUDE.md loads hierarchically (user → project → directory), specific overriding general. **Outcome**: a committed CLAUDE.md that makes your conventions stick across every session.
 
-**What it covers**: building your first CLAUDE.md. What to include (build commands, architecture, verification criteria). What to exclude (anything Claude can infer from the codebase). Deny rules on day one (the `permissions.deny` block in settings.json). The hierarchical loading model (user → project → directory).
-
-**Outcome**: a working CLAUDE.md committed to your repo that survives across sessions.
+- [Chapter](/chapters/ch02-first-claude-md) — the canonical reference (exercises + citations)
+- [Tutorial](/poc/ch02-tutorial): bootstrap a CLAUDE.md with `/init`, then trim it (~15 min)
+- [TL;DR](/poc/ch02-tldr): what to include vs. exclude (~5 min)
+- [How-to](/poc/ch02-howto-deny-rules): add deny rules to protect secrets (~5 min)
+- [Cheat sheet](/poc/ch02-cheat-sheet): include/exclude checklist + loading order + deny globs
 
 ### Ch 3 — Your First Working Session
 
-*Placeholder summary — chapter not yet rewritten.*
+**Running the loop reliably**: The session loop — prompt → observe → refine → commit — becomes repeatable once you add three prompting basics (specificity, step-by-step, a verification bar), context hygiene (`/clear`, `/compact`, the two-failure rule), Plan Mode for risky changes, and course correction (interrupt with Esc, back out with `/rewind`). **Outcome**: a session that finishes its task without drifting or running out of context.
 
-**What it covers**: the repeatable session loop (prompt → observe → refine → commit). Three prompting basics (specificity, step-by-step, verification criteria). Context hygiene (`/clear`, `/compact`, the two-failure rule). Plan Mode for complex tasks. Course correction (Esc, `/rewind`).
-
-**Outcome**: a session that finishes its task without drifting or running out of context.
+- [Chapter](/chapters/ch03-first-session) — the canonical reference (exercises + citations)
+- [Tutorial](/poc/ch03-tutorial): a full annotated session, start to finish (~15 min)
+- [TL;DR](/poc/ch03-tldr): the loop + the three prompting basics (~5 min)
+- [How-to](/poc/ch03-howto-plan-mode-risky-change): use Plan Mode for a risky change (~5 min)
+- [Cheat sheet](/poc/ch03-cheat-sheet): session-start checklist + when to `/clear` vs `/compact` vs `/rewind`
 
 ### Ch 4 — Working Productively
 
-*Placeholder summary — chapter not yet rewritten.*
+**Talking to Claude precisely**: Precision vocabulary (replace vague verbs with checkable operations) and XML-tagged multi-component prompts (context / task / constraints / verification) make prompts land the first time more often. Scope control — naming the files Claude may touch, separating discovery from execution — keeps work from sprawling. Model selection matches model strength to task difficulty; extended thinking, caching, and cost optimization live in Appendix B. **Outcome**: prompts that work first-try more often than not.
 
-**What it covers**: precision vocabulary (vague vs precise prompts). XML-tagged multi-component prompts. Scope control (name files, separate discovery from execution). Model selection basics (when to use which Claude). Cost optimization basics (caching, batch API when applicable).
-
-**Outcome**: prompts that work the first time more often than not.
+- [Chapter](/chapters/ch04-productive) — the canonical reference (exercises + citations)
+- [Tutorial](/poc/ch04-tutorial): turn a vague request into a precise XML-tagged prompt (~15 min)
+- [TL;DR](/poc/ch04-tldr): the vague-vs-precise table + scoping (~5 min)
+- [How-to](/poc/ch04-howto-structure-multi-component-prompt): structure a sprawling request into four sections (~5 min)
+- [Cheat sheet](/poc/ch04-cheat-sheet): vague-vs-precise vocabulary + model-difficulty buckets
 
 ## What you'll have built by end of Part I
 
@@ -82,6 +89,6 @@ The handbook is intentionally sequential here. Skipping ahead to Part III withou
 
 ## Drill in
 
-- **[Ch 1 full tutorial](#)** — start here if you're new
-- **[Ch 1 TL;DR](#)** — start here if you have 5 minutes
-- **[Part I cheat sheet](#)** — print this for your desk
+- [Chapter 1: Principles & Mental Model](/chapters/ch01-principles) — start here if you're new
+- [Ch 1 TL;DR](/poc/ch01-tldr) — start here if you have 5 minutes
+- Each chapter's cheat sheet ([Ch 1](/poc/ch01-cheat-sheet) · [Ch 2](/poc/ch02-cheat-sheet) · [Ch 3](/poc/ch03-cheat-sheet) · [Ch 4](/poc/ch04-cheat-sheet)) — print one for your desk
