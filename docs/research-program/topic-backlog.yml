@@ -1,0 +1,87 @@
+schema_version: "1.0"
+kind: topic-backlog
+generated_at: "2026-05-26"
+note: >
+  Append-only candidate sub-topics surfaced from the two launchpad docs (compass +
+  Environment-Engineering-and-Context-Assembly deep-dive). These are finer than the v0
+  taxonomy nodes; they become sub-areas (claim families) inside a topic's strict-live
+  research_plan, or promote to their own node if the KG shows they deserve it. NOT yet
+  researched. The pilot + breadth scan will confirm/merge/split these.
+
+candidates:
+  # --- Context & Assembly (pilot region — richest) ---
+  - id: kv-cache-stability
+    parent: ctx-assembly
+    label: "KV-cache stability (the assembly invariant)"
+    seed: "deep-dive §1.2 (Manus/Ji; cache-killers table; Sinha experiment)"
+    note: "Likely a core sub-area of the context-assembly dossier, not its own node."
+  - id: compaction-strategies
+    parent: ctx-assembly
+    label: "Compaction strategies + tradeoffs"
+    seed: "deep-dive §1.6 (summarize/evict/offload; v2.1.62 stale-prefix bug; init.sh+progress-file)"
+  - id: positional-bias-recitation
+    parent: ctx-assembly
+    label: "Positional bias + the recitation pattern"
+    seed: "deep-dive §1.7 (Liu lost-in-the-middle; ManyIFEval/IFScale; Manus recitation)"
+  - id: instruction-budget
+    parent: ctx-assembly
+    label: "Instruction budget (the 150–200 folk figure)"
+    seed: "deep-dive §1.7 (caveated; ManyIFEval/IFScale)"
+  - id: prompt-caching-economics
+    parent: ctx-assembly
+    label: "Prompt-caching economics (TTL, cache-write vs read)"
+    seed: "deep-dive §1.2 (5-min TTL, 1-hour cache, cache-lookback gotcha)"
+  - id: filesystem-as-state
+    parent: ctx-assembly
+    label: "Filesystem as state / context offload"
+    seed: "deep-dive §1.6/§1.10 (Manus; LangChain write/select/compress/isolate)"
+
+  # --- Tools & MCP ---
+  - id: code-execution-with-mcp
+    parent: mcp-design
+    label: "Code-execution-with-MCP (search_tools, on-demand load)"
+    seed: "deep-dive §1.9/2.6 (Anthropic Nov-2025 direction)"
+  - id: mcp-primitives-resources-vs-tools
+    parent: mcp-design
+    label: "MCP primitives: resources-vs-tools anti-pattern"
+    seed: "deep-dive §1.9 (tools-for-static-data anti-pattern; Apigene audit)"
+
+  # --- Environment Engineering ---
+  - id: progressive-disclosure-skills
+    parent: env-repo-design
+    label: "Skills + progressive disclosure (3 levels)"
+    seed: "deep-dive §3.3 (Anthropic Skills guide, Jan-2026)"
+  - id: hooks-composition
+    parent: cc-internals
+    label: "Hooks/permissions/skills/commands composition"
+    seed: "deep-dive §2.5 (deterministic command hooks; composition pattern)"
+  - id: structural-fitness-tests
+    parent: env-failure-breadcrumbs
+    label: "Tests/types/schemas as computational sensors (ArchUnit-style)"
+    seed: "deep-dive §2.8 (Boeckeler computational sensors)"
+  - id: twelve-factor-agents
+    parent: harness-frame
+    label: "12-Factor Agents + the 'dumb zone' / 40% threshold"
+    seed: "deep-dive §3.5 (HumanLayer/Dex Horthy)"
+
+  # --- Agents & Orchestration ---
+  - id: deep-agents-pattern
+    parent: agent-multipatterns
+    label: "Deep-agents pattern (planner + sub-agents + filesystem)"
+    seed: "deep-dive §3.5 (LangChain/Harrison Chase)"
+  - id: agentic-engineering-vibe-coding
+    parent: harness-frame
+    label: "Agentic engineering vs vibe coding (Karpathy, Dec-2025)"
+    seed: "both docs (Sequoia AI Ascent 2026; floor-vs-ceiling)"
+
+  # --- Reliability ---
+  - id: self-hosted-sandboxes-mcp-tunnels
+    parent: rel-sandboxes
+    label: "Self-hosted sandboxes + MCP tunnels (2026 shift)"
+    seed: "deep-dive §2.7/3.1 (Code with Claude London, May-2026; beta)"
+
+  # --- Evaluation ---
+  - id: llm-as-judge-calibration
+    parent: eval-harnesses
+    label: "LLM-as-judge calibration (epochs, standard errors)"
+    seed: "compass §5.6 + Anthropic statistical-approach-to-evals (T1)"
