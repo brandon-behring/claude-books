@@ -3,6 +3,8 @@
 One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how each topic is moving so depth follows the field and nothing silently rots.
 
 > **Momentum is a parked decision.** *How* to score it objectively (publication/release velocity + a little community signal, vs. editorial judgment) is **undecided** — it needs the gather-phase finding of *what signals actually exist*. Values below are **provisional reads** (proxies from volatility + 2026 activity), replaced once the signal is defined (the pilot proposes it).
+>
+> **Breadth-scan finding (pilot gather, 2026-05-26):** the reliably-available + automatable signals are **publication/release dates** — arXiv submission + version dates, vendor/Anthropic blog publish dates, GitHub issue open/close, spec releases. This supports a **publication/release-velocity** momentum signal (the leaning); community signals (stars / discussion volume) are noisier and need per-source scraping. Final mechanism stays a parked decision for the co-drive review.
 
 **Momentum (provisional):** 🔥 heating · ☀️ stable/active · 🌥️ cooling · 💤 dormant · ↩️ revived · `?` unknown.
 **Tier:** `strict-live` / `cache` / `stub`. **Band:** ★ active frontier · · positioned.
@@ -22,7 +24,7 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 ### Context & Assembly
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
-| **Context assembly** (KV-cache, compaction, JIT) | 🔥 | stub | 2026-05-26 | **PILOT.** Very active in 2026 (Manus, compaction bugs, code-exec-with-MCP). |
+| **Context assembly** (KV-cache, compaction, JIT) | 🔥 | strict-live | 2026-05-26 | **PILOT — DOSSIER COMPLETE** (15 sources, 22/22 citation-clean, audit-round-1 clean). `~/Claude/research_agent_context_assembly`. |
 | Context rot / long-context limits | 🔥 | stub | 2026-05-26 | Active research literature (Chroma, ARC 2026). Sister of assembly. |
 | Context as currency | ☀️ | cache | 2026-05-23 | Shipped (handbook Ch5). Stable principle. |
 
