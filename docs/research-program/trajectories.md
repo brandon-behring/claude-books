@@ -12,8 +12,8 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 ### Environment Engineering
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
-| Repo & doc design for agents | 🔥 | stub | 2026-05-26 | Active practitioner discourse (HumanLayer, Groff, Boeckeler). |
-| CLAUDE.md/AGENTS.md discipline | 🔥 | stub | 2026-05-26 | Convergence w/ shipped Ch2; ETH study + 60k AGENTS.md repos. |
+| Repo & doc design for agents | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 1; 8 sources, 14 atoms, 14/14 citation-clean, audit-round-1 clean). `~/Claude/research_agent_repo_design`. |
+| CLAUDE.md/AGENTS.md discipline | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 1; 6 sources, 14 atoms, 14/14 citation-clean, audit-round-1 clean). ETH measured result + the shipped-Ch2 convergence. `~/Claude/research_agent_claudemd_discipline`. |
 | Guardrails & reversibility | 🔥 | stub | 2026-05-26 | Sandbox shift + Replit lessons keep it hot. |
 | Cross-domain / large-repo structure | ☀️ | stub | 2026-05-26 | Stable patterns (ADRs, INTERFACE.md). Deferred. |
 | Failure breadcrumbs | ☀️ | stub | 2026-05-26 | Stable discipline (Hashimoto). Deferred. |
@@ -23,7 +23,7 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
 | **Context assembly** (KV-cache, compaction, JIT) | 🔥 | strict-live | 2026-05-26 | **PILOT — DOSSIER COMPLETE** (15 sources, 22/22 citation-clean, audit-round-1 clean). `~/Claude/research_agent_context_assembly`. |
-| Context rot / long-context limits | 🔥 | stub | 2026-05-26 | Active research literature (Chroma, ARC 2026). Sister of assembly. |
+| Context rot / long-context limits | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 1; 8 sources, 13 atoms, 13/13 citation-clean, audit-round-1 clean). Sister of assembly. `~/Claude/research_agent_context_rot`. |
 | Context as currency | ☀️ | cache | 2026-05-23 | Shipped (handbook Ch5). Stable principle. |
 
 ### Memory

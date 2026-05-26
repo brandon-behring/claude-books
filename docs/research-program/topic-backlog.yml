@@ -63,8 +63,10 @@ candidates:
     seed: "deep-dive §2.5 (deterministic command hooks; composition pattern)"
   - id: structural-fitness-tests
     parent: env-failure-breadcrumbs
+    status: covered
     label: "Tests/types/schemas as computational sensors (ArchUnit-style)"
     seed: "deep-dive §2.8 (Boeckeler computational sensors)"
+    note: "Covered (Wave 1) as the `structural_fitness` claim-family of the repo_design dossier (Böckeler harness/sensors atoms claim_repo_design_0201–0205), not env-failure-breadcrumbs."
   - id: twelve-factor-agents
     parent: harness-frame
     label: "12-Factor Agents + the 'dumb zone' / 40% threshold"
