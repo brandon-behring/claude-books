@@ -44,6 +44,6 @@ The narrative companion to [`taxonomy.graph.json`](./taxonomy.graph.json) (the s
 
 The **pilot** is `ctx-assembly`. The **near-term** stubs to deepen after it: the Environment-Engineering set, context-rot, memory anti-patterns + doc-vs-memory, tool-minimization, MCP-design, harness-frame + build-vs-buy, eval-harnesses, the Production-Operations set, public case studies. Everything `cached` is already covered (lighter tier) and migrates to strict-live over time (single-system endgame).
 
-## What's deliberately NOT settled
+## Atomicity — the two-layer rule (resolved 2026-05-26)
 
-Clustering, node atomicity, and the dossier-worthy set are **open** — see the plan's *Open decisions*. This v1 is the foundation to pilot against, expected to iterate.
+Settled at the post-pilot review (see [`decisions.md`](./decisions.md) D1): **topic (skeleton) nodes stay coarse and stable; claim-families + atoms live inside the dossier + its `claim_graph.jsonl`.** Promote a sub-area to a sibling node **only when ≥2 dossiers corroborate the same boundary, or it grows its own distinct source base.** So `ctx-assembly` stays one node (its 5 pilot sub-areas are dossier-internal, not graph nodes). Cluster carving stays v1 and is re-assessed as waves land — still expected to iterate, but the *rule* for when to split is now fixed.

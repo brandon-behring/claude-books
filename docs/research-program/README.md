@@ -36,8 +36,9 @@ lives **externally** as strict-live dossiers in `~/Claude/` and bridges in (see 
 
 Heavy verified research is **not** committed here. Each topic that earns depth becomes a
 strict-live project in `~/Claude/research_agent_<slug>/` (full toolkit pipeline: `/research-plan`
-→ `/research-gather` → `/agent-index` → `/dossier-audit` → `/citation-audit` → `/freshness-audit`
-→ `/research-kb-export`, schema_version 3). The pipeline to this repo + the viewer:
+→ `/research-gather` → `/agent-index` → `synthesis.md` → `/dossier-audit` → `/citation-audit` →
+`/freshness-audit` → `/research-kb-export`, schema_version 3; **permanent never-reused atom IDs**).
+The pipeline to this repo + the viewer:
 
 ```
 ~/Claude/research_agent_<slug>/   →  /research-kb-export  →  ~/Claude/research-kb/
@@ -65,19 +66,21 @@ A topic node's `data.project_slug` points to its external dossier once one exist
 
 - **Uniform rigor.** Any dossier that gets built is full strict-live (substring-audited),
   regardless of topic volatility.
-- **Trajectory-gated depth.** Momentum decides *which* topics earn a dossier (heating /
-  load-bearing → dossier; cooling / dormant → stub; revival → reactivate). Depth is always
-  full-rigor; momentum gates depth.
+- **Editorial depth-gating** (refined 2026-05-26, [`decisions.md`](./decisions.md) D3).
+  *Editorial judgment* (importance + mastery-gap + book-need) decides which topics earn a
+  dossier; momentum is a **staleness + field-movement radar** that informs it, not an auto-gate
+  (heating ≠ "research it"). Depth is always full-rigor.
 - **Single-system endgame.** Everything eventually unifies under strict-live; the existing
   167-note `docs/research/` per-source cache is a transitional stepping stone.
 - **Launchpads, never cited.** The two compass/deep-dive docs are verify-then-cache lead lists.
 
-## Open decisions (settled after the gather phase)
+## Decisions (post-pilot review — resolved 2026-05-26)
 
-Deliberately parked until there's evidence — see the plan file's *"Open decisions — settled
-collaboratively AFTER the gather phase"* section: true clusters/atomicity, separate-vs-unified
-project structure, the momentum signal, synthesis↔audit coexistence, graph↔published-book
-citation consistency, the trajectory mechanism, the KG viewer's home, and the harness-vocabulary
-editorial stance.
+The six parked decisions are **resolved** — see [`decisions.md`](./decisions.md): D1 atomicity
+(two-layer rule), D2 structure (per-topic projects + cross-project merge), D3 momentum (a
+hand-applied quality rubric; machinery deferred), D4 synthesis↔audit (pure atoms + grounded
+`synthesis.md`), D5 graph↔book (stable-ID discipline now, forwarding deferred), D6 scaling
+(Wave 1 = context-rot + repo-design + claudemd). **Still deferred:** the KG-viewer's home
+(→ viz phase) and the harness-vocabulary stance (→ Vol-2).
 
 > Full plan: `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md` (active execution plan).
