@@ -5,10 +5,12 @@ that grows into an explorable **knowledge graph** of everything relevant to the 
 current over time. It is the in-repo, version-controlled spine; the heavy verified research
 lives **externally** as strict-live dossiers in `~/Claude/` and bridges in (see below).
 
-> **Status: v0 (2026-05-26).** This is the *big-picture skeleton* produced by the Phase-1
-> "thinking pass." The harness / environment-engineering / context-assembly region is the first
-> deep focus; most other regions are honest **stubs** so coverage gaps stay visible. Clusters
-> are **provisional** — the real sub-areas emerge from the research and the graph itself.
+> **Status: v1 (2026-05-26).** Big-picture map produced by the Phase-1 "thinking pass" + an
+> eyeball-pass revision: full three-books scope, **14 clusters** in two bands (active frontier
+> vs positioned), 44 topic nodes. The harness / environment / context-assembly region + a new
+> **Production Operations** cluster are the active frontier; most nodes are honest **stubs** so
+> coverage gaps stay visible. Clusters are still **provisional** — the pilot + the emergent KG
+> reveal the true sub-areas.
 
 ## Why this exists
 

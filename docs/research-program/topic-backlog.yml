@@ -7,6 +7,10 @@ note: >
   taxonomy nodes; they become sub-areas (claim families) inside a topic's strict-live
   research_plan, or promote to their own node if the KG shows they deserve it. NOT yet
   researched. The pilot + breadth scan will confirm/merge/split these.
+  v1 (2026-05-26): 'Academy courses' is treated as a SOURCE (seeds/bib), not a topic node.
+  'Skills & progressive disclosure' was promoted to a node (env-skills). The six ctx-assembly
+  sub-topics below are the PILOT dossier's confirmed sub-areas — promoted to graph nodes
+  post-pilot once the research reveals the real boundaries.
 
 candidates:
   # --- Context & Assembly (pilot region — richest) ---
@@ -48,9 +52,11 @@ candidates:
 
   # --- Environment Engineering ---
   - id: progressive-disclosure-skills
-    parent: env-repo-design
+    parent: env-skills
+    status: promoted-to-node
     label: "Skills + progressive disclosure (3 levels)"
     seed: "deep-dive §3.3 (Anthropic Skills guide, Jan-2026)"
+    note: "Promoted to its own node (env-skills) in taxonomy v1; sub-topics here become its dossier sub-areas."
   - id: hooks-composition
     parent: cc-internals
     label: "Hooks/permissions/skills/commands composition"

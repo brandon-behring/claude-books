@@ -1,63 +1,49 @@
-# Topic taxonomy (v0 — provisional)
+# Topic taxonomy (v1)
 
-The narrative companion to [`taxonomy.graph.json`](./taxonomy.graph.json). The graph is the
-source of truth (and what renders); this file explains it.
+The narrative companion to [`taxonomy.graph.json`](./taxonomy.graph.json) (the source of truth + what renders). **v1** folds in the 2026-05-26 eyeball-pass decisions; it supersedes v0 (commit `c540511`).
 
-> **Provisional + emergent.** The clusters and the ~33 topic nodes below are a *starting point*,
-> re-derived from first principles from the two launchpad docs + the existing cache + the cert
-> domains. They are **not fixed.** The pilot will re-assess the clustering; the eventual KG will
-> reveal the true sub-areas. Treat this as a v0 to argue with, not a settled ontology.
+> **Still provisional + emergent.** The clusters and 44 nodes are a *working* carving, not a settled ontology. The pilot re-assesses; the eventual KG reveals the true sub-areas. Argue with it.
 
 ## How to read it
 
-- **Clusters** (`metadata.sections`) are the top-level regions — the filter pills + node colors
-  in the viewer. They are lenses for navigation, **not** the deep structure.
-- **`kb_status`** — `ingested` (full color) = the topic already has research (existing cache or a
-  future strict-live dossier); `not_ingested` (greyed + dashed) = a **stub**, not yet researched.
-  Right now the *new* harness/env/assembly topics are stubs (we haven't done them yet); the
-  existing-cache topics show as ingested. **The greyed region is the gap this program fills.**
-- **`tier`** — `strict-live` (a `~/Claude/` dossier) vs `cache` (the lighter 167-note per-source
-  cache) vs `stub` (nothing yet). The endgame unifies everything under strict-live.
-- **`priority`** — `PILOT` (context assembly) · `near-term` (the harness/env/assembly focus) ·
-  `deferred` / `deferred-low` · `cached` / `shipped` (already covered elsewhere).
-- **Cert domains + book targets** ride along in node `data` as lenses — cert is the *floor*.
+- **Axis = topic/capability.** Cert domains + book targets ride along in node `data` as *lenses*; they are not the spine.
+- **Two bands** (`data.frontier`): **active** = the harness-core + operations region we research first; **positioned** = mapped now (full three-books scope) but not yet active.
+- **`kb_status`** — `ingested` (full color) = has research (existing cache or a dossier); `not_ingested` (greyed/dashed) = stub, not yet researched. The greyed *active* nodes are the gap this program fills first.
+- **`tier`** — `strict-live` (a `~/Claude/` dossier) · `cache` (the lighter 167-note cache) · `stub`. Endgame: unify under strict-live.
+- **`priority`** — `PILOT` · `near-term` · `deferred` / `deferred-low` · `cached` / `shipped`.
 
-## Clusters (v0)
+## Active frontier (7 clusters — researched first)
 
-1. **Environment Engineering** *(first deep region)* — the repo as the agent's substrate:
-   repo/doc design, the CLAUDE.md/AGENTS.md 60-line discipline (a **convergence** with the shipped
-   handbook Ch2), guardrails & reversibility, cross-domain structure, failure-breadcrumbs.
-2. **Context & Assembly** *(first deep region; holds the pilot)* — the per-turn boundary layer:
-   **context assembly** (KV-cache, compaction, JIT, token budget, positional bias) + its sister
-   **context rot** (long-context limits) + the handbook's **context-as-currency**.
-3. **Memory** — anti-patterns (typed/decay), the documentation-vs-memory boundary, Claude Code
-   memory/sessions.
-4. **Tools & MCP** — tool minimization (subtract-first, the count cliff), MCP design & security,
-   advanced tool use, the MCP spec.
-5. **Agents & Orchestration** — the harness frame & vocabulary, sub-agents (context isolation),
-   multi-agent patterns, the Agent SDK.
-6. **Evaluation & Verification** — eval harnesses (LLM-as-judge, task suites), the tooling
-   landscape, benchmarks, the handbook's 6-layer validation.
-7. **Prompting & Structured Output** — prompt engineering, structured output via `tool_use`.
-8. **Claude Code Config & Workflows** — internals (settings/hooks/skills), headless/CI.
-9. **Reliability, Governance & Security** — incidents (Replit, sandbox bypass), sandboxes
-   (OS-level + self-hosted + MCP tunnels), governance/compliance.
-10. **Foundations & Ecosystem** — Academy courses, the Claude API surfaces, market/ecosystem (low).
-11. **Pedagogy & Authoring** — the meta-layer (how the books themselves are made).
+1. **Environment Engineering** — repo & doc design, CLAUDE.md/AGENTS.md discipline *(convergence w/ shipped Ch2)*, guardrails & reversibility, cross-domain structure, failure-breadcrumbs, **skills & progressive disclosure**.
+2. **Context & Assembly** *(holds the pilot)* — **context assembly** (one node for v1; KV-cache/compaction/JIT/budget/positional-bias are its dossier sub-areas), context rot, context-as-currency.
+3. **Memory** — anti-patterns (typed/decay), documentation-vs-memory boundary, Claude Code memory & sessions.
+4. **Tools & MCP** — tool minimization, MCP design & security, advanced tool use, MCP spec.
+5. **Agents & Orchestration** — **agent loop / agentic architecture**, harness frame & vocabulary, **build-vs-buy a custom harness**, sub-agents, multi-agent patterns, Agent SDK.
+6. **Evaluation & Verification** — eval harnesses, eval tooling, benchmarks, validation 6-layer.
+7. **Production Operations** *(new in v1)* — observability/tracing/attribution, cost/token economics, security/prompt-injection/supply-chain, human-in-the-loop/oversight, sandboxes.
+
+## Positioned (7 clusters — mapped, not yet active)
+
+8. **Prompting & Structured Output** — prompt engineering, structured output.
+9. **Claude Code (product surface)** — internals (settings/hooks/commands), headless/CI.
+10. **Claude Platform & API** — models, tool_use, thinking, batches, files, citations, computer use *(extracted from the old grab-bag)*.
+11. **Reliability, Governance & Compliance** — Claude Code incidents/postmortems, governance/compliance (EU AI Act). *(Security + sandboxes moved to Production Operations.)*
+12. **Handbook Foundations** *(new)* — mental model / what Claude Code is *(Ch1)*, getting started / first session / productivity *(Ch3–4)*.
+13. **Field Patterns & Adoption** *(new)* — team adoption & scaling (the 67-repo audit), public case studies (Replit/Vercel/Copilot — a contrast genre to the audit), market/ecosystem *(low)*.
+14. **Pedagogy & Authoring** *(meta)* — how the books themselves are made.
+
+## What changed from v0
+
+- **+ Production Operations** cluster (the missing "run it in prod" layer): observability, cost, security, HITL, sandboxes.
+- **+ Handbook Foundations, + Field Patterns & Adoption, + Claude Platform & API** — so the map covers the *full three-books scope*, not just the design space.
+- **Dropped `Academy courses` as a node** — it's a *source*, not a topic (belongs in seeds/bib).
+- **Added gap nodes** the source-doc/cert/book triangulation surfaced: agent loop, build-vs-buy harness, skills & progressive disclosure, + the whole ops layer.
+- **`ctx-assembly` kept as one node** — its ~6 sub-topics are the dossier's sub-areas, promoted to sibling nodes *after* the pilot.
 
 ## The first deep focus (gather phase)
 
-The **near-term** harvest concentrates on clusters 1–2 (+ the memory boundary, tool minimization,
-MCP design, harness frame, eval harnesses). These are the `not_ingested` / `near-term` nodes —
-the genuine gaps the launchpad docs surfaced. The **pilot** is `ctx-assembly` (cluster 2), taken
-fully through the strict-live pipeline as the proof-of-pattern.
+The **pilot** is `ctx-assembly`. The **near-term** stubs to deepen after it: the Environment-Engineering set, context-rot, memory anti-patterns + doc-vs-memory, tool-minimization, MCP-design, harness-frame + build-vs-buy, eval-harnesses, the Production-Operations set, public case studies. Everything `cached` is already covered (lighter tier) and migrates to strict-live over time (single-system endgame).
 
-Everything marked `cached` is already covered (at the lighter tier) by the existing
-`docs/research/` cache; it is positioned here so the map is whole, and will migrate to strict-live
-over time (the single-system endgame).
+## What's deliberately NOT settled
 
-## What's deliberately NOT settled here
-
-The clustering, the node atomicity, and which nodes deserve a deep dossier are all **open** — see
-the plan's *Open decisions* list. This v0 exists to be revised once the pilot + breadth scan give
-us something concrete to reason over.
+Clustering, node atomicity, and the dossier-worthy set are **open** — see the plan's *Open decisions*. This v1 is the foundation to pilot against, expected to iterate.
