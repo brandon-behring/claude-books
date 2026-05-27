@@ -14,8 +14,8 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 |---|---|---|---|---|
 | Repo & doc design for agents | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 1; 8 sources, 14 atoms, 14/14 citation-clean, audit-round-1 clean). `~/Claude/research_agent_repo_design`. |
 | CLAUDE.md/AGENTS.md discipline | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 1; 6 sources, 14 atoms, 14/14 citation-clean, audit-round-1 clean). ETH measured result + the shipped-Ch2 convergence. `~/Claude/research_agent_claudemd_discipline`. |
-| Guardrails & reversibility | 🔥 | stub | 2026-05-26 | Sandbox shift + Replit lessons keep it hot. |
-| Cross-domain / large-repo structure | ☀️ | stub | 2026-05-26 | Stable patterns (ADRs, INTERFACE.md). Deferred. |
+| Guardrails & reversibility | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 2; 8 sources, 19 atoms, 23/23 citation-clean, audit-round-1 clean). `.claudeignore` caught as a folk claim (→ `permissions.deny`); 84% prompt-cut + Replit verified. `~/Claude/research_agent_guardrails`. |
+| Cross-domain / large-repo structure | ☀️ | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 2; 12 sources, 21 atoms, 21/21 citation-clean, audit-round-1 clean). `INTERFACE.md` + "shallow index deeply linked" caught as folk coinages. `~/Claude/research_agent_cross_domain`. |
 | Failure breadcrumbs | ☀️ | stub | 2026-05-26 | Stable discipline (Hashimoto). Deferred. |
 | Skills & progressive disclosure | 🔥 | stub | 2026-05-26 | Anthropic Skills guide (Jan-2026); first-class artifact. |
 
@@ -29,7 +29,7 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 ### Memory
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
-| Memory anti-patterns (typed/decay) | 🔥 | stub | 2026-05-26 | "Memory unsolved mid-2026"; active (Cloudflare Agent Memory). |
+| Memory anti-patterns (typed/decay) | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 2; 13 sources, 17 atoms, 25/25 citation-clean, audit-round-1 clean). Openly unsolved (Mem0, vendor-attributed); memory = recalled context. `~/Claude/research_agent_memory`. |
 | Documentation-vs-memory boundary | ☀️ | stub | 2026-05-26 | Conceptual; near-term. |
 | Claude Code memory & sessions | ☀️ | cache | 2026-05-23 | Evolving feature surface. |
 

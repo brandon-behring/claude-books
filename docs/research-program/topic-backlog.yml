@@ -87,6 +87,7 @@ candidates:
     parent: rel-sandboxes
     label: "Self-hosted sandboxes + MCP tunnels (2026 shift)"
     seed: "deep-dive §2.7/3.1 (Code with Claude London, May-2026; beta)"
+    note: "Wave 2 (2026-05-26): the guardrails dossier took the permission-relaxer HINGE only (Claude Code sandbox mode + auto-allow as a permission move, claim_guardrails_0101–0107). This candidate remains the deferred INFRASTRUCTURE work for the ops-sandboxes node — OS-isolation internals (Seatbelt/bubblewrap), self-hosted Managed Agents sandboxes + launch-partner ecosystem, and MCP tunnels (2 escalate_to_manual rows in research_agent_guardrails/gather_trace.yml mark the seam)."
 
   # --- Evaluation ---
   - id: llm-as-judge-calibration
