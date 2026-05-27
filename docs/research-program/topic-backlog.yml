@@ -168,3 +168,20 @@ candidates:
     label: "ops_cost pricing/economics volatile recheck (model tiers, cache multipliers, batch discount)"
     seed: "ops_cost Wave 6: prompt-cache multipliers (1.25×/0.1×), the 5-min TTL, the 50% batch discount, and the model-tier ladder are all vendor-published figures that move."
     note: "VOLATILE — recheck **after 2026-06-26**. The cache multipliers / TTL / batch discount / tier ladder are anchored to the current Anthropic docs+pricing; re-verify on the next pricing or prompt-caching-doc revision. (Same recheck window as the Wave-2 Mem0 volatile item.) Not yet due."
+
+  # --- surfaced Wave 7 (2026-05-27) ---
+  - id: prefill-deprecation-migration
+    parent: prompt-eng
+    label: "Prefill-deprecation migration patterns (assistant-turn prefill → structured outputs)"
+    seed: "prompt_engineering Wave 7: captured that prefill is now DEPRECATED on Claude 4.6+ (returns 400). The dossier anchors the deprecation fact; the migration recipe (what to do instead) is not yet a how-to."
+    note: "SPEC-IN-TRANSITION: prefill (the assistant-turn-prefill technique) returns 400 on Claude 4.6+. The book treatment should teach the MIGRATION — steer output shape via structured outputs (`output_config.format` / JSON Schema, see `structured-output`) and system-prompt roles instead. To promote: gather the deprecation-notice primary + the recommended-alternative guidance and mint migration atoms (D4). Pairs with the structured-outputs GA transition."
+  - id: extended-thinking-as-api-feature
+    parent: prompt-eng
+    label: "Extended thinking as an API feature (deep pass — budget, interleaving, tool-use interaction)"
+    seed: "prompt_engineering Wave 7: the prompting dossier scoped clarity/multishot/CoT/roles/chaining; CoT was covered as a PROMPTING technique, but extended thinking as a first-class API FEATURE (thinking budget, interleaved thinking, its interaction with tool use) was not deep-passed."
+    note: "Distinct from the `reasoning_cot` family (which is the prompt-level CoT technique). Extended thinking as an API surface — budget_tokens, interleaved-thinking, summarized-vs-raw thinking, tool-use interaction — belongs to a deep pass that likely cross-links `plat-api` (Claude Platform & API). To promote: gather the extended-thinking API primary and mint atoms (D4 + D2). FAST-MOVING: the thinking API surface churns."
+  - id: prompt-eng-doc-consolidation-recheck
+    parent: prompt-eng
+    label: "Prompt-eng doc-consolidation recheck (per-technique guides → one 'Prompting best practices' page)"
+    seed: "prompt_engineering Wave 7: Anthropic consolidated the per-technique prompting guides into a single 'Prompting best practices' page; the dossier anchors the current consolidated page + flagged the redirect churn (302→308 for multishot/chain-prompts, a soft-404 on an old per-technique URL)."
+    note: "SPEC-IN-TRANSITION (doc layer): the prompting docs are mid-reorganization — old per-technique URLs now redirect (308) or soft-404 to the consolidated page. The anchored excerpts are verbatim to the current consolidated page. RECHECK on the next docs reshuffle — if the consolidated page splits again or URLs move, re-anchor (D4 — mint new atoms, tombstone via superseded_by). Same dual-layer freshness discipline as the MCP/OTel spec-in-transition items."

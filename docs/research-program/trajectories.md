@@ -73,8 +73,9 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 
 | Topic | Cluster | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|---|
-| Prompt engineering | Prompting & SO | ☀️ | cache | 2026-05-23 | Stable principles. |
-| Structured output | Prompting & SO | ☀️ | cache | 2026-05-23 | Evolving. |
+| Prompt engineering | Prompting & SO | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 7; 9 sources, 16 atoms, 16/16 citation-clean, audit-round-1: CoVe 0 dropped / 2 corrected / 0 flagged — both CORRECTs confidence-factor prose nits: redirect codes 302→308 + "404s"→soft-404; excerpts/claims unaffected). Clarity/directness · multishot · CoT · roles · chaining — the consolidated prompting-best-practices page. Notable: **prefill DEPRECATED on Claude 4.6+ (returns 400)**. `~/Claude/research_agent_prompt_engineering`. |
+| Structured output | Prompting & SO | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 7; 8 sources, 15 atoms, 15/15 citation-clean, audit-round-1 clean / CoVe 0/0/0). tool_use + JSON Schema; the strict/structured-outputs **guarantee rendered WITH its caveats** (refusals/max_tokens/unsupported-schema-subset — not overstated); validation/retry; extraction. Now GA (beta header → `output_config.format`). `~/Claude/research_agent_structured_output`. |
+| Prompt evaluation (success criteria, empirical testing) | Prompting & SO | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 7; 5 sources, 13 atoms, 13/13 citation-clean, audit-round-1 clean / CoVe 0/0/0). New node. Success-criteria · empirical-testing · iteration-tooling · grading. **HARD boundary held vs `eval_harnesses`** — judge-calibration cross-linked, not re-derived; an agent-transcript-grading source escalated out of scope. `~/Claude/research_agent_prompt_evaluation`. |
 | Claude Code internals | CC product surface | 🔥 | cache | 2026-05-23 | Frequent releases + CVEs. |
 | Headless / CI / automation | CC product surface | ☀️ | cache | 2026-05-23 | Evolving. |
 | Claude Platform & API surfaces | Claude Platform & API | 🔥 | cache | 2026-05-23 | Fast-moving. |
