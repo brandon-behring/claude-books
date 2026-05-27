@@ -45,11 +45,12 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
 | Agent loop / agentic architecture | ☀️ | cache | 2026-05-23 | Stable core (handbook Ch1); the D1 anchor. |
-| Harness frame & vocabulary | 🔥 | stub | 2026-05-26 | Vocabulary crystallized Feb–Apr 2026. |
-| Build-vs-buy a custom harness | 🔥 | stub | 2026-05-26 | Active "use existing vs build" debate. |
-| Sub-agents (context isolation) | ☀️ | cache | 2026-05-23 | Evolving (forked sub-agents, P/G/E). |
-| Multi-agent patterns | ☀️ | cache | 2026-05-23 | Evolving. |
+| Harness frame & vocabulary | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 5; 10 sources, 20 atoms, 20/20 citation-clean, audit-round-1 clean). Agent = Model + Harness; inner/outer loop; the 3-layer model; components taxonomy; provenance. The D1 architecture-spine root. `~/Claude/research_agent_harness_frame`. |
+| Build-vs-buy a custom harness | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 5; 7 sources, 14 atoms, 14/14 citation-clean, audit-round-1: 1 CORRECT — managed-agents authorship). When-to-build vs configure/wrap; decision criteria + framework landscape; the middle path. Shares Agent-SDK/LangGraph/effective-agents primaries with harness-frame. `~/Claude/research_agent_harness_buildvsbuy`. |
+| Sub-agents (context isolation) | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 5; 7 sources, 18 atoms, 18/18 citation-clean, audit-round-1: 1 FLAG — claude.com/blog SPA live↔cache drift, cache is source of truth). Fresh-context isolation, forked sub-agents, P/G/E; isolation-not-capability. `~/Claude/research_agent_sub_agents`. |
+| Multi-agent patterns | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 5; 6 sources, 15 atoms, 15/15 citation-clean, audit-round-1: 1 CORRECT — multi-agent-research authorship). Orchestrator-worker topologies, when-not-to, the role-decomposition anti-pattern; keeps the **Anthropic vs Cognition "don't build multi-agents" tension unflattened**. `~/Claude/research_agent_multi_agent`. |
 | Claude Agent SDK | 🔥 | cache | 2026-05-23 | Fast-moving API surface. |
+| Agent capabilities & emergence (scaling) | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (orphan, built May-20 pre-wave, re-verified v2.5.0; bridged Wave 5; 11 sources, 14 atoms, citation-clean). Orthogonal scaling/emergence **background** (positioned, not active how-to) — the Model half of Agent = Model + Harness. `~/Claude/research_agent_capabilities_scaling`. |
 
 ### Evaluation & Verification
 | Topic | Mom. | Tier | Last | Notes |

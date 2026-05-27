@@ -73,16 +73,20 @@ candidates:
     parent: harness-frame
     label: "12-Factor Agents + the 'dumb zone' / 40% threshold"
     seed: "deep-dive §3.5 (HumanLayer/Dex Horthy)"
+    note: "Parent harness-frame went strict-live (Wave 5, 2026-05-27) but took only the vocabulary-crystallization PROVENANCE arc (Karpathy/Hashimoto/Trivedy, claim_harness_frame_0201–0204, dated-provenance-not-definition). The 12-Factor-Agents list + the 'dumb zone'/40% threshold (HumanLayer/Dex Horthy) were NOT anchored — still open. To promote: gather the 12-Factor primary and anchor the specific factors/threshold verbatim (D1 — mint new atoms)."
 
   # --- Agents & Orchestration ---
   - id: deep-agents-pattern
     parent: agent-multipatterns
     label: "Deep-agents pattern (planner + sub-agents + filesystem)"
     seed: "deep-dive §3.5 (LangChain/Harrison Chase)"
+    note: "Parent agent-multipatterns went strict-live (Wave 5, 2026-05-27), but its scope was topologies + when-not-to + the role-decomposition anti-pattern (orchestrator-worker) — the LangChain/Harrison-Chase deep-agents pattern (planner + sub-agents + filesystem) was NOT covered. Still open. To promote: gather the deep-agents primary (D1 — mint new atoms)."
   - id: agentic-engineering-vibe-coding
     parent: harness-frame
+    status: partial
     label: "Agentic engineering vs vibe coding (Karpathy, Dec-2025)"
     seed: "both docs (Sequoia AI Ascent 2026; floor-vs-ceiling)"
+    note: "Partially covered (Wave 5, 2026-05-27): the harness_frame `provenance` family anchored Karpathy's 'Decade of Agents' framing (claim_harness_frame_0201, 2025-06-17, dated-provenance-not-definition, T3 transcript-mirror). The 'agentic engineering vs vibe coding' / floor-vs-ceiling THESIS itself was not anchored. To complete: gather a Karpathy primary for the floor-vs-ceiling argument (D1 — mint new atoms)."
 
   # --- Reliability ---
   - id: self-hosted-sandboxes-mcp-tunnels
@@ -122,3 +126,26 @@ candidates:
     label: "Agent Skills ADOPTION prevalence in the wild (distinct from malicious-skill prevalence)"
     seed: "env_skills Wave 4: no clean first-party primary for skills adoption/usage-in-the-wild (only uncitable third-party aggregators); escalated, nothing laundered."
     note: "Distinct from `agent-skills-wild-prevalence` above (that is the MALICIOUS-skill figure, parented to ops-security). Revisit if Anthropic publishes adoption statistics; until then no number is assertable."
+
+  # --- surfaced Wave 5 (2026-05-27) ---
+  - id: harness-engineering-vocabulary-settling
+    parent: harness-frame
+    label: "Harness-engineering vocabulary still settling (coinage churn 2025–2026)"
+    seed: "harness_frame Wave 5: the `provenance` family anchored the dated crystallization arc (Karpathy 'Decade of Agents' 2025-06-17 → Anthropic adopts 'harness' 2025-11-26 → Hashimoto coins 'harness engineering' 2026-02-05 → Trivedy 'Agent = Model + Harness' 2026-03-10) as dated-provenance-not-definition."
+    note: "The vocabulary is mid-crystallization — coinages are generalized, not asserted as fixed (the load-bearing definition is the T1 frame, claim_harness_frame_0001). VOLATILE: recheck the term landscape as it settles; new coinages may supersede the provenance atoms (D1 — mint new atoms, tombstone via superseded_by). Most provenance sources are T2/T3 dated history (stable tier), but the FRAME itself may get a cleaner T1 statement."
+  - id: anthropic-vs-cognition-multiagent-tension
+    parent: agent-multipatterns
+    label: "Anthropic orchestrator-worker vs Cognition 'don't build multi-agents' tension"
+    seed: "multi_agent Wave 5: the dossier preserves the tension UNFLATTENED — Anthropic's multi-agent-research system (orchestrator-worker works) vs Cognition's 'Don't Build Multi-Agents' (context-sharing/decision-conflict argues against) carried as two framings, not reconciled."
+    note: "Deliberately NOT resolved — both positions are anchored and the disagreement is itself the finding (a `<Tag kind=\"...\">` *tension* to present honestly, not a convergence). Revisit if a tie-breaking primary or measured comparison lands; until then present both. The book treatment is to teach the decision boundary, not to pick a winner."
+  - id: agent-framework-landscape-volatility
+    parent: harness-buildvsbuy
+    label: "Agent-framework landscape volatility (Agent SDK / LangGraph / managed agents churn)"
+    seed: "harness_buildvsbuy Wave 5: the `framework_landscape` family anchored the current build-vs-buy options; CoVe corrected the managed-agents authorship — the landscape moves fast."
+    note: "FAST-MOVING: the framework set + their capabilities churn quarterly; the decision-criteria atoms are stable but specific framework claims need periodic re-verification. Recheck on each Agent-SDK / LangGraph / managed-agents release that changes the build-vs-buy calculus."
+  - id: agent-capabilities-emergence-scaling
+    parent: agent-capabilities
+    status: covered
+    label: "Agent capabilities / emergence / scaling (background for the harness spine)"
+    seed: "capabilities_scaling orphan dossier (built May-20 pre-wave, re-verified v2.5.0): scaling behaviour + emergence-vs-measurement debate + capability trajectory."
+    note: "Covered (Wave 5, 2026-05-27) by bridging the orphan dossier into a new POSITIONED node `agent-capabilities` (11 sources, 14 atoms, citation-clean). Orthogonal BACKGROUND — the Model half of Agent = Model + Harness, not a how-to topic; positioned (mapped, not active frontier). Re-verify the scaling/emergence claims as the debate moves; volatility evolving."
