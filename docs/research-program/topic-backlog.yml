@@ -47,8 +47,10 @@ candidates:
     seed: "deep-dive §1.9/2.6 (Anthropic Nov-2025 direction)"
   - id: mcp-primitives-resources-vs-tools
     parent: mcp-design
+    status: covered
     label: "MCP primitives: resources-vs-tools anti-pattern"
     seed: "deep-dive §1.9 (tools-for-static-data anti-pattern; Apigene audit)"
+    note: "Covered (Wave 4, 2026-05-27) as the `primitives` family of the mcp_design dossier — tools are model-controlled, resources application-driven, prompts user-controlled (claim_mcp_design_0101/0104/0106); the control-mode distinction is the design answer to the resources-vs-tools anti-pattern."
 
   # --- Environment Engineering ---
   - id: progressive-disclosure-skills
@@ -103,3 +105,20 @@ candidates:
     label: "Malicious-skill / MCP-server prevalence (registry-scan primary)"
     seed: "Agent Skills in the Wild (arXiv:2601.10338, Liu et al. 2026-01): 5.2% high-severity / malicious-intent, 26.1% contain ≥1 vulnerability"
     note: "Surfaced Wave 3 (2026-05-27) as the citable PRIMARY that should replace the escalated launchpad folk figure ('~12–20% malicious skills' — no primary on disk; quarantined in research_agent_ops_security, asserted nowhere). To promote: anchor its ACTUAL figures verbatim in an ops_security revision (D5 — mint new atoms); never assert the folk band."
+
+  # --- surfaced Wave 4 (2026-05-27) ---
+  - id: mcp-rc-2026-final-deep-pass
+    parent: mcp-design
+    label: "MCP 2026-07-28 RC final: MCP Apps (SEP-1865) template/security model, ext-tasks lifecycle, Extensions framework (SEP-2133)"
+    seed: "mcp_design Wave 4 (2026-05-27): the `spec_evolution` family anchored the RC's ANNOUNCED changes (announced-not-current, stale_after→2026-07-28, claim_mcp_design_0201–0207)."
+    note: "When the RC goes final (2026-07-28), do a deep pass on the MCP Apps template/security model + the ext-tasks server-driven lifecycle + the Extensions framework, and supersede the coming-atoms (D5 — mint new atoms, tombstone via superseded_by). The dual-layer freshness convention will have already flagged these for recheck."
+  - id: advanced-tool-use-effect-sizes
+    parent: tool-minimization
+    label: "Advanced tool use effect sizes (Tool Search token reduction; MCP-eval accuracy delta)"
+    seed: "tool_minimization Wave 4: the Anthropic 'advanced tool use' post (Nov 2025) reports ~85% token reduction + an Opus-4.5 MCP-eval 79.5%→88.1% — ESCALATED, not laundered (effect sizes outside the dossier's anchored scope)."
+    note: "To promote: gather that post as a primary and anchor the two figures verbatim (they corroborate syn_tool_minimization_04 on-demand loading). 1 escalate_to_manual row in research_agent_tool_minimization/gather_trace.yml marks the seam."
+  - id: agent-skills-adoption-prevalence
+    parent: env-skills
+    label: "Agent Skills ADOPTION prevalence in the wild (distinct from malicious-skill prevalence)"
+    seed: "env_skills Wave 4: no clean first-party primary for skills adoption/usage-in-the-wild (only uncitable third-party aggregators); escalated, nothing laundered."
+    note: "Distinct from `agent-skills-wild-prevalence` above (that is the MALICIOUS-skill figure, parented to ops-security). Revisit if Anthropic publishes adoption statistics; until then no number is assertable."

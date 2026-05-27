@@ -17,7 +17,7 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 | Guardrails & reversibility | 🔥 | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 2; 8 sources, 19 atoms, 23/23 citation-clean, audit-round-1 clean). `.claudeignore` caught as a folk claim (→ `permissions.deny`); 84% prompt-cut + Replit verified. `~/Claude/research_agent_guardrails`. |
 | Cross-domain / large-repo structure | ☀️ | strict-live | 2026-05-26 | **DOSSIER COMPLETE** (Wave 2; 12 sources, 21 atoms, 21/21 citation-clean, audit-round-1 clean). `INTERFACE.md` + "shallow index deeply linked" caught as folk coinages. `~/Claude/research_agent_cross_domain`. |
 | Failure breadcrumbs | ☀️ | stub | 2026-05-26 | Stable discipline (Hashimoto). Deferred. |
-| Skills & progressive disclosure | 🔥 | stub | 2026-05-26 | Anthropic Skills guide (Jan-2026); first-class artifact. |
+| Skills & progressive disclosure | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 4; 7 sources, 22 atoms, 22/22 citation-clean, audit-round-1 clean). First-class artifact + progressive disclosure + authoring discipline; launch date corrected to **Oct 16 2025** (folk "Jan-2026"). `~/Claude/research_agent_env_skills`. |
 
 ### Context & Assembly
 | Topic | Mom. | Tier | Last | Notes |
@@ -36,8 +36,8 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 ### Tools & MCP
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
-| Tool minimization (subtract-first) | 🔥 | stub | 2026-05-26 | Strong 2026 case studies. |
-| MCP design & security | 🔥 | stub | 2026-05-26 | MCP roadmap moving fast (Apps, Tasks, Tunnels). |
+| Tool minimization (subtract-first) | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 4; 6 sources, 18 atoms, 18/18 citation-clean, audit-round-1 clean). Verified case studies (Vercel removed 80%→1 bash tool / Copilot 40→13 / Block 30+ APIs→3) **replaced the folk 16→1·30→2 figures**; the evaluate-then-prune loop. `~/Claude/research_agent_tool_minimization`. |
+| MCP design & security | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 4; 12 sources, 32 atoms, 32/32 citation-clean, audit-round-1 clean). Design side + governance/ecosystem; **dual-layer** current 2025-11-25 spec + announced 2026-07-28 RC (`stale_after`→2026-07-28). Attack surface stays `ops_security`. `~/Claude/research_agent_mcp_design`. |
 | Advanced tool use (Tool Search, PTC) | ☀️ | cache | 2026-05-23 | Evolving. |
 | MCP spec + ecosystem | 🔥 | cache | 2026-05-23 | Spec churns quarterly; re-verify often. |
 
