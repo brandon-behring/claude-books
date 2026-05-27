@@ -33,8 +33,10 @@ candidates:
     seed: "deep-dive §1.7 (caveated; ManyIFEval/IFScale)"
   - id: prompt-caching-economics
     parent: ctx-assembly
+    status: covered
     label: "Prompt-caching economics (TTL, cache-write vs read)"
     seed: "deep-dive §1.2 (5-min TTL, 1-hour cache, cache-lookback gotcha)"
+    note: "Covered (Wave 6, 2026-05-27) as the `kv_cache_economics` family of the ops_cost dossier — 1.25× cache-write / 0.1× cache-read / 5-min TTL anchored verbatim from the Anthropic prompt-caching doc (shared with context_assembly's `cache_stability`). The book treatment is the cost lens; the assembly lens stays in context_assembly."
   - id: filesystem-as-state
     parent: ctx-assembly
     label: "Filesystem as state / context offload"
@@ -149,3 +151,20 @@ candidates:
     label: "Agent capabilities / emergence / scaling (background for the harness spine)"
     seed: "capabilities_scaling orphan dossier (built May-20 pre-wave, re-verified v2.5.0): scaling behaviour + emergence-vs-measurement debate + capability trajectory."
     note: "Covered (Wave 5, 2026-05-27) by bridging the orphan dossier into a new POSITIONED node `agent-capabilities` (11 sources, 14 atoms, citation-clean). Orthogonal BACKGROUND — the Model half of Agent = Model + Harness, not a how-to topic; positioned (mapped, not active frontier). Re-verify the scaling/emergence claims as the debate moves; volatility evolving."
+
+  # --- surfaced Wave 6 (2026-05-27) ---
+  - id: ops-cost-per-mtok-dollar-pricing
+    parent: ops-cost
+    label: "Per-MTok dollar pricing (exact Haiku/Sonnet/Opus + cache-write/read $)"
+    seed: "ops_cost Wave 6: the per-model per-MTok dollar prices on the Anthropic pricing page could NOT be cleanly extracted (HTML table-cell splitting fragmented the numbers); the synthesis states the Haiku<Sonnet<Opus ladder qualitatively, nothing laundered."
+    note: "Per-MTok dollars are intentionally UN-ANCHORED — no exact price asserted (the cache-write 1.25× / cache-read 0.1× MULTIPLIERS are anchored; the base dollar figures are not). To promote if a chapter needs exact dollars: re-gather the pricing page with a parser that survives the table-cell split (or anchor a PDF/screenshot primary) and mint per-model atoms (D5). VOLATILE: prices change — recheck after 2026-06-26 regardless."
+  - id: otel-genai-semconv-stabilization
+    parent: ops-observability
+    label: "OpenTelemetry GenAI semantic conventions stabilization (Development → Stable)"
+    seed: "ops_observability Wave 6: the OTel GenAI semantic conventions are anchored at Status: **Development** (announced-not-stable) — the trace/span attribute names may change before they stabilize."
+    note: "ANNOUNCED-NOT-STABLE: the GenAI semconv attribute set is mid-flight; the observability atoms cite it as Development-status. Recheck when the convention reaches Stable — the specific attribute names (and any rename of the conventions themselves) may supersede the current atoms (D5 — mint new atoms, tombstone via superseded_by). Pairs with the live `/cost`→`/usage` command rename already noted in the dossier."
+  - id: ops-cost-pricing-volatile-recheck
+    parent: ops-cost
+    label: "ops_cost pricing/economics volatile recheck (model tiers, cache multipliers, batch discount)"
+    seed: "ops_cost Wave 6: prompt-cache multipliers (1.25×/0.1×), the 5-min TTL, the 50% batch discount, and the model-tier ladder are all vendor-published figures that move."
+    note: "VOLATILE — recheck **after 2026-06-26**. The cache multipliers / TTL / batch discount / tier ladder are anchored to the current Anthropic docs+pricing; re-verify on the next pricing or prompt-caching-doc revision. (Same recheck window as the Wave-2 Mem0 volatile item.) Not yet due."

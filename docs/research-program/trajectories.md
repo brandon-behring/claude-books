@@ -63,10 +63,10 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 ### Production Operations
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
-| Observability / tracing / attribution | ☀️ | stub | 2026-05-26 | OTel + session logs + git attribution; steady. |
-| Cost / token economics | 🔥 | stub | 2026-05-26 | KV-cache economics; cross-cutting, rising attention. |
+| Observability / tracing / attribution | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 6; 9 sources, 19 atoms, 19/19 citation-clean, audit-round-1 clean / CoVe 0/0/0). Session logging (JSONL) + OTel GenAI semconv tracing + git attribution + cost/usage surfacing; flagged the live **`/cost`→`/usage` rename** + OTel GenAI semconv still Status: Development. `~/Claude/research_agent_ops_observability`. |
+| Cost / token economics | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 6; 6 sources, 13 atoms, 13/13 citation-clean, audit-round-1 clean / CoVe 0/0/0). Prompt-cache economics (1.25×/0.1×/5-min TTL) + input-heavy token ratios + the 4×/15× multi-agent figure + tier/batch levers. **Per-MTok dollars deliberately un-anchored** (HTML table-cell splitting) — Haiku<Sonnet<Opus stated qualitatively, no laundered numbers. `~/Claude/research_agent_ops_cost`. |
 | Security / prompt-injection / supply-chain | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 3; 18 sources, 26 atoms, 30/30 citation-clean, audit-round-1 clean). Adversarial counterpart to guardrails; "~12–20% malicious skills" folk figure escalated (real primary: 5.2%/26.1%); EchoLeak CVE id anchored from NVD. `~/Claude/research_agent_ops_security`. |
-| Human-in-the-loop / oversight | ☀️ | stub | 2026-05-26 | Approval gates, planning modes; steady. |
+| Human-in-the-loop / oversight | ☀️ | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 6; 11 sources, 15 atoms, 15/15 citation-clean, audit-round-1 clean / CoVe 0/0/0). Approval gates + plan-mode + confidence-calibration escalation + branch-protection/PR-review/headless checkpoints — the oversight **workflow** on top of the guardrails permission **model**. CoVe confirmed the excluded "3/20 denials" mechanism is auto-mode-only (out of scope). `~/Claude/research_agent_ops_hitl`. |
 | Sandboxes (OS-level, self-hosted, tunnels) | 🔥 | stub | 2026-05-26 | 2026 infra shift; fast-moving. Deferred. |
 
 ## · Positioned (mapped, not yet active)
