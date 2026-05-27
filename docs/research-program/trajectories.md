@@ -54,7 +54,7 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 ### Evaluation & Verification
 | Topic | Mom. | Tier | Last | Notes |
 |---|---|---|---|---|
-| Eval harnesses (LLM-judge, task suites) | 🔥 | stub | 2026-05-26 | "Build evals before harnesses"; 2 Anthropic T1 sources. |
+| Eval harnesses (LLM-judge, task suites) | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 3; 4 sources, 11 atoms, 11/11 citation-clean, audit-round-1: 1 CORRECT — UK AI *Security* Institute rename). 2 Anthropic T1 primaries (2024 + 2026) + Inspect `epochs` + Zheng LLM-judge. `~/Claude/research_agent_eval_harnesses`. |
 | Eval tooling landscape | 🔥 | stub | 2026-05-26 | Consolidating (Promptfoo→OpenAI). Deferred. |
 | Benchmarks (Terminal-Bench, SWE-bench Pro) | 🔥 | stub | 2026-05-26 | Shifting 2026; contamination arms race. Deferred. |
 | Validation architecture (6-layer) | ☀️ | cache | 2026-05-23 | Shipped (handbook Ch7). Stable. |
@@ -64,7 +64,7 @@ One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how 
 |---|---|---|---|---|
 | Observability / tracing / attribution | ☀️ | stub | 2026-05-26 | OTel + session logs + git attribution; steady. |
 | Cost / token economics | 🔥 | stub | 2026-05-26 | KV-cache economics; cross-cutting, rising attention. |
-| Security / prompt-injection / supply-chain | 🔥 | stub | 2026-05-26 | Malicious-skill registries, exposed instances; hot + serious. |
+| Security / prompt-injection / supply-chain | 🔥 | strict-live | 2026-05-27 | **DOSSIER COMPLETE** (Wave 3; 18 sources, 26 atoms, 30/30 citation-clean, audit-round-1 clean). Adversarial counterpart to guardrails; "~12–20% malicious skills" folk figure escalated (real primary: 5.2%/26.1%); EchoLeak CVE id anchored from NVD. `~/Claude/research_agent_ops_security`. |
 | Human-in-the-loop / oversight | ☀️ | stub | 2026-05-26 | Approval gates, planning modes; steady. |
 | Sandboxes (OS-level, self-hosted, tunnels) | 🔥 | stub | 2026-05-26 | 2026 infra shift; fast-moving. Deferred. |
 

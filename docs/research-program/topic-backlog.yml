@@ -92,5 +92,14 @@ candidates:
   # --- Evaluation ---
   - id: llm-as-judge-calibration
     parent: eval-harnesses
+    status: covered
     label: "LLM-as-judge calibration (epochs, standard errors)"
     seed: "compass §5.6 + Anthropic statistical-approach-to-evals (T1)"
+    note: "Covered (Wave 3, 2026-05-27) as the `llm_judge_calibration` family of the eval_harnesses dossier — Anthropic statistical-approach (2024) epochs/standard-errors + Inspect `--epochs` mechanism + Zheng LLM-judge agreement (claim_eval_harnesses_0101–0105)."
+
+  # --- Security / supply-chain (surfaced Wave 3) ---
+  - id: agent-skills-wild-prevalence
+    parent: ops-security
+    label: "Malicious-skill / MCP-server prevalence (registry-scan primary)"
+    seed: "Agent Skills in the Wild (arXiv:2601.10338, Liu et al. 2026-01): 5.2% high-severity / malicious-intent, 26.1% contain ≥1 vulnerability"
+    note: "Surfaced Wave 3 (2026-05-27) as the citable PRIMARY that should replace the escalated launchpad folk figure ('~12–20% malicious skills' — no primary on disk; quarantined in research_agent_ops_security, asserted nowhere). To promote: anchor its ACTUAL figures verbatim in an ops_security revision (D5 — mint new atoms); never assert the folk band."
