@@ -1,0 +1,31 @@
+---
+import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
+chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
+---
+<Base title="The Claude Architect's Reference" description="Designing Claude-powered systems — the Agent SDK, MCP, and the API. A greenfield volume authored from strict-live research.">
+  <article class="prose">
+    <h1>The Claude Architect's Reference</h1>
+    <p><em>Designing Claude-powered systems — the Agent SDK, MCP, and the API. Greenfield volume of the claude-books series, authored from the research program's strict-live dossiers. Phase 0 — the Agents &amp; Orchestration spine opens here.</em></p>
+
+    <h2>Chapters</h2>
+    <ul>
+      {chapters.map((c) => (
+        <li>
+          <a href={`/chapters/${c.id}/`}>
+            {c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <h2>Other pages</h2>
+    <ul>
+      <li><a href="/chapters/">Chapter listing</a> (auto-generated)</li>
+      <li><a href="/search/">Search</a> (Pagefind)</li>
+      <li><a href="/references/">References</a></li>
+    </ul>
+  </article>
+</Base>

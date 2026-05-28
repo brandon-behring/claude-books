@@ -4,7 +4,8 @@
   "private": true,
   "description": "Claude Code book ecosystem on book-scaffold-astro. Workspace housing the handbook (port of claude-best-practices) and field-guide (port of claude-code-field-guide).",
   "workspaces": [
-    "handbook"
+    "handbook",
+    "architect-reference"
   ],
   "license": "CC-BY-4.0"
 }

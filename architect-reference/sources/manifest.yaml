@@ -1,0 +1,96 @@
+# sources/manifest.yaml — captured sources for the Architect's Reference (tools profile).
+# Cited inline via <Citation src="id" />; built into src/data/references.json by `book-scaffold build-bib`.
+# These are the verified primaries from the harness_frame strict-live dossier
+# (~/Claude/research_agent_harness_frame/bib_ledger.yml — all status: verified, retrieved 2026-05-27).
+# tier ∈ T1-official | T2-release-notes | T3-practitioner | T4-conjecture
+# tool ∈ claude-code | gemini-cli | codex-cli | cross-tool
+#
+# NOTE (HITL per AUTHORS.md): URLs + dates are dossier-verified; re-confirm before promoting
+# the citing chapter to "validated" status.
+
+- id: building-effective-agents
+  url: https://www.anthropic.com/engineering/building-effective-agents
+  title: Building effective agents
+  author: Erik Schluntz and Barry Zhang
+  publish_date: 2024-12-19
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: how-claude-code-works
+  url: https://code.claude.com/docs/en/how-claude-code-works
+  title: How Claude Code works
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: effective-harnesses
+  url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+  title: Effective harnesses for long-running agents
+  author: Justin Young
+  publish_date: 2025-11-26
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: effective-context-engineering
+  url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+  title: Effective context engineering for AI agents
+  author: Prithvi Rajasekaran, Ethan Dixon, Carly Ryan, and Jeremy Hadfield
+  publish_date: 2025-09-29
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: agent-sdk-overview
+  url: https://code.claude.com/docs/en/agent-sdk/overview
+  title: Agent SDK overview
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: building-agents-with-the-sdk
+  url: https://claude.com/blog/building-agents-with-the-claude-agent-sdk
+  title: Building agents with the Claude Agent SDK
+  author: Thariq Shihipar et al.
+  publish_date: 2025-09-29
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: langgraph-overview
+  url: https://docs.langchain.com/oss/python/langgraph/overview
+  title: LangGraph overview
+  author: LangChain
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: karpathy-decade-of-agents
+  url: https://www.latent.space/p/s3
+  title: "Andrej Karpathy: Software in the Age of AI"
+  author: Andrej Karpathy (Latent Space transcript-mirror)
+  publish_date: 2025-06-17
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: hashimoto-harness-engineering
+  url: https://mitchellh.com/writing/my-ai-adoption-journey
+  title: My AI Adoption Journey
+  author: Mitchell Hashimoto
+  publish_date: 2026-02-05
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: trivedy-anatomy-agent-harness
+  url: https://www.langchain.com/blog/the-anatomy-of-an-agent-harness
+  title: The Anatomy of an Agent Harness
+  author: Vivek Trivedy
+  publish_date: 2026-03-10
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
