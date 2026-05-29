@@ -375,3 +375,77 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T2-release-notes
   tool: cross-tool
+
+# --- Ch8 (Context Rot) — from the context_rot dossier (the evidence layer).
+
+- id: liu-lost-middle
+  url: https://arxiv.org/abs/2307.03172
+  title: "Lost in the Middle: How Language Models Use Long Contexts"
+  author: Liu et al. (TACL)
+  publish_date: 2023-07-06
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: chroma-context-rot
+  url: https://www.trychroma.com/research/context-rot
+  title: "Context Rot: How Increasing Input Tokens Impacts LLM Performance"
+  author: Hong, Troynikov & Huber (Chroma Research)
+  publish_date: 2025-07-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: nolima
+  url: https://arxiv.org/abs/2502.05167
+  title: "NoLiMa: Long-Context Evaluation Beyond Literal Matching"
+  author: Modarressi et al. (ICML)
+  publish_date: 2025-02-07
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: wang-mniah
+  url: https://arxiv.org/abs/2504.04150
+  title: Reasoning on Multiple Needles In A Haystack
+  author: Wang
+  publish_date: 2025-04-05
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: ruler
+  url: https://arxiv.org/abs/2404.06654
+  title: "RULER: What's the Real Context Size of Your Long-Context Language Models?"
+  author: Hsieh et al. (NVIDIA, COLM)
+  publish_date: 2024-04-09
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: horthy-12factor
+  url: https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md
+  title: "12-Factor Agents — Factor 3: Own your context window"
+  author: Dex Horthy (HumanLayer)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: martin-classifier-rot
+  url: https://arxiv.org/abs/2605.12366
+  title: "Classifier Context Rot: Monitor Performance Degrades with Context Length"
+  author: Martin & Roger
+  publish_date: 2026-05-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: xiao-pcd
+  url: https://arxiv.org/abs/2506.08371
+  title: Mitigating Posterior Salience Attenuation in Long-Context LLMs with Positional Contrastive Decoding
+  author: Xiao et al.
+  publish_date: 2025-06-10
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
