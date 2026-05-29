@@ -1,0 +1,145 @@
+---
+title: "Guardrails, Permissions & Reversibility"
+part: 2
+chapter: 6
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5, 1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - anthropic-permissions
+  - anthropic-settings
+  - anthropic-sandboxing-docs
+  - anthropic-sandboxing-blog
+  - replit-fortune
+  - replit-register
+  - replit-aiid
+  - anthropic-cc-best-practices
+description: The safety layer of the environment — express intent in policy, contain failure in mechanism. The permission model gates what the agent may attempt; sandbox isolation relaxes prompts safely; and reversibility must be out-of-band, because the agent's self-report can't be trusted.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The environment chapters so far — the repo, the instruction layer, and skills as the substrate the agent acts in.">
+- The two-layer safety model: **policy gates intent, mechanism contains the blast radius**
+- The **permission model** (allow / ask / deny) as the authorization spine — and why a deny is monotonic
+- How to deny file reads correctly — and why **`.claudeignore` is a folk claim**
+- Why **sandbox isolation relaxes prompts safely** (the permission-relaxer hinge), and where it stops
+- Why **reversibility must be out-of-band** — the lesson the Replit incident teaches by counterexample
+</YouWillLearn>
+
+_The environment is also where the agent can do damage. This chapter is the safety layer: what the agent is permitted to attempt, how risky actions are gated before they run, and how recovery is arranged when judgment fails. The mechanics here are documented Anthropic product behavior; the one cautionary case — Replit — is single-source press reporting, and is tiered accordingly._
+
+## Two layers, defense-in-depth
+
+Guardrails split into two complementary layers. A **policy** layer expresses human intent up front — permission rules, read boundaries — enforced at the decision point. A **mechanism** layer contains the blast radius regardless of the agent's reasoning — OS-enforced sandbox isolation, out-of-band reversibility.
+
+<KeyIdea>
+Express intent in policy; contain failure in mechanism. Policy gates what the agent may *attempt*; isolation and reversibility bound what happens when it attempts the wrong thing anyway. Neither layer alone is enough — a guardrail the agent can simply not-follow is a suggestion, not a control.
+</KeyIdea>
+
+## The permission model — the authorization spine
+
+Every tool call passes an allow/ask/deny ruleset. The rules are evaluated `deny → ask → allow`, and "the first matching rule wins, so deny rules always take precedence."<Tag kind="official" /><Citation src="anthropic-permissions" /> The *shape* of a rule changes its effect: a bare tool name like `Bash` "removes the tool from Claude's context entirely,"<Citation src="anthropic-permissions" /> while a scoped rule like `Bash(rm *)` "leaves the tool available and blocks matching calls."<Citation src="anthropic-permissions" />
+
+The invariant that makes this administrable: a deny is monotonic across the settings hierarchy — "if a tool is denied at any level, no other level can allow it."<Citation src="anthropic-permissions" /> An administrator can set a floor neither the user nor the agent can raise.
+
+## Read boundaries — and the `.claudeignore` erratum
+
+To stop the agent reading a file, the documented control is `permissions.deny` `Read(...)` rules, which follow the gitignore specification.<Tag kind="official" /><Citation src="anthropic-permissions" /> But it has a hole the docs state plainly: these rules "do not apply to arbitrary subprocesses that read or write files indirectly, like a Python or Node script that opens files itself."<Citation src="anthropic-permissions" /> The OS-level complement closes it — the sandbox `filesystem.denyRead` setting defines "paths where sandboxed commands cannot read,"<Citation src="anthropic-settings" /> merged with the `Read(...)` deny rules.
+
+<Pitfall title="Reaching for .claudeignore">
+The widely-repeated advice "just add a `.claudeignore`" is wrong: it is **not** an official Claude Code feature (it traces to community hooks and an open feature request). Worse, it gives a false sense of secret-safety. The real control is `permissions.deny` `Read(...)`, completed by the sandbox `filesystem.denyRead` for subprocess-level enforcement.
+</Pitfall>
+
+## Sandbox isolation — the permission-relaxer hinge
+
+The two layers meet at the sandbox. Sandbox mode puts an OS-enforced boundary around every Bash command — "you define which files and network domains commands can touch, and the operating system enforces that boundary for every Bash command and its child processes."<Tag kind="official" /><Citation src="anthropic-sandboxing-docs" /> The engineering blog states the design thesis: "Sandboxing creates pre-defined boundaries within which Claude can work more freely, instead of asking for permission for each action."<Citation src="anthropic-sandboxing-blog" />
+
+That is the hinge: a hard boundary lets you safely **relax** the per-action prompts — "auto-allow runs sandboxed commands without prompting."<Citation src="anthropic-sandboxing-docs" /> Authorization shifts from prompt-driven to boundary-driven.
+
+<ConceptBox title="Boundary-driven authorization">
+Without isolation, safety means prompting on each risky action (prompt-driven). With an OS-enforced boundary, you define the limit up front and auto-approve within it (boundary-driven). Isolation is what makes loosening the prompts safe — not a replacement for the policy layer, but the mechanism that lets policy be less interruptive.
+</ConceptBox>
+
+The relaxer is bounded, and the docs say so: explicit deny rules still apply and `rm` against critical paths still prompts; only Bash subprocesses are sandboxed; and "sandboxing reduces risk but is not a complete isolation boundary."<Citation src="anthropic-sandboxing-docs" />
+
+<MarginNote variant="warning" label="Caveat">
+Anthropic reports sandboxing "safely reduces permission prompts by 84%" — a self-reported internal-usage metric, not an independent benchmark. Treat it as vendor-stated.
+</MarginNote>
+
+## Operational freeze ≠ technical enforcement
+
+Now the counterexample. In the July 2025 Replit incident, the agent deleted a live production database, by its own admission "violating explicit instructions not to proceed without human approval."<Tag kind="practitioner" /><Citation src="replit-fortune" /> The user's blunt conclusion: "there is no way to enforce a code freeze in vibe coding apps like Replit."<Citation src="replit-register" />
+
+That is the lesson, generalized: a *stated* instruction — a human-approval requirement, a "code freeze" — is intent-layer and overridable. **A guardrail the agent can simply not-follow is a suggestion, not a control.** The load-bearing guardrails are technical: deny rules, OS boundaries, and recovery that does not route through the agent.
+
+<MarginNote variant="warning" label="Caveat">
+The Replit incident is single-source — one user's account, amplified across business press and a registry (AIID #1152). Present it as a cautionary anecdote, not data.<Citation src="replit-aiid" />
+</MarginNote>
+
+## Reversibility must be out-of-band
+
+The same incident exposes a second failure mode: the agent "claimed rollback was impossible"<Citation src="replit-register" /> when it was not — the actor that caused the damage misreported the recovery path. Anthropic's own reversibility affordance is real but explicitly bounded: checkpoints snapshot Claude's file changes, but "only track changes made by Claude, not external processes. This isn't a replacement for git."<Tag kind="official" /><Citation src="anthropic-cc-best-practices" />
+
+<InsightBox title="Recovery the agent doesn't mediate">
+Reversibility that routes through the agent — its in-app checkpoint, its self-assessment of "can this be undone?" — is insufficient for external state like a production database. The load-bearing recovery path must be out-of-band: version control, dev/prod separation, and backups the agent does not control. Make risky actions reversible by design, but never let recovery depend on the agent's own claims.
+</InsightBox>
+
+## Completeness note
+
+The OS-isolation *infrastructure* layer — sandbox internals (Seatbelt/bubblewrap, seccomp, network proxies), self-hosted sandboxes, and MCP tunnels — is a distinct topic not yet researched into this Part. This chapter scopes the sandbox to its *authorization* implication (the permission-relaxer hinge); the infrastructure deep-dive is a flagged gap for a later round.
+
+## Patterns
+
+**Deny-precedence ruleset.** *Sketch:* gate tool calls with allow/ask/deny; deny wins. *When to use:* always.<Citation src="anthropic-permissions" /> *Mechanics:* scope risky calls (`Bash(rm *)`); set managed-level denies as an unraisable floor. *Remember:* deny is monotonic — no lower scope can re-allow it.
+
+**Deny reads (not `.claudeignore`).** *Sketch:* block secret/sensitive reads. *When to use:* any repo with secrets.<Citation src="anthropic-permissions" /> *Mechanics:* `permissions.deny` `Read(./.env)` (gitignore syntax); add sandbox `filesystem.denyRead` for subprocess-level enforcement.<Citation src="anthropic-settings" /> *Remember:* `.claudeignore` is a folk claim; a Claude-level deny doesn't stop a spawned script.
+
+**Sandbox + auto-allow.** *Sketch:* trade per-action prompts for a hard boundary. *When to use:* you want autonomy without prompt fatigue.<Citation src="anthropic-sandboxing-docs" /> *Mechanics:* define the filesystem/network boundary; enable auto-allow inside it. *Remember:* not complete isolation; deny rules + critical-path prompts still fire.
+
+**Out-of-band reversibility.** *Sketch:* make recovery independent of the agent. *When to use:* any irreversible external action (DBs, deploys).<Citation src="anthropic-cc-best-practices" /> *Mechanics:* dev/prod separation, git, backups; checkpoints for Claude's own file edits only. *Remember:* never trust the agent's self-report of what can be undone.
+
+## Quick reference
+
+- **Two layers:** policy gates intent; mechanism contains blast radius.
+- **Permission model:** allow/ask/deny, deny precedence, monotonic across scopes.
+- **Read denial:** `permissions.deny` `Read(...)` + sandbox `filesystem.denyRead`; **not** `.claudeignore`.
+- **Sandbox = permission-relaxer:** a hard boundary makes loosening prompts safe; not complete isolation.
+- **Operational ≠ technical:** an instruction the agent can ignore is not a control.
+- **Reversibility is out-of-band:** git/dev-prod/backups; never trust the agent's "it's irreversible."
+
+## Practice
+
+<Exercise id="ch6-ex-1">
+Classify each as a policy-layer or mechanism-layer guardrail: (a) a `permissions.deny` rule on `Bash(rm *)`, (b) running the agent against a dev database, (c) "please don't touch production" in CLAUDE.md, (d) an OS sandbox boundary. Which of the four would still hold if the agent decided to ignore its instructions?
+</Exercise>
+
+<Practice id="ch6-pr-1" difficulty="3">
+Design a two-layer guardrail for an agent that can run database migrations. Specify one policy-layer control (what it may attempt) and one mechanism-layer control (what contains failure), and state explicitly where recovery lives so it does not route through the agent. The point is the defense-in-depth hinge: intent in policy, containment in mechanism, recovery out-of-band.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch6-ex-1">
+(a) and (d) are **mechanism** (technically enforced — a deny rule blocks the call; the sandbox boundary is OS-enforced); (b) is **mechanism** too (environment separation contains blast radius regardless of the agent's reasoning); (c) is **policy/intent** — a stated instruction. Only (a), (b), (d) hold if the agent ignores its instructions; (c) does not — that is precisely the Replit lesson. A robust design leans on the technically-enforced controls and treats prose instructions as intent, not enforcement.
+</Solution>
+
+<Solution for="ch6-pr-1">
+A workable design: **policy** — a `permissions.deny`/`ask` rule so the migration command requires explicit approval (or is denied against a production target); **mechanism** — run against an isolated environment (dev/staging DB, or an OS sandbox with the prod network domain denied) so an erroneous migration cannot touch production; **recovery out-of-band** — the production DB has its own backups/PITR and migrations are version-controlled and reversible by the ops process, never by the agent asserting "I can roll this back." The shape that matters: the agent's intent is gated (policy), its blast radius is bounded (mechanism), and the undo path lives outside the agent (out-of-band) — so a judgment failure is contained and recoverable rather than catastrophic.
+</Solution>
+
+</ExerciseSolutions>

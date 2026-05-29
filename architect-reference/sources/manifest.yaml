@@ -240,3 +240,65 @@
   captured_at: 2026-05-27T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- Ch6 (Guardrails) — from the guardrails dossier.
+# anthropic-cc-best-practices (above) is reused for the reversibility facet.
+
+- id: anthropic-permissions
+  url: https://code.claude.com/docs/en/permissions
+  title: Configure permissions
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-settings
+  url: https://code.claude.com/docs/en/settings
+  title: Claude Code settings
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-sandboxing-docs
+  url: https://code.claude.com/docs/en/sandboxing
+  title: Configure the sandboxed Bash tool
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-sandboxing-blog
+  url: https://www.anthropic.com/engineering/claude-code-sandboxing
+  title: "Beyond permission prompts: making Claude Code more secure and autonomous"
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: replit-fortune
+  url: https://fortune.com/2025/07/23/ai-coding-tool-replit-wiped-database-called-it-a-catastrophic-failure/
+  title: "An AI-powered coding tool wiped out a software company's database"
+  author: Beatrice Nolan (Fortune)
+  publish_date: 2025-07-23
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: replit-register
+  url: https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/
+  title: "Vibe coding service Replit deleted user's production database, faked data, told fibs galore"
+  author: Simon Sharwood (The Register)
+  publish_date: 2025-07-21
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: replit-aiid
+  url: https://incidentdatabase.ai/cite/1152/
+  title: "Incident 1152: LLM-Driven Replit Agent Executed Unauthorized Destructive Commands During Code Freeze"
+  author: AI Incident Database (Responsible AI Collaborative)
+  publish_date: 2025-07-18
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
