@@ -94,3 +94,59 @@
   captured_at: 2026-05-27T00:00:00Z
   tier: T2-release-notes
   tool: cross-tool
+
+# --- Ch3 (Repo & Doc Design) — from the repo_design strict-live dossier
+# (~/Claude/research_agent_repo_design/bib_ledger.yml — all status: verified, retrieved 2026-05-26).
+# hashimoto-harness-engineering (above) is reused for the failure-breadcrumb claims.
+
+- id: agents-md
+  url: https://agents.md/
+  title: AGENTS.md
+  author: Agentic AI Foundation (Linux Foundation)
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: anthropic-cc-best-practices
+  url: https://code.claude.com/docs/en/best-practices
+  title: Best practices for Claude Code
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: humanlayer-ace
+  url: https://www.humanlayer.dev/blog/advanced-context-engineering
+  title: Advanced Context Engineering for Coding Agents (ACE-FCA)
+  author: Dex Horthy (HumanLayer)
+  publish_date: 2025-10-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: swan-adrs
+  url: https://blog.thestateofme.com/2025/07/10/using-architecture-decision-records-adrs-with-ai-coding-assistants/
+  title: Using Architecture Decision Records (ADRs) with AI coding assistants
+  author: Chris Swan
+  publish_date: 2025-07-10
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: boeckeler-harness
+  url: https://martinfowler.com/articles/harness-engineering.html
+  title: Harness engineering for coding agent users
+  author: Birgitta Böckeler
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: boeckeler-sensors
+  url: https://martinfowler.com/articles/sensors-for-coding-agents.html
+  title: Maintainability sensors for coding agents
+  author: Birgitta Böckeler
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool

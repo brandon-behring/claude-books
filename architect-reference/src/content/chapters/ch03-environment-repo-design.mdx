@@ -1,0 +1,172 @@
+---
+title: "Repo & Doc Design for Agents"
+part: 2
+chapter: 3
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - agents-md
+  - humanlayer-ace
+  - anthropic-cc-best-practices
+  - hashimoto-harness-engineering
+  - swan-adrs
+  - boeckeler-harness
+  - boeckeler-sensors
+description: The first environment chapter — the repository is the substrate a coding agent operates in. Design it to maximize the signal the agent reads and the machine-checkable feedback it gets back. Five converged-craft moves, with their evidence tiers stated honestly.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The part opener — environment and context as the two layers you engineer around the model.">
+- Why the **repository is the agent's environment**, and what it means to design it for an agent rather than for a human
+- The single principle the five design moves reduce to: **maximize the signal going in, maximize the machine-checkable feedback coming out**
+- Why **legibility** and **structural fitness** turn out to be the same property seen from two ends
+- A **pattern catalog** of the five moves — entry-point map, examples-as-constraints, negative space, failure breadcrumbs, structural sensors
+- Where the evidence is **converged craft** versus where it is a single anecdote, so you can weight each move honestly
+</YouWillLearn>
+
+_The previous chapter argued that the environment and the context are where the discipline lives. This chapter takes the first layer — the environment — at its most concrete: the repository the agent reads and acts in. Every move here is **converged craft, not measured effect**; the convergence across independent practitioners is the signal, and stating that honestly is part of the chapter's job._
+
+## The repository is the environment
+
+A coding agent does not see your project the way you do. It sees what the harness loads into its context — and most of that is your repository: the files, their names, the docs, the tests. So the repository is not just where the work happens; it is the **environment the agent operates in**, and its structure is, in effect, the prompt.
+
+The practitioner premise is blunt: the tokens you put in the model's context "are the ONLY lever you have to affect the quality of your output."<Tag kind="practitioner" /><Citation src="humanlayer-ace" /> If context is the only lever, then how the repository is structured — what an agent reads when it lands cold — is a primary determinant of output quality.
+
+The first move follows directly: give the agent a **predictable entry point**. The cross-tool `AGENTS.md` convention exists for exactly this — "a dedicated, predictable place to provide the context and instructions to help AI coding agents work on your project,"<Citation src="agents-md" /> a README written for agents rather than humans.
+
+<MarginNote variant="note" label="Note">
+`AGENTS.md` here is the entry-point map. What belongs *inside* that always-loaded file — its line budget — is the next chapter's subject.
+</MarginNote>
+
+## Two halves: shaping the input, shaping the feedback
+
+The five moves in this chapter are not five unrelated tips. They split cleanly into two halves of one discipline.
+
+- **Shaping the input** — legibility (a readable entry-point map), examples-as-constraints (show, don't tell), and negative space (subtract first) all govern *what the agent reads*.
+- **Shaping the feedback** — failure breadcrumbs (durable records of past mistakes) and structural fitness (deterministic sensors) govern *what the agent gets back* after it acts.
+
+<KeyIdea>
+Environment engineering is one sentence: **maximize the signal going in, and maximize the machine-checkable feedback coming out.** Every move in this chapter is an instance of one half or the other. That is what makes them one discipline rather than a checklist.
+</KeyIdea>
+
+## Legibility and structural fitness are one property
+
+The two halves meet in a single idea. A repository is legible to an agent to exactly the degree its structure is **machine-checkable**. Böckeler's definition of a harnessable environment is the "structural properties of the environment itself that make it legible, navigable, and tractable to agents,"<Tag kind="practitioner" /><Citation src="boeckeler-harness" /> and she notes that "clearly definable module boundaries afford architectural constraint rules."<Citation src="boeckeler-harness" />
+
+So the structure that makes a repo *navigable* (a human-facing, legibility reading) is the same structure that makes it *enforceable* (a machine-facing, fitness reading). The entry-point map is the readable face; the sensor suite is the enforced face; they are one property, not two.
+
+<ConceptBox title="Legibility ⇄ structural fitness">
+The same module boundaries, types, and naming that let an agent *find its way* are what let deterministic checks *constrain* it. "Harnessability" is the name for a repo that has both. You cannot improve one very far without improving the other.
+</ConceptBox>
+
+## Show, don't tell — and subtract first
+
+Two input-shaping moves turn out to be the same instruction. Anthropic's official guidance is to "reference specific files, mention constraints, and point to example patterns,"<Tag kind="official" /><Citation src="anthropic-cc-best-practices" /> illustrated with a worked prompt — *"HotDogWidget.php is a good example. follow the pattern to implement a new calendar widget."*<Citation src="anthropic-cc-best-practices" /> A reference implementation constrains output more reliably than a paragraph of prose rules.
+
+The complementary move is **negative space**: deliberately curating what the agent reads instead of over-documenting. Context engineering is "deliberately structuring how you feed context to the AI,"<Tag kind="practitioner" /><Citation src="humanlayer-ace" /> to the point of "designing your ENTIRE WORKFLOW around context management."<Citation src="humanlayer-ace" />
+
+For a context-bounded agent these are one instruction: a worked example is *simultaneously* more constraining and cheaper in tokens than a prose rule — so the cleanest way to subtract prose is to point at an example.
+
+<MarginNote variant="warning" label="Caveat">
+"Subtract first" is a design choice about what to omit. The *evidence* that long context degrades is a later chapter (Context Rot) — not asserted here.
+</MarginNote>
+
+## The ratchet: every failure becomes an affordance
+
+The feedback half is where the discipline compounds. The practice Hashimoto names is to treat each agent mistake as permanent: "anytime you find an agent makes a mistake, you take the time to engineer a solution such that the agent never makes that mistake again."<Tag kind="practitioner" /><Citation src="hashimoto-harness-engineering" /> The concrete artifact is an instructions file where "each line… is based on a bad agent behavior" — which he reports "almost completely resolved them all."<Citation src="hashimoto-harness-engineering" />
+
+Decision records do the same for *why*: ADRs give "enough structure to ensure key points are addressed, but in natural language,"<Tag kind="practitioner" /><Citation src="swan-adrs" /> so an agent recovers the rationale behind a choice instead of re-deriving or contradicting it.
+
+And structural sensors close the loop automatically: deterministic checks "cheap and fast enough to run on every change, alongside the agent,"<Tag kind="practitioner" /><Citation src="boeckeler-harness" /> that "catch the structural stuff reliably: duplicate code, cyclomatic complexity, missing test coverage, architectural drift."<Citation src="boeckeler-harness" /> Böckeler observed an agent that "violated the rules a handful of times… and then self-corrected" from sensor feedback.<Citation src="boeckeler-sensors" />
+
+<InsightBox title="Why it compounds">
+Each move converts a one-time failure into a durable environmental affordance: a logged mistake becomes a line the next session reads; a decision becomes recoverable context; a class of error becomes an automatic check. The repo grows *more* agent-legible over time. That is why practitioners call it harness *engineering* — an ongoing loop, not one-time setup.
+</InsightBox>
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+That this is a real discipline, not one team's habit, shows up across independent sources: Anthropic (official guidance), the `AGENTS.md` standards body, and independent practitioners (HumanLayer, Hashimoto, Böckeler) converge on the same direction — legibility and examples-as-constraints make a repository work for an agent. The agreement is across evidence classes, which is the strongest signal a craft discipline offers. <Tag kind="convergence" />
+</Convergence>
+
+<WorkedExample id="locating-a-repo-fix" title="Turning a recurring failure into an affordance">
+
+An agent keeps re-implementing a pattern the wrong way — say, hand-rolling error handling your codebase wraps in a helper.
+
+Walk the two halves:
+
+- **Input** — the agent never read a canonical example. Fix: point it at one (examples-as-constraints), and prune the prose rule that wasn't working (negative space).
+- **Feedback** — nothing caught the violation. Fix: a lint/architectural rule that flags hand-rolled error handling (structural sensor), plus a line in the instructions file recording the mistake (failure breadcrumb).
+
+The same failure, addressed on both halves, becomes two durable affordances — and stops recurring.
+
+</WorkedExample>
+
+## What is still settling
+
+Three honest limits travel with this chapter.
+
+- **No effect sizes exist.** Every move here is converged craft — observed practice agreed on by independent practitioners — not a controlled study. There is no measured "examples cut errors by X%." Treat the *direction* as well-supported; do not generalize any number.
+- **The strongest recovery evidence is n=1.** Hashimoto's "resolved them all" and Böckeler's self-correction observation are first-person field reports, author-is-subject — directionally supportive, no statistical weight.
+- **More context files is not automatically better.** There is one *measured* result adjacent to this material, and it cuts the other way — repository context files can reduce task success and add cost. That study, and what it implies for the instruction layer, is the next chapter; flagged here so "add more docs" is not read as the lesson.
+
+<Pitfall title="Designing the repo for humans and assuming the agent benefits">
+Human-legible and agent-legible overlap but are not identical: an agent has no memory of last week's discussion, no hallway context, and a finite window. A repo that is "obvious to the team" can still be illegible to an agent that lands cold. Design the entry point, examples, and sensors for the reader that has only what it can read.
+</Pitfall>
+
+## Patterns
+
+The five moves, in the reference template. Each is a converged-craft practice; apply the ones your repo lacks.
+
+**Entry-point map (`AGENTS.md`).** *Sketch:* one predictable, agent-addressable file at the repo root. *When to use:* always — it is the agent's cold-start map.<Citation src="agents-md" /> *Mechanics:* place `AGENTS.md` at root; point to where things live, not every detail. *Remember:* it is a map, not the whole manual — keep depth in linked files.
+
+**Examples as constraints.** *Sketch:* point at a reference implementation instead of writing a prose rule. *When to use:* whenever a convention has an existing instance.<Citation src="anthropic-cc-best-practices" /> *Mechanics:* "follow the pattern in X"; cite the file, name the constraint. *Remember:* a worked example is more constraining *and* cheaper in tokens than prose.
+
+**Negative space.** *Sketch:* deliberately prune what the agent reads. *When to use:* when docs have grown faster than they're curated.<Citation src="humanlayer-ace" /> *Mechanics:* design the workflow around what to omit; subtract before adding. *Remember:* this is a design choice about omission, separate from context-rot evidence (later chapter).
+
+**Failure breadcrumbs.** *Sketch:* turn each observed mistake into a durable record. *When to use:* any recurring agent error.<Citation src="hashimoto-harness-engineering" /> *Mechanics:* one instructions-file line per prevented behavior; ADRs for decisions.<Citation src="swan-adrs" /> *Remember:* a repo affordance the agent reads — not runtime telemetry.
+
+**Structural sensors.** *Sketch:* deterministic checks that run on every change. *When to use:* wherever structure is machine-checkable (types, boundaries, coverage).<Citation src="boeckeler-harness" /> *Mechanics:* wire tests/linters/architectural rules into the loop; let the agent self-correct from them.<Citation src="boeckeler-sensors" /> *Remember:* sensors catch *structural* issues reliably — not correctness or over-engineering.
+
+## Quick reference
+
+- **The repo is the environment** — its structure is the prompt the agent reads.
+- **One principle:** maximize signal in, maximize machine-checkable feedback out.
+- **Input half:** entry-point map · examples-as-constraints · negative space.
+- **Feedback half:** failure breadcrumbs · structural sensors.
+- **Legibility = fitness:** the structure that makes a repo navigable is what makes it enforceable.
+- **Evidence:** converged craft, no effect sizes; the strongest recovery evidence is n=1.
+
+## Practice
+
+<Exercise id="ch3-ex-1">
+List the five moves. For a repo you work in, mark each as present, partial, or absent. Which **half** — input-shaping or feedback-shaping — is weaker in your repo? Most teams are stronger on input (docs) than feedback (sensors); is yours?
+</Exercise>
+
+<Practice id="ch3-pr-1" difficulty="3">
+Take one recurring failure in an agent you run. Design *two* affordances for it — one on each half: an input fix (an example to point at, or prose to prune) and a feedback fix (a sensor that would catch it, or a breadcrumb that would record it). Write them as the two lines you would actually add to the repo. The point is to feel the ratchet: a failure absorbed into the environment so it stops recurring.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch3-ex-1">
+A typical answer: entry-point map present (an `AGENTS.md` or `CLAUDE.md` exists), examples-as-constraints partial (some conventions documented, few pointed-to), negative space absent (docs accreted, never pruned), failure breadcrumbs absent (mistakes re-explained each session), structural sensors partial (tests exist but aren't wired as agent-facing feedback). The common weak half is **feedback** — teams document for the agent but don't give it machine-checkable signal after it acts. Strengthening the feedback half (sensors + breadcrumbs) is usually the higher-leverage move precisely because it is the neglected one, and because it compounds: each addition makes the next session's environment better.
+</Solution>
+
+</ExerciseSolutions>
