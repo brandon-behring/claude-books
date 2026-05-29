@@ -150,3 +150,42 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
+
+# --- Ch4 (Instruction Layer) — from the claudemd_discipline dossier.
+# agents-md + anthropic-cc-best-practices (above) are reused.
+
+- id: humanlayer-claudemd
+  url: https://www.humanlayer.dev/blog/writing-a-good-claude-md
+  title: Writing a good CLAUDE.md
+  author: Kyle (HumanLayer)
+  publish_date: 2025-11-25
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: eth-agentsmd-study
+  url: https://arxiv.org/abs/2602.11988
+  title: "Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?"
+  author: Gloaguen, Mündler, Müller, Raychev, Vechev (ETH Zurich)
+  publish_date: 2026-02-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: anthropic-skills
+  url: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+  title: Equipping agents for the real world with Agent Skills
+  author: Anthropic
+  publish_date: 2025-10-16
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: robbes-adoption
+  url: https://arxiv.org/abs/2601.18341
+  title: "Agentic Much? Adoption of Coding Agents on GitHub"
+  author: Robbes, Matricon, Degueule, Hora, Zacchiroli
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool

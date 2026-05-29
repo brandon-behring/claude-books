@@ -1,0 +1,132 @@
+---
+title: "The Instruction Layer: CLAUDE.md & AGENTS.md"
+part: 2
+chapter: 4
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - anthropic-cc-best-practices
+  - humanlayer-claudemd
+  - eth-agentsmd-study
+  - agents-md
+  - anthropic-skills
+  - robbes-adoption
+description: The always-loaded config file (CLAUDE.md / AGENTS.md) is not documentation — it is a permanent slice of the context budget. Spend it only on broadly-applicable, can't-infer-from-code context. The one measured result inverts the naive prior.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The repo-design chapter — and its parting hook that 'more docs' is not automatically better.">
+- Why the always-loaded config file is a **context budget**, not documentation — and what that changes
+- The one **measured** result in this area, which inverts the naive "add a context file, get better results" prior
+- Why official guidance, a practitioner heuristic, and a controlled study **converge** — and why you still must not quote a line number
+- **Presence ≠ usage** — and how to read adoption figures honestly
+- A pattern catalog for what belongs in the file, how to curate it, and how to push the rest out
+</YouWillLearn>
+
+_The previous chapter ended on a hook: adding more documentation for an agent is not automatically better, and there is a measured result that proves it. This chapter is that result's home. The file in question — `CLAUDE.md`, or the cross-tool `AGENTS.md` — looks like documentation, but it behaves like a permanent line item in the agent's context budget, and that single fact drives everything here._
+
+## The always-loaded file is a budget
+
+A `CLAUDE.md` is "a special file that Claude reads at the start of every conversation,"<Tag kind="official" /><Citation src="anthropic-cc-best-practices" /> and it "is loaded every session, so only include things that apply broadly."<Citation src="anthropic-cc-best-practices" /> That is the whole game: every line you put in it is spent on *every* turn, whether or not it is relevant to the task at hand.
+
+So the discipline is not "write good docs" — it is **budget the always-on context**. Anthropic's curation test is per-line and ruthless: for each line, ask whether removing it would cause a mistake — "If not, cut it. Bloated CLAUDE.md files cause Claude to ignore your actual instructions!"<Citation src="anthropic-cc-best-practices" /> The file should carry "Bash commands, code style, and workflow rules"<Citation src="anthropic-cc-best-practices" /> — broadly-applicable, can't-infer-from-code context — and nothing else.
+
+<KeyIdea>
+The always-loaded file is a slice of the context budget that you pay on every turn. Spend it only on what is broadly applicable and cannot be inferred from the code. Everything else belongs somewhere that loads on demand.
+</KeyIdea>
+
+## The measured result that inverts the prior
+
+Almost everything in this Part is converged craft. This chapter is the exception: there is one controlled study, and it cuts against the intuitive default.
+
+Researchers at ETH Zurich tested whether repository-level context files actually help, across multiple agents and models. The headline: "context files tend to reduce task success rates compared to providing no repository context, while also increasing inference cost by over 20%."<Citation src="eth-agentsmd-study" /> The mechanism they propose is that context files encourage broader exploration, and agents dutifully follow their instructions — so their normative conclusion is that "unnecessary requirements from context files make tasks harder, and human-written context files should describe only minimal requirements."<Citation src="eth-agentsmd-study" />
+
+<MarginNote variant="warning" label="Caveat">
+This is one controlled study, not a settled consensus. "Over 20%" is a verbatim lower bound; the success effect is "tend to reduce," not a fixed number. Do not sharpen either.
+</MarginNote>
+
+This is not "never use a context file." It is a *measured* basis for the line-budget rule: the harm comes from unnecessary content, so the file should carry only minimal, broadly-applicable requirements.
+
+## Official, practitioner, and a study converge
+
+The practitioner rules turn out to minimize exactly the harm the study measured. HumanLayer reports keeping "our root `CLAUDE.md` file… less than sixty lines"<Tag kind="practitioner" /><Citation src="humanlayer-claudemd" /> and warns that the file "is the highest leverage point of the harness, so avoid auto-generating it."<Citation src="humanlayer-claudemd" />
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+Three independent evidence classes land on the same rule — keep the always-loaded file short and hand-curated: Anthropic's official "cut any line whose removal wouldn't cause a mistake,"<Citation src="anthropic-cc-best-practices" /> HumanLayer's practitioner "under sixty lines, don't auto-generate,"<Citation src="humanlayer-claudemd" /> and the ETH study's measured "describe only minimal requirements."<Citation src="eth-agentsmd-study" /> Official + practitioner + a controlled study agreeing is the strongest convergence in this Part. <Tag kind="convergence" />
+</Convergence>
+
+<MarginNote variant="warning" label="Caveat">
+Never quote a line number as a limit. HumanLayer's page itself says Anthropic has no official length recommendation; "60" is one team's heuristic, not a measured threshold.
+</MarginNote>
+
+## Presence is not usage
+
+One more honest reading, because adoption numbers are easy to misuse. The `AGENTS.md` site reports the format is "used by over 60k open-source projects"<Citation src="agents-md" /> — but that is a *presence* count (a code-search for the file), a vendor self-report. The first large-scale trace-based study found that "more than 40% of file-using projects have no commit-level activity"<Citation src="robbes-adoption" /> — the file is present, but the tooling is not being exercised.
+
+<InsightBox title="Count traces, not stars">
+A config file in a repo does not mean an agent is using it. Measure adoption (and your own rollout) by co-authoring commit/PR traces, not by file presence or stars — and when you cite an adoption figure, say which kind it is. Presence-counts systematically overstate real usage.
+</InsightBox>
+
+## Push the rest out
+
+If the always-loaded file is only for broadly-applicable context, where does everything else go? It loads **on demand**. `AGENTS.md` supports nested files where "the closest one takes precedence and every subproject can ship tailored instructions,"<Citation src="agents-md" /> and the broader principle — letting an agent "load information only as needed"<Tag kind="official" /><Citation src="anthropic-skills" /> — is the bridge to the next chapter on Skills.
+
+<Pitfall title="Auto-generating the file">
+The tempting move — point a tool at the repo and generate a big `CLAUDE.md` — produces exactly the over-stuffed, broadly-inapplicable content the ETH study found *reduces* success and adds cost. The file is the highest-leverage point of the harness precisely because it is paid on every turn; hand-curate it.
+</Pitfall>
+
+## Patterns
+
+**What earns a place.** *Sketch:* the file holds only broadly-applicable, can't-infer-from-code context. *When to use:* deciding any line.<Citation src="anthropic-cc-best-practices" /> *Mechanics:* Bash commands, code style, workflow rules — yes; task- or subproject-specific detail — no. *Remember:* it is paid every turn; scope to "applies broadly."
+
+**The curation test.** *Sketch:* per line, "would removing this cause a mistake?" *When to use:* every edit to the file.<Citation src="anthropic-cc-best-practices" /> *Mechanics:* if removal wouldn't cause a mistake, cut it. *Remember:* bloat makes the agent ignore your real instructions — measured harm, not style.
+
+**Hand-write, don't auto-generate.** *Sketch:* craft the file by hand; never machine-generate it. *When to use:* always.<Citation src="humanlayer-claudemd" /> *Mechanics:* short root file; review every line. *Remember:* highest-leverage point of the harness — and auto-generation is what the ETH study implicates.
+
+**Push the rest out (progressive disclosure).** *Sketch:* layer instructions; load on demand. *When to use:* anything not broadly applicable.<Citation src="agents-md" /> *Mechanics:* nested `AGENTS.md` (nearest wins) for subprojects; Skills for procedures (next chapter). *Remember:* always-loaded is for the broadly-true; the rest loads when relevant.
+
+**Measure by traces.** *Sketch:* judge adoption by AI-assisted commit traces, not file presence. *When to use:* any rollout or adoption claim.<Citation src="robbes-adoption" /> *Mechanics:* look for co-authored commits/PRs, not stars or file counts. *Remember:* presence ≠ usage; >40% of file-using repos show no activity.
+
+## Quick reference
+
+- **It's a budget, not docs** — every line is paid on every turn.
+- **Scope:** broadly-applicable, can't-infer-from-code context only (Bash commands, code style, workflow rules).
+- **The one measured result:** unnecessary context-file content *reduces* success and adds >20% cost — keep it minimal.
+- **Convergence:** official + practitioner + study agree on short + hand-curated. Never quote a line number.
+- **Presence ≠ usage:** measure adoption by traces, not file counts.
+- **Everything else loads on demand** — nested files, then Skills.
+
+## Practice
+
+<Exercise id="ch4-ex-1">
+Open a `CLAUDE.md` (or `AGENTS.md`) you use. Apply the curation test to each line: would removing it cause the agent to make a mistake? Count how many lines survive. For each line you cut, decide where it should live instead — a nested file, a Skill, or nowhere.
+</Exercise>
+
+<Practice id="ch4-pr-1" difficulty="2">
+Find one line in a config file that is *task- or subproject-specific* rather than broadly applicable. Rewrite the situation so that content loads on demand instead of every turn — name the mechanism (nested `AGENTS.md`, or a Skill) and what the always-loaded file would say instead (often: nothing). The point is to feel the budget — moving paid-every-turn context to paid-on-relevance.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch4-ex-1">
+Most hand-written files lose a surprising fraction to the curation test — anything the agent could infer from the code (file locations it can grep, conventions visible in nearby code) and anything task-specific (how to do one particular migration) fails "would removing it cause a mistake?" for the *general* session. Survivors are typically: the build/test commands, a few non-obvious workflow rules, and code-style choices not enforced by a linter. If your file is long, that is the signal — the ETH result says the excess is not neutral, it is actively costing success and tokens. Cut to the broadly-true core; route the rest to on-demand loading.
+</Solution>
+
+</ExerciseSolutions>
