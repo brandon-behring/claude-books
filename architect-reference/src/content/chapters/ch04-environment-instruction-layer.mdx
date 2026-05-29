@@ -54,7 +54,7 @@ The always-loaded file is a slice of the context budget that you pay on every tu
 
 ## The measured result that inverts the prior
 
-Almost everything in this Part is converged craft. This chapter is the exception: there is one controlled study, and it cuts against the intuitive default.
+Almost everything in this book is converged craft. This chapter is the exception: there is one controlled study, and it cuts against the intuitive default.
 
 Researchers at ETH Zurich tested whether repository-level context files actually help, across multiple agents and models. The headline: "context files tend to reduce task success rates compared to providing no repository context, while also increasing inference cost by over 20%."<Citation src="eth-agentsmd-study" /> The mechanism they propose is that context files encourage broader exploration, and agents dutifully follow their instructions — so their normative conclusion is that "unnecessary requirements from context files make tasks harder, and human-written context files should describe only minimal requirements."<Citation src="eth-agentsmd-study" />
 
@@ -69,7 +69,7 @@ This is not "never use a context file." It is a *measured* basis for the line-bu
 The practitioner rules turn out to minimize exactly the harm the study measured. HumanLayer reports keeping "our root `CLAUDE.md` file… less than sixty lines"<Tag kind="practitioner" /><Citation src="humanlayer-claudemd" /> and warns that the file "is the highest leverage point of the harness, so avoid auto-generating it."<Citation src="humanlayer-claudemd" />
 
 <Convergence tools={['claude-code', 'cross-tool']}>
-Three independent evidence classes land on the same rule — keep the always-loaded file short and hand-curated: Anthropic's official "cut any line whose removal wouldn't cause a mistake,"<Citation src="anthropic-cc-best-practices" /> HumanLayer's practitioner "under sixty lines, don't auto-generate,"<Citation src="humanlayer-claudemd" /> and the ETH study's measured "describe only minimal requirements."<Citation src="eth-agentsmd-study" /> Official + practitioner + a controlled study agreeing is the strongest convergence in this Part. <Tag kind="convergence" />
+Three independent evidence classes land on the same rule — keep the always-loaded file short and hand-curated: Anthropic's official "cut any line whose removal wouldn't cause a mistake,"<Citation src="anthropic-cc-best-practices" /> HumanLayer's practitioner "under sixty lines, don't auto-generate,"<Citation src="humanlayer-claudemd" /> and the ETH study's measured "describe only minimal requirements."<Citation src="eth-agentsmd-study" /> Official + practitioner + a controlled study agreeing is the strongest convergence in this book. <Tag kind="convergence" />
 </Convergence>
 
 <MarginNote variant="warning" label="Caveat">

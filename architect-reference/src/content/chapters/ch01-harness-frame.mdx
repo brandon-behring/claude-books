@@ -6,8 +6,8 @@ volatility: architectural-pattern
 tools_compared: [claude-code, cross-tool]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-27
-last_verified: 2026-05-27
+last_updated: 2026-05-29
+last_verified: 2026-05-29
 sources:
   - building-effective-agents
   - how-claude-code-works
@@ -19,7 +19,7 @@ sources:
   - karpathy-decade-of-agents
   - hashimoto-harness-engineering
   - trivedy-anatomy-agent-harness
-description: The frame the whole volume rests on — an agent is a model plus the deterministic harness that wraps it. The three-layer model, the components taxonomy, the nested loop, and where each piece is covered.
+description: The introduction. This book engineers the two layers around the model — the environment an agent acts in and the context it reasons over — and this chapter grounds that thesis in the frame the book stands on — an agent is a model plus the deterministic harness that wraps it. The three layers, the components, the nested loop, the book's map, and what it leaves to companion volumes.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
@@ -38,13 +38,13 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 
 <YouWillLearn prerequisites="You have built or used at least one agent — a coding agent, a chatbot with tools, a workflow. No Claude-specific knowledge assumed.">
-- The formula the rest of this volume rests on — **Agent = Model + Harness** — and the boundary that makes it sharp
-- The three layers a harness owns: **environment, context-assembly, and context**
+- The **thesis of this book** — what turns a model into an agent is engineering the two layers around it: the **environment** it acts in and the **context** it reasons over
+- The frame that makes that precise — **Agent = Model + Harness** — and the **three layers** a harness owns (environment, context-assembly, context)
 - The **components** every harness wires together, and the **nested loop** that drives them
-- A **map** of where each piece is developed, so the rest of the volume reads as one structure
+- The **map of this book**, and what it deliberately leaves to companion volumes
 </YouWillLearn>
 
-_This is a book about designing the **harness** — the system you build around a model to turn it into an agent. Before any specific decision (which tools to expose, how to budget context, when to spawn a sub-agent), you need the frame that makes those decisions legible. This opening chapter draws that frame and hands each piece off to the chapter that develops it. It defines vocabulary; it does not yet build anything._
+_What turns a model into an agent is not the model — it is the engineering of the two layers around it: the **environment** it acts in, and the **context** it reasons over. That is the subject of this book. This opening chapter states the thesis and grounds it in the frame the book stands on — **Agent = Model + Harness** — then maps the chapters and marks the scope. It defines vocabulary and direction; the next chapter argues the case, and the rest build it._
 
 ## The frame: an agent is a model plus a harness
 
@@ -62,7 +62,7 @@ The boundary that makes the frame sharp is the contrast with a **workflow**, whe
 Agent = Model + Harness. The model supplies autonomy; the harness supplies tools, context, environment, and a control loop. Designing an agent is, almost entirely, designing the harness.
 </KeyIdea>
 
-This is why the rest of this volume is structured the way it is: the model is a given (you choose one and prompt it well — that is the Prompting volume's concern), but the harness is the thing you **architect**.
+This is why this book is scoped the way it is: the model is a given (you choose a capable one and prompt it well — prompting is its own discipline, out of scope here), and of the harness around it, this book develops the two layers where most of the leverage lives — the **environment** and the **context**.
 
 ## The harness owns three layers
 
@@ -76,10 +76,10 @@ A harness decomposes into three layers, and its defining job is owning the bound
 **Environment** (large, durable substrate) → **context-assembly** (what crosses, and when) → **context** (small, finite window). The harness is the artifact that owns the assembly boundary — deciding what enters the window, and when.
 </ConceptBox>
 
-Owning that boundary is what makes a harness a harness. The *mechanics* of assembly — caching, compaction, just-in-time loading — are deep enough to be their own chapter; here we only name the three layers and locate the boundary the harness controls.
+Owning that boundary is what makes a harness a harness. The *mechanics* of assembly — caching, compaction, just-in-time loading — are deep enough to be their own chapter (the context-assembly chapter, later in this book); here we only name the three layers and locate the boundary the harness controls.
 
 <MarginNote variant="note" label="Note">
-"Context-assembly" as a named third layer is partly this volume's framing, laid over the just-in-time boundary the sources describe.
+"Context-assembly" as a named third layer is partly this book's framing, laid over the just-in-time boundary the sources describe.
 </MarginNote>
 
 ## The components a harness wires together
@@ -95,14 +95,14 @@ An independent framework, LangGraph, names the same parts — both "short-term w
 So a harness wires together, at least: a **tool interface**, **context/memory management**, a **control loop with stop conditions**, and **sub-agent orchestration** — and, by extension, **guardrails/permissions** and **observability**. Each part is deep-diveable on its own; this chapter is the parts diagram, not the parts.
 
 <MarginNote variant="warning" label="Caveat">
-Tools, memory, control flow, and orchestration are anchored here. Guardrails and observability are named by extension — they have their own chapters, not their own evidence yet.
+Of these parts, this book develops the environment, context/memory, and guardrails. The tool interface, orchestration, and observability are named here but left to companion volumes.
 </MarginNote>
 
 ## The nested loop: an inner cycle inside an outer one
 
 The harness runs a **nested loop**, and knowing which loop you are designing is half of harness engineering.
 
-The **inner loop** is the model's own cycle. Claude Code's "agentic loop is powered by two components"<Citation src="how-claude-code-works" /> — the model reasoning and the tools acting — repeating until the task is done. The *internals* of that cycle (how a turn is structured, how tool results return) are developed in their own chapter; here it is enough that an inner loop exists and the model drives it.
+The **inner loop** is the model's own cycle. Claude Code's "agentic loop is powered by two components"<Citation src="how-claude-code-works" /> — the model reasoning and the tools acting — repeating until the task is done. The *internals* of that cycle (how a turn is structured, how tool results return) are a companion-volume concern; here it is enough that an inner loop exists and the model drives it.
 
 The **outer loop** is the harness wrapping that cycle. A long-running harness exists to "bridge the gap between coding sessions"<Citation src="effective-harnesses" /> so the model can make incremental progress across many context windows.
 
@@ -139,17 +139,42 @@ The shape *is* the story: the concept (autonomous agents) predates a word for it
 This is dated provenance, not a definition. Hashimoto himself notes there is no industry-accepted term yet — the field has not converged on the vocabulary.
 </MarginNote>
 
-## The map: where each piece is covered
+## The shape of this book
 
-The frame earns its place as the opening chapter because every later topic is a **part of the harness it names**. Use it to locate any concern, then go to the chapter that develops it:
+This book takes two of the harness's layers — the **environment** and the **context** — and develops them as one discipline. The chapters move from the substrate outward to the window, and inside the window from the problem to the response:
 
-- The **environment and context layers** this frame just named are developed **next** — they are the subject of the part that immediately follows this chapter: the environment (repo and doc design, the instruction layer, skills, guardrails, working at scale), then the context (why the window degrades, how to assemble it, and how to persist it across sessions).
-- The **context-assembly boundary's mechanics** (caching, compaction, just-in-time loading) are the context-assembly chapter within that part.
-- The remaining harness concerns are developed in **later parts of this volume**: the **inner loop's internals** (how a turn and its tool results are structured), the **Agent SDK's API** (the concrete harness instance whose surface we cited here), **sub-agent orchestration** (the isolation primitive, and orchestrator-worker topologies and when not to use them), and **whether to build or buy** a harness rather than configure an existing one.
+**Environment — the substrate the agent acts in.**
+
+- **Repo & doc design** — making the repository high-signal to read and self-correcting to act in.
+- **The instruction layer** — the always-loaded config file as a context *budget*, not documentation.
+- **Skills & progressive disclosure** — procedural knowledge that loads only when relevant.
+- **Guardrails, permissions & reversibility** — expressing intent in policy and containing failure in mechanism.
+- **Environments at scale** — bounding what the agent must load when the repo is too big to hold.
+
+**Context — the window the model reasons over.**
+
+- **Context rot** — the evidence that long windows degrade, and why that is the problem the rest answers.
+- **Context assembly** — the engineering response: caching, compaction, just-in-time loading, budgeting the window.
+- **Memory** — persisting context across sessions, and the anti-patterns that reintroduce the rot.
+
+A closing chapter composes all of it into one design workflow.
 
 <KeyIdea>
-The frame's value is the clean cut: any harness concern is a property of the model, the harness's loop, the harness's layers, or the harness's components — and each has a home. The rest of the volume fills in the homes.
+The frame's value is the clean cut: any harness concern is a property of the model, the harness's loop, its layers, or its components. This book develops two of the layers — environment and context; the next chapter argues why they are the most underappreciated, highest-leverage thing an architect designs.
 </KeyIdea>
+
+## What this book leaves to companion volumes
+
+The frame names more of the harness than one book should carry. The rest is **deliberately out of scope here** — each is planned as a companion volume in the series, and this book points outward to it rather than pretending to deliver it:
+
+- **The inner loop's internals** — how a turn and its tool results are structured.
+- **The Agent SDK's surface** — the concrete harness instance whose API we cited above.
+- **Sub-agent orchestration** — the isolation primitive, orchestrator–worker topologies, and when not to use them.
+- **Tools & MCP** — designing the tool interface and the protocol that serves it.
+- **Build vs. buy** — whether to configure an existing harness or build your own.
+- **Evaluation & operations** — measuring and running agents in production.
+
+These are companion concerns, not missing chapters: this book stands on its own for the environment and the context.
 
 ## What is still settling
 
@@ -160,7 +185,7 @@ This chapter captures a frame mid-crystallization, so a few honest limits travel
 - **One provenance anchor is a transcript, not a primary.** Karpathy's line is quoted from a published transcript of a spoken keynote, faithful to that mirror and the talk date, but it is "Karpathy said X in a talk," not "Karpathy wrote X."
 
 <Pitfall title="Mistaking the frame for a how-to">
-This chapter defines vocabulary; it does not tell you how to build the inner loop, design a tool, or choose a topology. Reaching for it as an implementation guide is a category error — its job is to point you at the chapter that *is* the how-to.
+This chapter defines vocabulary and direction; it does not tell you how to build the inner loop, design a tool, or choose a topology — several of those are companion-volume concerns. Reaching for this chapter as an implementation guide is a category error: its job is to make the rest of *this* book's moves legible, and to mark where the book's scope ends.
 </Pitfall>
 
 ## Quick reference
@@ -170,7 +195,7 @@ This chapter defines vocabulary; it does not tell you how to build the inner loo
 - **Three layers:** environment (substrate) → context-assembly (the boundary) → context (the finite window). The harness owns the boundary.
 - **Components:** tool interface, context/memory, control loop, sub-agent orchestration (+ guardrails, observability).
 - **Nested loop:** the model's inner reason→act→observe sits inside the harness's outer cross-session orchestration, where control lives.
-- The frame locates concerns; later chapters develop them.
+- **This book's scope:** the environment and the context — the two highest-leverage layers; the rest is named here and left to companion volumes.
 
 ## Practice
 

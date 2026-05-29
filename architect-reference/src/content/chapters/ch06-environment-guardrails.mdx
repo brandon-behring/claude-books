@@ -41,7 +41,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - Why **reversibility must be out-of-band** — the lesson the Replit incident teaches by counterexample
 </YouWillLearn>
 
-_The environment is also where the agent can do damage. This chapter is the safety layer: what the agent is permitted to attempt, how risky actions are gated before they run, and how recovery is arranged when judgment fails. The mechanics here are documented Anthropic product behavior; the one cautionary case — Replit — is single-source press reporting, and is tiered accordingly._
+_Skills shape what the model *sees* — but, as the last chapter warned, a skill is ergonomics, not a security boundary: it cannot bound what the model is allowed to *do*. That gap is where this chapter begins. The environment is also where the agent can do damage, and this is its safety layer: what the agent is permitted to attempt, how risky actions are gated before they run, and how recovery is arranged when judgment fails. The mechanics here are documented Anthropic product behavior; the one cautionary case — Replit — is single-source press reporting, and is tiered accordingly._
 
 ## Two layers, defense-in-depth
 
@@ -57,7 +57,7 @@ Every tool call passes an allow/ask/deny ruleset. The rules are evaluated `deny 
 
 The invariant that makes this administrable: a deny is monotonic across the settings hierarchy — "if a tool is denied at any level, no other level can allow it."<Citation src="anthropic-permissions" /> An administrator can set a floor neither the user nor the agent can raise.
 
-## Read boundaries — and the `.claudeignore` erratum
+## How to actually deny file reads — not `.claudeignore`
 
 To stop the agent reading a file, the documented control is `permissions.deny` `Read(...)` rules, which follow the gitignore specification.<Tag kind="official" /><Citation src="anthropic-permissions" /> But it has a hole the docs state plainly: these rules "do not apply to arbitrary subprocesses that read or write files indirectly, like a Python or Node script that opens files itself."<Citation src="anthropic-permissions" /> The OS-level complement closes it — the sandbox `filesystem.denyRead` setting defines "paths where sandboxed commands cannot read,"<Citation src="anthropic-settings" /> merged with the `Read(...)` deny rules.
 
@@ -101,7 +101,7 @@ Reversibility that routes through the agent — its in-app checkpoint, its self-
 
 ## Completeness note
 
-The OS-isolation *infrastructure* layer — sandbox internals (Seatbelt/bubblewrap, seccomp, network proxies), self-hosted sandboxes, and MCP tunnels — is a distinct topic not yet researched into this Part. This chapter scopes the sandbox to its *authorization* implication (the permission-relaxer hinge); the infrastructure deep-dive is a flagged gap for a later round.
+The OS-isolation *infrastructure* layer — sandbox internals (Seatbelt/bubblewrap, seccomp, network proxies), self-hosted sandboxes, and MCP tunnels — is a distinct topic not yet researched into this book. This chapter scopes the sandbox to its *authorization* implication (the permission-relaxer hinge); the infrastructure deep-dive is a flagged gap for a later round.
 
 ## Patterns
 

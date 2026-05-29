@@ -13,7 +13,7 @@ sources:
   - eth-agentsmd-study
   - liu-lost-middle
   - mem0-state-2026
-description: The capstone — an integrative design workflow that composes the part's eight chapters into one discipline, with decision points and an honest map of what is settled, converged, first-party-only, and openly unsolved.
+description: The capstone — an integrative design workflow that composes the book's eight core chapters into one discipline, with decision points and an honest map of what is settled, converged, first-party-only, and openly unsolved.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
@@ -36,7 +36,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - An honest **map of the evidence** — what is measured, converged, first-party-only, and openly unsolved
 </YouWillLearn>
 
-_This chapter is integrative. It introduces no new evidence — it composes the part's grounded claims into a design workflow and a decision guide. Where it restates a load-bearing fact, it points back to the chapter that established it; the rest is synthesis._
+_This chapter is integrative. It introduces no new evidence — it composes the book's grounded claims into a design workflow and a decision guide. Where it restates a load-bearing fact, it points back to the chapter that established it; the rest is synthesis._
 
 <MarginNote variant="note" label="Note">
 Integrative synthesis, grounded in the prior chapters — not a new evidence chapter. Read it as the "how to put it together," not as new claims.
@@ -44,7 +44,7 @@ Integrative synthesis, grounded in the prior chapters — not a new evidence cha
 
 ## The two layers are one system
 
-The part opened on a thesis: what turns a model into an agent is the engineering of the two layers around it — the environment it acts in and the context it reasons over — and that discipline is the most underappreciated, highest-leverage thing an architect designs. Eight chapters in, the payoff is that they are not eight topics but two ends of one loop: the **environment** is the durable store of everything the agent *could* use; the **context** is the finite slice it *does* use each turn; and the harness owns the boundary between them — context being "a finite resource with diminishing marginal returns."<Tag kind="official" /><Citation src="effective-context-engineering" />
+The book opened on a thesis: what turns a model into an agent is the engineering of the two layers around it — the environment it acts in and the context it reasons over — and that discipline is the most underappreciated, highest-leverage thing an architect designs. Eight chapters in, the payoff is that they are not eight topics but two ends of one loop: the **environment** is the durable store of everything the agent *could* use; the **context** is the finite slice it *does* use each turn; and the harness owns the boundary between them — context being "a finite resource with diminishing marginal returns."<Tag kind="official" /><Citation src="effective-context-engineering" />
 
 <KeyIdea>
 Engineer the environment so the right signal is *available* and machine-checkable; engineer the context so the right slice *crosses into the window* and survives. A great environment is wasted if assembly drags the wrong slice in; the smartest assembly cannot surface signal an unengineered environment never made legible. Design both, in order.
@@ -67,7 +67,7 @@ Steps 1–4 shape the environment (what's available and allowed); steps 5–6 sh
 
 ## Decision points
 
-The recurring trade-offs, and how the part resolves them:
+The recurring trade-offs, and how the book resolves them:
 
 - **Signal vs. budget.** Add context to help, or subtract to protect the window? Default to subtract: legibility and examples beat prose, and the one measured result says unnecessary context-file content *reduces* success.<Citation src="eth-agentsmd-study" /> Add only broadly-applicable, can't-infer context to the always-on layer; everything else loads on demand.
 - **Stability vs. freshness.** A stable prefix is a large cost/latency lever, but content changes. Resolve by *placement*: stable front, volatile tail.
@@ -81,7 +81,7 @@ The recurring trade-offs, and how the part resolves them:
 
 ## An honest map of the evidence
 
-The part's claims sit at very different evidence tiers, and designing well means weighting them accordingly.
+The book's claims sit at very different evidence tiers, and designing well means weighting them accordingly.
 
 - **Measured (rare).** One controlled result anchors the instruction layer: unnecessary context-file content reduces success and adds cost.<Citation src="eth-agentsmd-study" /> Treat as one study, not law.
 - **Converged (strong).** The CLAUDE.md short-and-hand-curated rule, the U-shaped positional curve, navigate-before-read at scale, and the doc-vs-memory boundary each have independent corroboration — the strongest signal a craft discipline offers.
@@ -107,7 +107,7 @@ Walk the six-step workflow for an agent you'd actually build. At each step, name
 </Exercise>
 
 <Practice id="ch11-pr-1" difficulty="4">
-Take a single recurring agent failure (re-reading files, losing the thread across sessions, acting on stale state, ignoring an instruction it was given). Trace it through the whole part: which layer (environment or context), which chapter's mechanism diagnoses it, and which decision-point trade-off resolves it. Write the fix as a sequence of moves across both layers. The point is to feel the part as one discipline — most real failures are not one chapter's, but a path through several.
+Take a single recurring agent failure (re-reading files, losing the thread across sessions, acting on stale state, ignoring an instruction it was given). Trace it through the whole book: which layer (environment or context), which chapter's mechanism diagnoses it, and which decision-point trade-off resolves it. Write the fix as a sequence of moves across both layers. The point is to feel the book as one discipline — most real failures are not one chapter's, but a path through several.
 </Practice>
 
 <ExerciseSolutions>
@@ -117,7 +117,7 @@ A representative pass: (1) legible environment — add an entry-point map + exam
 </Solution>
 
 <Solution for="ch11-pr-1">
-Example — "loses the thread across sessions": it's a **context** failure that spans chapters. Diagnose with C1 (the window doesn't carry prior state) and C3 (nothing durable persisted it). Resolve via the decision points: *where a fact lives* (the durable project state belongs in a committed doc, not ephemeral memory) and *engineer the window* (checkpoint-and-restart from a progress file rather than relying on a giant carried-over transcript). Fix as a sequence: (env) add a progress/notes file the agent reads on start; (context) checkpoint at session end and restart from the file with a small stable prefix; (persist) commit the durable identity/constraints so they're reloaded deterministically. The failure wasn't one chapter's — it was a path from rot (C1) through assembly (C2) to memory (C3), which is exactly how the part is meant to be used.
+Example — "loses the thread across sessions": it's a **context** failure that spans chapters. Diagnose with C1 (the window doesn't carry prior state) and C3 (nothing durable persisted it). Resolve via the decision points: *where a fact lives* (the durable project state belongs in a committed doc, not ephemeral memory) and *engineer the window* (checkpoint-and-restart from a progress file rather than relying on a giant carried-over transcript). Fix as a sequence: (env) add a progress/notes file the agent reads on start; (context) checkpoint at session end and restart from the file with a small stable prefix; (persist) commit the durable identity/constraints so they're reloaded deterministically. The failure wasn't one chapter's — it was a path from rot (C1) through assembly (C2) to memory (C3), which is exactly how the book is meant to be used.
 </Solution>
 
 </ExerciseSolutions>

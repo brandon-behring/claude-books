@@ -30,23 +30,23 @@ import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice
 import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 
-<YouWillLearn prerequisites="The frame from the previous chapter — Agent = Model + Harness, and its three layers (environment, context-assembly, context).">
+<YouWillLearn prerequisites="The frame and the book's map from the introduction — Agent = Model + Harness, and its three layers (environment, context-assembly, context).">
 - Why the difference between *autocomplete* and an *agent* lives almost entirely in two of the harness's layers — the **environment** and the **context**
 - Why this is the **underappreciated discipline**: the model gets the attention, but the leverage is in what you put around it
 - The **two halves as one subject** — engineering the substrate the agent acts in, and engineering the window it reasons over
-- A **map** of this part: the environment chapters, then the context chapters, and the problem→response→persistence arc that orders them
+- What is **still settling** about the discipline, and how to read the chapters that follow
 </YouWillLearn>
 
-_The previous chapter drew the frame: an agent is a model plus a harness, and the harness owns three layers — environment, context-assembly, context. This chapter makes the case that two of those layers — the environment and the context — are where the discipline of building agents actually lives. It is the opener for the part that develops them; it argues the thesis and maps the chapters, it does not yet build anything._
+_The introduction drew the frame and stated the thesis: an agent is a model plus a harness, and the leverage is in two of the harness's layers — the environment and the context. This chapter makes the *case* for that thesis — why those two layers, and not the model, are where the discipline of building agents actually lives. It argues; it does not yet build._
 
 ## What autocomplete cannot do
 
-Start with the gap the whole part is about. Code completion suggests the next token from the surrounding text; it has no autonomy. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter: an agent is an "LLM autonomously using tools in a loop."<Citation src="effective-context-engineering" />
+Start with the gap this book is about. Code completion suggests the next token from the surrounding text; it has no autonomy. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter: an agent is an "LLM autonomously using tools in a loop."<Citation src="effective-context-engineering" />
 
 The model supplies that autonomy. But a model alone, prompted in a vacuum, is still close to autocomplete — it can only act on what is in front of it. What makes it an *agent* is everything the harness arranges **around** the model: the substrate it can act in, and the window it gets to reason over. Claude Code, for instance, "provides the tools, context management, and execution environment that turn a language model into a capable coding agent."<Tag kind="official" /><Citation src="how-claude-code-works" />
 
 <KeyIdea>
-The model supplies autonomy; the **environment** and the **context** supply everything the autonomy can act on. Engineering those two layers — not choosing or prompting the model — is what turns autocomplete into an agent. That engineering is this part's subject.
+The model supplies autonomy; the **environment** and the **context** supply everything that autonomy can act on. So the agent's quality is bounded less by the model than by those two layers — which is why engineering them, not choosing or prompting the model, is the discipline this book develops.
 </KeyIdea>
 
 ## Two layers, one discipline
@@ -63,7 +63,7 @@ These read as two topics — "set up the repo" and "manage the window" — but t
 </ConceptBox>
 
 <MarginNote variant="note" label="Note">
-Treating environment and context as a single discipline is this part's framing, laid over the layers the sources describe. The sources name the layers; the unification is the argument.
+Treating environment and context as a single discipline is this book's framing, laid over the layers the sources describe. The sources name the layers; the unification is the argument.
 </MarginNote>
 
 ## Why it is underappreciated
@@ -76,31 +76,9 @@ This is underappreciated for a structural reason: the work is **invisible when i
 Prompt engineering shapes how the model reasons over what it is given. Environment and context engineering shape **what it is given in the first place** — and that is the larger lever, because it bounds what any amount of reasoning can do. The hardest, most important problems in using coding agents are not "which model" or "which prompt"; they are "what does the agent get to see and act on."
 </InsightBox>
 
-## The map of this part
-
-The chapters develop the two layers in a deliberate order: **the substrate first, then the window** — and inside the window, **the problem before the response.**
-
-**Environment — the substrate the agent acts in.**
-
-- **Repo & doc design** — making the repository high-signal to read and self-correcting to act in.
-- **The instruction layer** — the always-loaded config file as a context *budget*, not documentation.
-- **Skills & progressive disclosure** — procedural knowledge that loads only when relevant.
-- **Guardrails, permissions & reversibility** — expressing intent in policy and containing failure in mechanism.
-- **Environments at scale** — bounding what the agent must load when the repo is too big to hold.
-
-**Context — the window the model reasons over.**
-
-- **Context rot** — the evidence that long windows degrade, and why that is the problem the rest answers.
-- **Context assembly** — the engineering response: caching, compaction, just-in-time loading, budgeting the window.
-- **Memory** — persisting context across sessions, and the anti-patterns that reintroduce the rot.
-
-<KeyIdea>
-The arc is foundation-first, problem-first: build the environment, then confront why the window degrades, then engineer the window, then persist it. Each chapter develops one layer of the discipline this chapter names.
-</KeyIdea>
-
 ## What is still settling
 
-Two honest limits travel with this part, and they shape how to read it.
+Two honest limits travel with this book, and they shape how to read it.
 
 - **Most of this discipline is converged craft, not measured effect.** Independent practitioners, standards bodies, and vendors agree on the *direction* of most practices here, but controlled effect sizes are rare. Where a claim is craft consensus, the chapters say so; where there is a measured result, they name it — and they never launder a heuristic into a number.
 - **The vocabulary is young.** "Environment engineering" and "context engineering" are recent coinages over practices that predate the names. Treat the framing as a useful organizing lens, not a settled taxonomy, and re-check the landscape rather than the labels.
@@ -124,7 +102,7 @@ Name one thing your agent "just knows" without being told each time (where the t
 </Exercise>
 
 <Practice id="ch2-pr-1" difficulty="2">
-Recall the last time an agent gave a clearly worse answer than you expected. Before blaming the model, locate the cause in this part's two layers: did the **environment** fail to make the needed signal legible, or did **context** assembly carry the wrong slice (too little, too much, or stale) into the window? Write one sentence naming the layer and the specific gap — the goal is to feel the discipline do the diagnosing the model-first instinct skips.
+Recall the last time an agent gave a clearly worse answer than you expected. Before blaming the model, locate the cause in this book's two layers: did the **environment** fail to make the needed signal legible, or did **context** assembly carry the wrong slice (too little, too much, or stale) into the window? Write one sentence naming the layer and the specific gap — the goal is to feel the discipline do the diagnosing the model-first instinct skips.
 </Practice>
 
 <ExerciseSolutions>

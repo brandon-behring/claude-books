@@ -50,7 +50,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - Why the assembled window **is itself a prompt**
 </YouWillLearn>
 
-_The previous chapter established the problem: long context does not degrade gracefully. This chapter is the engineering response. The harness owns the boundary deciding what enters the window and when — and "context assembly" is the discipline of choosing, ordering, caching, and compacting the bytes that go to the model each turn. This is the deepest chapter in the Part; it carries the richest pattern catalog._
+_The previous chapter established the problem: long context does not degrade gracefully. This chapter is the engineering response. The harness owns the boundary deciding what enters the window and when — and "context assembly" is the discipline of choosing, ordering, caching, and compacting the bytes that go to the model each turn. This is the deepest chapter in the book; it carries the richest pattern catalog._
 
 ## The window is assembled from regions
 
@@ -97,7 +97,7 @@ Two independent peer-reviewed studies converge on the same curve: Liu et al. mea
 There is also an **instruction budget**: "performance consistently degrades as the number of instructions increases,"<Citation src="harada-manyifeval" /> and even the best models "only achieve 68% accuracy at the max density of 500 instructions,"<Citation src="jaroslawicz-ifscale" /> with "a bias towards earlier instructions."<Citation src="jaroslawicz-ifscale" /> The practitioner countermeasure exploits the end-of-context peak: **recitation** — "reciting its objectives into the end of the context" (a maintained `todo.md`)<Tag kind="practitioner" /><Citation src="ji-manus" /> to fight goal drift.
 
 <MarginNote variant="warning" label="Caveat">
-The instruction budget rests on ManyIFEval + IFScale, not the circulating "150–200 instruction" folk figure, which is not an established result.
+ManyIFEval + IFScale show degradation is real but model-specific — not a fixed ceiling. The "150–200 instruction" folk figure is not an established result.
 </MarginNote>
 
 ## Assembly is a prompt
@@ -134,7 +134,7 @@ Map each context-rot failure mode from the previous chapter to the assembly resp
 </Exercise>
 
 <Practice id="ch9-pr-1" difficulty="4">
-An agent re-reads a large config file every turn, blowing its budget and (you suspect) breaking the cache. Prescribe a fix using two patterns from this chapter — one for *what enters the window* and one for *prefix stability* — and state the cost/latency lever each pulls. The point is to feel assembly as the lever: the same complaint from the part opener's worked example, now with named mechanisms.
+An agent re-reads a large config file every turn, blowing its budget and (you suspect) breaking the cache. Prescribe a fix using two patterns from this chapter — one for *what enters the window* and one for *prefix stability* — and state the cost/latency lever each pulls. The point is to feel assembly as the lever: the same complaint from the introduction's worked example, now with named mechanisms.
 </Practice>
 
 <ExerciseSolutions>

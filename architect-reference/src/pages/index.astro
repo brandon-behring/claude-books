@@ -5,10 +5,16 @@ import { getCollection } from 'astro:content';
 const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
 chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
 ---
-<Base title="The Claude Architect's Reference" description="Designing Claude-powered systems — the Agent SDK, MCP, and the API. A greenfield volume authored from strict-live research.">
+<Base title="The Claude Architect's Reference: Environment & Context Engineering" description="A standalone volume on engineering the two layers around the model — the environment an agent acts in, and the context it reasons over. Authored from strict-live research.">
   <article class="prose">
     <h1>The Claude Architect's Reference</h1>
-    <p><em>Designing Claude-powered systems — the Agent SDK, MCP, and the API. Greenfield volume of the claude-books series, authored from the research program's strict-live dossiers. Phase 0 — the Agents &amp; Orchestration spine opens here.</em></p>
+    <p class="subtitle"><em>Environment &amp; Context Engineering</em></p>
+
+    <p>This volume is about the discipline that turns a model into an agent: engineering the <strong>environment</strong> it acts in and the <strong>context</strong> it reasons over. It is self-contained — it assumes a capable model and a harness, and develops the two layers around them.</p>
+
+    <h2>Scope</h2>
+    <p><strong>Covered here:</strong> the environment (repo &amp; doc design, the instruction layer, skills, guardrails, working at scale) and the context (why windows degrade, how to assemble them, how to persist them across sessions).</p>
+    <p><strong>Adjacent — planned companion volumes, not yet available:</strong> Orchestration &amp; Multi-Agent (build-vs-buy, sub-agents), Tools &amp; MCP, Evaluation &amp; Operations, and Prompting. This book points outward to them where its scope ends; it does not depend on them.</p>
 
     <h2>Chapters</h2>
     <ul>
