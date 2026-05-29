@@ -189,3 +189,54 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T1-academic
   tool: cross-tool
+
+# --- Ch5 (Skills & Progressive Disclosure) — from the env_skills dossier (all first-party Anthropic).
+# anthropic-skills (the engineering blog, above) is reused.
+
+- id: anthropic-skills-overview
+  url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+  title: Agent Skills (overview)
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-skills-best-practices
+  url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+  title: Skill authoring best practices
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-skills-cc
+  url: https://code.claude.com/docs/en/skills
+  title: Extend Claude with skills
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-skills-sdk
+  url: https://code.claude.com/docs/en/agent-sdk/skills
+  title: Agent Skills in the SDK
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropics-skills-repo
+  url: https://github.com/anthropics/skills
+  title: "anthropics/skills: Public repository for Agent Skills"
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: claude-code
+
+- id: anthropic-plugins
+  url: https://code.claude.com/docs/en/discover-plugins
+  title: Discover and install prebuilt plugins through marketplaces
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
