@@ -169,7 +169,7 @@
   author: Gloaguen, Mündler, Müller, Raychev, Vechev (ETH Zurich)
   publish_date: 2026-02-01
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: anthropic-skills
@@ -187,7 +187,7 @@
   author: Robbes, Matricon, Degueule, Hora, Zacchiroli
   publish_date: 2026-01-01
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 # --- Ch5 (Skills & Progressive Disclosure) — from the env_skills dossier (all first-party Anthropic).
@@ -384,7 +384,7 @@
   author: Liu et al. (TACL)
   publish_date: 2023-07-06
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: chroma-context-rot
@@ -402,7 +402,7 @@
   author: Modarressi et al. (ICML)
   publish_date: 2025-02-07
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: wang-mniah
@@ -411,7 +411,7 @@
   author: Wang
   publish_date: 2025-04-05
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: ruler
@@ -420,7 +420,7 @@
   author: Hsieh et al. (NVIDIA, COLM)
   publish_date: 2024-04-09
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: horthy-12factor
@@ -438,7 +438,7 @@
   author: Martin & Roger
   publish_date: 2026-05-01
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: xiao-pcd
@@ -447,7 +447,7 @@
   author: Xiao et al.
   publish_date: 2025-06-10
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 # --- Ch9 (Context Assembly) — from the context_assembly pilot dossier.
@@ -476,7 +476,7 @@
   author: Lumer et al.
   publish_date: 2026-01-01
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: cc-cache-regression
@@ -529,7 +529,7 @@
   author: Ye et al.
   publish_date: 2025-05-12
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: harada-manyifeval
@@ -538,7 +538,7 @@
   author: Harada et al. (EMNLP)
   publish_date: 2025-09-25
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: jaroslawicz-ifscale
@@ -547,7 +547,7 @@
   author: Jaroslawicz et al.
   publish_date: 2025-07-15
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: hsieh-found-middle
@@ -556,7 +556,7 @@
   author: Hsieh et al. (ACL Findings)
   publish_date: 2024-06-23
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 # --- Ch10 (Memory) — from the memory dossier.
@@ -568,7 +568,7 @@
   author: Packer et al.
   publish_date: 2023-10-12
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: generative-agents
@@ -577,7 +577,7 @@
   author: Park et al.
   publish_date: 2023-04-07
   captured_at: 2026-05-26T00:00:00Z
-  tier: T1-academic
+  tier: T3-practitioner
   tool: cross-tool
 
 - id: langmem

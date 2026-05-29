@@ -2,7 +2,7 @@
 title: "Context Rot: Why Windows Degrade"
 part: 2
 chapter: 8
-volatility: fast-moving
+volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
@@ -47,7 +47,7 @@ _This is the problem chapter. If long contexts degraded gracefully, "just put ev
 
 "Context rot" is an umbrella over mechanisms that fail for different reasons and are caught by different benchmarks.
 
-- **Positional** — *where* the token sits. Recall "is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades… in the middle"<Tag kind="official" /><Citation src="liu-lost-middle" /> — the U-shaped curve.
+- **Positional** — *where* the token sits. Recall "is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades… in the middle"<Citation src="liu-lost-middle" /> — the U-shaped curve.
 - **Length** — *how much* is in the window. An "evaluation across 18 LLMs… reveal[s] nonuniform performance with increasing input length,"<Citation src="chroma-context-rot" /> independent of whether the needle is found.
 - **Reasoning** — *reasoning over* the facts, not locating them. Multi-hop degradation is "primarily driven by the reduction in the length of the thinking process as the input length increases."<Citation src="wang-mniah" />
 - **Effective vs. claimed** — the marketed window is not the working one. Of models claiming 32K+, "only half… can maintain satisfactory performance at the length of 32K."<Citation src="ruler" />
@@ -58,7 +58,7 @@ Treating rot as one number — "models lose X% at Y tokens" — is the central e
 
 ## The robust claim is directional, not numeric
 
-Across an 18-model panel and a peer-reviewed synthetic suite, the robust, corroborated finding is *that* performance falls with length and *that* the effective window is materially shorter than the claimed one — RULER reports "almost all models exhibit large performance drops as the context length increases."<Tag kind="official" /><Citation src="ruler" /> The specific percentages ("11 models below 50% at 32K,"<Citation src="nolima" /> "only half at 32K") are model- and benchmark-dependent.
+Across an 18-model panel and a peer-reviewed synthetic suite, the robust, corroborated finding is *that* performance falls with length and *that* the effective window is materially shorter than the claimed one — RULER reports "almost all models exhibit large performance drops as the context length increases."<Citation src="ruler" /> The specific percentages ("11 models below 50% at 32K,"<Citation src="nolima" /> "only half at 32K") are model- and benchmark-dependent.
 
 <MarginNote variant="warning" label="Caveat">
 Never launder a portable "context-rot %." The directional claim is robust; the magnitudes are benchmark-specific. Two folk figures — a "~1M-token ceiling" and a "~40% dumb zone" — have no primary backing and are deliberately not cited.
@@ -99,7 +99,7 @@ Fast-moving area — the architectural-vs-trainable question is the live researc
 ## Quick reference
 
 - **Four failure modes:** positional · length · reasoning · effective-vs-claimed. Different causes, different fixes.
-- **Robust = directional:** performance falls with length; effective window << claimed window. Never quote a portable %.
+- **Robust = directional:** performance falls with length; the effective window is far shorter than the claimed window. Never quote a portable %.
 - **Surprises:** coherence can hurt; retrieval ≠ reasoning.
 - **"Unsolved" overshoots:** near-universal now, but partially trainable/decodable — an open question.
 - **Rot reaches the overseer:** long traces degrade the monitor too.

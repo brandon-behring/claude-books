@@ -88,7 +88,7 @@ Compaction is a cache-invalidation boundary: a shipping-product regression repor
 
 ## Attention placement — position is not neutral
 
-Where content lands changes whether the model uses it. Recall "is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades… in the middle."<Tag kind="official" /><Citation src="liu-lost-middle" />
+Where content lands changes whether the model uses it. Recall "is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades… in the middle."<Citation src="liu-lost-middle" />
 
 <Convergence tools={['claude-code', 'cross-tool']}>
 Two independent peer-reviewed studies converge on the same curve: Liu et al. measure the mid-context accuracy drop, and Hsieh et al. attribute it to "a U-shaped attention bias where the tokens at the beginning and at the end of its input receive higher attention, regardless of their relevance."<Citation src="hsieh-found-middle" /> The convergence is what makes "put the load-bearing instruction at an edge" a robust heuristic, not a single-paper artifact. <Tag kind="convergence" />
