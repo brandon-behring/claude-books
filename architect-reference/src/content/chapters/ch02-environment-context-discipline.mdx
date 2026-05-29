@@ -1,0 +1,136 @@
+---
+title: "Beyond Autocomplete: The Environment & Context Discipline"
+part: 2
+chapter: 2
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - building-effective-agents
+  - effective-context-engineering
+  - effective-harnesses
+  - how-claude-code-works
+description: The opener for the Environment & Context Engineering part. The discipline that turns a model into an agent is the engineering of the two layers around it — the environment it acts in and the context it reasons over — and it is the most underappreciated, highest-leverage thing an architect designs.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The frame from the previous chapter — Agent = Model + Harness, and its three layers (environment, context-assembly, context).">
+- Why the difference between *autocomplete* and an *agent* lives almost entirely in two of the harness's layers — the **environment** and the **context**
+- Why this is the **underappreciated discipline**: the model gets the attention, but the leverage is in what you put around it
+- The **two halves as one subject** — engineering the substrate the agent acts in, and engineering the window it reasons over
+- A **map** of this part: the environment chapters, then the context chapters, and the problem→response→persistence arc that orders them
+</YouWillLearn>
+
+_The previous chapter drew the frame: an agent is a model plus a harness, and the harness owns three layers — environment, context-assembly, context. This chapter makes the case that two of those layers — the environment and the context — are where the discipline of building agents actually lives. It is the opener for the part that develops them; it argues the thesis and maps the chapters, it does not yet build anything._
+
+## What autocomplete cannot do
+
+Start with the gap the whole part is about. Code completion suggests the next token from the surrounding text; it has no autonomy. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter: an agent is an "LLM autonomously using tools in a loop."<Citation src="effective-context-engineering" />
+
+The model supplies that autonomy. But a model alone, prompted in a vacuum, is still close to autocomplete — it can only act on what is in front of it. What makes it an *agent* is everything the harness arranges **around** the model: the substrate it can act in, and the window it gets to reason over. Claude Code, for instance, "provides the tools, context management, and execution environment that turn a language model into a capable coding agent."<Tag kind="official" /><Citation src="how-claude-code-works" />
+
+<KeyIdea>
+The model supplies autonomy; the **environment** and the **context** supply everything the autonomy can act on. Engineering those two layers — not choosing or prompting the model — is what turns autocomplete into an agent. That engineering is this part's subject.
+</KeyIdea>
+
+## Two layers, one discipline
+
+The frame named three layers; two of them are the agent's whole relationship with the world.
+
+- **Environment** — the substrate the agent acts in: the repository, the filesystem, scripts, a running process. A long-running harness even "asks the model to set up the initial environment" before work begins.<Citation src="effective-harnesses" /> Shape the environment well and the agent reads high signal and gets honest feedback; shape it poorly and no amount of prompting recovers.
+- **Context** — the assembled window the model reasons over. It is "a critical but finite resource for AI agents"<Tag kind="official" /><Citation src="effective-context-engineering" /> — a budget, not free memory. What you spend it on, and what you leave out, decides what the agent can actually do on any given turn.
+
+These read as two topics — "set up the repo" and "manage the window" — but they are one discipline seen from two ends. The environment is the large, durable store of everything the agent *could* use; the context is the small, finite slice it *does* use on a turn; and the harness's defining job is owning the boundary between them, keeping "lightweight references" and using them to "dynamically load data into context at runtime using tools."<Citation src="effective-context-engineering" />
+
+<ConceptBox title="Environment and context as one subject">
+**Environment engineering** maximizes the signal available to load and the feedback available to act on. **Context engineering** decides what of that actually crosses into the finite window, and when. You cannot do one well in isolation: a high-signal environment is wasted if assembly drags the wrong slice in, and the smartest assembly cannot surface signal an unengineered environment never made legible.
+</ConceptBox>
+
+<MarginNote variant="note" label="Note">
+Treating environment and context as a single discipline is this part's framing, laid over the layers the sources describe. The sources name the layers; the unification is the argument.
+</MarginNote>
+
+## Why it is underappreciated
+
+The model gets the headlines — new versions, benchmarks, prompting tricks. That is the inner loop, and it matters. But the model is, increasingly, a *given*: you choose a capable one and prompt it well. The lever you actually own as an architect is the outer loop — and most of the outer loop's effect on output quality flows through these two layers.
+
+This is underappreciated for a structural reason: the work is **invisible when it succeeds**. A well-designed environment shows up as the agent "just knowing" where things are; a well-budgeted context shows up as the agent staying coherent over a long task. Nobody points at the absence of a failure. So the discipline is easy to skip and easy to under-credit — right up until an agent re-reads the same file every turn, loses the thread across sessions, or confidently acts on stale memory, and the cause turns out to be the environment or the context, never the model.
+
+<InsightBox title="Where the leverage hides">
+Prompt engineering shapes how the model reasons over what it is given. Environment and context engineering shape **what it is given in the first place** — and that is the larger lever, because it bounds what any amount of reasoning can do. The hardest, most important problems in using coding agents are not "which model" or "which prompt"; they are "what does the agent get to see and act on."
+</InsightBox>
+
+## The map of this part
+
+The chapters develop the two layers in a deliberate order: **the substrate first, then the window** — and inside the window, **the problem before the response.**
+
+**Environment — the substrate the agent acts in.**
+
+- **Repo & doc design** — making the repository high-signal to read and self-correcting to act in.
+- **The instruction layer** — the always-loaded config file as a context *budget*, not documentation.
+- **Skills & progressive disclosure** — procedural knowledge that loads only when relevant.
+- **Guardrails, permissions & reversibility** — expressing intent in policy and containing failure in mechanism.
+- **Environments at scale** — bounding what the agent must load when the repo is too big to hold.
+
+**Context — the window the model reasons over.**
+
+- **Context rot** — the evidence that long windows degrade, and why that is the problem the rest answers.
+- **Context assembly** — the engineering response: caching, compaction, just-in-time loading, budgeting the window.
+- **Memory** — persisting context across sessions, and the anti-patterns that reintroduce the rot.
+
+<KeyIdea>
+The arc is foundation-first, problem-first: build the environment, then confront why the window degrades, then engineer the window, then persist it. Each chapter develops one layer of the discipline this chapter names.
+</KeyIdea>
+
+## What is still settling
+
+Two honest limits travel with this part, and they shape how to read it.
+
+- **Most of this discipline is converged craft, not measured effect.** Independent practitioners, standards bodies, and vendors agree on the *direction* of most practices here, but controlled effect sizes are rare. Where a claim is craft consensus, the chapters say so; where there is a measured result, they name it — and they never launder a heuristic into a number.
+- **The vocabulary is young.** "Environment engineering" and "context engineering" are recent coinages over practices that predate the names. Treat the framing as a useful organizing lens, not a settled taxonomy, and re-check the landscape rather than the labels.
+
+<Pitfall title="Treating the model as the only variable">
+The instinct, when an agent underperforms, is to reach for a better model or a cleverer prompt. Often the fix is neither — it is that the environment did not make the answer legible, or the context did not carry the right slice into the window. Diagnosing model-first wastes the largest lever you own.
+</Pitfall>
+
+## Quick reference
+
+- **Autocomplete → agent:** the model supplies autonomy; the **environment** and **context** supply what the autonomy acts on. Engineering those two layers is the discipline.
+- **Environment** = the durable substrate (repo, filesystem, processes); **context** = the finite window. The harness owns the boundary.
+- **One subject, two ends:** maximize signal in the environment; spend the context budget deliberately. Neither works alone.
+- **Why underappreciated:** the work is invisible when it succeeds, and the model gets the attention — but the leverage is here.
+- **The arc:** environment (substrate) → context rot (the problem) → context assembly (the response) → memory (persistence).
+
+## Practice
+
+<Exercise id="ch2-ex-1">
+Name one thing your agent "just knows" without being told each time (where the tests live, your commit style, a build command). Which layer supplies it — is that knowledge in the **environment** (the repo/files the agent reads) or in the **context** (loaded into the window each session)? What would break if it moved to the other layer?
+</Exercise>
+
+<Practice id="ch2-pr-1" difficulty="2">
+Recall the last time an agent gave a clearly worse answer than you expected. Before blaming the model, locate the cause in this part's two layers: did the **environment** fail to make the needed signal legible, or did **context** assembly carry the wrong slice (too little, too much, or stale) into the window? Write one sentence naming the layer and the specific gap — the goal is to feel the discipline do the diagnosing the model-first instinct skips.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch2-ex-1">
+Stable, broadly-applicable facts ("tests live in `/tests`", "use conventional commits") usually belong in the **context** layer — specifically the always-loaded instruction file, because they apply every session and the agent cannot reliably infer them from a single view of the code. Volatile or large procedural knowledge belongs in the **environment**, loaded on demand, so it does not tax every turn. Moving an always-needed fact out to the environment risks the agent not loading it when it matters; moving a large procedure into the always-loaded layer burns context budget on every turn whether or not it is relevant. The split *is* the discipline — and it is exactly what the instruction-layer and skills chapters develop.
+</Solution>
+
+</ExerciseSolutions>
