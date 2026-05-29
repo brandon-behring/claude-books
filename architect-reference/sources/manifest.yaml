@@ -302,3 +302,76 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
+
+# --- Ch7 (Environments at Scale) — from the cross_domain dossier.
+
+- id: pan-monorepo
+  url: https://tianpan.co/blog/2026-04-17-coding-agents-monorepo-context-window
+  title: "Coding Agents in the Monorepo: Why Context Windows and 50-Service Repos Don't Mix"
+  author: Tian Pan
+  publish_date: 2026-04-17
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: fuhrimann-contract-first
+  url: https://apiconference.net/blog-en/api-contract-first-definitions/
+  title: "API Contract Definitions: Contract first, implementation first, OpenAPI, GraphQL, gRPC"
+  author: Lena Fuhrimann
+  publish_date: 2022-12-05
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-large-codebases
+  url: https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-and-where-to-start
+  title: "How Claude Code works in large codebases: Best practices and where to start"
+  author: Anthropic
+  publish_date: 2026-05-14
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-seeing-like-agent
+  url: https://claude.com/blog/seeing-like-an-agent
+  title: "Seeing like an agent: how we design tools in Claude Code"
+  author: Thariq Shihipar (Anthropic)
+  publish_date: 2026-04-10
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: nygard-adr
+  url: https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
+  title: Documenting Architecture Decisions
+  author: Michael Nygard
+  publish_date: 2011-11-15
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: adr-github
+  url: https://adr.github.io/
+  title: Architectural Decision Records (ADRs)
+  author: ADR GitHub organization
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: barnwell-monorepo
+  url: https://www.d4b.dev/blog/2026-04-03-ai-agents-in-monorepos-what-to-configure-differently-from-a-single-product-repo
+  title: "AI agents in monorepos: what to configure differently from a single-product repo"
+  author: Dave Barnwell
+  publish_date: 2026-04-03
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: nx-savkin-ai
+  url: https://nx.dev/blog/nx-and-ai-why-they-work-together
+  title: Nx and AI — Why They Work so Well Together
+  author: Victor Savkin (Nx)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
