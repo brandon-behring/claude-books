@@ -32,3 +32,8 @@ dist/
 # Confidential — Anthropic cert exam guide (marked "Need to Know" on every page).
 # Internal research aid only; not for public distribution. See plan + cert-tracking docs.
 instructor_*.pdf
+
+# Cross-machine continuity bundle — out-of-repo memory + plan-file transfer artifact.
+# Restored into ~/.claude on clone; kept here (archive + extracted) as a local reference only.
+claude-books-continuity.tar.gz
+claude-books-continuity/
