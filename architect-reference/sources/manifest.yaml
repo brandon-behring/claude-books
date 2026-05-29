@@ -558,3 +558,102 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T1-academic
   tool: cross-tool
+
+# --- Ch10 (Memory) — from the memory dossier.
+# ji-manus (Ch9) and effective-context-engineering (Ch1) are reused.
+
+- id: memgpt
+  url: https://arxiv.org/abs/2310.08560
+  title: "MemGPT: Towards LLMs as Operating Systems"
+  author: Packer et al.
+  publish_date: 2023-10-12
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: generative-agents
+  url: https://arxiv.org/abs/2304.03442
+  title: "Generative Agents: Interactive Simulacra of Human Behavior"
+  author: Park et al.
+  publish_date: 2023-04-07
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: langmem
+  url: https://www.langchain.com/blog/langmem-sdk-launch
+  title: LangMem SDK for agent long-term memory
+  author: The LangChain Team
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: mem0-state-2026
+  url: https://mem0.ai/blog/state-of-ai-agent-memory-2026
+  title: "State of AI Agent Memory 2026: Benchmarks, Architectures & Production Gaps"
+  author: Mem0 Engineering Team
+  publish_date: 2026-05-27
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: huang-agent-memory
+  url: https://thenewstack.io/agent-memory-decay-contamination/
+  title: "Why your AI agent doesn't actually remember anything"
+  author: Ed Huang
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: cc-memory
+  url: https://code.claude.com/docs/en/memory
+  title: How Claude remembers your project
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-agent-memory
+  url: https://platform.claude.com/docs/en/managed-agents/memory
+  title: Using agent memory
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: belitz-md-vs-memory
+  url: https://blog.belitz.se/posts/my-md-files-vs-claudes-memory
+  title: "My .md files vs Claude's memory tool: a practitioner comparison"
+  author: Andreas Belitz
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: bustamante-agent-memory
+  url: https://nicolasbustamante.com/blog/agent-memory-engineering
+  title: Agent Memory Engineering
+  author: Nicolas Bustamante
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: chen-markdown-memory
+  url: https://dev.to/imaginex/ai-agent-memory-management-when-markdown-files-are-all-you-need-5ekk
+  title: "AI Agent Memory Management: When Markdown Files Are All You Need?"
+  author: Yaohua Chen (ImagineX)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: langchain-longterm-memory
+  url: https://docs.langchain.com/oss/python/langchain/long-term-memory
+  title: Long-term memory
+  author: LangChain
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
