@@ -449,3 +449,112 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T1-academic
   tool: cross-tool
+
+# --- Ch9 (Context Assembly) — from the context_assembly pilot dossier.
+# effective-context-engineering + effective-harnesses (Ch1) and liu-lost-middle (Ch8) are reused.
+
+- id: ji-manus
+  url: https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus
+  title: "Context Engineering for AI Agents: Lessons from Building Manus"
+  author: Yichao Ji (Manus)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-prompt-caching
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-caching
+  title: Prompt caching
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: lumer-cache
+  url: https://arxiv.org/abs/2601.06007
+  title: "Don't Break the Cache: An Evaluation of Prompt Caching for Long-Horizon Agentic Tasks"
+  author: Lumer et al.
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: cc-cache-regression
+  url: https://github.com/anthropics/claude-code/issues/29230
+  title: "Claude Code v2.1.62 — Server-Side KV Cache Stale Context Regression (P1)"
+  author: Taylor (issue reporter)
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: claude-code
+
+- id: langchain-context
+  url: https://www.langchain.com/blog/context-engineering-for-agents
+  title: Context Engineering
+  author: The LangChain Team
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: anthropic-code-exec-mcp
+  url: https://www.anthropic.com/engineering/code-execution-with-mcp
+  title: "Code execution with MCP: Building more efficient agents"
+  author: Jones & Kelly (Anthropic)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-writing-tools
+  url: https://www.anthropic.com/engineering/writing-tools-for-agents
+  title: "Writing effective tools for agents — with agents"
+  author: Aizawa (Anthropic)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-xml-tags
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/use-xml-tags
+  title: "Prompting best practices: use XML tags"
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: ye-muldimif
+  url: https://arxiv.org/abs/2505.07591
+  title: A Multi-Dimensional Constraint Framework for Evaluating and Improving Instruction Following in LLMs
+  author: Ye et al.
+  publish_date: 2025-05-12
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: harada-manyifeval
+  url: https://arxiv.org/abs/2509.21051
+  title: "When Instructions Multiply: Measuring and Estimating LLM Capabilities of Multiple Instructions Following"
+  author: Harada et al. (EMNLP)
+  publish_date: 2025-09-25
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: jaroslawicz-ifscale
+  url: https://arxiv.org/abs/2507.11538
+  title: How Many Instructions Can LLMs Follow at Once?
+  author: Jaroslawicz et al.
+  publish_date: 2025-07-15
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
+
+- id: hsieh-found-middle
+  url: https://arxiv.org/abs/2406.16008
+  title: "Found in the Middle: Calibrating Positional Attention Bias Improves Long Context Utilization"
+  author: Hsieh et al. (ACL Findings)
+  publish_date: 2024-06-23
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-academic
+  tool: cross-tool
