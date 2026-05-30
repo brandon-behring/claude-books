@@ -33,6 +33,7 @@ import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/Concep
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
 import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
@@ -60,6 +61,8 @@ Each turn, the harness assembles a window from regions that differ in stability 
 <ConceptBox title="The assembled window">
 **Pre-commitment** (system prompt, CLAUDE.md, tool definitions) — set before the turn, cacheable, shapes intent. **Loaded context** (file reads, tool results) — pulled in during the turn; the just-in-time decision lives here. **Working history** — the running transcript, which grows until compacted. **Placement** — *where* each piece lands, because attention is not uniform. The assembled window is itself a prompt: its prefix stability is an economic variable, its length is finite, its ordering is an attention variable.
 </ConceptBox>
+
+<Figure src="/figures/window-regions/window-regions.svg" caption="The assembled window, one turn: a stable cacheable front (pre-commitment), a just-in-time middle (loaded context), and a volatile tail (working history) — read under a U-shaped attention curve where the edges are attended and the middle sags." alt="A horizontal window bar split left-to-right into pre-commitment, loaded context, and working history, annotated stable-front to volatile-tail, beneath a U-shaped attention curve that is high at both edges and sags in the middle." width="100%" id="fig-window-regions" />
 
 ## Cache stability — the prefix is an economic variable
 
@@ -104,6 +107,10 @@ ManyIFEval + IFScale show degradation is real but model-specific — not a fixed
 ## Assembly is a prompt
 
 The window's *contents* are prose to engineer, not plumbing. Tool descriptions sit in the cache-sensitive pre-commitment region — author them as you would "describe your tool to a new hire on your team."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> Structure disambiguates: XML tags "help Claude parse complex prompts unambiguously, especially when your prompt mixes instructions, context, examples, and variable inputs,"<Citation src="anthropic-xml-tags" /> and instruction-following gains "stem largely from parameter updates in attention modules,"<Citation src="ye-muldimif" /> a hint for why structured, constraint-bearing assembly is tractable.
+
+<MarginNote variant="note" label="Note">
+A reflection loop's critique is re-injected text — it competes for this same budget and placement; assemble self-critique deliberately, it isn't free.
+</MarginNote>
 
 <WorkedExample id="assembling-one-window" title="Three patterns in one window">
 
