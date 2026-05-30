@@ -78,6 +78,10 @@ The strong framing — context rot is architectural and no model solves it — o
 
 One 2026 extension matters for design: rot reaches the *monitor*. An LLM acting as judge/monitor degrades on long transcripts, missing flagged actions far more often as the trace grows.<Citation src="martin-classifier-rot" /> Long-running agentic sessions degrade *both* the actor and the safety layer watching it.
 
+<MarginNote variant="note" label="Note">
+A reflection loop is one such long-running session: each critique-and-retry grows the history toward the effective-window edge — self-correction has a rot cost.
+</MarginNote>
+
 <Pitfall title="Trusting the marketed window">
 A 1M-token window is not 1M tokens of *working* memory. Filling it because it's advertised invites every failure mode at once — positional sag, length decay, reasoning collapse, and a monitor that stops catching problems. Treat the claimed window as a ceiling, not a budget.
 </Pitfall>
