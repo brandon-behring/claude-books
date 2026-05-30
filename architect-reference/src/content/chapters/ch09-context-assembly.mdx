@@ -32,6 +32,7 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
@@ -103,6 +104,28 @@ ManyIFEval + IFScale show degradation is real but model-specific — not a fixed
 ## Assembly is a prompt
 
 The window's *contents* are prose to engineer, not plumbing. Tool descriptions sit in the cache-sensitive pre-commitment region — author them as you would "describe your tool to a new hire on your team."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> Structure disambiguates: XML tags "help Claude parse complex prompts unambiguously, especially when your prompt mixes instructions, context, examples, and variable inputs,"<Citation src="anthropic-xml-tags" /> and instruction-following gains "stem largely from parameter updates in attention modules,"<Citation src="ye-muldimif" /> a hint for why structured, constraint-bearing assembly is tractable.
+
+<WorkedExample id="assembling-one-window" title="Three patterns in one window">
+
+An agent works in a repo with a 50K-token config file the task barely touches. Assemble one turn's window from three patterns at once:
+
+- **Stable prefix** — system prompt, tool definitions, and invariant project facts sit at the front, byte-identical every turn, so the cache holds (the cost and latency lever).
+- **Just-in-time loading** — the config is *not* inlined; a path-pointer stays in context, and a tool resolves only the few keys the task needs (the finite-window lever).
+- **Placement** — the load-bearing instruction is re-emitted at the tail, on the end-of-context attention peak, rather than buried mid-window.
+
+One assembled window: a cached front, a minimal just-in-time middle, a load-bearing tail. The same window that re-read 50K tokens every turn now carries a few hundred — cheaper, faster, and far less exposed to rot.
+
+</WorkedExample>
+
+## Diagnostic: which assembly failure are you hitting?
+
+Mirroring the previous chapter's router, map an observed symptom to the assembly lever that addresses it — each routes to a pattern below:
+
+- **Symptom: latency and cost climb every turn, even on small tasks.** → *Cache instability* — something perturbs the prefix. Reach for **stable prefix** + **dynamic content at the tail**.
+- **Symptom: quality decays as a long session or file grows.** → *Unbounded loading* — too much is resident at once. Reach for **just-in-time loading** and **compact-or-checkpoint**.
+- **Symptom: the agent ignores an instruction you know is loaded.** → *Misplacement* — it is sagging mid-window. Reach for **place at the edges; recite the goal**.
+- **Symptom: cost spikes right after a long session compacts.** → *Cache invalidation at the compaction boundary*. Reach for **checkpoint-and-restart with a small prefix**.
+- **Symptom: a multi-part prompt is parsed wrong.** → *Unstructured assembly*. Reach for **structure with delimiters**.
 
 ## Patterns
 
