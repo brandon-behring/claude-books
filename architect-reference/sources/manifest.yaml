@@ -666,3 +666,25 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T2-release-notes
   tool: cross-tool
+
+# --- Ch2 (Environment & Context Discipline) — independent practitioner corroboration
+# of the "context engineering" coinage (the Anthropic framing is reused from Ch1).
+# Quotes verified to the primary X posts 2026-05-30; HITL re-confirm before "validated".
+
+- id: lutke-context-engineering
+  url: https://x.com/tobi/status/1935533422589399127
+  title: "On 'context engineering' over 'prompt engineering' (X post)"
+  author: Tobi Lütke (Shopify)
+  publish_date: 2025-06-18
+  captured_at: 2026-05-30T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: karpathy-context-engineering
+  url: https://x.com/karpathy/status/1937902205765607626
+  title: "On 'context engineering': 'filling the context window' (X post)"
+  author: Andrej Karpathy
+  publish_date: 2025-06-25
+  captured_at: 2026-05-30T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool

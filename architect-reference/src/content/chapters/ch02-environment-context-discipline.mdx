@@ -13,12 +13,15 @@ sources:
   - effective-context-engineering
   - effective-harnesses
   - how-claude-code-works
+  - lutke-context-engineering
+  - karpathy-context-engineering
 description: The argued opener for this book. The discipline that turns a model into an agent is the engineering of the two layers around it — the environment it acts in and the context it reasons over — and it is the most underappreciated, highest-leverage thing an architect designs.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
 import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
@@ -82,6 +85,10 @@ Two honest limits travel with this book, and they shape how to read it.
 
 - **Most of this discipline is converged craft, not measured effect.** Independent practitioners, standards bodies, and vendors agree on the *direction* of most practices here, but controlled effect sizes are rare. Where a claim is craft consensus, the chapters say so; where there is a measured result, they name it — and they never launder a heuristic into a number.
 - **The vocabulary is young.** "Environment engineering" and "context engineering" are recent coinages over practices that predate the names. Treat the framing as a useful organizing lens, not a settled taxonomy, and re-check the landscape rather than the labels.
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+The coinage is young but independently converged-upon. Anthropic frames "context engineering" as curating what enters a finite window;<Tag kind="official" /><Citation src="effective-context-engineering" /> Shopify's Tobi Lütke independently prefers the term for "the art of providing all the context for the task to be plausibly solvable by the LLM,"<Tag kind="practitioner" /><Citation src="lutke-context-engineering" /> and Andrej Karpathy amplifies it as "the delicate art and science of filling the context window."<Citation src="karpathy-context-engineering" /> A vendor and two practitioners name the same lever — not the prompt, not the model, but the context. <Tag kind="convergence" />
+</Convergence>
 
 <Pitfall title="Treating the model as the only variable">
 The instinct, when an agent underperforms, is to reach for a better model or a cleverer prompt. Often the fix is neither — it is that the environment did not make the answer legible, or the context did not carry the right slice into the window. Diagnosing model-first wastes the largest lever you own.
