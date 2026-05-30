@@ -23,6 +23,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
@@ -65,6 +66,33 @@ Because only the description loads at startup, it is the single highest-leverage
 <InsightBox title="Authoring a description is a retrieval problem">
 The body holds the implementation; the description holds the *selectability*. A skill that never triggers is worse than no skill — it's dead weight an author believes is working. Write the description in the third person, specific about *when* the skill applies, because that string is what the agent matches against the task. Description discipline is skill-authoring discipline.
 </InsightBox>
+
+<WorkedExample id="a-minimal-skill" title="A minimal SKILL.md — and the description that carries it">
+
+A real Skill is small — a directory with one `SKILL.md`:
+
+```markdown
+---
+name: cut-release
+description: Use when cutting a release — runs the version bump, changelog, and git tag steps for this repo.
+---
+
+# Cut a release
+
+1. Bump the version in `package.json` (semver; patch unless told otherwise).
+2. Regenerate `CHANGELOG.md` from commits since the last tag.
+3. Commit as `release: vX.Y.Z`, then `git tag vX.Y.Z`.
+4. Stop and report the tag; do **not** push without confirmation.
+```
+
+Only the `description` is always loaded, so it carries the whole retrieval decision:
+
+- **Weak:** `description: Release helper.` — names a topic, not a trigger; the agent cannot tell *when* it applies, so it fires at random or never.
+- **Strong:** `description: Use when cutting a release — runs the version bump, changelog, and git tag steps for this repo.` — names the *situation* and the *steps*, so it is selected when relevant and stays quiet otherwise.
+
+The body can be as long as the task needs; the description is the one line you actually engineer.
+
+</WorkedExample>
 
 ## Which mechanism — and what a Skill is not
 

@@ -29,6 +29,7 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import OpenQuestion from '@brandon_m_behring/book-scaffold-astro/components/OpenQuestion.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
@@ -91,6 +92,14 @@ Agent memory is openly unsolved. One named vendor calls high-relevance staleness
 <MarginNote variant="warning" label="Caveat">
 "Memory is unsolved" here is one vendor's (Mem0) framing, not field consensus — and that post is freshly dated; recheck after 2026-06-26.
 </MarginNote>
+
+## The landscape, and the safe bet
+
+The proposals this chapter draws on optimize for different things — which is why "openly unsolved" is a starting point, not a verdict.
+
+<OpenQuestion title="What should agent memory be?">
+The field is exploring several shapes. **MemGPT** optimizes *capacity* — OS-style paging of a virtual context so the agent exceeds its window.<Citation src="memgpt" /> **Generative Agents** optimizes *salience* — reflection and retrieval over a memory stream.<Citation src="generative-agents" /> **Mem0** optimizes *production operations* — a managed memory service with benchmarks, naming high-relevance staleness as an open problem.<Citation src="mem0-state-2026" /> **LangMem** optimizes *structure* — an explicit episodic / semantic / procedural split.<Citation src="langmem" /> None is a settled winner. Against that, **typed memory with decay** is the safe bet *now*: the smallest commitment that survives staleness, and the precondition the richer systems assume.
+</OpenQuestion>
 
 ## Patterns
 

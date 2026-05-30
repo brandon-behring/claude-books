@@ -99,9 +99,27 @@ The same incident exposes a second failure mode: the agent "claimed rollback was
 Reversibility that routes through the agent — its in-app checkpoint, its self-assessment of "can this be undone?" — is insufficient for external state like a production database. The load-bearing recovery path must be out-of-band: version control, dev/prod separation, and backups the agent does not control. Make risky actions reversible by design, but never let recovery depend on the agent's own claims.
 </InsightBox>
 
+## Auto mode and containment
+
+Two 2026 developments extend the chapter's two layers without changing its thesis.
+
+**Auto mode** is the policy-side step past sandbox auto-allow. Instead of prompting per action, a model-based classifier mediates approvals — catching "roughly 83% of problematic behaviors before they execute," with the remaining ~17% bypassing it as the price of low friction.<Tag kind="official" /><Citation src="anthropic-containment" /> It sits between manual approval and full autonomy, and it exists because manual approval does not scale: users approved ~93% of prompts with attention "declining over time," and oversight is "much less likely to be effective" at multi-agent scale.<Citation src="anthropic-containment" />
+
+**Containment** is the same OS-boundary idea at product scale. Each surface is isolated differently — ephemeral gVisor containers, OS sandboxes (Seatbelt/bubblewrap) with network denied by default, and VMs behind a vsock+hypervisor boundary — and "credentials stay in the host's keychain and never enter the guest machine."<Tag kind="official" /><Citation src="anthropic-containment" /> Network **egress** is the choke point: it is where data leaves, so it is where the boundary is enforced.
+
+<InsightBox title="Why this reinforces the thesis">
+Auto mode and containment are the policy-vs-mechanism split, scaled up. The classifier is a *better policy gate* — but ~17% still slips through, so the load-bearing safety is still the *mechanism*: the OS-enforced boundary the agent cannot argue past. As autonomy rises and humans approve less, the mechanism layer carries more of the weight, not less.
+</InsightBox>
+
+<MarginNote variant="warning" label="Caveat">
+The 83% / 17% / 93% figures are vendor-reported internal metrics (like the 84% above), not independent benchmarks — directional only.
+</MarginNote>
+
+Both are **single-agent** containment. Once dynamic, multi-agent orchestration enters — agents spawning agents, control flow chosen at runtime — the env+context stakes rise sharply; that is a **companion-volume (D1 orchestration)** concern, not covered here.<MarginNote variant="note" label="Note">Dated 2026-05 — the containment picture moves fast; re-check the percentages and product boundaries before relying on them.</MarginNote>
+
 ## Completeness note
 
-The OS-isolation *infrastructure* layer — sandbox internals (Seatbelt/bubblewrap, seccomp, network proxies), self-hosted sandboxes, and MCP tunnels — is a distinct topic not yet researched into this book. This chapter scopes the sandbox to its *authorization* implication (the permission-relaxer hinge); the infrastructure deep-dive is a flagged gap for a later round.
+The section above takes the containment picture only to its *authorization* implications (auto mode as a policy gate; the OS boundary as the load-bearing mechanism). The OS-isolation *infrastructure* itself — sandbox internals (seccomp, network proxies), self-hosted sandboxes, and MCP tunnels — remains a distinct topic not yet researched into this book, and is a flagged gap for a later round.
 
 ## Patterns
 
@@ -121,6 +139,7 @@ The OS-isolation *infrastructure* layer — sandbox internals (Seatbelt/bubblewr
 - **Sandbox = permission-relaxer:** a hard boundary makes loosening prompts safe; not complete isolation.
 - **Operational ≠ technical:** an instruction the agent can ignore is not a control.
 - **Reversibility is out-of-band:** git/dev-prod/backups; never trust the agent's "it's irreversible."
+- **Auto mode & containment:** a classifier gate scales policy (still ~17% slips); product-scale OS containment (sandboxes/VMs/egress) stays the load-bearing mechanism.
 
 ## Practice
 

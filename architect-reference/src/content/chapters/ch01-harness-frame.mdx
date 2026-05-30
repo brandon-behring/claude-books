@@ -36,6 +36,7 @@ import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise
 import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
 import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 
 <YouWillLearn prerequisites="You have built or used at least one agent — a coding agent, a chatbot with tools, a workflow. No Claude-specific knowledge assumed.">
 - The **thesis of this book** — what turns a model into an agent is engineering the two layers around it: the **environment** it acts in and the **context** it reasons over
@@ -156,6 +157,14 @@ This book takes two of the harness's layers — the **environment** and the **co
 - **Context rot** — the evidence that long windows degrade, and why that is the problem the rest answers.
 - **Context assembly** — the engineering response: caching, compaction, just-in-time loading, budgeting the window.
 - **Memory** — persisting context across sessions, and the anti-patterns that reintroduce the rot.
+
+<Figure
+  src="/figures/part-map/part-map.svg"
+  caption="The Part's shape: the environment (E1–E5) feeds the context-assembly boundary, which decides what crosses into the context (C1–C3). The C1→C2 arrow is the problem→response spine of the context half."
+  alt="Three columns. Left: an Environment box listing E1 Repo design, E2 CLAUDE.md, E3 Skills, E4 Guardrails, E5 At scale. Center: a context-assembly boundary labeled 'what crosses, and when'. Right: a Context group of three boxes — C1 Rot, C2 Assembly, C3 Memory. Thick arrows flow from Environment through the boundary to each context box; a curved arrow runs from C1 to C2 labeled 'problem to response'."
+  width="100%"
+  id="fig-part-map"
+/>
 
 A closing chapter composes all of it into one design workflow.
 

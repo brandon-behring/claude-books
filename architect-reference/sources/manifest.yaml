@@ -303,6 +303,15 @@
   tier: T3-practitioner
   tool: cross-tool
 
+- id: anthropic-containment
+  url: https://www.anthropic.com/engineering/how-we-contain-claude
+  title: How we contain Claude across products
+  author: Max McGuinness, Mikaela Grace, Jiri De Jonghe, Jake Eaton, and Abel Ribbink
+  publish_date: 2026-05-25
+  captured_at: 2026-05-29T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
 # --- Ch7 (Environments at Scale) — from the cross_domain dossier.
 
 - id: pan-monorepo
