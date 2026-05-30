@@ -7,8 +7,11 @@ Each cert domain × task area × which book/chapter covers it. Used during each 
 - 🟡 outlined
 - 🟢 in rewrite
 - ⬜ not yet covered
+- 📘 reference-altitude (Architect's Reference *Environment & Context* volume) — design/architecture treatment, not exam-prep framing
 
 The books target the publicly-known taxonomy. The confidential v0.1 PDF is internal research aid only; this matrix references the public 5-domain structure.
+
+**Architect's Reference — Environment & Context volume (shipped 2026-05-30, `architect-reference-v0`):** 11 chapters covering environment engineering (E1–E5) + context (rot / assembly / memory). It gives **reference-altitude** coverage (the `📘` cells below) — chiefly Domain 5 (context) and the Domain 3 design facets (CLAUDE.md, skills), plus the foundational *Agent = Model + Harness* frame behind Domain 1. It deliberately **precedes** the orchestration (D1 task areas) and tool/MCP (D2) volumes, which stay `⬜` — those are future Architect's Reference Parts.
 
 ## Domain 1 — Agentic Architecture & Orchestration (27%)
 
@@ -42,8 +45,8 @@ Primary owner: **handbook**. Cross-references: field-guide observations on CLAUD
 
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
-| CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | ⬜ | ⬜ |
-| Custom slash commands + skills (`.claude/commands/`, `.claude/skills/`) | 🟡 ch8 | ⬜ | ⬜ |
+| CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | 📘 ch4 (instruction layer) | ⬜ |
+| Custom slash commands + skills (`.claude/commands/`, `.claude/skills/`) | 🟡 ch8 | 📘 ch5 (skills) | ⬜ |
 | `.claude/rules/` with YAML glob path-scoping | 🟡 ch9 | ⬜ | ⬜ |
 | Plan mode vs direct execution | 🟡 ch3 | ⬜ | ⬜ |
 | Iterative refinement (concrete examples, test-driven, interview pattern) | 🟡 ch6, ch7 | ⬜ | ⬜ |
@@ -68,10 +71,10 @@ Cross-cutting; shared across all three books.
 
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
-| Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | ⬜ | ⬜ |
+| Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | 📘 ch8 (rot), ch9 (assembly) | ⬜ |
 | Escalation / ambiguity resolution patterns | 🟡 ch13 | ⬜ | ⬜ |
 | Error propagation across multi-agent systems (structured error context) | ⬜ | ⬜ (primary) | ⬜ |
-| Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | ⬜ | ⬜ |
+| Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 📘 ch7 (at scale), ch9 (compaction) | ⬜ |
 | Human review workflows + confidence calibration | ⬜ | ⬜ | ⬜ |
 | Information provenance (claim-source mappings, temporal data) | 🟡 ch6 (ADRs) | ⬜ | ⬜ |
 
