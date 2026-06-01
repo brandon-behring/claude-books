@@ -26,7 +26,7 @@ Primary owner: **architect-reference**. Cross-references: handbook ch on agents/
 | Subagent invocation (`Task` tool, `allowedTools`, `AgentDefinition`) | 🟡 ch10 (use) | 🟢 D1.3 (authored 2026-06-01) | ⬜ |
 | Multi-step workflows (programmatic vs prompt-based enforcement, handoff) | ⬜ | 🟢 D1.4 (authored 2026-06-01) | ⬜ |
 | Agent SDK hooks (`PostToolUse`, tool interception, normalization) | ⬜ | 🟢 D1.5 (authored 2026-06-01) | ⬜ |
-| Task decomposition (sequential pipelines vs adaptive decomposition) | 🟡 ch10 (delegation) | ⬜ (architecture) | ⬜ |
+| Task decomposition (sequential pipelines vs adaptive decomposition) | 🟡 ch10 (delegation) | 🟢 D1.6 (authored 2026-06-01) | ⬜ |
 | Session state (`--resume`, `fork_session`, scratchpads) | 🟡 ch5 (scratchpads) | ⬜ (`fork_session`) | ⬜ |
 
 ## Domain 2 — Tool Design & MCP Integration (18%)
