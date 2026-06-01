@@ -1,6 +1,8 @@
 # Cert book — Round 1 handoff (clean-session resume point)
 
-**Date:** 2026-06-01 · **Book:** `architect-reference/` (the **Cert** lens, CCA-F D1–D5) · **Status:** Round 1 — structure + conventions settled; **2 of ~30 chapters authored** (D1.1, D1.2); cert-guide-genre research done. Builds **8 pages**, `validate` clean, all on `main` (pushed, `origin/main` = `1bc91b4`).
+**Date:** 2026-06-01 · **Book:** `architect-reference/` (the **Cert** lens, CCA-F D1–D5) · **Status:** Round 1 — structure + conventions settled; **all of Part I authored (D1.1–D1.7, 7 of ~30 chapters)**; cert-guide-genre research done. Builds **13 pages**, `validate` clean, all on `main` (pushed).
+
+> **Update 2026-06-01 (later session):** D1.3–D1.7 authored end-to-end this session (Subagent Invocation · Multi-Step Workflows · Agent SDK Hooks · Task Decomposition · Session State) — **Part I (Domain 1) is now prose-complete**. The chapter template, the per-chapter loop, and the gotchas below all held verbatim and **still apply** to Parts II–V. **Next move = D2.1 Effective Tool Interfaces** (Part II / D2 · Tool Design & MCP, 18%). New finding: classify each chapter's `volatility` by claim-type (D1.5 Hooks shipped `feature-surface`, the rest `architectural-pattern`).
 
 > **Resume here for a clean/compacted session.** Supersedes the kickoff (`2026-06-01_cert-book-kickoff.md`, now historical). Canonical structure = [`architect-reference/OUTLINE.md`](../../architect-reference/OUTLINE.md). Canonical decisions = the live plan `~/.claude/plans/this-repo-has-gotten-humble-origami.md` + memory `project_cert_book.md`. The two authored chapters **are the template** — copy them.
 
@@ -35,11 +37,11 @@ Frontmatter (tools shape: `title, part, chapter, volatility, tools_compared, cer
 5. **Verify**: `npm -w architect-reference run build:labels && npm -w architect-reference run validate && npm -w architect-reference run build`. The full **build** catches MDX/enum issues that `validate` misses.
 6. **Commit** (`feat(architect-reference): …`) + push. The landing page needs no edit — it auto-groups by `part`.
 
-## Next chapters (OUTLINE Part I — D1, 27%)
+## Next chapters (Part I done → start Part II)
 
-- **D1.3 Subagent Invocation** (`Task` tool, `allowedTools`, `AgentDefinition`) — backbone `04-agent-sdk/docs-subagents`; the *mechanics* beneath D1.2's patterns. Natural next.
-- D1.4 Multi-Step Workflows · D1.5 Agent SDK Hooks · D1.6 Task Decomposition · D1.7 Session State (→ design ch10).
-- Then Parts II–V (D2–D5): currently one-line sketches in `OUTLINE.md`; detail each part's rows as you author into it.
+- ✅ **Part I complete:** D1.1–D1.7 authored, built (13 pages), committed, pushed. Domain-1 column of `docs/cert-coverage.md` is all 🟢.
+- **Next = D2.1 Effective Tool Interfaces** (Part II — D2 · Tool Design & MCP Integration, 18%). Backbone: `docs/research/{02-mcp-spec,03-advanced-tool-use,05-claude-api/docs-tool-use}`. Then D2.2–D2.5 (see `OUTLINE.md` Part II table; D2.5 Built-in Tools is REFERENCE→handbook).
+- Part II rows in `OUTLINE.md` are one-line sketches — detail each as you author into it, exactly as Part I did. The template, the per-chapter loop, and the gotchas below are unchanged.
 
 ## Gotchas
 

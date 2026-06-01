@@ -6,7 +6,7 @@
 
 **Backbone.** [`docs/research-program/`](../docs/research-program/) + the in-repo cache `docs/research/{02,03,04,05,06,07,08}`. **Coverage tracker:** [`docs/cert-coverage.md`](../docs/cert-coverage.md) — this outline is its architect-column source.
 
-**Status.** Round 1 — structure + 1 of ~30 chapters authored (**D1.1**). D1.2–D5.6 are placed but unauthored.
+**Status.** Round 1 — structure settled + **all of Part I authored (D1.1–D1.7, 13 pages, pushed)**. D2.1–D5.6 are placed but unauthored; **next = D2.1**.
 
 ---
 
