@@ -79,3 +79,22 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D1.3 (Subagent Invocation) — from the 04-agent-sdk cache.
+# agent-sdk-agent-loop (above, D1.1) is reused for the parent_tool_use_id rule.
+
+- id: agent-sdk-subagents
+  url: https://code.claude.com/docs/en/agent-sdk/subagents
+  title: Subagents in the SDK
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: agent-sdk-permissions
+  url: https://code.claude.com/docs/en/agent-sdk/permissions
+  title: Configure permissions
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

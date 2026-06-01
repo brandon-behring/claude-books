@@ -1,0 +1,138 @@
+---
+title: "Subagent Invocation: AgentDefinition, the Agent Tool, and allowedTools"
+part: 1
+chapter: 3
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - agent-sdk-subagents
+  - agent-sdk-permissions
+  - agent-sdk-agent-loop
+description: The mechanics beneath the coordinator–subagent pattern — how a subagent is actually invoked. The Agent tool and its three creation paths, the AgentDefinition contract, why "Agent" must be in allowedTools, the single prompt-string channel into a fresh context, and what a subagent does not inherit (including parent permissions).
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.2 (coordinator–subagent patterns). You understand that a subagent runs in its own isolated context window and returns a result to the coordinator.">
+- **Choose** among the three ways to create a subagent — programmatic, filesystem, and the built-in general-purpose agent
+- **Configure** an `AgentDefinition` — the required `description`/`prompt` contract and a scoped `tools` set
+- **Diagnose** why a defined subagent never gets invoked — the two top failure modes
+- **Write** the Agent-tool prompt that carries everything a fresh-context subagent needs, knowing what it does *not* inherit
+</YouWillLearn>
+
+_Chapter D1.2 established when to reach for a subagent and how to cut the work. This chapter drops one level — to the mechanics of actually defining and invoking one. The exam tests whether you can read an `AgentDefinition`, predict whether it will be invoked **at all**, and say what crosses the boundary into the subagent's fresh context — and what silently does not._
+
+## The Agent tool is the invocation surface
+
+A subagent is invoked through exactly one tool — the **Agent tool** — and there are three ways to give that tool something to invoke.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+<ConceptBox title="Three ways to create a subagent">
+- **Programmatic** — pass an `AgentDefinition` in the `agents` option of your query. **Recommended for SDK apps.**
+- **Filesystem** — drop a Markdown file in `.claude/agents/*.md`. Loaded at startup (restart to pick up new files).
+- **Built-in** — Claude can invoke a default `general-purpose` subagent through the Agent tool with **no definition at all**.
+</ConceptBox>
+
+One naming wrinkle is load-bearing on the exam and in tool-name filters. The tool was **renamed from `Task` to `Agent`** in Claude Code v2.1.63; current SDK releases emit `Agent` in `tool_use` blocks but still report `Task` in the `system:init` tools list and in `result.permission_denials[].tool_name`.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> Code that filters on the tool name must check **both** values.
+
+<MarginNote variant="tip" label="Tip">
+Exam reflex: "subagent invocation" = the **Agent** tool. If a filter only matches `"Task"` (or only `"Agent"`), it misses half the surface — match both.
+</MarginNote>
+
+## AgentDefinition is the subagent's contract
+
+When you create a subagent programmatically, its `AgentDefinition` is a contract with two **required** halves: a `description` that says *when* to use it and a `prompt` that says *how* it behaves.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> Everything else is optional refinement.
+
+| Field | Required | Purpose |
+|---|:---:|---|
+| `description` | yes | Natural-language *when to use this agent* — drives **automatic** matching |
+| `prompt` | yes | The agent's system prompt: its role and behavior |
+| `tools` | no | Allowed tool names; **omit to inherit all** of the parent's tools |
+| `model` | no | Model override (`sonnet` / `opus` / `haiku` / `inherit` / full ID) |
+| `maxTurns` | no | Cap the subagent's agentic turns (its own budget) |
+
+The `description` does double duty — it is also how Claude decides to invoke the agent automatically (below), so write it specific and keyword-rich rather than generic.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+<MarginNote variant="note" label="Note">
+Need more review? The full field set (`disallowedTools`, `model`, `skills`, `memory`, `mcpServers`, `effort`, `permissionMode`, `background`, …) lives in the Agent SDK reference — recognize the contract shape here, look up the long tail there.
+</MarginNote>
+
+## Enabling invocation: `Agent` in `allowedTools`
+
+A defined subagent will not run unless the Agent tool itself is approved. **Always include `"Agent"` in `allowedTools`** to auto-approve subagent invocations; without it, the call falls through to your `canUseTool` callback or — in `dontAsk` mode — is denied outright.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+<KeyIdea>
+A subagent passes through **two independent gates**. The `description` decides whether Claude *matches* the task to your agent; `allowedTools` decides whether the resulting Agent call is *allowed to run*. A perfect description with `Agent` un-allowed never executes; `Agent` allowed with a vague description never gets matched. You need **both**.
+</KeyIdea>
+
+<Pitfall title="The subagent that never delegates">
+When a defined subagent is ignored and the main agent just does the work inline, the cause is almost always one of two things: `"Agent"` is missing from `allowedTools` (so the call is never approved), or the `description` is too vague for the model to match the task to it. Check the gate and the description before touching the agent's prompt.
+</Pitfall>
+
+## The prompt string is the only channel in
+
+A subagent starts in a **fresh context window**, and the only thing that crosses from parent to child is the Agent tool's **prompt string**.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+> "A subagent's context window starts fresh (no parent conversation) but isn't empty. The only channel from parent to subagent is the Agent tool's prompt string, so include any file paths, error messages, or decisions the subagent needs directly in that prompt."<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+What that means concretely — the subagent **receives** its own system prompt (`AgentDefinition.prompt`), the Agent-tool prompt, the project CLAUDE.md (loaded via `settingSources`), and its tool definitions. It does **not** receive the parent's conversation or tool results, the parent's system prompt, or any preloaded skill content.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> Permissions are part of what does not cross: a subagent does **not** inherit the parent's permissions — each runs its own evaluation chain — so a tool the parent could use is not automatically usable by the child.<Tag kind="official" /><Citation src="agent-sdk-permissions" />
+
+<Pitfall title="Assuming the subagent can see the parent's context">
+A subagent told to "fix the bug we discussed" has no idea what was discussed — the parent conversation never crossed the boundary. File paths, error text, and prior decisions must be written **into the Agent-tool prompt** or they do not exist for the child.
+</Pitfall>
+
+## Invocation paths and the one-level limit
+
+Once `Agent` is allowed, a subagent is invoked one of two ways.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+- **Automatic** — Claude matches the subagent's `description` to the task. This is why the description must be specific and keyword-rich.
+- **Explicit** — name the agent in the prompt (*"Use the code-reviewer agent to check the auth module"*), bypassing automatic matching.
+
+There is a hard structural limit: **subagents cannot spawn subagents.** Don't include `Agent` in a subagent's `tools` array — delegation is one level deep.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> To attribute work to the right execution context, every message generated inside a subagent carries a **`parent_tool_use_id`** linking it back to the invoking Agent call.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+<Pitfall title="Putting Agent in a subagent's tools">
+This is an attempt to build a three-level hierarchy — coordinator → subagent → sub-subagent. The depth-1 limit means the nested Agent call won't produce a grandchild. If a task seems to need that depth, orchestrate the extra layer from the **parent**, not from inside a child.
+</Pitfall>
+
+## Practice
+
+<Exercise id="d1-03-ex-fix-delegation">
+You define a read-only `doc-reviewer` subagent via the `agents` option — `description: "Reviews things"`, `tools: ["Read", "Grep", "Glob"]` — but it never triggers; the main agent just reviews inline. The parent's `allowedTools` is `["Read", "Edit", "Bash"]`. Diagnose the **two** reasons it won't delegate, and give the fix for each. Is the `tools` array itself part of the problem?
+</Exercise>
+
+<Practice id="d1-03-pr-paths" difficulty="2">
+Without looking back: name the three ways to create a subagent, say which one the SDK docs recommend for SDK apps, and state in one clause why the built-in option needs no `AgentDefinition`.
+</Practice>
+
+<Practice id="d1-03-pr-scope" difficulty="3">
+You need a subagent that runs the test suite and reports failures — nothing else. Write its `tools` array, then name **two** things it will *not* inherit from the parent that must therefore travel in the Agent-tool prompt for it to succeed.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d1-03-ex-fix-delegation">
+**Two faults, neither in the `tools` array.** (1) `"Agent"` is not in the parent's `allowedTools`, so the Agent-tool call is never auto-approved — it falls through to `canUseTool` (or is denied in `dontAsk`). **Fix:** add `"Agent"` to `allowedTools`. (2) `description: "Reviews things"` is too vague for automatic matching — descriptions must be specific and keyword-rich so Claude maps the task to the agent. **Fix:** rewrite it (e.g. *"Review Markdown/docs for accuracy, broken links, and stale references; read-only"*), or invoke the agent explicitly by name to bypass matching. The `tools: ["Read", "Grep", "Glob"]` set is exactly right for read-only review — leave it. (Note the two faults map to the two gates: `allowedTools` is the *run* gate, the `description` is the *match* gate.)
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **One tool, three creation paths:** subagents are invoked via the **Agent** tool (renamed from `Task` — filters must match both), created **programmatically** (`agents` option, recommended), via **filesystem** (`.claude/agents/*.md`), or as the **built-in** `general-purpose` agent.
+- **`AgentDefinition` = `description` + `prompt`** (both required); `tools`/`model`/`maxTurns` optional. The `description` drives automatic matching, so make it keyword-rich.
+- **`Agent` must be in `allowedTools`** or the subagent never runs. Two gates: description *matches*, `allowedTools` *runs*.
+- **The prompt string is the only inbound channel.** A subagent gets a fresh context — no parent conversation, no parent system prompt, no preloaded skills — but does get project CLAUDE.md + its tools. **Permissions do not inherit**; each subagent has its own evaluation chain.
+- **Delegation is one level deep:** subagents cannot spawn subagents (no `Agent` in a child's `tools`); `parent_tool_use_id` attributes a message to its subagent.
