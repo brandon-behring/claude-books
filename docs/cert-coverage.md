@@ -24,7 +24,7 @@ Primary owner: **architect-reference**. Cross-references: handbook ch on agents/
 | Agentic loops (`stop_reason`, tool result handling) | ⬜ | 🟢 D1.1 (primary, authored 2026-06-01) | ⬜ |
 | Coordinator-subagent patterns (hub-and-spoke, isolated context) | 🟡 ch10 (use-side) | 🟢 D1.2 (authored 2026-06-01) | ⬜ |
 | Subagent invocation (`Task` tool, `allowedTools`, `AgentDefinition`) | 🟡 ch10 (use) | 🟢 D1.3 (authored 2026-06-01) | ⬜ |
-| Multi-step workflows (programmatic vs prompt-based enforcement, handoff) | ⬜ | ⬜ (primary) | ⬜ |
+| Multi-step workflows (programmatic vs prompt-based enforcement, handoff) | ⬜ | 🟢 D1.4 (authored 2026-06-01) | ⬜ |
 | Agent SDK hooks (`PostToolUse`, tool interception, normalization) | ⬜ | ⬜ (primary) | ⬜ |
 | Task decomposition (sequential pipelines vs adaptive decomposition) | 🟡 ch10 (delegation) | ⬜ (architecture) | ⬜ |
 | Session state (`--resume`, `fork_session`, scratchpads) | 🟡 ch5 (scratchpads) | ⬜ (`fork_session`) | ⬜ |

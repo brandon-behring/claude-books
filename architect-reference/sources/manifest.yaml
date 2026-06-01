@@ -98,3 +98,14 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D1.4 (Multi-Step Workflows) — Writer/Reviewer + handoff.
+# agent-sdk-overview, when-to-use-multi-agent, multi-agent-research-system reused.
+
+- id: claude-code-best-practices
+  url: https://code.claude.com/docs/en/best-practices
+  title: Best practices for Claude Code
+  author: Anthropic
+  captured_at: 2026-05-23T00:00:00Z
+  tier: T1-official
+  tool: claude-code

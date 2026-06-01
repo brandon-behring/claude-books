@@ -1,0 +1,123 @@
+---
+title: "Multi-Step Workflows: Programmatic vs Prompt-Based Handoff"
+part: 1
+chapter: 4
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - agent-sdk-overview
+  - claude-code-best-practices
+  - when-to-use-multi-agent
+  - multi-agent-research-system
+description: A multi-step task's control flow is enforced either in your code (programmatic) or in the model (prompt-based). When to choose each, why every step boundary is a handoff that leaks fidelity, the Writer/Reviewer pattern as the handoff that works, and how a task-description contract makes a handoff survivable.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapters D1.1 (the loop) and D1.3 (subagent invocation). You can invoke a subagent and know that only the prompt string crosses into it.">
+- **Compare** the two places a multi-step workflow's control flow can live — in your code (programmatic) or in the model (prompt-based)
+- **Analyze** why every step boundary is a *handoff*, and where fidelity leaks across one
+- **Evaluate** when to enforce a workflow programmatically versus trusting the model to follow it
+- **Design** a handoff contract — objective, output format, boundaries — that survives the crossing
+</YouWillLearn>
+
+_Most real agent work is several steps, not one. The question this chapter answers is not *what* the steps are but *who enforces the order* — your application code, or the model itself. That choice, and how you design the handoff between steps, is an **Evaluate**-level judgment: the exam gives you a workflow and asks where the control flow belongs and why._
+
+## Two places to enforce a workflow
+
+A multi-step workflow's control flow lives in exactly one of two places. Either **your code** drives the sequence — run a step, take its output, decide the next call — or **the model** drives it, having been told the steps in a prompt. The Agent SDK frames the split directly: "With the Client SDK, you implement a tool loop. With the Agent SDK, Claude handles it."<Tag kind="official" /><Citation src="agent-sdk-overview" />
+
+<ConceptBox title="Programmatic vs prompt-based enforcement">
+- **Programmatic** — your application owns the steps. You sequence the calls, pass each output to the next stage, and can insert validation gates between them. Deterministic and auditable.
+- **Prompt-based** — the model owns the steps. One agent is told the whole procedure (or an orchestrator self-directs), and you trust it to follow. Flexible and adaptive.
+</ConceptBox>
+
+These are not rival products — Anthropic notes the same workflow "translate[s] directly" between the CLI and the SDK.<Tag kind="official" /><Citation src="agent-sdk-overview" /> The architect's decision is *which layer holds the control flow*, and it turns on how much the workflow needs determinism versus flexibility.
+
+## Every step boundary is a handoff
+
+Whichever layer enforces the steps, each transition between them is a **handoff** — the output of step *N* becomes the input of step *N+1* — and a handoff is where information is lost. Chapter D1.2 named the worst case: dividing a tightly-coupled task by role (planner → implementer → tester → reviewer) "creates constant coordination overhead and context loss at handoffs — the telephone game," spending more tokens coordinating than executing.<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
+
+The lesson for *workflow design* is that prompt-based handoffs across a long sequential chain are the most fidelity-fragile arrangement: each step re-narrates the last, and detail erodes at every retelling.
+
+<Pitfall title="A sequential chain of role-agents">
+A pipeline of one-job agents passing work down the line *looks* like clean separation of concerns, but every arrow is a lossy handoff. If the steps share state, keep them in one context; reserve cross-agent handoffs for boundaries where little context needs to travel.
+</Pitfall>
+
+## The Writer/Reviewer handoff that works
+
+Not every handoff leaks — the canonical multi-step quality workflow depends on one. In the **Writer/Reviewer** pattern, one session implements and a *second* reviews: "A fresh context improves code review since Claude won't be biased toward code it just wrote."<Tag kind="official" /><Citation src="claude-code-best-practices" /> Session A writes the rate limiter; Session B reviews the file for edge cases, race conditions, and consistency; Session A then addresses the feedback. The same shape works for tests — "have one Claude write tests, then another write code to pass them."<Tag kind="official" /><Citation src="claude-code-best-practices" />
+
+<KeyIdea>
+Here the *absence* of inheritance is the feature. The reviewer's value comes from **not** carrying the writer's context — it cannot rationalize choices it never made. A handoff that deliberately drops context (fresh-context review) and one that accidentally drops it (the telephone game) differ only in whether the loss was the point.
+</KeyIdea>
+
+<Pitfall title="Letting the author review its own work">
+A single agent asked to review the code it just wrote is the biased case the Writer/Reviewer pattern exists to avoid. Hand the review to a fresh context — a second session, or a verification subagent (D1.3) in its own window — not back to the writer.
+</Pitfall>
+
+## Designing the handoff contract
+
+When work *does* cross a boundary, what crosses must be specified, not assumed. Anthropic's research system makes each handoff an explicit contract: "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries."<Tag kind="official" /><Citation src="multi-agent-research-system" /> That is the same discipline as D1.3's rule that everything the subagent needs goes *in the prompt* — applied to every step of a multi-step flow.
+
+<MarginNote variant="tip" label="Tip">
+A good handoff contract — objective, output format, boundaries — makes a handoff survivable regardless of who enforces the workflow. Vague handoffs are where both programmatic and prompt-based pipelines fail.
+</MarginNote>
+
+A precise contract is what lets a programmatic pipeline insert a *validation gate* between steps (reject a malformed output before the next stage consumes it) and what lets a prompt-based flow be followed at all.
+
+## Choosing where the control flow lives
+
+The Evaluate-level call: **enforce programmatically** when the workflow needs determinism, an audit trail, validation gates between steps, or a fixed and repeatable sequence — the steps are known in advance and you want them to run the same way every time. **Stay prompt-based** when the path is flexible, the model can sensibly self-direct, and the orchestration code would cost more than it saves.
+
+This pairs with two neighboring decisions: whether to split into multiple agents at all (D1.2) and whether the decomposition is a fixed pipeline or an adaptive one (D1.6). Enforcement locus is *how* the steps are driven; those chapters cover *whether* and *into what shape*.
+
+<MarginNote variant="note" label="Note">
+Need more review? The fixed-vs-adaptive *structure* of a multi-step task is D1.6 (Task Decomposition); whether to involve more than one agent is D1.2. This chapter is the enforcement axis only.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d1-04-ex-pipeline">
+A content workflow runs four steps — research → draft → fact-check → polish — today as a single agent in one context. Quality is slipping specifically at the fact-check step: the agent waves through claims it wrote moments earlier. Evaluate two options: (a) keep it one prompt-based agent, or (b) hand the fact-check to a fresh-context reviewer with an explicit programmatic handoff. Which do you choose, where exactly do you place the split, and what would over-splitting into four role-agents cost you?
+</Exercise>
+
+<Practice id="d1-04-pr-enforce" difficulty="3">
+In one sentence each, distinguish programmatic from prompt-based workflow enforcement, and name one condition under which each is the right choice.
+</Practice>
+
+<Practice id="d1-04-pr-fresh" difficulty="2">
+Without looking back: in the Writer/Reviewer pattern, why must the reviewer *not* inherit the writer's context — and what bias does that prevent?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d1-04-ex-pipeline">
+**Choose (b), but split at one boundary only.** The fact-check is failing for the exact reason the Writer/Reviewer pattern addresses — a context biased toward the draft it just produced rationalizes its own claims. Hand the fact-check to a **fresh context** (a second session or a verification subagent), passing an explicit handoff contract: the draft, the claims to verify, the success criteria, the output format. That is a programmatic handoff — your code routes the draft to the reviewer and the verdict back.
+
+Keep **research → draft coupled** in one context: they are tightly coupled and share state, so a handoff there would only leak fidelity. And do **not** split all four steps into role-agents (researcher/drafter/checker/polisher) — that is the telephone-game pipeline, four lossy handoffs where you needed one. The skill is placing the *single* split where fresh context buys independence, not maximizing the number of agents.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Two enforcement loci:** a multi-step workflow's control flow lives in **your code** (programmatic — you sequence steps, gate between them; deterministic/auditable) or **the model** (prompt-based — told the steps, self-directs; flexible).
+- **Every step boundary is a handoff**, and handoffs leak. A sequential chain of role-agents is the most fidelity-fragile arrangement — the telephone game.
+- **Writer/Reviewer is the handoff that works** *because* the reviewer has fresh context — it can't defend code it never wrote. Don't let an author review its own work.
+- **A handoff contract** — objective, output format, boundaries — makes any handoff survivable and lets a programmatic pipeline add validation gates.
+- **Choose programmatic** for determinism / audit / validation gates / fixed sequence; **prompt-based** for flexible self-direction. (Whether to split = D1.2; pipeline vs adaptive = D1.6.)
