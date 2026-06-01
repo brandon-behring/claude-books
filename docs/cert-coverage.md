@@ -21,7 +21,7 @@ Primary owner: **architect-reference**. Cross-references: handbook ch on agents/
 
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
-| Agentic loops (`stop_reason`, tool result handling) | ⬜ | ⬜ (primary) | ⬜ |
+| Agentic loops (`stop_reason`, tool result handling) | ⬜ | 🟢 D1.1 (primary, authored 2026-06-01) | ⬜ |
 | Coordinator-subagent patterns (hub-and-spoke, isolated context) | 🟡 ch10 (use-side) | ⬜ (architecture) | ⬜ |
 | Subagent invocation (`Task` tool, `allowedTools`, `AgentDefinition`) | 🟡 ch10 (use) | ⬜ (design) | ⬜ |
 | Multi-step workflows (programmatic vs prompt-based enforcement, handoff) | ⬜ | ⬜ (primary) | ⬜ |

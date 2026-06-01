@@ -10,9 +10,12 @@ the extraction cheap, so the decoupling doesn't silently rot.
 
 ## Why it's a one-day move
 
-- **0 cross-refs in.** No other book XRefs into this one. The cert-aligned `architect-reference`
-  points *outward* to this book; nothing points back.
-  Verify: `grep -rn "agentic-systems-design" ../handbook ../architect-reference`.
+- **0 inbound `<XRef>` (prose links only).** No other book `<XRef>`s into this one — cross-book
+  `<XRef>` is not even possible (separate Astro apps; see `../docs/scaffold-gaps.md` + scaffold #96).
+  The cert-aligned `architect-reference` points *outward* to this book via plain **prose** links
+  (e.g. its D1.1 links to ch01). Those create **no build-time dependency back** and do not block
+  extraction — on extraction they repoint to this book's published URL (the cert book's concern).
+  Verify: `grep -rn "<XRef" ../architect-reference/src/content/chapters` → none (prose links aren't XRefs).
 - **0 cross-refs out.** No `<XRef>`-to-handbook (`OUTLINE.md`: "Standalone (decided)"). The book
   assumes a model + harness and develops the environment + context layers around them.
   Verify: `grep -rn "<XRef" src/content/chapters/` → none.

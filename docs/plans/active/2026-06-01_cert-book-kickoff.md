@@ -4,9 +4,11 @@
 
 > Resume point for the cert book. The structural plan is [`architect-reference/OUTLINE.md`](../../architect-reference/OUTLINE.md); this doc adds the **open decisions + gotchas** a planning round needs. Scope context: [`docs/BOOK-MAP.md`](../BOOK-MAP.md). Authoring a 5-domain book is big → expect a fresh **plan-mode round** (3–5 clarifying questions) before writing.
 
+> **✅ RESOLVED 2026-06-01 (Round 1).** The plan-mode round happened; all 5 open decisions below are settled and the first exemplar chapter (**D1.1 Agentic Loops**) is authored + builds. Genre = **hybrid** (reference prose + exam apparatus); structure = **task-area→chapter, domain→Part** with per-part `D{p}.{c}` numbering; coverage = **complete ~30-ch exam map**; exam-pedagogy research = **start now + tracked dossier** ([claude-books #9](https://github.com/brandon-behring/claude-books/issues/9)); cross-book links = **prose** (not `<XRef>`; [scaffold #96](https://github.com/brandon-behring/book-scaffold-astro/issues/96)). Live record: `~/.claude/plans/this-repo-has-gotten-humble-origami.md` + `OUTLINE.md`.
+
 ## Setup (do first)
 
-- **Add `BOOK_PROFILE=tools` to `architect-reference/.env`.** The design book has it; the cert skeleton lacks it → currently `profile=minimal`, so `validate` won't enforce the tools frontmatter (`cert_domains`, `tools_compared`). *The assistant is permission-blocked from `.env` files — the user creates this one line.*
+- **~~Add `BOOK_PROFILE=tools` to `architect-reference/.env`.~~ CORRECTED 2026-06-01.** This claim was **wrong**: `schemas.ts` aliases `minimalChapterSchema = toolsChapterSchema`, and the profile defaults to `minimal`, so the cert book enforces the **same** required chapter frontmatter (`volatility`, `tools_compared`, …) with or without the `.env` line — proven by D1.1 building + validating clean at `profile=minimal`. (`cert_domains` isn't in *either* schema; it's stripped, not enforced — same as the design book.) `BOOK_PROFILE=tools` remains a *recommended parity step* (chrome islands + tools chapter-index route), **not** a prerequisite. *The assistant is permission-blocked from `.env`; the user adds it when convenient.*
 
 ## Domain map (weights + build-vs-reference; full detail in `OUTLINE.md`)
 
