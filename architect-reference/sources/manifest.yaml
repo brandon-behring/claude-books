@@ -58,3 +58,24 @@
   captured_at: 2026-05-27T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D1.2 (Coordinator–Subagent Patterns) — from the 06-multi-agent-patterns cache.
+# building-effective-agents (above) is reused.
+
+- id: multi-agent-research-system
+  url: https://www.anthropic.com/engineering/multi-agent-research-system
+  title: How we built our multi-agent research system
+  author: Anthropic
+  publish_date: 2025-06-13
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: when-to-use-multi-agent
+  url: https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them
+  title: "Building multi-agent systems: When and how to use them"
+  author: Anthropic
+  publish_date: 2026-01-23
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

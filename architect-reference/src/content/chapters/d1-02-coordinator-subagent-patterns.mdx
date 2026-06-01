@@ -1,0 +1,133 @@
+---
+title: "Coordinator–Subagent Patterns: Hub-and-Spoke and Isolated Context"
+part: 1
+chapter: 2
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - multi-agent-research-system
+  - when-to-use-multi-agent
+  - building-effective-agents
+description: The coordinator–subagent (orchestrator-worker) pattern — a lead agent that decomposes a task and spawns isolated-context subagents. When the pattern earns its 3–10x token cost, why decomposition must split by context and not by role, and the one multi-agent pattern that works across domains.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.1 (the agent loop). You have run at least one agent and understand that each agent reasons over a finite context window.">
+- **Describe** the coordinator–subagent (orchestrator-worker) pattern and the property that defines it — **isolated context**
+- **Decide** when the pattern earns its 3–10× token cost, using the three win-conditions (context protection, parallelization, specialization)
+- **Distinguish** context-centric decomposition from the role-based anti-pattern that loses information at every handoff
+- **Select** the verification-subagent pattern — the one multi-agent shape that holds up across domains
+</YouWillLearn>
+
+_Once the agent loop of D1.1 can run tools, the next architectural question is whether to run **more than one agent**. This chapter develops the canonical multi-agent shape — a coordinator that spawns isolated subagents — and, just as importantly, the discipline of **not** reaching for it. The exam tests judgment here: when the pattern wins, how to cut the work, and which single variant is reliable._
+
+## The orchestrator and its workers
+
+The canonical multi-agent shape is **hub-and-spoke**: a lead agent analyzes the task, plans a strategy, and spawns subagents that explore parts of it independently.<Tag kind="official" /><Citation src="multi-agent-research-system" /> The lead synthesizes their results and decides whether more work is needed — it is an orchestrator, and the subagents are workers.
+
+<ConceptBox title="Coordinator–subagent (orchestrator-worker)">
+A **lead agent** decomposes a task, dispatches **subagents** (each with its own objective, tools, and context window), and integrates their returned results. The coordinator owns planning and synthesis; the subagents own focused execution.
+</ConceptBox>
+
+This is a real architecture with measured stakes, not a toy. Anthropic's research system, built this way with a lead plus parallel subagents, outperformed a strong single agent by **90.2%** on its internal eval — but multi-agent systems also use roughly **15× the tokens of a chat**, and token usage alone explains about **80%** of the performance variance.<Tag kind="official" /><Citation src="multi-agent-research-system" />
+
+<KeyIdea>
+The coordinator–subagent pattern buys capability by spending tokens. Its power and its cost come from the same source — more agents doing more work in parallel — so the architect's real decision is not *how* to build it but *whether* the task justifies it.
+</KeyIdea>
+
+## Isolated context is the whole point
+
+The property that defines the pattern is that **each subagent runs in its own context window and does not see the parent's state.**<Tag kind="official" /><Citation src="multi-agent-research-system" /> A subagent is given a task and returns a result; the intermediate tokens it generates never touch the coordinator's window. That isolation is the feature: it keeps a subtask's noise out of the agent that has to reason over the whole problem.
+
+Because results must cross a context boundary, large outputs use the **artifacts pattern** — a subagent writes its full output to the filesystem or external storage and passes a lightweight *reference* back, rather than streaming everything through the coordinator.<Tag kind="official" /><Citation src="multi-agent-research-system" /> The coordinator stays lean; the high-fidelity output lives outside its window until needed.
+
+<MarginNote variant="tip" label="Tip">
+On the exam, "isolated context window" and "does not see parent state" are the phrases that identify a subagent — distinct from a tool call, which returns directly into the calling agent's context.
+</MarginNote>
+
+## When the pattern earns its cost
+
+Because multi-agent costs **3–10× the tokens** of a single agent for an equivalent task, the official guidance leads with restraint: "Start with the simplest approach that works, and add complexity only when evidence supports it."<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> Try improved prompting, context compaction, and the Tool Search Tool on one agent first.
+
+Reach for coordinator–subagent only when one of three conditions holds:<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
+
+| Win condition | The signal | What it buys |
+|---|---|---|
+| **Context protection** | A subtask generates large, mostly-irrelevant intermediate data (>1000 tokens) that would pollute the main agent's reasoning | A clean main-agent window |
+| **Parallelization** | Genuinely independent paths to explore concurrently | **Thoroughness, not speed** (coordination often makes wall-clock slower) |
+| **Specialization** | Tool-set overload (avoid 20+ tools on one agent), conflicting personas, or deep domain expertise | Focused agents that outperform an overloaded generalist |
+
+<Pitfall title="Reaching for multi-agent before trying the cheap fixes">
+Teams "invest months building elaborate multi-agent architectures only to discover that improved prompting on a single agent achieved equivalent results." Before splitting: can better prompting, compaction, or the Tool Search Tool (a large tool-count reducer) solve it on one agent? If yes, stay single-agent.
+</Pitfall>
+
+## Decompose by context, not by role
+
+When you *do* split, **how** you cut the work is the most-tested judgment in this domain — and the most common way to get it wrong. The anti-pattern is **role-based / problem-centric decomposition**: planner → implementer → tester → reviewer. It feels organized but "creates constant coordination overhead and context loss at handoffs — the telephone game," spending more tokens coordinating than executing.<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
+
+The reliable alternative is **context-centric** decomposition: split only at *true context boundaries*.
+
+<ConceptBox title="Context-centric vs role-based">
+**Split** along independent research paths, separate components with clean interfaces, or blackbox verification — work that shares little state. **Keep together** tightly-coupled work or anything needing shared state. If a "subagent" would need the parent's working context to do its job, the boundary is synthetic.
+</ConceptBox>
+
+<Pitfall title="Splitting a pipeline into role-agents">
+planner/implementer/tester/reviewer is sequential phases of one tightly-coupled task — exactly the split that loses fidelity at each handoff. It is not a context boundary. Decompose by *what context is independent*, not by *what step comes next*.
+</Pitfall>
+
+## The verification subagent
+
+One multi-agent shape "consistently succeeds across domains": the **verification subagent**.<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> The main agent does the work; a separate agent **blackbox-tests** the result with clear success criteria and minimal context transfer. The isolation is the strength — the verifier has no stake in, and no memory of, how the work was produced.
+
+Its failure mode is **early victory**: verifiers tend to declare success after one or two checks. The documented mitigation is an explicit instruction — "You MUST run the complete test suite before marking as passed."<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
+
+The deeper *environment* angle on isolation — how bounding what each agent loads is the same discipline that makes a large codebase legible — is developed in the companion volume: see the *Agentic Systems Design* book, Chapter 7, [*Environments at Scale*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch07-environment-at-scale.mdx).
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d1-02-ex-decide">
+A support agent has 40 tools spanning CRM, order history, messaging, and analytics, and its accuracy on multi-step tickets is falling. A teammate proposes splitting it into four subagents: *intake*, *diagnosis*, *resolution*, *follow-up*. Walk the decision framework: is multi-agent warranted here, and if so, is this the right way to cut it? State the win-condition (if any) and name the anti-pattern (if any).
+</Exercise>
+
+<Practice id="d1-02-pr-decompose" difficulty="3">
+Without looking back: a colleague says "we split by role — planner, implementer, tester, reviewer — for clean separation of concerns." Name the failure mode this invites, the metaphor the guidance uses for it, and the one-sentence rule for where you *should* place a split instead.
+</Practice>
+
+<Practice id="d1-02-pr-cost" difficulty="2">
+Multi-agent parallelization is described as buying "thoroughness, not speed." In one or two sentences, explain why total latency often *rises* despite running subagents in parallel — and name the rough token multiplier you are paying for that thoroughness.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d1-02-ex-decide">
+**Multi-agent is plausibly warranted — for *specialization* — but the proposed split is the role-based anti-pattern.** The real signal is **tool-set overload** (40 tools on one agent; the guidance says avoid 20+ and prefer focused agents). So the justified cut is by **tool/domain context** — e.g. a CRM-and-orders agent vs a messaging-and-analytics agent — each carrying a focused tool set. The proposed *intake → diagnosis → resolution → follow-up* split is **problem-centric**: those are sequential phases of one tightly-coupled ticket, so they would lose fidelity at every handoff (the telephone game) and add coordination cost. Decompose by what context is independent (tool domains), not by what step comes next. And first confirm the Tool Search Tool alone can't relieve the tool overload on a single agent.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Coordinator–subagent = hub-and-spoke:** a lead agent decomposes, spawns subagents, and synthesizes; subagents run in **isolated context windows** and do not see parent state.
+- **Isolation is the feature** (context protection); large outputs use the **artifacts pattern** — write to storage, pass a reference back.
+- **Cost is 3–10× tokens.** Start single-agent; reach for multi-agent only for **context protection, parallelization, or specialization**.
+- **Decompose by context, not role.** planner/implementer/tester/reviewer is the telephone-game anti-pattern; split at true context boundaries (independent paths, clean-interface components, blackbox verification).
+- **The verification subagent is the reliable variant** — blackbox-test the result; mitigate early victory with "run the complete test suite before marking as passed."

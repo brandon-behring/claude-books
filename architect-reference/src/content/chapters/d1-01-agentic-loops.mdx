@@ -118,14 +118,6 @@ The design rationale for that inner/outer split — why owning the loop boundary
 Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
 </MarginNote>
 
-## Exam essentials
-
-- **The loop has one branch:** `stop_reason: "tool_use"` → run tools, return `tool_result`, request again; `end_turn` → stop.
-- **A turn = one tool-use round-trip.** The final text-only response does not count against `max_turns`.
-- **`stop_reason` values to recognize:** `tool_use` (continue), `end_turn` (stop), `max_tokens` (truncated — maybe continue), `refusal` (non-answer).
-- **Termination is yours to set:** `max_turns` + `max_budget_usd`; on exhaustion the `ResultMessage.subtype` becomes an `error_*` value and `.result` is empty.
-- **Check `subtype` before reading `.result`** — every error subtype leaves `.result` unpopulated.
-
 ## Practice
 
 <Exercise id="d1-01-ex-trace">
@@ -147,3 +139,11 @@ You are designing a coding agent that occasionally loops re-reading the same fil
 </Solution>
 
 </ExerciseSolutions>
+
+## Exam essentials
+
+- **The loop has one branch:** `stop_reason: "tool_use"` → run tools, return `tool_result`, request again; `end_turn` → stop.
+- **A turn = one tool-use round-trip.** The final text-only response does not count against `max_turns`.
+- **`stop_reason` values to recognize:** `tool_use` (continue), `end_turn` (stop), `max_tokens` (truncated — maybe continue), `refusal` (non-answer).
+- **Termination is yours to set:** `max_turns` + `max_budget_usd`; on exhaustion the `ResultMessage.subtype` becomes an `error_*` value and `.result` is empty.
+- **Check `subtype` before reading `.result`** — every error subtype leaves `.result` unpopulated.
