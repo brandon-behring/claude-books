@@ -1,5 +1,60 @@
 # sources/manifest.yaml — captured sources for The Claude Architect's Reference (cert-aligned, tools profile).
-# Top-level YAML array of source objects (see the handbook's manifest for the entry shape).
-# Cited inline via <Citation src="id" />; built into src/data/references.json by `book-scaffold build-bib`.
-# Empty for now — citations land as the D1–D5 chapters are authored. Backbone: docs/research-program/.
-[]
+# Top-level YAML array of source objects; cited inline via <Citation src="id" />; built into
+# src/data/references.json by `book-scaffold build-bib`. Backbone: docs/research-program/ + docs/research/.
+# tier ∈ T1-official | T2-release-notes | T3-practitioner | T4-conjecture
+# tool ∈ claude-code | gemini-cli | codex-cli | cross-tool
+#
+# NOTE (HITL per AUTHORS.md): URLs + dates are dossier-verified (in-repo strict-live cache);
+# re-confirm before promoting a citing chapter to "validated".
+
+# --- D1.1 (Agentic Loops) — from the agent-sdk + claude-api cache.
+
+- id: agent-sdk-agent-loop
+  url: https://code.claude.com/docs/en/agent-sdk/agent-loop
+  title: How the agent loop works
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-tool-use
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview
+  title: Tool use with Claude
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: building-effective-agents
+  url: https://www.anthropic.com/engineering/building-effective-agents
+  title: Building effective agents
+  author: Erik Schluntz and Barry Zhang
+  publish_date: 2024-12-19
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: agent-sdk-overview
+  url: https://code.claude.com/docs/en/agent-sdk/overview
+  title: Agent SDK overview
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: building-agents-with-the-sdk
+  url: https://claude.com/blog/building-agents-with-the-claude-agent-sdk
+  title: Building agents with the Claude Agent SDK
+  author: Thariq Shihipar et al.
+  publish_date: 2025-09-29
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: how-claude-code-works
+  url: https://code.claude.com/docs/en/how-claude-code-works
+  title: How Claude Code works
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code

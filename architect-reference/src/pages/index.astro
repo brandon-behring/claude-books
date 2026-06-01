@@ -2,22 +2,51 @@
 import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
 import { getCollection } from 'astro:content';
 
+// The cert book is organized by CCA-F domain: domain → Part, task area → chapter.
+// `part` (1–5) = domain number; `chapter` = part-relative (resets per part); display "D{part}.{chapter}".
+// The scaffold's default index is flat — this landing groups by Part. (Logged as a
+// scaffold-gap observation: a part-grouped TOC helper. See docs/scaffold-gaps.md.)
+const PARTS = [
+  { part: 1, domain: 'D1', title: 'Agentic Architecture & Orchestration', weight: '27%' },
+  { part: 2, domain: 'D2', title: 'Tool Design & MCP Integration', weight: '18%' },
+  { part: 3, domain: 'D3', title: 'Claude Code Configuration & Workflows', weight: '20%' },
+  { part: 4, domain: 'D4', title: 'Prompt Engineering & Structured Output', weight: '20%' },
+  { part: 5, domain: 'D5', title: 'Context Management & Reliability', weight: '15%' },
+];
+
 const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
-chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
+const byPart = (p) =>
+  chapters
+    .filter((c) => (c.data.part ?? 0) === p)
+    .sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
 ---
 <Base title="The Claude Architect's Reference (Cert-Aligned)" description="The cert-aligned volume of the claude-books series — mapped to Anthropic's Claude Certified Architect — Foundations domains D1–D5. References the Agentic Systems Design book for design depth.">
   <article class="prose">
     <h1>The Claude Architect's Reference</h1>
     <p class="subtitle"><em>Cert-Aligned — Claude Certified Architect: Foundations (D1–D5)</em></p>
 
-    <p>This volume maps 1:1 to Anthropic's <strong>Claude Certified Architect — Foundations</strong> five-domain taxonomy. It is exam-prep altitude: it owns the cert spine and points outward to the <strong>Agentic Systems Design</strong> book where a domain needs design depth.</p>
+    <p>This volume maps 1:1 to Anthropic's <strong>Claude Certified Architect — Foundations</strong> five-domain taxonomy. It is exam-prep altitude: authoritative reference prose wrapped in light exam apparatus (objectives, watch-outs, self-checks), pointing outward to the <strong>Agentic Systems Design</strong> book where a domain needs design depth.</p>
+
+    <h2>Domains</h2>
+    {PARTS.map((p) => {
+      const chs = byPart(p.part);
+      return (
+        <section>
+          <h3>Part {p.part} · {p.domain} — {p.title} <small>({p.weight})</small></h3>
+          {chs.length === 0
+            ? <p><em>No chapters authored yet — see <code>OUTLINE.md</code>.</em></p>
+            : <ul>{chs.map((c) => (
+                <li>
+                  <a href={`/chapters/${c.id}/`}>
+                    <strong>{p.domain}.{c.data.chapter}</strong> {c.data.title}
+                  </a>
+                </li>
+              ))}</ul>}
+        </section>
+      );
+    })}
 
     <h2>Status</h2>
-    <p>Skeleton — the five-domain outline is in <code>OUTLINE.md</code>; chapters are authored in a later round. See <code>docs/BOOK-MAP.md</code> for how this book relates to the others.</p>
-
-    <h2>Chapters</h2>
-    {chapters.length === 0
-      ? <p><em>No chapters yet — see <code>OUTLINE.md</code> for the D1–D5 plan.</em></p>
-      : <ul>{chapters.map((c) => (<li><a href={`/chapters/${c.id}/`}>{c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}</a></li>))}</ul>}
+    <p>Round 1 — structure + the first exemplar chapter (<strong>D1.1</strong>) are in place; the remaining ~29 chapters replicate that template. The full D1–D5 plan is in <code>OUTLINE.md</code>; see <code>docs/BOOK-MAP.md</code> for how this book relates to the others.</p>
   </article>
 </Base>

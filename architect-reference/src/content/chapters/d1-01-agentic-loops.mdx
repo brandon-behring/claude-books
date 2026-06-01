@@ -1,0 +1,149 @@
+---
+title: "Agentic Loops: stop_reason and Tool-Result Handling"
+part: 1
+chapter: 1
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - anthropic-tool-use
+  - agent-sdk-agent-loop
+  - building-effective-agents
+  - agent-sdk-overview
+  - building-agents-with-the-sdk
+  - how-claude-code-works
+description: The first chapter of Domain 1 and the substrate the rest of the book assumes — the agent loop as a control structure whose branch condition is stop_reason. The tool-use round-trip, the turn model, termination budgets, and the stop_reason values an architect must recognize, framed for the exam.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="You can call the Claude Messages API (or the Agent SDK) and have seen a tool definition. No orchestration experience assumed.">
+- **Trace** one full pass of the agent loop: the `tool_use` → execute → `tool_result` round-trip, and the condition that ends it
+- **Distinguish** a *turn* from an API request, and predict how `max_turns` counts
+- **Identify** each `stop_reason` value and say what it means for whether the loop continues
+- **Design** a termination policy (`max_turns` / `max_budget_usd` + a `subtype` check) that fails safe
+</YouWillLearn>
+
+_Domain 1 is the largest slice of the exam, and this chapter is its floor: every later topic — subagents, workflows, hooks, session state — is a variation on the loop defined here. The exam tests whether you can read the loop's control flow, not whether you can recite an SDK signature. This chapter develops the loop as a control structure, names the `stop_reason` values that branch it, and fixes the termination contract an architect owns._
+
+## The loop is a control structure
+
+An agent is a model running tools in a loop — "an LLM autonomously using tools in a loop"<Tag kind="official" /><Citation src="building-effective-agents" /> — and the loop has exactly one branch condition. At the Messages API level, Claude returns `stop_reason: "tool_use"` together with one or more `tool_use` blocks; your application executes each call and returns `tool_result` blocks on the next user turn.<Tag kind="official" /><Citation src="anthropic-tool-use" /> The loop repeats that exchange until Claude responds *without* a tool call.
+
+<ConceptBox title="The tool-use round-trip">
+1. Send `tools` + the user message.
+2. Claude returns **`stop_reason: "tool_use"`** + a `tool_use` block (`id`, `name`, `input`).
+3. Your code executes the call.
+4. The next request appends the assistant turn (echoing the `tool_use`) and a user turn carrying `tool_result` blocks (`{type, tool_use_id, content, is_error?}`).
+5. Repeat until **`stop_reason: "end_turn"`**.
+</ConceptBox>
+
+The architectural point is that *the model decides what happens next, but your code decides whether it gets to.* Tool use is "one of the highest-leverage primitives you can give an agent,"<Tag kind="official" /><Citation src="anthropic-tool-use" /> and the loop is where that leverage is either contained or left unbounded. Owning the loop — not authoring any single tool — is the orchestration discipline the rest of Domain 1 elaborates.
+
+## A turn is one tool-use round-trip
+
+The word *turn* has a precise meaning, and the exam leans on it. A turn is "one round trip inside the loop: Claude produces output that includes tool calls, the SDK executes those tools, and the results feed back to Claude automatically … Turns continue until Claude produces output with no tool calls."<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> The Agent SDK embeds this loop for you — it ships "the same tools, agent loop, and context management that power Claude Code"<Tag kind="official" /><Citation src="agent-sdk-overview" /> — so at the SDK level you observe messages, not the raw branch.
+
+The consequence that trips candidates: **a text-only final response is not a turn.** A four-message session is three tool-use turns plus one final text answer, so `max_turns=2` would stop *before* that final step.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+<MarginNote variant="tip" label="Tip">
+Exam reflex: count turns by tool-use round-trips, not by API requests or messages. The final text answer never counts against `max_turns`.
+</MarginNote>
+
+<Pitfall title="Assuming max_turns counts the final answer">
+Setting `max_turns` to the number of *messages* you expect off-by-ones every budgeted agent. The limit counts tool-use round-trips; size it to the tool calls a task needs, then add headroom — the final text response is free.
+</Pitfall>
+
+## stop_reason is the branch
+
+Because `stop_reason` is the loop's branch condition, recognizing each value — and its loop consequence — is core exam material. On a `ResultMessage`, `stop_reason` carries the value from the model's last response.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+| `stop_reason` | What it means | Loop consequence |
+|---|---|---|
+| `tool_use` | The response contains tool calls | **Continue** — execute tools, return `tool_result`, request again |
+| `end_turn` | The model finished naturally, no tool calls | **Stop** — deliver the final result |
+| `max_tokens` | Output hit the token budget mid-response | Stop, but the answer is **truncated** — you may need to continue |
+| `refusal` | The model declined to generate | Stop — handle as a non-answer, not a result |
+
+<MarginNote variant="note" label="Note">
+The full Messages API set includes further values (e.g. `stop_sequence`, `pause_turn`); confirm the current list against the API reference before relying on one in production. Knowing *where* the authoritative list lives is itself an exam-useful habit.
+</MarginNote>
+
+<Pitfall title="Not branching on tool_use">
+If your client treats every response as a final answer, it silently drops the model's tool calls and the agent never acts. The first thing a hand-written loop must do is check `stop_reason == "tool_use"` and route to tool execution before reading any text.
+</Pitfall>
+
+## Termination is the architect's safety contract
+
+A model-driven loop that can run forever is a production incident waiting to happen, so the architect supplies the stop conditions the model cannot. The SDK exposes two budgets: `max_turns` (a turn count) and `max_budget_usd` (a client-side cost estimate). Hitting either ends the loop and sets `ResultMessage.subtype` to `error_max_turns` or `error_max_budget_usd`.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+The `subtype` is the termination indicator, and it gates whether `.result` is even populated:
+
+| `subtype` | Meaning | `.result`? |
+|---|---|---|
+| `success` | Normal finish | yes |
+| `error_max_turns` | Hit `max_turns` | no |
+| `error_max_budget_usd` | Hit `max_budget_usd` | no |
+| `error_during_execution` | API / cancellation error | no |
+| `error_max_structured_output_retries` | JSON-Schema validation failed past the retry limit | no |
+
+<Pitfall title="Reading .result before checking subtype">
+On every error subtype, `.result` is empty. Code that prints `message.result` without first checking `subtype == "success"` reports a blank "answer" on a budget exhaustion or execution error — a silent failure that hides the real outcome. Branch on `subtype` first, always.
+</Pitfall>
+
+<KeyIdea>
+The model owns *what to try next*; the architect owns *whether the loop may continue and how it ends*. A safe agent pairs a `max_turns` / `max_budget_usd` budget with a `subtype`-first result check — so exhaustion is reported, never mistaken for an answer.
+</KeyIdea>
+
+## Where Claude Code's loop sits
+
+Claude Code is one concrete harness around this loop — its "agentic loop is powered by two components,"<Tag kind="official" /><Citation src="how-claude-code-works" /> the model reasoning and the tools acting, with tools as "the primary building blocks of execution."<Tag kind="official" /><Citation src="building-agents-with-the-sdk" /> For the exam, treat the loop in this chapter as the *inner* cycle; a long-running harness wraps it in an *outer* cycle that carries state across many context windows.
+
+The design rationale for that inner/outer split — why owning the loop boundary is what makes a harness a harness — is developed in the companion volume rather than repeated here: see the *Agentic Systems Design* book, Chapter 1, [*Agent = Model + Harness*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch01-harness-frame.mdx).
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Exam essentials
+
+- **The loop has one branch:** `stop_reason: "tool_use"` → run tools, return `tool_result`, request again; `end_turn` → stop.
+- **A turn = one tool-use round-trip.** The final text-only response does not count against `max_turns`.
+- **`stop_reason` values to recognize:** `tool_use` (continue), `end_turn` (stop), `max_tokens` (truncated — maybe continue), `refusal` (non-answer).
+- **Termination is yours to set:** `max_turns` + `max_budget_usd`; on exhaustion the `ResultMessage.subtype` becomes an `error_*` value and `.result` is empty.
+- **Check `subtype` before reading `.result`** — every error subtype leaves `.result` unpopulated.
+
+## Practice
+
+<Exercise id="d1-01-ex-trace">
+A session runs: (1) Claude calls `Read`; (2) Claude calls `Grep`; (3) Claude calls `Edit`; (4) Claude returns a text summary with no tool call. How many *turns* is this? What is the `stop_reason` on the final response, and what is the smallest `max_turns` that still lets the session finish?
+</Exercise>
+
+<Practice id="d1-01-pr-stop-reasons" difficulty="2">
+Without looking back, list the four `stop_reason` values from this chapter and, for each, state in one clause whether the loop continues or stops — and if it stops, whether the output is usable as-is.
+</Practice>
+
+<Practice id="d1-01-pr-termination" difficulty="3">
+You are designing a coding agent that occasionally loops re-reading the same files. Write a two-sentence termination policy: which budget(s) you set and why, and how your result-handling code distinguishes a real answer from a budget exhaustion. Name the exact field you check first.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d1-01-ex-trace">
+**Three turns.** Turns count tool-use round-trips: `Read`, `Grep`, `Edit` are turns 1–3; the final text summary is not a turn. The final response's `stop_reason` is **`end_turn`** (no tool call). The smallest budget that still finishes is **`max_turns = 3`** — it permits the three tool-use turns, and the free final text answer follows. `max_turns = 2` would stop before the `Edit`.
+</Solution>
+
+</ExerciseSolutions>
