@@ -1,10 +1,11 @@
 # claude-books — working conventions
 
-A three-volume series + shared glossary. Each book covers Claude from a different angle:
+A multi-book series + shared glossary. Each book covers Claude from a different angle (canonical scopes: [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md)):
 
-- **handbook/** — how to *use* Claude effectively
-- **architect-reference/** — how to *design* Claude-powered systems (Agent SDK + MCP + API)
-- **field-guide/** — what teams actually *did* (audit of 67 production repos)
+- **handbook/** — how to *use* Claude effectively (the **Use** book)
+- **architect-reference/** — the **Cert** book: cert-aligned to *Claude Certified Architect — Foundations* (D1–D5)
+- **agentic-systems-design/** — the **Design** book: engineering the *environment* + *context* around an agent (env+context, 11 ch)
+- **field-guide/** — what teams actually *did* (audit of 67 production repos; the **Observe** book)
 - **glossary/** — shared terminology, deep-linked by all books
 
 Current project roadmap lives at `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md`.
@@ -47,7 +48,7 @@ The confidential v0.1 PDF in this repo (`instructor_..._Claude+Certified+Archite
 
 ```bash
 npm install                  # at repo root
-cd handbook && npm run dev   # localhost:4321 — only book currently active
+cd handbook && npm run dev   # localhost:4321  (or: npm -w agentic-systems-design run dev)
 ```
 
 ## Licensing

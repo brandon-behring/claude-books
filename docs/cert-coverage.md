@@ -7,11 +7,13 @@ Each cert domain × task area × which book/chapter covers it. Used during each 
 - 🟡 outlined
 - 🟢 in rewrite
 - ⬜ not yet covered
-- 📘 reference-altitude (Architect's Reference *Environment & Context* volume) — design/architecture treatment, not exam-prep framing
+- 📘 reference-altitude (now the *Agentic Systems Design* book) — design/architecture treatment, not exam-prep framing
 
 The books target the publicly-known taxonomy. The confidential v0.1 PDF is internal research aid only; this matrix references the public 5-domain structure.
 
-**Architect's Reference — Environment & Context volume (shipped 2026-05-30, `architect-reference-v0`):** 11 chapters covering environment engineering (E1–E5) + context (rot / assembly / memory). It gives **reference-altitude** coverage (the `📘` cells below) — chiefly Domain 5 (context) and the Domain 3 design facets (CLAUDE.md, skills), plus the foundational *Agent = Model + Harness* frame behind Domain 1. It deliberately **precedes** the orchestration (D1 task areas) and tool/MCP (D2) volumes, which stay `⬜` — those are future Architect's Reference Parts.
+> **2026-06-01 reorg note.** The 11-ch *Environment & Context* volume is now its own book, **Agentic Systems Design** (formerly inside `architect-reference`). In this matrix: the **`Architect's Ref` column = the cert-aligned book** (D1–D5, mostly `⬜` — to build); the **`📘` cells = reference-altitude coverage that now lives in *Agentic Systems Design*** (ch4/ch5 instruction-layer + skills for D3; rot/assembly/memory/guardrails for D5; the *Agent = Model + Harness* frame behind D1). A dedicated "Agentic Design" column is deferred until the cert chapters are authored. See [`BOOK-MAP.md`](./BOOK-MAP.md).
+
+**Agentic Systems Design — Environment & Context (11 ch, shipped 2026-05-30):** environment engineering (E1–E5) + context (rot / assembly / memory) at reference altitude. The cert-aligned Architect's Reference XRefs into it where D1/D3/D5 need design depth.
 
 ## Domain 1 — Agentic Architecture & Orchestration (27%)
 

@@ -1,23 +1,25 @@
 # claude-books
 
-The Astro/MDX home for a three-volume **Claude practitioner reference**, plus a shared glossary. All four members consume [`@brandon_m_behring/book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro).
+The Astro/MDX home for a multi-book **Claude reference** — Use / Cert / Design / Observe — plus a shared glossary. All members consume [`@brandon_m_behring/book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro). See [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md) for the canonical scopes.
 
 ## Workspace members
 
-| Member | Source | Profile | Status |
+| Member | Lens | Source | Status |
 |---|---|---|---|
-| [`handbook/`](./handbook/) | rewrite of [`claude-best-practices`](https://github.com/brandon-behring/claude-best-practices) (LaTeX, v2.9 sunset) | `tools` | Phase 0 done · outline next |
-| `architect-reference/` *(planned)* | from scratch, cert-aligned | TBD | Phase 2 |
-| `field-guide/` *(planned)* | rewrite of [`claude-code-field-guide`](https://github.com/brandon-behring/claude-code-field-guide) | `research-portfolio` | Phase 4 |
-| `glossary/` *(planned)* | shared terminology, deep-linked by all books | n/a | Phase 0.7 |
+| [`handbook/`](./handbook/) | **Use** | rewrite of [`claude-best-practices`](https://github.com/brandon-behring/claude-best-practices) (LaTeX, v2.9 sunset) | v1.0 prose (5 ch) |
+| [`architect-reference/`](./architect-reference/) | **Cert** | from scratch, cert-aligned (CCA-F D1–D5) | slot + D1–D5 outline |
+| [`agentic-systems-design/`](./agentic-systems-design/) | **Design** | from strict-live research dossiers | 11 ch (Environment & Context) |
+| `field-guide/` *(planned)* | **Observe** | rewrite of [`claude-code-field-guide`](https://github.com/brandon-behring/claude-code-field-guide) | Phase 4 |
+| `glossary/` *(planned)* | **Vocab** | shared terminology, deep-linked by all books | Phase 0.7 |
 
 ## What this is
 
-Three paired volumes, each from a different angle on Claude Code and the surrounding agent stack:
+The books, each from a different angle on Claude Code and the surrounding agent stack:
 
-- **Handbook** — *how to use Claude effectively.* The practitioner's guide.
-- **Architect's Reference** — *how to design Claude-powered systems.* Agent SDK, MCP, the Claude API, and production patterns. Aligned to (but deeper than) Anthropic's Claude Certified Architect — Foundations competency model.
-- **Field-Guide** — *what teams actually did.* An empirical audit of 67 production Claude Code repos.
+- **Handbook** — *how to use Claude effectively.* The practitioner's guide. (**Use**)
+- **The Claude Architect's Reference** — *the cert-aligned volume.* Maps 1:1 to Anthropic's Claude Certified Architect — Foundations domains (D1–D5); points into Agentic Systems Design for design depth. (**Cert**)
+- **Agentic Systems Design** — *engineering the environment + context around an agent.* The design discipline — formerly the env+context volume inside Architect's Reference. (**Design**)
+- **Field-Guide** — *what teams actually did.* An empirical audit of 67 production Claude Code repos. (**Observe**)
 
 All three are **free, CC BY 4.0** living documents (semver per book, per-chapter `last_updated`, RSS, changelog, "Edit this page" → PR).
 
