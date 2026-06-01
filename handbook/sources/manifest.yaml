@@ -1,5 +1,6 @@
 # sources/manifest.yaml — captured sources for the tools-profile dashboard.
-# Each entry is read by <SourceArchive> and the convergence page.
+# Each entry is read by <SourceArchive> and the convergence page, and cited
+# inline via <Citation src="id" /> (sidenote by default; as="inline" for in-sentence).
 #
 # Format: top-level YAML array of source objects. Each entry needs an
 # explicit `id` (used as the citation key in <Citation src="id" />),
@@ -8,10 +9,97 @@
 #     url: https://example.com
 #     title: Example source
 #     author: Author Name
-#     publish_date: 2025-01-01
+#     publish_date: 2025-01-01        # unquoted — sourcesSchema uses z.date()
 #     captured_at: 2026-05-19T00:00:00Z
 #     tier: T1-official          # T1-official | T2-release-notes | T3-practitioner | T4-conjecture
 #     tool: claude-code           # claude-code | gemini-cli | codex-cli | cross-tool
 #
+# NOTE (HITL per AUTHORS.md §"No final acceptance of any factual claim"): the
+# entries below are provisional. URLs + publish dates need human verification
+# against the primary sources before the citing chapter is promoted to validated.
+#
 # See https://github.com/brandon-behring/book-scaffold-astro/blob/v3.0/PACKAGE_DESIGN.md
-[]
+
+- id: claude-code-overview
+  url: https://code.claude.com/docs/en/overview
+  title: Claude Code overview
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-building-effective-agents
+  url: https://www.anthropic.com/engineering/building-effective-agents
+  title: Building Effective Agents
+  author: Anthropic
+  publish_date: 2024-12-19
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-best-practices
+  url: https://www.anthropic.com/engineering/claude-code-best-practices
+  title: "Claude Code: Best practices for agentic coding"
+  author: Anthropic
+  publish_date: 2025-04-18
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-memory
+  url: https://code.claude.com/docs/en/memory
+  title: "Manage Claude's memory (CLAUDE.md)"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-settings
+  url: https://code.claude.com/docs/en/settings
+  title: Claude Code settings and permissions
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-interactive-mode
+  url: https://code.claude.com/docs/en/interactive-mode
+  title: "Claude Code interactive mode (keyboard shortcuts)"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-permission-modes
+  url: https://code.claude.com/docs/en/permissions
+  title: "Claude Code permission modes (Plan Mode)"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-common-workflows
+  url: https://code.claude.com/docs/en/common-workflows
+  title: Common workflows with Claude Code
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# --- Appended for Ch 4 (Working Productively). PROVISIONAL — see HITL note above. ---
+
+- id: anthropic-prompt-engineering-xml-tags
+  url: https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags
+  title: "Use XML tags to structure your prompts"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-choosing-a-model
+  url: https://docs.claude.com/en/docs/about-claude/models/choosing-a-model
+  title: "Choosing the right model"
+  author: Anthropic
+  captured_at: 2026-05-25T00:00:00Z
+  tier: T1-official
+  tool: claude-code

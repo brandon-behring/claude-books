@@ -1,0 +1,187 @@
+schema_version: "1.0"
+kind: topic-backlog
+generated_at: "2026-05-26"
+note: >
+  Append-only candidate sub-topics surfaced from the two launchpad docs (compass +
+  Environment-Engineering-and-Context-Assembly deep-dive). These are finer than the v0
+  taxonomy nodes; they become sub-areas (claim families) inside a topic's strict-live
+  research_plan, or promote to their own node if the KG shows they deserve it. NOT yet
+  researched. The pilot + breadth scan will confirm/merge/split these.
+  v1 (2026-05-26): 'Academy courses' is treated as a SOURCE (seeds/bib), not a topic node.
+  'Skills & progressive disclosure' was promoted to a node (env-skills). The six ctx-assembly
+  sub-topics below are the PILOT dossier's confirmed sub-areas — promoted to graph nodes
+  post-pilot once the research reveals the real boundaries.
+
+candidates:
+  # --- Context & Assembly (pilot region — richest) ---
+  - id: kv-cache-stability
+    parent: ctx-assembly
+    label: "KV-cache stability (the assembly invariant)"
+    seed: "deep-dive §1.2 (Manus/Ji; cache-killers table; Sinha experiment)"
+    note: "Likely a core sub-area of the context-assembly dossier, not its own node."
+  - id: compaction-strategies
+    parent: ctx-assembly
+    label: "Compaction strategies + tradeoffs"
+    seed: "deep-dive §1.6 (summarize/evict/offload; v2.1.62 stale-prefix bug; init.sh+progress-file)"
+  - id: positional-bias-recitation
+    parent: ctx-assembly
+    label: "Positional bias + the recitation pattern"
+    seed: "deep-dive §1.7 (Liu lost-in-the-middle; ManyIFEval/IFScale; Manus recitation)"
+  - id: instruction-budget
+    parent: ctx-assembly
+    label: "Instruction budget (the 150–200 folk figure)"
+    seed: "deep-dive §1.7 (caveated; ManyIFEval/IFScale)"
+  - id: prompt-caching-economics
+    parent: ctx-assembly
+    status: covered
+    label: "Prompt-caching economics (TTL, cache-write vs read)"
+    seed: "deep-dive §1.2 (5-min TTL, 1-hour cache, cache-lookback gotcha)"
+    note: "Covered (Wave 6, 2026-05-27) as the `kv_cache_economics` family of the ops_cost dossier — 1.25× cache-write / 0.1× cache-read / 5-min TTL anchored verbatim from the Anthropic prompt-caching doc (shared with context_assembly's `cache_stability`). The book treatment is the cost lens; the assembly lens stays in context_assembly."
+  - id: filesystem-as-state
+    parent: ctx-assembly
+    label: "Filesystem as state / context offload"
+    seed: "deep-dive §1.6/§1.10 (Manus; LangChain write/select/compress/isolate)"
+
+  # --- Tools & MCP ---
+  - id: code-execution-with-mcp
+    parent: mcp-design
+    label: "Code-execution-with-MCP (search_tools, on-demand load)"
+    seed: "deep-dive §1.9/2.6 (Anthropic Nov-2025 direction)"
+  - id: mcp-primitives-resources-vs-tools
+    parent: mcp-design
+    status: covered
+    label: "MCP primitives: resources-vs-tools anti-pattern"
+    seed: "deep-dive §1.9 (tools-for-static-data anti-pattern; Apigene audit)"
+    note: "Covered (Wave 4, 2026-05-27) as the `primitives` family of the mcp_design dossier — tools are model-controlled, resources application-driven, prompts user-controlled (claim_mcp_design_0101/0104/0106); the control-mode distinction is the design answer to the resources-vs-tools anti-pattern."
+
+  # --- Environment Engineering ---
+  - id: progressive-disclosure-skills
+    parent: env-skills
+    status: promoted-to-node
+    label: "Skills + progressive disclosure (3 levels)"
+    seed: "deep-dive §3.3 (Anthropic Skills guide, Jan-2026)"
+    note: "Promoted to its own node (env-skills) in taxonomy v1; sub-topics here become its dossier sub-areas."
+  - id: hooks-composition
+    parent: cc-internals
+    label: "Hooks/permissions/skills/commands composition"
+    seed: "deep-dive §2.5 (deterministic command hooks; composition pattern)"
+  - id: structural-fitness-tests
+    parent: env-failure-breadcrumbs
+    status: covered
+    label: "Tests/types/schemas as computational sensors (ArchUnit-style)"
+    seed: "deep-dive §2.8 (Boeckeler computational sensors)"
+    note: "Covered (Wave 1) as the `structural_fitness` claim-family of the repo_design dossier (Böckeler harness/sensors atoms claim_repo_design_0201–0205), not env-failure-breadcrumbs."
+  - id: twelve-factor-agents
+    parent: harness-frame
+    label: "12-Factor Agents + the 'dumb zone' / 40% threshold"
+    seed: "deep-dive §3.5 (HumanLayer/Dex Horthy)"
+    note: "Parent harness-frame went strict-live (Wave 5, 2026-05-27) but took only the vocabulary-crystallization PROVENANCE arc (Karpathy/Hashimoto/Trivedy, claim_harness_frame_0201–0204, dated-provenance-not-definition). The 12-Factor-Agents list + the 'dumb zone'/40% threshold (HumanLayer/Dex Horthy) were NOT anchored — still open. To promote: gather the 12-Factor primary and anchor the specific factors/threshold verbatim (D1 — mint new atoms)."
+
+  # --- Agents & Orchestration ---
+  - id: deep-agents-pattern
+    parent: agent-multipatterns
+    label: "Deep-agents pattern (planner + sub-agents + filesystem)"
+    seed: "deep-dive §3.5 (LangChain/Harrison Chase)"
+    note: "Parent agent-multipatterns went strict-live (Wave 5, 2026-05-27), but its scope was topologies + when-not-to + the role-decomposition anti-pattern (orchestrator-worker) — the LangChain/Harrison-Chase deep-agents pattern (planner + sub-agents + filesystem) was NOT covered. Still open. To promote: gather the deep-agents primary (D1 — mint new atoms)."
+  - id: agentic-engineering-vibe-coding
+    parent: harness-frame
+    status: partial
+    label: "Agentic engineering vs vibe coding (Karpathy, Dec-2025)"
+    seed: "both docs (Sequoia AI Ascent 2026; floor-vs-ceiling)"
+    note: "Partially covered (Wave 5, 2026-05-27): the harness_frame `provenance` family anchored Karpathy's 'Decade of Agents' framing (claim_harness_frame_0201, 2025-06-17, dated-provenance-not-definition, T3 transcript-mirror). The 'agentic engineering vs vibe coding' / floor-vs-ceiling THESIS itself was not anchored. To complete: gather a Karpathy primary for the floor-vs-ceiling argument (D1 — mint new atoms)."
+
+  # --- Reliability ---
+  - id: self-hosted-sandboxes-mcp-tunnels
+    parent: rel-sandboxes
+    label: "Self-hosted sandboxes + MCP tunnels (2026 shift)"
+    seed: "deep-dive §2.7/3.1 (Code with Claude London, May-2026; beta)"
+    note: "Wave 2 (2026-05-26): the guardrails dossier took the permission-relaxer HINGE only (Claude Code sandbox mode + auto-allow as a permission move, claim_guardrails_0101–0107). This candidate remains the deferred INFRASTRUCTURE work for the ops-sandboxes node — OS-isolation internals (Seatbelt/bubblewrap), self-hosted Managed Agents sandboxes + launch-partner ecosystem, and MCP tunnels (2 escalate_to_manual rows in research_agent_guardrails/gather_trace.yml mark the seam)."
+
+  # --- Evaluation ---
+  - id: llm-as-judge-calibration
+    parent: eval-harnesses
+    status: covered
+    label: "LLM-as-judge calibration (epochs, standard errors)"
+    seed: "compass §5.6 + Anthropic statistical-approach-to-evals (T1)"
+    note: "Covered (Wave 3, 2026-05-27) as the `llm_judge_calibration` family of the eval_harnesses dossier — Anthropic statistical-approach (2024) epochs/standard-errors + Inspect `--epochs` mechanism + Zheng LLM-judge agreement (claim_eval_harnesses_0101–0105)."
+
+  # --- Security / supply-chain (surfaced Wave 3) ---
+  - id: agent-skills-wild-prevalence
+    parent: ops-security
+    label: "Malicious-skill / MCP-server prevalence (registry-scan primary)"
+    seed: "Agent Skills in the Wild (arXiv:2601.10338, Liu et al. 2026-01): 5.2% high-severity / malicious-intent, 26.1% contain ≥1 vulnerability"
+    note: "Surfaced Wave 3 (2026-05-27) as the citable PRIMARY that should replace the escalated launchpad folk figure ('~12–20% malicious skills' — no primary on disk; quarantined in research_agent_ops_security, asserted nowhere). To promote: anchor its ACTUAL figures verbatim in an ops_security revision (D5 — mint new atoms); never assert the folk band."
+
+  # --- surfaced Wave 4 (2026-05-27) ---
+  - id: mcp-rc-2026-final-deep-pass
+    parent: mcp-design
+    label: "MCP 2026-07-28 RC final: MCP Apps (SEP-1865) template/security model, ext-tasks lifecycle, Extensions framework (SEP-2133)"
+    seed: "mcp_design Wave 4 (2026-05-27): the `spec_evolution` family anchored the RC's ANNOUNCED changes (announced-not-current, stale_after→2026-07-28, claim_mcp_design_0201–0207)."
+    note: "When the RC goes final (2026-07-28), do a deep pass on the MCP Apps template/security model + the ext-tasks server-driven lifecycle + the Extensions framework, and supersede the coming-atoms (D5 — mint new atoms, tombstone via superseded_by). The dual-layer freshness convention will have already flagged these for recheck."
+  - id: advanced-tool-use-effect-sizes
+    parent: tool-minimization
+    label: "Advanced tool use effect sizes (Tool Search token reduction; MCP-eval accuracy delta)"
+    seed: "tool_minimization Wave 4: the Anthropic 'advanced tool use' post (Nov 2025) reports ~85% token reduction + an Opus-4.5 MCP-eval 79.5%→88.1% — ESCALATED, not laundered (effect sizes outside the dossier's anchored scope)."
+    note: "To promote: gather that post as a primary and anchor the two figures verbatim (they corroborate syn_tool_minimization_04 on-demand loading). 1 escalate_to_manual row in research_agent_tool_minimization/gather_trace.yml marks the seam."
+  - id: agent-skills-adoption-prevalence
+    parent: env-skills
+    label: "Agent Skills ADOPTION prevalence in the wild (distinct from malicious-skill prevalence)"
+    seed: "env_skills Wave 4: no clean first-party primary for skills adoption/usage-in-the-wild (only uncitable third-party aggregators); escalated, nothing laundered."
+    note: "Distinct from `agent-skills-wild-prevalence` above (that is the MALICIOUS-skill figure, parented to ops-security). Revisit if Anthropic publishes adoption statistics; until then no number is assertable."
+
+  # --- surfaced Wave 5 (2026-05-27) ---
+  - id: harness-engineering-vocabulary-settling
+    parent: harness-frame
+    label: "Harness-engineering vocabulary still settling (coinage churn 2025–2026)"
+    seed: "harness_frame Wave 5: the `provenance` family anchored the dated crystallization arc (Karpathy 'Decade of Agents' 2025-06-17 → Anthropic adopts 'harness' 2025-11-26 → Hashimoto coins 'harness engineering' 2026-02-05 → Trivedy 'Agent = Model + Harness' 2026-03-10) as dated-provenance-not-definition."
+    note: "The vocabulary is mid-crystallization — coinages are generalized, not asserted as fixed (the load-bearing definition is the T1 frame, claim_harness_frame_0001). VOLATILE: recheck the term landscape as it settles; new coinages may supersede the provenance atoms (D1 — mint new atoms, tombstone via superseded_by). Most provenance sources are T2/T3 dated history (stable tier), but the FRAME itself may get a cleaner T1 statement."
+  - id: anthropic-vs-cognition-multiagent-tension
+    parent: agent-multipatterns
+    label: "Anthropic orchestrator-worker vs Cognition 'don't build multi-agents' tension"
+    seed: "multi_agent Wave 5: the dossier preserves the tension UNFLATTENED — Anthropic's multi-agent-research system (orchestrator-worker works) vs Cognition's 'Don't Build Multi-Agents' (context-sharing/decision-conflict argues against) carried as two framings, not reconciled."
+    note: "Deliberately NOT resolved — both positions are anchored and the disagreement is itself the finding (a `<Tag kind=\"...\">` *tension* to present honestly, not a convergence). Revisit if a tie-breaking primary or measured comparison lands; until then present both. The book treatment is to teach the decision boundary, not to pick a winner."
+  - id: agent-framework-landscape-volatility
+    parent: harness-buildvsbuy
+    label: "Agent-framework landscape volatility (Agent SDK / LangGraph / managed agents churn)"
+    seed: "harness_buildvsbuy Wave 5: the `framework_landscape` family anchored the current build-vs-buy options; CoVe corrected the managed-agents authorship — the landscape moves fast."
+    note: "FAST-MOVING: the framework set + their capabilities churn quarterly; the decision-criteria atoms are stable but specific framework claims need periodic re-verification. Recheck on each Agent-SDK / LangGraph / managed-agents release that changes the build-vs-buy calculus."
+  - id: agent-capabilities-emergence-scaling
+    parent: agent-capabilities
+    status: covered
+    label: "Agent capabilities / emergence / scaling (background for the harness spine)"
+    seed: "capabilities_scaling orphan dossier (built May-20 pre-wave, re-verified v2.5.0): scaling behaviour + emergence-vs-measurement debate + capability trajectory."
+    note: "Covered (Wave 5, 2026-05-27) by bridging the orphan dossier into a new POSITIONED node `agent-capabilities` (11 sources, 14 atoms, citation-clean). Orthogonal BACKGROUND — the Model half of Agent = Model + Harness, not a how-to topic; positioned (mapped, not active frontier). Re-verify the scaling/emergence claims as the debate moves; volatility evolving."
+
+  # --- surfaced Wave 6 (2026-05-27) ---
+  - id: ops-cost-per-mtok-dollar-pricing
+    parent: ops-cost
+    label: "Per-MTok dollar pricing (exact Haiku/Sonnet/Opus + cache-write/read $)"
+    seed: "ops_cost Wave 6: the per-model per-MTok dollar prices on the Anthropic pricing page could NOT be cleanly extracted (HTML table-cell splitting fragmented the numbers); the synthesis states the Haiku<Sonnet<Opus ladder qualitatively, nothing laundered."
+    note: "Per-MTok dollars are intentionally UN-ANCHORED — no exact price asserted (the cache-write 1.25× / cache-read 0.1× MULTIPLIERS are anchored; the base dollar figures are not). To promote if a chapter needs exact dollars: re-gather the pricing page with a parser that survives the table-cell split (or anchor a PDF/screenshot primary) and mint per-model atoms (D5). VOLATILE: prices change — recheck after 2026-06-26 regardless."
+  - id: otel-genai-semconv-stabilization
+    parent: ops-observability
+    label: "OpenTelemetry GenAI semantic conventions stabilization (Development → Stable)"
+    seed: "ops_observability Wave 6: the OTel GenAI semantic conventions are anchored at Status: **Development** (announced-not-stable) — the trace/span attribute names may change before they stabilize."
+    note: "ANNOUNCED-NOT-STABLE: the GenAI semconv attribute set is mid-flight; the observability atoms cite it as Development-status. Recheck when the convention reaches Stable — the specific attribute names (and any rename of the conventions themselves) may supersede the current atoms (D5 — mint new atoms, tombstone via superseded_by). Pairs with the live `/cost`→`/usage` command rename already noted in the dossier."
+  - id: ops-cost-pricing-volatile-recheck
+    parent: ops-cost
+    label: "ops_cost pricing/economics volatile recheck (model tiers, cache multipliers, batch discount)"
+    seed: "ops_cost Wave 6: prompt-cache multipliers (1.25×/0.1×), the 5-min TTL, the 50% batch discount, and the model-tier ladder are all vendor-published figures that move."
+    note: "VOLATILE — recheck **after 2026-06-26**. The cache multipliers / TTL / batch discount / tier ladder are anchored to the current Anthropic docs+pricing; re-verify on the next pricing or prompt-caching-doc revision. (Same recheck window as the Wave-2 Mem0 volatile item.) Not yet due."
+
+  # --- surfaced Wave 7 (2026-05-27) ---
+  - id: prefill-deprecation-migration
+    parent: prompt-eng
+    label: "Prefill-deprecation migration patterns (assistant-turn prefill → structured outputs)"
+    seed: "prompt_engineering Wave 7: captured that prefill is now DEPRECATED on Claude 4.6+ (returns 400). The dossier anchors the deprecation fact; the migration recipe (what to do instead) is not yet a how-to."
+    note: "SPEC-IN-TRANSITION: prefill (the assistant-turn-prefill technique) returns 400 on Claude 4.6+. The book treatment should teach the MIGRATION — steer output shape via structured outputs (`output_config.format` / JSON Schema, see `structured-output`) and system-prompt roles instead. To promote: gather the deprecation-notice primary + the recommended-alternative guidance and mint migration atoms (D4). Pairs with the structured-outputs GA transition."
+  - id: extended-thinking-as-api-feature
+    parent: prompt-eng
+    label: "Extended thinking as an API feature (deep pass — budget, interleaving, tool-use interaction)"
+    seed: "prompt_engineering Wave 7: the prompting dossier scoped clarity/multishot/CoT/roles/chaining; CoT was covered as a PROMPTING technique, but extended thinking as a first-class API FEATURE (thinking budget, interleaved thinking, its interaction with tool use) was not deep-passed."
+    note: "Distinct from the `reasoning_cot` family (which is the prompt-level CoT technique). Extended thinking as an API surface — budget_tokens, interleaved-thinking, summarized-vs-raw thinking, tool-use interaction — belongs to a deep pass that likely cross-links `plat-api` (Claude Platform & API). To promote: gather the extended-thinking API primary and mint atoms (D4 + D2). FAST-MOVING: the thinking API surface churns."
+  - id: prompt-eng-doc-consolidation-recheck
+    parent: prompt-eng
+    label: "Prompt-eng doc-consolidation recheck (per-technique guides → one 'Prompting best practices' page)"
+    seed: "prompt_engineering Wave 7: Anthropic consolidated the per-technique prompting guides into a single 'Prompting best practices' page; the dossier anchors the current consolidated page + flagged the redirect churn (302→308 for multishot/chain-prompts, a soft-404 on an old per-technique URL)."
+    note: "SPEC-IN-TRANSITION (doc layer): the prompting docs are mid-reorganization — old per-technique URLs now redirect (308) or soft-404 to the consolidated page. The anchored excerpts are verbatim to the current consolidated page. RECHECK on the next docs reshuffle — if the consolidated page splits again or URLs move, re-anchor (D4 — mint new atoms, tombstone via superseded_by). Same dual-layer freshness discipline as the MCP/OTel spec-in-transition items."

@@ -37,3 +37,11 @@ instructor_*.pdf
 # Restored into ~/.claude on clone; kept here (archive + extracted) as a local reference only.
 claude-books-continuity.tar.gz
 claude-books-continuity/
+
+# Research-program launchpad seeds + critique (local scratch). Error-prone starting
+# points, NOT authoritative — the strict-live program re-verifies everything against
+# primaries (these even seeded the folk coinages it later caught). Kept out of the
+# public CC-BY repo; left untracked across Waves 1–3. Remove a line to commit one for provenance.
+/Environment Engineering and Context Assembly_ A Practitioner's Deep Dive for Production AI Agents.md
+/compass_artifact_wf-e6cb3af6-51f4-4003-8f12-e9d9ce007699_text_markdown.md
+/docs/environment-engineering-context-assembly-critique.md

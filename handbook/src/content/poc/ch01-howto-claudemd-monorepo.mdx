@@ -3,7 +3,7 @@ title: "How to set up CLAUDE.md for a monorepo"
 poc_kind: how-to
 chapter_source: 1
 description: "Task-oriented how-to derived from Ch 1's Configuration Layers property. Diátaxis 'how-to' mode: problem → prerequisites → numbered steps → expected outcome. No background; assumes reader knows what CLAUDE.md is."
-last_updated: "2026-05-23"
+last_updated: "2026-05-25"
 visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Distinct typography (denser line-height than the tutorial). Reader is task-driven; in and out in 5 minutes."
 ---
 
@@ -95,7 +95,7 @@ paths:
 The `paths:` frontmatter scopes this rule to matching files only — Claude loads it when editing a test file, ignores it otherwise. Token-efficient.
 
 <MarginNote variant="note" label="Cross-Ref">
-  `.claude/rules/` with `paths:` glob is documented in `docs.claude.com/en/build-with-claude/claude-rules` (Anthropic-official). See [Ch 9](#) for the full scaling story.
+  `.claude/rules/` with `paths:` glob is documented in `docs.claude.com/en/build-with-claude/claude-rules` (Anthropic-official). See Chapter 9 for the full scaling story.
 </MarginNote>
 
 ### 4. Verify with `/memory`
@@ -146,5 +146,5 @@ The hierarchy is **specific overrides general**. A rule in `packages/api/CLAUDE.
 
 ## See also
 
-- The chapter on [Configuration layers](#) (Ch 1) — for the conceptual background.
-- The chapter on [CLAUDE.md hierarchy at scale](#) (Ch 9) — for hub-and-spoke patterns across many monorepos.
+- The chapter [Principles and Mental Model](/chapters/ch01-principles) — for the conceptual background on configuration layers.
+- Chapter 9 (CLAUDE.md hierarchy at scale) — for hub-and-spoke patterns across many monorepos.

@@ -1,0 +1,132 @@
+---
+title: "Context Rot: Why Windows Degrade"
+part: 1
+chapter: 8
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - liu-lost-middle
+  - chroma-context-rot
+  - nolima
+  - wang-mniah
+  - ruler
+  - horthy-12factor
+  - martin-classifier-rot
+  - xiao-pcd
+description: The evidence that long context does not degrade gracefully — four distinct failure modes, why the robust claim is directional not numeric, and why "architectural and unsolved" overshoots in 2026. This is the problem context assembly answers.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The introduction's three-layer frame — context is the finite window the model reasons over.">
+- Why long context does **not** degrade gracefully — and why that makes context engineering a response to a measured failure, not a style choice
+- The **four distinct failure modes** (positional, length, reasoning, effective-vs-claimed) and why treating them as one number is the central error
+- Why the robust claim is **directional, not numeric** — and which folk figures to refuse
+- Two findings that surprise builders: **coherence can hurt**, and **retrieval ≠ reasoning**
+- Why "architectural and unsolved" **overshoots** in 2026, and how rot reaches the overseer
+</YouWillLearn>
+
+_The environment half is done: the substrate is made legible, budgeted, loaded on demand, guarded, and bounded at scale. Now the window itself — what the harness assembles from all that available signal, and why it degrades. This is the problem chapter. If long contexts degraded gracefully, "just put everything in the window" would be sound and the next chapter would be unnecessary. The evidence says they do not — so context assembly (next) is a response to a measured failure. This chapter is **evidence, not patterns**: it builds the case, then hands you a diagnostic for locating which failure mode you're hitting._
+
+## Degradation is four failure modes, not one
+
+"Context rot" is an umbrella over mechanisms that fail for different reasons and are caught by different benchmarks.
+
+- **Positional** — *where* the token sits. Recall "is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades… in the middle"<Citation src="liu-lost-middle" /> — the U-shaped curve.
+- **Length** — *how much* is in the window. An "evaluation across 18 LLMs… reveal[s] nonuniform performance with increasing input length,"<Citation src="chroma-context-rot" /> independent of whether the needle is found.
+- **Reasoning** — *reasoning over* the facts, not locating them. Multi-hop degradation is "primarily driven by the reduction in the length of the thinking process as the input length increases."<Citation src="wang-mniah" />
+- **Effective vs. claimed** — the marketed window is not the working one. Of models claiming 32K+, "only half… can maintain satisfactory performance at the length of 32K."<Citation src="ruler" />
+
+<KeyIdea>
+Treating rot as one number — "models lose X% at Y tokens" — is the central error. Four mechanisms fail for different reasons and have different mitigations. Diagnose which one you're hitting before you reach for a fix.
+</KeyIdea>
+
+## The robust claim is directional, not numeric
+
+Across an 18-model panel and a peer-reviewed synthetic suite, the robust, corroborated finding is *that* performance falls with length and *that* the effective window is materially shorter than the claimed one — RULER reports "almost all models exhibit large performance drops as the context length increases."<Citation src="ruler" /> The specific percentages ("11 models below 50% at 32K,"<Citation src="nolima" /> "only half at 32K") are model- and benchmark-dependent.
+
+<MarginNote variant="warning" label="Caveat">
+Never launder a portable "context-rot %." The directional claim is robust; the magnitudes are benchmark-specific. Two folk figures — a "~1M-token ceiling" and a "~40% dumb zone" — have no primary backing and are deliberately not cited.
+</MarginNote>
+
+The practitioner operationalization is directional too: "get your context into the LLM in the most token- and attention-efficient way you can."<Tag kind="practitioner" /><Citation src="horthy-12factor" /> Fewer, denser tokens — not a threshold.
+
+## Two findings that surprise builders
+
+<InsightBox title="Coherence can hurt; retrieval ≠ reasoning">
+(a) **Coherence can hurt.** Models can "perform better on shuffled haystacks than on logically structured ones"<Citation src="chroma-context-rot" /> — coherent neighbors are plausible distractors. So "add more well-organized context" is not monotonically safe. (b) **Retrieval ≠ reasoning.** Locating a fact at length is relatively robust; reasoning across several located facts is fragile.<Citation src="wang-mniah" /> "It found the facts" does not imply "it can reason over them." Both argue for decomposition over context-stuffing.
+</InsightBox>
+
+## "Unsolved" overshoots — and rot reaches the overseer
+
+The strong framing — context rot is architectural and no model solves it — overshoots the 2026 evidence. The degradation is robust and near-universal *today*, but decode-time work shows the attenuation is partially reversible: gold tokens are "down-weighted, not erased"<Citation src="xiao-pcd" /> and recoverable at decode time. Honest synthesis: **degradation is near-universal now; whether it is fundamentally architectural or substantially trainable/decodable is open**, and the 2026 frontier is actively eroding the "unsolvable" claim. Build for the degradation that exists; don't bet the architecture on it being permanent.
+
+One 2026 extension matters for design: rot reaches the *monitor*. An LLM acting as judge/monitor degrades on long transcripts, missing flagged actions far more often as the trace grows.<Citation src="martin-classifier-rot" /> Long-running agentic sessions degrade *both* the actor and the safety layer watching it.
+
+<MarginNote variant="note" label="Note">
+A reflection loop is one such long-running session: each critique-and-retry grows the history toward the effective-window edge — self-correction has a rot cost.
+</MarginNote>
+
+<Pitfall title="Trusting the marketed window">
+A 1M-token window is not 1M tokens of *working* memory. Filling it because it's advertised invites every failure mode at once — positional sag, length decay, reasoning collapse, and a monitor that stops catching problems. Treat the claimed window as a ceiling, not a budget.
+</Pitfall>
+
+## Diagnostic: which failure mode are you hitting?
+
+This chapter has no pattern catalog — the *responses* are the next chapter. Instead, a diagnostic to locate the failure before you reach for a fix (every fix routes to Context Assembly):
+
+- **Symptom: the agent ignores something you know is in context.** → *Positional* — it's likely buried mid-window. Look at *placement* (move load-bearing content to an edge).
+- **Symptom: quality falls as the session/file grows, even when the fact is present.** → *Length* — look at *how much* is loaded (prune, compact).
+- **Symptom: it finds the right facts but draws the wrong conclusion.** → *Reasoning* — look at *decomposition* (split the multi-hop task).
+- **Symptom: it works in small repros, fails at "full" context well under the limit.** → *Effective-vs-claimed* — look at the *working* window, not the marketed one.
+- **Symptom: your LLM judge/monitor stops flagging issues on long runs.** → *Monitor rot* — shorten/segment what the overseer reviews.
+
+<MarginNote variant="warning" label="Caveat">
+Fast-moving area — the architectural-vs-trainable question is the live research front; recheck rather than treating today's mitigations as settled.
+</MarginNote>
+
+## Quick reference
+
+- **Four failure modes:** positional · length · reasoning · effective-vs-claimed. Different causes, different fixes.
+- **Robust = directional:** performance falls with length; the effective window is far shorter than the claimed window. Never quote a portable %.
+- **Surprises:** coherence can hurt; retrieval ≠ reasoning.
+- **"Unsolved" overshoots:** near-universal now, but partially trainable/decodable — an open question.
+- **Rot reaches the overseer:** long traces degrade the monitor too.
+- **The responses are the next chapter** (Context Assembly).
+
+## Practice
+
+<Exercise id="ch8-ex-1">
+Name the four failure modes from memory. For each, give the one-line symptom you'd observe in an agent session, and say whether the fix is about *placement*, *amount*, *decomposition*, or *working-window awareness*. Which one most often gets misdiagnosed as "the model isn't smart enough"?
+</Exercise>
+
+<Practice id="ch8-pr-1" difficulty="3">
+You're told "our agent gets worse on big tasks — let's buy the 1M-context model." Using this chapter, write the two-sentence pushback: why a bigger marketed window may not help, and which failure mode(s) you'd diagnose first. The point is to feel why "more window" is not a fix for rot — and why this chapter exists before the assembly chapter.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch8-ex-1">
+Positional (symptom: a known in-context fact is ignored → fix is *placement*); length (symptom: quality decays as the window fills, needle present → *amount*); reasoning (symptom: right facts, wrong multi-hop conclusion → *decomposition*); effective-vs-claimed (symptom: fine in small repros, fails well under the limit → *working-window awareness*). The most-misdiagnosed is **reasoning degradation** — "it found the facts but got the answer wrong" looks like a capability gap, but the evidence attributes it to a shortening thinking process at length, which is a context problem with a context fix (decompose), not a reason to swap models.
+</Solution>
+
+<Solution for="ch8-pr-1">
+"A larger marketed window isn't a larger *working* window — RULER found only half of 32K-claimed models hold up at 32K, and degradation is near-universal as length grows, so a 1M model will still rot well before 1M. I'd first diagnose length and reasoning degradation: prune/compact what's loaded and decompose the multi-hop steps before assuming we need more context — the fix is assembly, not a bigger window." The deeper point: rot is why context engineering exists; buying window capacity treats the symptom's label, not the mechanism.
+</Solution>
+
+</ExerciseSolutions>

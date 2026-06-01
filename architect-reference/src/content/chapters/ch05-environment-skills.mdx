@@ -1,0 +1,155 @@
+---
+title: "Skills & Progressive Disclosure"
+part: 1
+chapter: 5
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [2, 3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - anthropic-skills
+  - anthropic-skills-overview
+  - anthropic-skills-best-practices
+  - anthropic-skills-cc
+  - anthropic-skills-sdk
+  - anthropics-skills-repo
+  - anthropic-plugins
+description: A Skill is procedural knowledge you author once that loads only when relevant. Progressive disclosure is the payoff, the description is the load-bearing interface, and a Skill is ergonomics — not a security boundary.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The instruction-layer chapter — the always-loaded budget, and the rule to push everything else to load on demand.">
+- What a **Skill** is — a portable `SKILL.md` artifact you teach the agent once
+- Why **progressive disclosure** is the whole point: a library of skills costs almost nothing until a skill is relevant
+- Why the **description** is the load-bearing interface — and why authoring it is a *retrieval* problem
+- The which-mechanism rule (**procedure → Skill, fact → CLAUDE.md**) and why a Skill is **ergonomics, not a sandbox**
+- How skills are discovered, distributed, and governed at scale
+</YouWillLearn>
+
+_The previous chapter ended on the rule: the always-loaded file is for broadly-applicable facts, and everything else loads on demand. Skills are the cleanest realization of "everything else." This chapter is **entirely first-party** — every claim is from Anthropic's own docs and engineering blog. That makes it authoritative on what Skills are and do, but it is not independent evidence of efficacy; the chapter is tagged accordingly._
+
+<MarginNote variant="warning" label="Caveat">
+This whole chapter is first-party Anthropic — authoritative on mechanism, not independently corroborated. No `<Tag kind="convergence">` here. Feature surface; recheck after 2026-08-25.
+</MarginNote>
+
+## A Skill is just-in-time procedural knowledge
+
+A Skill is "a directory containing a SKILL.md file that contains organized folders of instructions, scripts, and resources that give agents additional capabilities."<Tag kind="official" /><Citation src="anthropic-skills" /> The framing is teach-once: it packages "your expertise into composable resources for Claude."<Citation src="anthropic-skills" />
+
+The point of that packaging is the loading discipline. "Progressive disclosure is the core design principle that makes Agent Skills flexible and scalable,"<Citation src="anthropic-skills" /> and it runs at three levels: the name+description metadata is loaded "at startup and include[d] in the system prompt";<Citation src="anthropic-skills-overview" /> the `SKILL.md` body is read "from the filesystem via bash. Only then does this content enter the context window";<Citation src="anthropic-skills-overview" /> and bundled scripts "provide deterministic operations without consuming context."<Citation src="anthropic-skills-overview" />
+
+<KeyIdea>
+A Skill is context you don't pay for until it's relevant. A library of 100 skills costs almost nothing at rest — only lightweight metadata is always loaded — where the same knowledge in an always-loaded file would tax every turn. The cost is paid on relevance, not on possession.
+</KeyIdea>
+
+This is the same principle as the instruction-layer budget, inverted: instead of fitting everything broadly-true into the window, you keep procedures *out* of the window until a task needs them.
+
+## The description is the interface
+
+Because only the description loads at startup, it is the single highest-leverage authoring decision. The docs are explicit about the mechanism: "The description is injected into the system prompt, and inconsistent point-of-view can cause discovery problems,"<Tag kind="official" /><Citation src="anthropic-skills-best-practices" /> and it is "critical for skill selection: Claude uses it to choose the right Skill from potentially 100+ available Skills."<Citation src="anthropic-skills-best-practices" />
+
+<InsightBox title="Authoring a description is a retrieval problem">
+The body holds the implementation; the description holds the *selectability*. A skill that never triggers is worse than no skill — it's dead weight an author believes is working. Write the description in the third person, specific about *when* the skill applies, because that string is what the agent matches against the task. Description discipline is skill-authoring discipline.
+</InsightBox>
+
+<WorkedExample id="a-minimal-skill" title="A minimal SKILL.md — and the description that carries it">
+
+A real Skill is small — a directory with one `SKILL.md`:
+
+```markdown
+---
+name: cut-release
+description: Use when cutting a release — runs the version bump, changelog, and git tag steps for this repo.
+---
+
+# Cut a release
+
+1. Bump the version in `package.json` (semver; patch unless told otherwise).
+2. Regenerate `CHANGELOG.md` from commits since the last tag.
+3. Commit as `release: vX.Y.Z`, then `git tag vX.Y.Z`.
+4. Stop and report the tag; do **not** push without confirmation.
+```
+
+Only the `description` is always loaded, so it carries the whole retrieval decision:
+
+- **Weak:** `description: Release helper.` — names a topic, not a trigger; the agent cannot tell *when* it applies, so it fires at random or never.
+- **Strong:** `description: Use when cutting a release — runs the version bump, changelog, and git tag steps for this repo.` — names the *situation* and the *steps*, so it is selected when relevant and stays quiet otherwise.
+
+The body can be as long as the task needs; the description is the one line you actually engineer.
+
+</WorkedExample>
+
+## Which mechanism — and what a Skill is not
+
+The recurring confusion is Skill vs. `CLAUDE.md` vs. tool vs. subagent. The hinge is crisp: reach for a Skill "when a section of CLAUDE.md has grown into a procedure rather than a fact."<Tag kind="official" /><Citation src="anthropic-skills-cc" /> Facts stay always-on; procedures become load-on-demand skills.
+
+<ConceptBox title="Procedure vs fact">
+**CLAUDE.md** = always-loaded *facts* (paid every session). **Skill** = a reusable *procedure* (paid on relevance). When a config section turns into a multi-step "how to," it has outgrown the instruction layer — move it to a Skill so it loads only when the task calls for it.
+</ConceptBox>
+
+One correction matters for architects: a Skill shapes what the model *sees and reaches for*, but it is **not** a security boundary. The `allowed-tools` frontmatter "does not restrict which tools are available: every tool remains callable"<Citation src="anthropic-skills-cc" /> — it is pre-approval, not a sandbox. And the SDK `skills` option is "a context filter, not a sandbox. Unlisted Skills are hidden from the model and rejected by the Skill tool, but their files remain on disk and are reachable through Read and Bash."<Citation src="anthropic-skills-sdk" /> That frontmatter scoping is "not… applied when using Skills through the SDK"<Citation src="anthropic-skills-sdk" /> at all.
+
+<Pitfall title="Treating the skills filter as a sandbox">
+Hiding a skill, or listing `allowed-tools`, controls *ergonomics and visibility* — what the agent is nudged toward — not *capability*. The files stay on disk, every tool stays callable, and the SDK ignores the frontmatter scoping. Real isolation lives in the permission/sandbox layer (the guardrails chapter), not in a skill.
+</Pitfall>
+
+## Distribution and governance
+
+Skills are a filesystem-and-distribution story, not an API. Metadata is "discovered at startup from user and project directories; full content loaded when triggered."<Citation src="anthropic-skills-sdk" /> Sharing scales by scope — "Skills can be distributed at different scopes depending on your audience"<Citation src="anthropic-skills-cc" /> — from a committed repo, to a plugin (the `anthropics/skills` repo registers as one via "/plugin marketplace add anthropics/skills",<Citation src="anthropics-skills-repo" /> each skill "self-contained in its own folder"<Citation src="anthropics-skills-repo" />), to a marketplace catalog "to discover and install these extensions without building them yourself,"<Citation src="anthropic-plugins" /> to org-wide managed settings. On a name collision, "enterprise overrides personal, and personal overrides project."<Citation src="anthropic-skills-cc" />
+
+## Patterns
+
+**Description-as-interface.** *Sketch:* write the third-person description for retrieval, not prose. *When to use:* every skill.<Citation src="anthropic-skills-best-practices" /> *Mechanics:* state specifically *when* the skill applies; the body holds the how. *Remember:* only the description is always loaded — a skill that doesn't trigger is dead weight.
+
+**Procedure → Skill, fact → CLAUDE.md.** *Sketch:* move grown procedures out of the always-loaded file. *When to use:* a `CLAUDE.md` section has become a multi-step how-to.<Citation src="anthropic-skills-cc" /> *Mechanics:* extract it to a `SKILL.md`; leave only the broadly-true fact behind. *Remember:* facts paid every turn; procedures paid on relevance.
+
+**Filter is not a sandbox.** *Sketch:* never rely on skill scoping for security. *When to use:* any time you think "hide it to block it."<Citation src="anthropic-skills-sdk" /> *Mechanics:* control capability in the permission/sandbox layer; use skills only for ergonomics. *Remember:* files stay on disk; tools stay callable; the SDK ignores `allowed-tools`.
+
+**Distribute by scope.** *Sketch:* match the sharing path to the audience. *When to use:* a library outgrows one project.<Citation src="anthropic-skills-cc" /> *Mechanics:* commit → plugin → marketplace → managed settings; remember enterprise>personal>project on collisions.<Citation src="anthropics-skills-repo" /> *Remember:* governance is about what loads and from where, by filesystem and policy.
+
+## Quick reference
+
+- **Skill = just-in-time procedural knowledge** — a `SKILL.md` artifact, loaded on relevance.
+- **Three levels:** metadata at startup → body on relevance → scripts on demand (no context cost).
+- **The description is the interface** — author it as a retrieval problem.
+- **Procedure → Skill; fact → CLAUDE.md.**
+- **Ergonomics, not a sandbox** — scoping shapes what the model sees, not what's possible.
+- **Distribute by scope:** commit → plugin → marketplace → managed settings (enterprise>personal>project).
+- **First-party-only** — authoritative on mechanism, not yet independently corroborated.
+
+## Practice
+
+<Exercise id="ch5-ex-1">
+Take a `CLAUDE.md` section that is really a multi-step procedure (a release process, a debugging routine). Should it be a Skill? Write the third-person `description` you'd give it — the one string the agent matches against a task. Is it specific enough that the agent would pick it over 99 others, and not fire when irrelevant?
+</Exercise>
+
+<Practice id="ch5-pr-1" difficulty="2">
+An author lists `allowed-tools: [Read, Grep]` on a skill and assumes the agent now *cannot* write files while that skill is active. State why that assumption is wrong, citing the two mechanisms (pre-approval vs restriction; the SDK context-filter). Then name where the actual restriction would have to live. The point is to internalize that skills are ergonomics, not isolation.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch5-ex-1">
+If you keep pasting the same multi-step instructions, it should be a Skill — that's the docs' own trigger ("a procedure rather than a fact"). A good description names the *situation*, not the mechanics: "Use when cutting a release — runs the version-bump, changelog, and tag steps for this repo" beats "Release helper." Specificity drives both halves of retrieval: enough detail that it's selected when relevant, and bounded enough that it doesn't fire on unrelated tasks. If you can't write a description that distinguishes it from neighboring skills, that's a signal the skill's scope is unclear.
+</Solution>
+
+<Solution for="ch5-pr-1">
+The assumption is wrong on two counts. First, `allowed-tools` is a **pre-approval** list (tools the agent may use without prompting while the skill is active), and per the docs it "does not restrict which tools are available: every tool remains callable" — it never subtracts capability. Second, through the SDK the frontmatter is ignored entirely, and the `skills` option is "a context filter, not a sandbox" — unlisted content is hidden but "files remain on disk and are reachable through Read and Bash." Real restriction lives in the permission/sandbox layer (deny rules, OS sandbox) covered in the guardrails chapter — not in a skill's frontmatter.
+</Solution>
+
+</ExerciseSolutions>

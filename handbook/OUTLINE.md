@@ -15,7 +15,7 @@ The handbook's lens: **how to *use* Claude effectively day-to-day.** Architectur
 - 🟢 in rewrite
 - ✅ shipped in v1.0
 
-All entries below are currently 🟡.
+Most entries are 🟡 (outlined). **Ch 1-4 (Part I) are ✅ shipped in v1.0** as of 2026-05-25 (chapter + 4 supplements each; numbered Tips 1-8; two-tier exercises; `<Citation>` sources).
 
 ---
 
@@ -43,8 +43,7 @@ All entries below are currently 🟡.
 - `<BeforeAfter>` for "chatbot mindset" vs "agent mindset" prompt examples
 - `<InsightBox>` for "Why the Mental Model Matters"
 **Pedagogy + visual conventions**: see [`PEDAGOGY.md`](./PEDAGOGY.md) — applies to every chapter in this outline, but Ch 1 is the canonical first application.
-**PoC artifacts** (2026-05-23): five supplement-format prototypes of Ch 1's material live at [`src/content/poc/`](./src/content/poc/) and render at `/poc` in dev. They demonstrate tutorial / how-to / TL;DR / part-summary / cheat-sheet shapes side-by-side. See [`poc/COMPARISON.md`](./poc/COMPARISON.md) for the synthesis memo. Ch 1 prose-rewrite is **blocked on user review of these PoCs** (PEDAGOGY decision-log #7 OPEN: supplement-format adoption).
-**Rewrites needed**: The existing `ch01-principles.mdx` (smoke test) is a starting draft only — re-do per these conventions with `cert_domains: [1, 4]` frontmatter and new `last_updated`/`introduced_in_version` fields.
+**✅ v1.0 shipped** (2026-05-25): `ch01-principles.mdx` rewritten to spec as the Part I template — `<YouWillLearn>` / agent-loop `<Figure>` / chatbot-vs-agent `<BeforeAfter>` / `<WorkedExample>` / 3 `<Pitfall>` / numbered `<Tip>` 1-2 / two-tier `<Exercise>`+`<Practice>` / `<Citation>` (3 T1 sources). The 4 supplements at `/poc/ch01-{tutorial,howto-claudemd-monorepo,tldr,cheat-sheet}` refined to v1.0; the tutorial differentiated from the chapter (hands-on vs canonical). Supplement formats settled per PEDAGOGY #7. See [`poc/COMPARISON.md`](./poc/COMPARISON.md) Round 4.
 
 ### Ch 2. Your First CLAUDE.md
 **Source**: `02_first_claude_md.tex` (195 lines) → ~220 lines.
@@ -52,6 +51,7 @@ All entries below are currently 🟡.
 **Cert domains**: D3 (central), D5 (hierarchical loading).
 **Stale signals**: None.
 **MDX-native**: Tabbed "what to include" / "what to exclude" panel. Interactive "starter CLAUDE.md" generator (later post-v1.0).
+**✅ v1.0 shipped** (2026-05-25): `ch02-first-claude-md.mdx` + 4 supplements at `/poc/ch02-{tutorial,howto-deny-rules,tldr,cheat-sheet}`. Numbered Tips 3-4; 3 `<Exercise>` + 3 `<Practice>`; cites the memory + settings docs. `cert_domains: [3, 5]`.
 
 ### Ch 3. Your First Session
 **Source**: `03_first_session.tex` (304 lines) → ~280 lines.
@@ -59,6 +59,7 @@ All entries below are currently 🟡.
 **Cert domains**: D3, D4, D5.
 **Stale signals**: Some keyboard shortcuts may shift; permission-mode names have evolved — verify on rewrite.
 **MDX-native**: Expandable session-loop diagram. Worked example with annotations.
+**✅ v1.0 shipped** (2026-05-25): `ch03-first-session.mdx` + 4 supplements at `/poc/ch03-{tutorial,howto-plan-mode-risky-change,tldr,cheat-sheet}`. Numbered Tips 5-6; 3 `<Exercise>` + 3 `<Practice>`; volatile UI strings (Esc, `/rewind`, Shift+Tab, Plan Mode) framed concept-first + flagged for HITL. `cert_domains: [3, 4, 5]`.
 
 ### Ch 4. Working Productively
 **Source**: `04_prompting.tex` (429 lines) → ~280 lines (significantly trimmed).
@@ -68,6 +69,7 @@ All entries below are currently 🟡.
 **MDX-native**: Sortable model-capabilities table. Precision-vocabulary "vague vs precise" table with hover annotations.
 **Moved to Appendix B**: Extended thinking deep-dive, cost optimization (caching/Batch API specifics), fast mode (research preview).
 **Rationale for trim**: Part I shouldn't require deep understanding of cost-optimization or extended-thinking knobs; new readers need practical prompting. Advanced material is still in the book, just in an appendix.
+**✅ v1.0 shipped** (2026-05-25): `ch04-productive.mdx` (trimmed 429→~290; extended-thinking / caching / fast-mode → Appendix B pointer) + 4 supplements at `/poc/ch04-{tutorial,howto-structure-multi-component-prompt,tldr,cheat-sheet}`. Numbered Tips 7-8; 3 `<Exercise>` + 3 `<Practice>`; `volatility: feature-surface` (model content kept name-free + flagged). `cert_domains: [4, 5]`.
 
 ---
 

@@ -1,0 +1,128 @@
+---
+title: "Environments at Scale: Large Codebases & Monorepos"
+part: 1
+chapter: 7
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - pan-monorepo
+  - fuhrimann-contract-first
+  - anthropic-large-codebases
+  - anthropic-seeing-like-agent
+  - nygard-adr
+  - adr-github
+  - barnwell-monorepo
+  - nx-savkin-ai
+description: When the repo is too big to load, legibility stops meaning "document everything" and starts meaning "bound what the agent must load." Interface contracts, a shallow-but-deeply-linked index, per-decision ADRs, and scope-to-workspace monorepo structure.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The repo-design chapter — small-repo legibility (entry-point map, examples, sensors).">
+- Why legibility at scale means **bounding what the agent must load**, not documenting everything
+- **Interface contracts** at package boundaries — the boundary an agent reads instead of the implementation
+- The **shallow-index / deep-links** navigation pattern (progressive disclosure at repo scale)
+- **ADRs** as the scalable alternative to a monolithic architecture doc
+- The single highest-leverage monorepo move: **scope the agent to one workspace** — and the navigate-before-read primitive
+</YouWillLearn>
+
+_The repo-design chapter made a small repo legible: one entry-point map, examples, sensors. This chapter asks what changes when the repo is too big to load. The answer is a shift in what "legibility" even means — and every move here is **converged craft, not measured effect**, with two of the launchpad's catchy names turning out to be folk coinages._
+
+## Bound what the agent must load
+
+At scale, you cannot make the repo legible by documenting all of it — there is too much, and an agent that ingests everything drowns. Legibility becomes *constraining the loadable surface* so an agent can work in one domain without reading the whole repo. As one practitioner puts it, "context construction should be scoped, not exhaustive."<Tag kind="practitioner" /><Citation src="pan-monorepo" />
+
+<KeyIdea>
+Small-repo legibility says "make it readable." Large-repo legibility says "bound what must be read." The four moves in this chapter — interface contracts, shallow index, per-decision ADRs, scope-to-workspace — are all instances of bounding the loadable surface.
+</KeyIdea>
+
+## Interface contracts at boundaries
+
+The first move exposes a *boundary the agent reads instead of the implementation*. Once agents must navigate a large repo, "explicit interface contracts matter more than they used to,"<Citation src="pan-monorepo" /> realized as a per-domain file: "each major service or domain owns a file that describes its conventions, its interface contracts, and its dependencies."<Citation src="pan-monorepo" /> The agent reads the relevant one, not all of them.
+
+This is the established **contract-first** tradition applied to agents — defining the contract so that, before implementation, "the contract has already been defined and communicated with potential consumers."<Tag kind="practitioner" /><Citation src="fuhrimann-contract-first" /> The agent is just another consumer working against the declared interface.
+
+<MarginNote variant="warning" label="Caveat">
+The catchy `INTERFACE.md` filename is a folk coinage — not an attested convention. The real, attributable pattern is a per-domain interface/contract doc; name the pattern, not the file.
+</MarginNote>
+
+## Shallow index, deep links
+
+The second move keeps a top-level map *shallow* but *deeply linked*. Anthropic's large-codebase guidance: "the root file describes only the highest-level structure, and subdirectory CLAUDE.md files provide the next level of detail,"<Tag kind="official" /><Citation src="anthropic-large-codebases" /> loaded on demand as the agent moves through the tree. The named mechanism is "progressive disclosure, which allows agents to incrementally discover relevant context through exploration."<Citation src="anthropic-seeing-like-agent" />
+
+<ConceptBox title="Shallow index, deep links">
+A flat dump of everything does not scale — the agent wastes its window on irrelevant context. A shallow root that *points* (and defers detail to linked, on-demand layers) does. This is the same progressive-disclosure principle as Skills, applied to repository navigation: discover context by exploration, don't preload it.
+</ConceptBox>
+
+## ADRs: the *why*, one decision at a time
+
+Interface contracts expose *what* a boundary is; Architecture Decision Records expose *why* it's structured that way — in a form that scales. The failure mode they fix: "large documents are never kept up to date. Small, modular documents have at least a chance."<Tag kind="practitioner" /><Citation src="nygard-adr" /> ADRs are "numbered sequentially and monotonically. Numbers will not be reused,"<Citation src="nygard-adr" /> each capturing "a set of forces and a single decision in response."<Citation src="nygard-adr" /> The maintained collection — one record per decision, each capturing "a single AD and its rationale"<Citation src="adr-github" /> — is a navigable decision log an agent loads one decision at a time, not a monolith it must read whole.
+
+## Monorepos: scope to the workspace
+
+The fourth move bounds the package layout. An unbounded repo means "the agent searches the whole repo and wastes context on irrelevant packages,"<Tag kind="practitioner" /><Citation src="barnwell-monorepo" /> because "in a monorepo, the root is an index, not the real unit of work."<Citation src="barnwell-monorepo" /> The single highest-leverage fix: "make the agent decide which workspace it is operating in."<Citation src="barnwell-monorepo" /> Then it "traverses the graph in steps, building up a coherent picture rather than trying to ingest everything at once."<Citation src="pan-monorepo" />
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+A navigate-before-read primitive converges across an independent practitioner and a monorepo vendor: domain tagging "helps agents navigate before they start reading,"<Citation src="pan-monorepo" /> and the project graph is "a navigable map of the codebase"<Citation src="nx-savkin-ai" /> whose tags let an agent consult structure before opening files. Practitioner + vendor agree on the navigation-layer role. <Tag kind="convergence" />
+</Convergence>
+
+<Pitfall title="Treating a giant flat repo like a small one">
+The small-repo moves (one entry-point map, document the conventions) do not scale: at 50 services, a single map is either too shallow to help or too big to load. Reach instead for boundaries (contracts), a shallow-but-linked index, per-decision ADRs, and a workspace the agent scopes into first.
+</Pitfall>
+
+<MarginNote variant="warning" label="Caveat">
+Converged craft, not measured effect — no source here carries an effect size. The vendor docs (Nx) frame boundaries for architectural health, applied here to agents.
+</MarginNote>
+
+## Patterns
+
+**Interface/contract docs at boundaries.** *Sketch:* per-domain file with conventions, contracts, dependencies. *When to use:* multi-service / multi-domain repos.<Citation src="pan-monorepo" /> *Mechanics:* expose the declared interface; the agent reads the boundary, not the implementation. *Remember:* it's the contract-first pattern — name it, don't call it `INTERFACE.md`.
+
+**Shallow index, deep links.** *Sketch:* a shallow root that points to on-demand detail. *When to use:* hundreds of top-level folders.<Citation src="anthropic-large-codebases" /> *Mechanics:* root = highest-level structure only; subdirectory files carry the next layer, loaded as the agent explores. *Remember:* a flat dump doesn't scale; progressive disclosure does.
+
+**ADRs, append-only.** *Sketch:* one numbered, immutable record per decision. *When to use:* any non-obvious structural choice.<Citation src="nygard-adr" /> *Mechanics:* sequential numbers never reused; supersede via a new file; keep in source control.<Citation src="adr-github" /> *Remember:* a monolith rots; a per-decision log an agent loads one at a time survives.
+
+**Scope to the workspace.** *Sketch:* make the agent pick its package before acting. *When to use:* any monorepo.<Citation src="barnwell-monorepo" /> *Mechanics:* tags/graph to navigate-before-read; walk the dependency graph in steps.<Citation src="nx-savkin-ai" /> *Remember:* the root is an index, not the unit of work — bound the agent to one workspace.
+
+## Quick reference
+
+- **At scale, legibility = bound what must be loaded** (not document everything).
+- **Interface contracts:** read the boundary, not the implementation (contract-first; not `INTERFACE.md`).
+- **Shallow index, deep links:** shallow root + on-demand layers (progressive disclosure at repo scale).
+- **ADRs:** numbered, append-only, one decision each — beats a monolithic architecture doc.
+- **Monorepos:** scope to one workspace; navigate-before-read via tags/graph.
+- **Evidence:** converged craft, no effect sizes.
+
+## Practice
+
+<Exercise id="ch7-ex-1">
+Take a large repo (or imagine a 50-service monorepo). For an agent asked to change one service, list what it should *not* have to load. Which of the four moves — interface contracts, shallow index, ADRs, scope-to-workspace — most directly prevents each unnecessary load?
+</Exercise>
+
+<Practice id="ch7-pr-1" difficulty="3">
+Pick one domain in a multi-package repo you know. Sketch (a) the one boundary doc an agent would read instead of its implementation, and (b) the shallow-root entry that would point an agent to that domain without inlining it. State what each *omits* on purpose. The point is the at-scale inversion: legibility is bounding the loadable surface, not maximizing documentation.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch7-ex-1">
+For a one-service change the agent should not load: other services' implementations (interface contracts let it read just the boundaries it depends on), the full repo tree (a shallow index points it to the right subtree), the history of why unrelated domains are structured as they are (per-decision ADRs scope the *why* to the relevant decision), and sibling packages' code (scope-to-workspace bounds it to its package and the dependency graph it actually touches). Each move removes one class of unnecessary load — together they keep the agent's window on the one domain it's working in.
+</Solution>
+
+</ExerciseSolutions>

@@ -1,0 +1,180 @@
+---
+title: "Context Assembly: Engineering the Window"
+part: 1
+chapter: 9
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - ji-manus
+  - anthropic-prompt-caching
+  - lumer-cache
+  - langchain-context
+  - anthropic-code-exec-mcp
+  - effective-context-engineering
+  - effective-harnesses
+  - cc-cache-regression
+  - liu-lost-middle
+  - hsieh-found-middle
+  - harada-manyifeval
+  - jaroslawicz-ifscale
+  - anthropic-writing-tools
+  - anthropic-xml-tags
+  - ye-muldimif
+description: The engineering response to context rot — the harness owns the boundary deciding what enters the window and when. Cache stability, just-in-time loading, compaction, attention placement, and assembly-as-prompt.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The context-rot chapter — the four failure modes and the diagnostic that every fix routes here.">
+- The mental model: the window is **assembled** each turn from regions with different stability and roles
+- Why prefix **cache stability** is an economic variable, and how to protect it
+- **Just-in-time** loading — keep pointers, resolve to data on demand
+- **Compaction** — summarize vs checkpoint-and-restart, and the stale-prefix risk
+- **Attention placement** — the U-shaped curve, the instruction budget, and recitation
+- Why the assembled window **is itself a prompt**
+</YouWillLearn>
+
+_The previous chapter established the problem: long context does not degrade gracefully. This chapter is the engineering response. The harness owns the boundary deciding what enters the window and when — and "context assembly" is the discipline of choosing, ordering, caching, and compacting the bytes that go to the model each turn. This is the deepest chapter in the book; it carries the richest pattern catalog._
+
+## The window is assembled from regions
+
+Each turn, the harness assembles a window from regions that differ in stability and role.
+
+<ConceptBox title="The assembled window">
+**Pre-commitment** (system prompt, CLAUDE.md, tool definitions) — set before the turn, cacheable, shapes intent. **Loaded context** (file reads, tool results) — pulled in during the turn; the just-in-time decision lives here. **Working history** — the running transcript, which grows until compacted. **Placement** — *where* each piece lands, because attention is not uniform. The assembled window is itself a prompt: its prefix stability is an economic variable, its length is finite, its ordering is an attention variable.
+</ConceptBox>
+
+<Figure src="/figures/window-regions/window-regions.svg" caption="The assembled window, one turn: a stable cacheable front (pre-commitment), a just-in-time middle (loaded context), and a volatile tail (working history) — read under a U-shaped attention curve where the edges are attended and the middle sags." alt="A horizontal window bar split left-to-right into pre-commitment, loaded context, and working history, annotated stable-front to volatile-tail, beneath a U-shaped attention curve that is high at both edges and sags in the middle." width="100%" id="fig-window-regions" />
+
+## Cache stability — the prefix is an economic variable
+
+A practitioner building Manus calls the KV-cache hit rate the "single most important metric for a production-stage AI agent,"<Tag kind="practitioner" /><Citation src="ji-manus" /> because it drives both latency and cost. The lever is a stable prefix: no mid-history edits, deterministic serialization, append-only. Anthropic's prompt cache has, "by default, a 5-minute lifetime"<Tag kind="official" /><Citation src="anthropic-prompt-caching" /> — the window inside which stability pays off.
+
+A controlled multi-provider evaluation quantifies the payoff: caching "reduces API costs by 41-80% and improves time to first token by 13-31% across providers,"<Citation src="lumer-cache" /> and the *placement* matters — "placing dynamic content at the end of the system prompt"<Citation src="lumer-cache" /> beats "naive full-context caching, which can paradoxically increase latency."<Citation src="lumer-cache" />
+
+<KeyIdea>
+Keep the front of the window byte-identical turn to turn, and put the volatile bits at the tail. A stable prefix is not housekeeping — it is a 41–80% cost lever and a latency lever. Perturbing the front (a timestamp, a reordered tool list) silently invalidates the cache.
+</KeyIdea>
+
+<MarginNote variant="warning" label="Caveat">
+The "#1 metric" framing is one team's stated priority, not a benchmark; the 41–80% / 13–31% figures are provider-dependent. Treat as directional, not universal.
+</MarginNote>
+
+## Loading — just-in-time vs preload
+
+What enters the window during a turn is a choice, not a default. The just-in-time pattern keeps "lightweight identifiers (file paths, stored queries, web links, etc.) and use[s] these references to dynamically load data into context at runtime using tools."<Tag kind="official" /><Citation src="effective-context-engineering" /> Even tool definitions can be deferred — presenting tools as code lets models "read tool definitions on-demand, rather than reading them all up-front."<Citation src="anthropic-code-exec-mcp" /> The framing generalizes: context operations are write / select / compress / isolate, where writing context means "saving it outside the context window."<Tag kind="practitioner" /><Citation src="langchain-context" />
+
+## Compaction — the window is finite
+
+The premise: the window "must be treated as a finite resource with diminishing marginal returns."<Tag kind="official" /><Citation src="effective-context-engineering" /> When it fills, you summarize (`/compact`) or you checkpoint-and-restart — the harness pattern of "finding a way for agents to quickly understand the state of work when starting with a fresh context window,"<Citation src="effective-harnesses" /> i.e., a progress file plus checkpoints rather than lossy in-context summarization.
+
+<Pitfall title="Compaction can invalidate the cache">
+Compaction is a cache-invalidation boundary: a shipping-product regression report reasons that "any prefix cached before compaction is guaranteed stale after it."<Citation src="cc-cache-regression" /> (Reporter-asserted, not Anthropic-confirmed.) The interaction matters — the same compaction that saves window space can cost you the cache savings if the prefix is rebuilt. Checkpoint-and-restart with a small, re-derivable prefix sidesteps both.
+</Pitfall>
+
+## Attention placement — position is not neutral
+
+Where content lands changes whether the model uses it. Recall "is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades… in the middle."<Citation src="liu-lost-middle" />
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+Two independent peer-reviewed studies converge on the same curve: Liu et al. measure the mid-context accuracy drop, and Hsieh et al. attribute it to "a U-shaped attention bias where the tokens at the beginning and at the end of its input receive higher attention, regardless of their relevance."<Citation src="hsieh-found-middle" /> The convergence is what makes "put the load-bearing instruction at an edge" a robust heuristic, not a single-paper artifact. <Tag kind="convergence" />
+</Convergence>
+
+There is also an **instruction budget**: "performance consistently degrades as the number of instructions increases,"<Citation src="harada-manyifeval" /> and even the best models "only achieve 68% accuracy at the max density of 500 instructions,"<Citation src="jaroslawicz-ifscale" /> with "a bias towards earlier instructions."<Citation src="jaroslawicz-ifscale" /> The practitioner countermeasure exploits the end-of-context peak: **recitation** — "reciting its objectives into the end of the context" (a maintained `todo.md`)<Tag kind="practitioner" /><Citation src="ji-manus" /> to fight goal drift.
+
+<MarginNote variant="warning" label="Caveat">
+ManyIFEval + IFScale show degradation is real but model-specific — not a fixed ceiling. The "150–200 instruction" folk figure is not an established result.
+</MarginNote>
+
+## Assembly is a prompt
+
+The window's *contents* are prose to engineer, not plumbing. Tool descriptions sit in the cache-sensitive pre-commitment region — author them as you would "describe your tool to a new hire on your team."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> Structure disambiguates: XML tags "help Claude parse complex prompts unambiguously, especially when your prompt mixes instructions, context, examples, and variable inputs,"<Citation src="anthropic-xml-tags" /> and instruction-following gains "stem largely from parameter updates in attention modules,"<Citation src="ye-muldimif" /> a hint for why structured, constraint-bearing assembly is tractable.
+
+<MarginNote variant="note" label="Note">
+A reflection loop's critique is re-injected text — it competes for this same budget and placement; assemble self-critique deliberately, it isn't free.
+</MarginNote>
+
+<WorkedExample id="assembling-one-window" title="Three patterns in one window">
+
+An agent works in a repo with a 50K-token config file the task barely touches. Assemble one turn's window from three patterns at once:
+
+- **Stable prefix** — system prompt, tool definitions, and invariant project facts sit at the front, byte-identical every turn, so the cache holds (the cost and latency lever).
+- **Just-in-time loading** — the config is *not* inlined; a path-pointer stays in context, and a tool resolves only the few keys the task needs (the finite-window lever).
+- **Placement** — the load-bearing instruction is re-emitted at the tail, on the end-of-context attention peak, rather than buried mid-window.
+
+One assembled window: a cached front, a minimal just-in-time middle, a load-bearing tail. The same window that re-read 50K tokens every turn now carries a few hundred — cheaper, faster, and far less exposed to rot.
+
+</WorkedExample>
+
+## Diagnostic: which assembly failure are you hitting?
+
+Mirroring the previous chapter's router, map an observed symptom to the assembly lever that addresses it — each routes to a pattern below:
+
+- **Symptom: latency and cost climb every turn, even on small tasks.** → *Cache instability* — something perturbs the prefix. Reach for **stable prefix** + **dynamic content at the tail**.
+- **Symptom: quality decays as a long session or file grows.** → *Unbounded loading* — too much is resident at once. Reach for **just-in-time loading** and **compact-or-checkpoint**.
+- **Symptom: the agent ignores an instruction you know is loaded.** → *Misplacement* — it is sagging mid-window. Reach for **place at the edges; recite the goal**.
+- **Symptom: cost spikes right after a long session compacts.** → *Cache invalidation at the compaction boundary*. Reach for **checkpoint-and-restart with a small prefix**.
+- **Symptom: a multi-part prompt is parsed wrong.** → *Unstructured assembly*. Reach for **structure with delimiters**.
+
+## Patterns
+
+**Stable prefix.** *Sketch:* keep the window front byte-identical turn to turn. *When to use:* always.<Citation src="ji-manus" /> *Mechanics:* no timestamps, deterministic serialization, append-only. *Remember:* the prefix is a 41–80% cost lever; perturbing it silently breaks the cache.
+
+**Dynamic content at the tail.** *Sketch:* put volatile bits at the end of the (system) prompt. *When to use:* any cacheable prefix with changing parts.<Citation src="lumer-cache" /> *Mechanics:* stable front, volatile tail. *Remember:* naive full-context caching can *increase* latency.
+
+**Just-in-time loading.** *Sketch:* keep pointers; resolve to data on demand. *When to use:* large/optional context.<Citation src="effective-context-engineering" /> *Mechanics:* store identifiers (paths, queries); fetch via tools; defer tool defs too.<Citation src="anthropic-code-exec-mcp" /> *Remember:* preload the minimum; the window is finite.
+
+**Compact or checkpoint.** *Sketch:* manage the window when it fills. *When to use:* long sessions.<Citation src="effective-harnesses" /> *Mechanics:* prefer checkpoint-and-restart from a progress file over lossy summarize. *Remember:* compaction can invalidate the cache — keep the restart prefix small.
+
+**Place at the edges; recite the goal.** *Sketch:* exploit the U-shaped attention curve. *When to use:* load-bearing instructions; long tasks.<Citation src="liu-lost-middle" /> *Mechanics:* put critical content at an edge; re-emit goals at the tail (`todo.md`).<Citation src="ji-manus" /> *Remember:* the middle is where attention sags.
+
+**Structure with delimiters.** *Sketch:* mark up multi-part context. *When to use:* mixed instructions/context/examples.<Citation src="anthropic-xml-tags" /> *Mechanics:* XML tags as semantic anchors; tool descriptions as clear prose. *Remember:* the assembled window is a prompt — structure shapes attention.
+
+## Quick reference
+
+- **The window is assembled** from pre-commitment / loaded / history / placement regions.
+- **Stable prefix** = cost + latency lever (41–80% / 13–31%); dynamic content at the tail.
+- **JIT loading:** keep pointers, resolve on demand; the window is finite.
+- **Compaction:** prefer checkpoint-and-restart; mind the stale-prefix/cache interaction.
+- **Placement:** edges beat the middle (U-shaped bias); budget instructions; recite goals at the tail.
+- **Assembly is a prompt:** engineer tool descriptions and structure.
+
+## Practice
+
+<Exercise id="ch9-ex-1">
+Map each context-rot failure mode from the previous chapter to the assembly response here: positional → ?, length → ?, reasoning → ?, effective-window → ?. Which assembly pattern addresses each? (This is the problem→response bridge made concrete.)
+</Exercise>
+
+<Practice id="ch9-pr-1" difficulty="4">
+An agent re-reads a large config file every turn, blowing its budget and (you suspect) breaking the cache. Prescribe a fix using two patterns from this chapter — one for *what enters the window* and one for *prefix stability* — and state the cost/latency lever each pulls. The point is to feel assembly as the lever: the same complaint from the introduction's worked example, now with named mechanisms.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch9-ex-1">
+Positional → place load-bearing content at an edge (lost-in-the-middle / U-shaped bias). Length → just-in-time loading + compaction (keep the window small; treat it as finite). Reasoning → decomposition + recitation (shorten what must be reasoned over at once; re-emit goals). Effective-window → budget instructions and load JIT so the *working* set stays well under the marketed limit. The throughline: every rot failure mode has an assembly lever — which is exactly why the rot chapter (problem) precedes this one (response).
+</Solution>
+
+<Solution for="ch9-pr-1">
+Fix: (1) **just-in-time loading** for *what enters the window* — keep a lightweight pointer to the config (a path/identifier) and resolve only the needed slice via a tool, instead of inlining the whole file each turn; this pulls the *length/finite-window* lever (smaller working set, less rot). (2) **stable prefix** for *prefix stability* — keep the cacheable front (system prompt, tool defs) byte-identical and put anything volatile at the tail, so the cache stays valid; this pulls the *cost/latency* lever (41–80% cost / 13–31% TTFT). Together they turn "re-read everything every turn" into "stable cached front + minimal JIT tail" — the assembly answer to the worked complaint.
+</Solution>
+
+</ExerciseSolutions>

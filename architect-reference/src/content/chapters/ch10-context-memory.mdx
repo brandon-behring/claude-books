@@ -1,0 +1,147 @@
+---
+title: "Memory: Persisting Context Across Sessions"
+part: 1
+chapter: 10
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - memgpt
+  - generative-agents
+  - langmem
+  - mem0-state-2026
+  - huang-agent-memory
+  - cc-memory
+  - anthropic-agent-memory
+  - belitz-md-vs-memory
+  - bustamante-agent-memory
+  - ji-manus
+  - chen-markdown-memory
+  - langchain-longterm-memory
+description: Memory is just recalled context — so every memory anti-pattern is a context anti-pattern. Typing enables decay, the doc-vs-memory boundary is durable-shared vs fast-private, repo-as-memory is the cheap floor you outgrow. An openly unsolved design space.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import OpenQuestion from '@brandon_m_behring/book-scaffold-astro/components/OpenQuestion.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The context-rot and context-assembly chapters — degradation, and the within-session assembly response.">
+- The unifying lens: **memory is just recalled context**, so every memory anti-pattern is a context anti-pattern
+- Why **typing enables decay** — you cannot invalidate what you cannot address
+- The **doc-vs-memory boundary** — durable-shared-reviewable vs. fast-private-decaying
+- Why **repo-as-memory** is the cheap floor you outgrow predictably
+- Why agent memory is **openly unsolved**, and how to read the framing honestly
+</YouWillLearn>
+
+_The previous two chapters managed context *within* a session. This one persists it *across* sessions. It is the most openly unsolved topic in the book — the practices here are current best-practice scaffolding around a contested design space, not settled science, and the chapter says so plainly._
+
+## Memory is just recalled context
+
+The unifying lens makes this chapter cohere with the two before it. A recalled memory enters the window as more text — the store is read back in. So a stale or wrong memory is a context-*quality* failure, and over-recall is a context-*length* failure. As one practitioner puts it, "incorrect memories are worse than no memories. Bad facts, once stored, pollute every future decision."<Tag kind="practitioner" /><Citation src="huang-agent-memory" />
+
+<KeyIdea>
+Memory is just recalled context. Every memory anti-pattern is, at bottom, a context anti-pattern — which is why this chapter sits beside rot and assembly. Memory must be selective on recall, because unselective recall reintroduces exactly the rot the assembly discipline works to avoid.
+</KeyIdea>
+
+## Typing enables decay
+
+Should memory have structure, or be one flat blob? The architecture proposals all add structure: MemGPT's "virtual context management, a technique drawing inspiration from hierarchical memory systems in traditional operating systems";<Citation src="memgpt" /> Generative Agents' memory stream the agent will "synthesize… into higher-level reflections, and retrieve… dynamically to plan behavior";<Citation src="generative-agents" /> and LangMem's explicit episodic/semantic/procedural split, where the semantic type "stores key facts (and their relationships)… that ground an agent."<Tag kind="practitioner" /><Citation src="langmem" />
+
+<InsightBox title="You can't forget what you can't address">
+Typing is the precondition for decay. A flat, undifferentiated blob can only be truncated, not selectively forgotten or corrected. The canonical stale-memory harm — a fact "accurate until they change jobs, at which point it becomes confidently wrong"<Citation src="mem0-state-2026" /> — is unfixable unless typing lets you locate and invalidate *that specific fact*. Structure (M1) and decay (M2) are one design move seen from two ends.
+</InsightBox>
+
+<MarginNote variant="warning" label="Caveat">
+These are architecture *proposals*, not benchmarked memory wins — no effect size. Fast-moving area; recheck after 2026-06-26.
+</MarginNote>
+
+<MarginNote variant="note" label="Note">
+What a reflection step learns is itself a typed-memory candidate: persist the lesson, decaying, not the raw critique transcript.
+</MarginNote>
+
+## The doc-vs-memory boundary
+
+Given a fact, which medium does it belong in — a committed doc or ephemeral memory? The official docs draw the line on two axes: a committed doc is "instructions you write"<Tag kind="official" /><Citation src="cc-memory" /> and is "shared with your team through version control," whereas auto-memory is "notes Claude writes itself" and is "machine-local… not shared across machines."<Citation src="cc-memory" /> The API layer mirrors it as a read_only store "for reference material… the agent does not need to modify."<Citation src="anthropic-agent-memory" />
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+The same boundary is drawn by two Anthropic docs and two independent practitioners: the hand-maintained "project constitution that I maintain by hand"<Citation src="belitz-md-vs-memory" /> for what "rarely changes… defines identity and constraints," and the committed doc as the place for "the static 'who am I' context that should not change across sessions."<Citation src="bustamante-agent-memory" /> The principle: commit what is durable, shared, and reviewable; leave to memory what is fast, private, and disposable. <Tag kind="convergence" />
+</Convergence>
+
+## Repo-as-memory: the cheap floor
+
+The filesystem is a real memory store — "the file system not just as storage, but as structured, externalized memory,"<Tag kind="practitioner" /><Citation src="ji-manus" /> unbounded and persistent, so after a context reset the agent "reads its own notes and continues" long tasks. But it is the **floor**, not the ceiling: it has no decay, no typing, no retrieval ranking; files "get unmanageable >5MB,"<Citation src="chen-markdown-memory" /> and a flat scratchpad is "scoped to a single thread" while a real store "persists across threads and can be recalled at any time."<Citation src="langchain-longterm-memory" />
+
+<ConceptBox title="Reach for the floor, outgrow it predictably">
+Repo-as-memory is the cheap baseline: start here (a notes file, a progress record). Outgrow it along known axes — when you need *typing* (address facts by kind), *decay* (invalidate stale ones), or *ranking* (retrieve the relevant few), promote to a structured store. The limits are predictable, which is what makes the floor a safe default.
+</ConceptBox>
+
+<Pitfall title="Treating memory as solved">
+Agent memory is openly unsolved. One named vendor calls high-relevance staleness "a harder, open problem,"<Citation src="mem0-state-2026" /> and the architecture landmarks are proposals, not benchmarked wins. Designing as if a memory layer reliably remembers the right thing — and forgets the wrong thing — overreaches the evidence. Treat typed/decay/boundary/repo-as-memory as scaffolding, and keep the durable, reviewable facts in a committed doc you control.
+</Pitfall>
+
+<MarginNote variant="warning" label="Caveat">
+"Memory is unsolved" here is one vendor's (Mem0) framing, not field consensus — and that post is freshly dated; recheck after 2026-06-26.
+</MarginNote>
+
+## The landscape, and the safe bet
+
+The proposals this chapter draws on optimize for different things — which is why "openly unsolved" is a starting point, not a verdict.
+
+<OpenQuestion title="What should agent memory be?">
+The field is exploring several shapes. **MemGPT** optimizes *capacity* — OS-style paging of a virtual context so the agent exceeds its window.<Citation src="memgpt" /> **Generative Agents** optimizes *salience* — reflection and retrieval over a memory stream.<Citation src="generative-agents" /> **Mem0** optimizes *production operations* — a managed memory service with benchmarks, naming high-relevance staleness as an open problem.<Citation src="mem0-state-2026" /> **LangMem** optimizes *structure* — an explicit episodic / semantic / procedural split.<Citation src="langmem" /> None is a settled winner. Against that, **typed memory with decay** is the safe bet *now*: the smallest commitment that survives staleness, and the precondition the richer systems assume.
+</OpenQuestion>
+
+## Patterns
+
+**Type your memory.** *Sketch:* split memory by kind (episodic/semantic/procedural) or tier it. *When to use:* anything beyond a scratchpad.<Citation src="langmem" /> *Mechanics:* store facts apart from experiences apart from rules; address each distinctly. *Remember:* typing is the precondition for selective decay and correction.
+
+**Decay / invalidate.** *Sketch:* give stored facts a validity path. *When to use:* any long-lived memory. *Mechanics:* invalidate on contradiction; prefer "no memory" over a confidently-wrong one.<Citation src="huang-agent-memory" /> *Remember:* a stale fact is recalled with full confidence — pollution is worse than absence.
+
+**Choose the medium.** *Sketch:* durable-shared → doc; fast-private → memory. *When to use:* every fact you persist.<Citation src="cc-memory" /> *Mechanics:* identity/constitution/standards → committed doc; session-accreted preferences → auto-memory.<Citation src="belitz-md-vs-memory" /> *Remember:* commit the durable + reviewable; leave the disposable to memory.
+
+**Repo-as-memory floor.** *Sketch:* start with the filesystem; outgrow it on signal. *When to use:* cross-session state, day one.<Citation src="ji-manus" /> *Mechanics:* a notes/progress file first; promote to a structured store when you need typing, decay, or ranking.<Citation src="langchain-longterm-memory" /> *Remember:* the floor has no decay/typing/ranking — and bloats past a few MB.
+
+## Quick reference
+
+- **Memory = recalled context** — every memory anti-pattern is a context anti-pattern.
+- **Typing enables decay** — you can't invalidate what you can't address.
+- **Decay/pollution:** a stale fact is "confidently wrong"; incorrect memory is worse than none.
+- **Doc-vs-memory boundary:** durable-shared-reviewable (doc) vs. fast-private-decaying (memory).
+- **Repo-as-memory:** cheap floor; outgrow it for typing/decay/ranking; bloats past a few MB.
+- **Openly unsolved** — scaffolding, not settled science; recheck.
+
+## Practice
+
+<Exercise id="ch10-ex-1">
+List three facts an agent might "remember" about your project: one identity-defining (rarely changes), one session-specific preference, one that will go stale (true now, wrong later). For each, name the right medium (committed doc vs. auto-memory) and — for the stale one — what would have to invalidate it.
+</Exercise>
+
+<Practice id="ch10-pr-1" difficulty="3">
+An agent stores "the user prefers the staging DB" as a flat note, and months later acts on it after the user has moved to a new setup — confidently wrong. Using this chapter, diagnose the two failures (which design question each maps to) and prescribe the fix. The point is to feel "memory = recalled context": the stale note is a context-quality failure, and the fix is structural, not "remember harder."
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch10-ex-1">
+Identity-defining (e.g., "this is a Rust workspace; all crates target stable") → committed doc; it rarely changes, should be shared/reviewable, and belongs where the team sees it. Session preference (e.g., "explain changes before applying this session") → auto-memory; private, fast, disposable. Will-go-stale (e.g., "the user is on team X") → if kept at all, it needs an invalidation path — typed so it can be located and overwritten when the world changes; otherwise it becomes the confidently-wrong recall the chapter warns about. The split is the doc-vs-memory boundary plus the typing-enables-decay rule applied per fact.
+</Solution>
+
+<Solution for="ch10-pr-1">
+Two failures: (1) **no typing/decay** (M1/M2) — the preference was stored as a flat note with no validity path, so it could not be located and invalidated when it changed; it became "confidently wrong." (2) **wrong medium / no review** (M3) — a consequential, drift-prone fact lived in private auto-memory rather than a reviewable committed doc where staleness would be visible. Fix: type the memory so the specific fact is addressable and can be invalidated on contradiction; and move durable, consequential facts to the committed doc (reviewable), leaving only fast, disposable preferences to auto-memory. The throughline: the stale note is a context-quality failure (memory = recalled context), so the remedy is structural — typing, decay, and the medium boundary — not "remember harder."
+</Solution>
+
+</ExerciseSolutions>

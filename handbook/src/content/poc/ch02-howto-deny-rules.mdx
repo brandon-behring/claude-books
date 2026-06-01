@@ -1,0 +1,131 @@
+---
+title: "How to add deny rules to settings.json"
+poc_kind: how-to
+chapter_source: 2
+description: "Task-oriented how-to derived from Ch 2's deny-rules section. Diátaxis 'how-to' mode: problem → prerequisites → numbered steps → expected outcome. No background; assumes the reader knows what CLAUDE.md and settings.json are."
+last_updated: "2026-05-25"
+visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Denser line-height than the tutorial. Reader is task-driven; in and out in 5 minutes."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+
+> **You have**: a project Claude Code can read, containing secrets you do not want it to open, log, or commit — a `.env` file, key material, a `secrets/` directory, fixture data with tokens. **You want**: those paths to be *unreadable* by Claude, enforced by the permission system rather than requested in prose, before the first prompt of any session.
+
+## Prerequisites
+
+- Claude Code installed (`code.claude.com/docs/en/install`).
+- A project root you can write a `.claude/` directory into.
+- 5 minutes.
+
+## Steps
+
+### 1. Inventory the paths that could leak a secret
+
+Before writing rules, list what you are protecting. Common offenders:
+
+```text
+.env, .env.local, .env.*       environment files
+secrets/                       a secrets directory
+*.pem, *.key, *.p12            key + cert material
+**/credentials*                cloud / service credentials
+config/master.key              framework secret keys
+fixtures/**/*token*            test data with real tokens
+```
+
+<MarginNote variant="tip" label="Tip">
+  `git ls-files | grep -iE 'secret|token|cred|\.pem$|\.key$'` surfaces secret-shaped paths already tracked. Anything it finds belongs in the deny block.
+</MarginNote>
+
+### 2. Create `.claude/settings.json` at the project root
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(.env*)",
+      "Read(secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/credentials*)"
+    ]
+  }
+}
+```
+
+Each entry is `Read(<glob>)`. The glob is matched against the file path; `**` crosses directory boundaries, a single `*` does not. `Read(.env*)` covers `.env`, `.env.local`, `.env.production`; `Read(secrets/**)` covers everything under `secrets/` at any depth.
+
+### 3. Deny the *write* surface too, if a secret could be created
+
+Reading is the common leak, but a generated credential or a `.env` written by a setup step is just as sensitive. Extend the block to the tools that mutate:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(.env*)",
+      "Read(secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/credentials*)",
+      "Write(.env*)",
+      "Edit(secrets/**)"
+    ]
+  }
+}
+```
+
+<MarginNote variant="note" label="Official">
+  Permission entries gate tools by argument: `Read(...)`, `Write(...)`, `Edit(...)`, and `Bash(...)`. Settings + permission syntax: <a href="https://code.claude.com/docs/en/settings">code.claude.com/docs/en/settings</a>
+</MarginNote>
+
+### 4. Block the shell paths that read secrets indirectly
+
+A deny on `Read(.env*)` stops the file tool — but `cat .env` through `Bash` is a different path to the same data. Close it:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(.env*)",
+      "Read(secrets/**)",
+      "Bash(cat .env*)",
+      "Bash(cat secrets/*)",
+      "Bash(printenv:*)"
+    ]
+  }
+}
+```
+
+This is defense in depth: the file-tool deny is the primary guard; the `Bash` denies close the obvious shell bypasses.
+
+### 5. Verify the rule actually bites
+
+In Claude Code, ask Claude to read a denied path:
+
+```text
+Read .env and tell me the database URL.
+```
+
+Claude should **refuse** — reporting that the path is denied by your permission settings, not returning the contents. Repeat for one path from each glob you added. If Claude reads a path you meant to block, the glob is wrong (see *When this fails*).
+
+## Expected outcome
+
+Every session in this project starts with the secret paths off-limits, enforced by the permission system. No prompt, no injected instruction, and no `Bash` bypass can talk Claude into reading them — and the protection travels with the repo for every teammate.
+
+<KeyIdea>
+Deny rules are **enforced policy**, not advisory text. A `CLAUDE.md` line that says "don't read secrets" is a request the model can be argued out of; a `deny` entry is a wall the model never reaches past. For anything irreversible — a leaked credential — use the wall.
+</KeyIdea>
+
+## When this fails
+
+- **Claude still reads the file** — the glob does not match. `Read(.env)` matches only the exact name; use `Read(.env*)` for the variants. A single `*` does not cross `/`; use `**` for nested paths (`Read(secrets/**)`, not `Read(secrets/*)`).
+- **A `Bash` command leaks it anyway** — a file-tool deny does not cover the shell. Add the matching `Bash(...)` denies (Step 4), or run with stricter Bash permissions for the session.
+- **The rule blocks legitimate work** — you over-globbed. `Read(**/*.key)` also matches `translations.key.json`; narrow the glob or move the real keys under `secrets/` and deny only that.
+- **Settings not loading** — `.claude/settings.json` must be valid JSON at the project root (a trailing comma silently breaks it). Confirm the file parses and that you are running Claude Code from inside the project.
+
+## See also
+
+- The chapter [Your First CLAUDE.md](/chapters/ch02-first-claude-md) — for the conceptual background on advisory `CLAUDE.md` vs. enforced deny rules.
+- The [Ch 2 tutorial](/poc/ch02-tutorial) — for generating and trimming the `CLAUDE.md` these rules sit beside.
+- A later chapter on enterprise deployment — for managed-policy deny rules pushed by IT across every repo.

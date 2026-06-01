@@ -1,0 +1,127 @@
+---
+title: "Designing the Whole: Environment + Context as One System"
+part: 1
+chapter: 11
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - effective-context-engineering
+  - eth-agentsmd-study
+  - liu-lost-middle
+  - mem0-state-2026
+description: The capstone — an integrative design workflow that composes the book's eight core chapters into one discipline, with decision points and an honest map of what is settled, converged, first-party-only, and openly unsolved.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The whole book — the environment chapters (E1–E5) and the context chapters (rot, assembly, memory).">
+- How the eight chapters compose into **one design workflow**, not eight separate concerns
+- A **decision order** for engineering an agent's environment + context together
+- The recurring **trade-offs** and how to resolve them
+- An honest **map of the evidence** — what is measured, converged, first-party-only, and openly unsolved
+</YouWillLearn>
+
+_This chapter is integrative. It introduces no new evidence — it composes the book's grounded claims into a design workflow and a decision guide. Where it restates a load-bearing fact, it points back to the chapter that established it; the rest is synthesis._
+
+<MarginNote variant="note" label="Note">
+Integrative synthesis, grounded in the prior chapters — not a new evidence chapter. Read it as the "how to put it together," not as new claims.
+</MarginNote>
+
+## The two layers are one system
+
+The book opened on a thesis: what turns a model into an agent is the engineering of the two layers around it — the environment it acts in and the context it reasons over — and that discipline is the most underappreciated, highest-leverage thing an architect designs. Eight chapters in, the payoff is that they are not eight topics but two ends of one loop: the **environment** is the durable store of everything the agent *could* use; the **context** is the finite slice it *does* use each turn; and the harness owns the boundary between them — context being "a finite resource with diminishing marginal returns."<Tag kind="official" /><Citation src="effective-context-engineering" />
+
+<KeyIdea>
+Engineer the environment so the right signal is *available* and machine-checkable; engineer the context so the right slice *crosses into the window* and survives. A great environment is wasted if assembly drags the wrong slice in; the smartest assembly cannot surface signal an unengineered environment never made legible. Design both, in order.
+</KeyIdea>
+
+## A design workflow
+
+The chapters fall into a natural order when you design a real agent's environment and context together.
+
+1. **Make the environment legible** (E1, E5). Maximize signal in and machine-checkable feedback out; at scale, bound what must be loaded (interface contracts, shallow index, scope-to-workspace).
+2. **Budget the always-on layer** (E2). The instruction file is paid every turn — spend it only on broadly-applicable, can't-infer-from-code context. More is not better.<Citation src="eth-agentsmd-study" />
+3. **Push procedures to load on demand** (E3). Skills are just-in-time procedural knowledge; keep them out of the window until relevant.
+4. **Set the safety envelope** (E4). Express intent in policy (permissions), contain failure in mechanism (sandbox, out-of-band reversibility).
+5. **Engineer the window against rot** (C1 → C2). Know the four failure modes; assemble a stable, well-placed, just-in-time window; compact or checkpoint as it fills.
+6. **Persist deliberately** (C3). Commit the durable and reviewable; leave the disposable to (typed, decaying) memory — and remember recalled memory is just more context.
+
+<ConceptBox title="The loop, not the list">
+Steps 1–4 shape the environment (what's available and allowed); steps 5–6 shape the context (what crosses, and what persists). The loop closes because every context decision (what to load, place, compact, remember) is constrained by how legible and bounded the environment is — and every environment decision exists to make the context decision tractable.
+</ConceptBox>
+
+## Decision points
+
+The recurring trade-offs, and how the book resolves them:
+
+- **Signal vs. budget.** Add context to help, or subtract to protect the window? Default to subtract: legibility and examples beat prose, and the one measured result says unnecessary context-file content *reduces* success.<Citation src="eth-agentsmd-study" /> Add only broadly-applicable, can't-infer context to the always-on layer; everything else loads on demand.
+- **Stability vs. freshness.** A stable prefix is a large cost/latency lever, but content changes. Resolve by *placement*: stable front, volatile tail.
+- **Where a fact lives.** Always-on (CLAUDE.md), on-demand (skill), or remembered (memory)? Fact that applies broadly → instruction layer; procedure → skill; durable + reviewable → committed doc; fast + private + disposable → memory.
+- **Placement under rot.** Load-bearing content goes at an edge, not the middle;<Citation src="liu-lost-middle" /> decompose multi-hop reasoning rather than stuff the window.
+- **Ergonomics vs. enforcement.** Skills and filters shape what the model sees; they are not security. Real restriction lives in the permission/sandbox layer.
+
+<InsightBox title="The one question that locates most decisions">
+"Is this paid every turn, or only when relevant?" Always-on context (instruction layer, tool defs) is expensive and must be minimal and stable; on-relevance context (skills, JIT loads, recalled memory) is where the discipline buys leverage. Most env/context design decisions reduce to placing each piece on the right side of that line.
+</InsightBox>
+
+## An honest map of the evidence
+
+The book's claims sit at very different evidence tiers, and designing well means weighting them accordingly.
+
+- **Measured (rare).** One controlled result anchors the instruction layer: unnecessary context-file content reduces success and adds cost.<Citation src="eth-agentsmd-study" /> Treat as one study, not law.
+- **Converged (strong).** The CLAUDE.md short-and-hand-curated rule, the U-shaped positional curve, navigate-before-read at scale, and the doc-vs-memory boundary each have independent corroboration — the strongest signal a craft discipline offers.
+- **First-party-only (authoritative, uncorroborated).** Skills mechanics are entirely Anthropic-sourced — authoritative on *what they are*, not yet independent evidence of efficacy.
+- **Openly unsolved.** Memory is scaffolding around a contested space,<Citation src="mem0-state-2026" /> and whether context rot is permanent or trainable is the live 2026 front. Build for what exists; don't bet the architecture on either resolving.
+
+<Pitfall title="Designing as if it's all settled">
+The biggest capstone error is flattening the tiers — treating a single study as a law, a first-party mechanic as proven efficacy, or an unsolved problem as solved. Design to the evidence you have: lean on the converged practices, hold the measured result as one data point, and keep the unsolved parts (memory, rot-permanence) behind reversible, re-checkable choices.
+</Pitfall>
+
+## The boundary of this volume
+
+This book engineers two of the harness's layers — the environment the agent acts in and the context it reasons over. It stops, deliberately, at *control flow*: how an agent critiques and retries its own work — **reflection**, or self-correction — and how multiple agents are coordinated are the companion **D1 orchestration** volume's subject, not this one's. What this volume owns of reflection is only its *footprint* — the environment a critic step reads, and the context its critique writes back, a cost the rot, assembly, and memory chapters each flag where it lands.
+
+## Quick reference
+
+- **One system:** environment makes signal available + checkable; context decides what crosses + persists.
+- **Workflow:** legible environment → budget the always-on → push procedures on-demand → set the safety envelope → engineer the window vs rot → persist deliberately.
+- **The locating question:** paid every turn, or only when relevant?
+- **Default to subtract** in the always-on layer (the one measured result).
+- **Weight the evidence:** measured (rare) → converged (strong) → first-party (uncorroborated) → unsolved (scaffold).
+
+## Practice
+
+<Exercise id="ch11-ex-1">
+Walk the six-step workflow for an agent you'd actually build. At each step, name the one decision you'd make and which chapter grounds it. Where in your design is the weakest evidence (first-party-only or unsolved), and how would you keep that choice reversible?
+</Exercise>
+
+<Practice id="ch11-pr-1" difficulty="4">
+Take a single recurring agent failure (re-reading files, losing the thread across sessions, acting on stale state, ignoring an instruction it was given). Trace it through the whole book: which layer (environment or context), which chapter's mechanism diagnoses it, and which decision-point trade-off resolves it. Write the fix as a sequence of moves across both layers. The point is to feel the book as one discipline — most real failures are not one chapter's, but a path through several.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch11-ex-1">
+A representative pass: (1) legible environment — add an entry-point map + examples (E1); (2) budget — cut the CLAUDE.md to broadly-true facts (E2, grounded in the ETH result); (3) on-demand — move the release procedure to a Skill (E3); (4) safety — deny prod writes, sandbox the rest (E4); (5) window — place the task spec at an edge, load files JIT, checkpoint long runs (C1/C2); (6) persist — commit the project constitution, let auto-memory hold session preferences (C3). The weakest-evidence spots are usually the Skill efficacy (first-party-only) and any memory layer (unsolved) — keep both reversible: skills are easy to remove, and durable facts live in the committed doc you control, so a memory failure degrades gracefully.
+</Solution>
+
+<Solution for="ch11-pr-1">
+Example — "loses the thread across sessions": it's a **context** failure that spans chapters. Diagnose with C1 (the window doesn't carry prior state) and C3 (nothing durable persisted it). Resolve via the decision points: *where a fact lives* (the durable project state belongs in a committed doc, not ephemeral memory) and *engineer the window* (checkpoint-and-restart from a progress file rather than relying on a giant carried-over transcript). Fix as a sequence: (env) add a progress/notes file the agent reads on start; (context) checkpoint at session end and restart from the file with a small stable prefix; (persist) commit the durable identity/constraints so they're reloaded deterministically. The failure wasn't one chapter's — it was a path from rot (C1) through assembly (C2) to memory (C3), which is exactly how the book is meant to be used.
+</Solution>
+
+</ExerciseSolutions>

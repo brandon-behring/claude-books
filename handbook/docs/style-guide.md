@@ -71,10 +71,10 @@ Section-level discipline (from PEDAGOGY decision #11 visual principles):
 
 **Source**: LaTeX-era used BiBLaTeX + `\cite{}`/`\textcite{}`. MDX-era uses YAML sources manifest + scaffold's citation components. PEDAGOGY adds source-tag attribution per decision #4.
 
-**MDX adaptation**:
-- LaTeX `\cite{key}` → MDX `<Cite key="key" />` (resolves via `handbook/sources/manifest.yaml` → `src/data/references.json` built by `npm run build:bib`)
-- LaTeX `\textcite{key}` → MDX `<Cite key="key" inline />` (per scaffold convention)
-- LaTeX `\footcite{key}` → MDX `<MarginNote variant="note">` containing `<Cite>` (no direct footcite equivalent in MDX)
+**MDX adaptation — two citation mechanisms; the handbook (tools profile) uses the first**:
+- **`<Citation src="id" />`** — resolves an entry in `handbook/sources/manifest.yaml` (the `sources` content collection, which auto-registers once the manifest is non-empty). Renders as a margin sidenote with a tier badge by default, or inline via `as="inline"`. This is the tools-profile mechanism and the handbook standard. LaTeX `\cite{key}` → `<Citation src="id" />`; `\textcite{key}` → `<Citation src="id" as="inline" />`.
+- **`<Cite key="..." />`** — the academic CSL path: resolves `src/data/references.json`, which `npm run build:bib` builds from a BibTeX `.bib` file (`bibliography.bib`). The handbook ships no `.bib`, so `<Cite>` is unused here and an unknown key fails the build. Reserved for academic-profile volumes.
+- LaTeX `\footcite{key}` → MDX `<MarginNote variant="note">` containing the source link (no direct footcite equivalent).
 - Inline practice tags from LaTeX (`\official{}` / `\practitioner{}` / `\convergence{}`) → MDX `<Tag kind="official|practitioner|convergence">claim</Tag>` (per scaffold v4.1.0 `<Tag>` component)
 
 Practice-tag enforcement from `~/claude-best-practices/scripts/lint_practice_tags.py`:

@@ -1,0 +1,225 @@
+---
+title: "Agent = Model + Harness"
+part: 1
+chapter: 1
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-05-29
+last_verified: 2026-05-29
+sources:
+  - building-effective-agents
+  - how-claude-code-works
+  - effective-harnesses
+  - effective-context-engineering
+  - agent-sdk-overview
+  - building-agents-with-the-sdk
+  - langgraph-overview
+  - karpathy-decade-of-agents
+  - hashimoto-harness-engineering
+  - trivedy-anatomy-agent-harness
+description: The introduction. This book engineers the two layers around the model — the environment an agent acts in and the context it reasons over — and this chapter grounds that thesis in the frame the book stands on — an agent is a model plus the deterministic harness that wraps it. The three layers, the components, the nested loop, the book's map, and what it leaves to companion volumes.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="You have built or used at least one agent — a coding agent, a chatbot with tools, a workflow. No Claude-specific knowledge assumed.">
+- The **thesis of this book** — what turns a model into an agent is engineering the two layers around it: the **environment** it acts in and the **context** it reasons over
+- The frame that makes that precise — **Agent = Model + Harness** — and the **three layers** a harness owns (environment, context-assembly, context)
+- The **components** every harness wires together, and the **nested loop** that drives them
+- The **map of this book**, and what it deliberately leaves to companion volumes
+</YouWillLearn>
+
+_What turns a model into an agent is not the model — it is the engineering of the two layers around it: the **environment** it acts in, and the **context** it reasons over. That is the subject of this book. This opening chapter states the thesis and grounds it in the frame the book stands on — **Agent = Model + Harness** — then maps the chapters and marks the scope. It defines vocabulary and direction; the next chapter argues the case, and the rest build it._
+
+## The frame: an agent is a model plus a harness
+
+Start with the distinction that organizes everything else. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter still: an agent is an "LLM autonomously using tools in a loop."<Citation src="effective-context-engineering" /> That is the **model** side — the source of the agent's autonomy.
+
+The **harness** is everything else: the deterministic code wrapped around the model. Claude Code, for instance, "provides the tools, context management, and execution environment that turn a language model into a capable coding agent."<Tag kind="official" /><Citation src="how-claude-code-works" /> A general-purpose harness such as the Claude Agent SDK is one concrete instance of that wrapper.<Citation src="effective-harnesses" />
+
+<ConceptBox title="Harness">
+The deterministic code around the model — its tools, context management, execution environment, and control loop. It is **not** the model, and **not** a fixed pipeline. "Harness engineering" is the discipline of building it.
+</ConceptBox>
+
+The boundary that makes the frame sharp is the contrast with a **workflow**, where models and tools are instead "orchestrated through predefined code paths."<Citation src="building-effective-agents" /> A workflow's control flow is fixed in code; an agent's control flow is driven by the model. So the same three ingredients — a model, some tools, some glue — give you a workflow or an agent depending on **who decides what happens next**.
+
+<KeyIdea>
+Agent = Model + Harness. The model supplies autonomy; the harness supplies tools, context, environment, and a control loop. Designing an agent is, almost entirely, designing the harness.
+</KeyIdea>
+
+This is why this book is scoped the way it is: the model is a given (you choose a capable one and prompt it well — prompting is its own discipline, out of scope here), and of the harness around it, this book develops the two layers where most of the leverage lives — the **environment** and the **context**.
+
+## The harness owns three layers
+
+A harness decomposes into three layers, and its defining job is owning the boundary between them.
+
+- **Context** — the assembled window the model reasons over. It is "a critical but finite resource for AI agents"<Tag kind="official" /><Citation src="effective-context-engineering" /> — a budget, not free memory.
+- **Environment** — the substrate the agent acts in: the repository, the filesystem, scripts, a running process. A long-running harness "asks the model to set up the initial environment" before work begins.<Citation src="effective-harnesses" />
+- **Context-assembly** — the boundary between them. Rather than dumping the environment into the window, agents keep lightweight references and "use these references to dynamically load data into context at runtime using tools."<Citation src="effective-context-engineering" />
+
+<ConceptBox title="The three layers">
+**Environment** (large, durable substrate) → **context-assembly** (what crosses, and when) → **context** (small, finite window). The harness is the artifact that owns the assembly boundary — deciding what enters the window, and when.
+</ConceptBox>
+
+Owning that boundary is what makes a harness a harness. The *mechanics* of assembly — caching, compaction, just-in-time loading — are deep enough to be their own chapter (the context-assembly chapter, later in this book); here we only name the three layers and locate the boundary the harness controls.
+
+<MarginNote variant="note" label="Note">
+"Context-assembly" as a named third layer is partly this book's framing, laid over the just-in-time boundary the sources describe.
+</MarginNote>
+
+## The components a harness wires together
+
+Zoom into the harness and it is a **parts list**. Shipping harnesses name the same parts. The Claude Agent SDK gives you "the same tools, agent loop, and context management that power Claude Code"<Tag kind="official" /><Citation src="agent-sdk-overview" />; tools are "the primary building blocks of execution for your agent"<Citation src="building-agents-with-the-sdk" />; and the harness can "spawn specialized agents to handle focused subtasks"<Citation src="agent-sdk-overview" /> that "use their own isolated context windows."<Citation src="building-agents-with-the-sdk" />
+
+That this is a real taxonomy, and not one vendor's idiosyncrasy, shows up cross-vendor:
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+An independent framework, LangGraph, names the same parts — both "short-term working memory for ongoing reasoning and long-term memory across sessions,"<Citation src="langgraph-overview" /> and a durable control loop whose agents "persist through failures and can run for extended periods, resuming from where they left off."<Citation src="langgraph-overview" /> First-party Anthropic primaries and an independent vendor converge on the same components list. <Tag kind="convergence" />
+</Convergence>
+
+So a harness wires together, at least: a **tool interface**, **context/memory management**, a **control loop with stop conditions**, and **sub-agent orchestration** — and, by extension, **guardrails/permissions** and **observability**. Each part is deep-diveable on its own; this chapter is the parts diagram, not the parts.
+
+<MarginNote variant="warning" label="Caveat">
+Of these parts, this book develops the environment, context/memory, and guardrails. The tool interface, orchestration, and observability are named here but left to companion volumes.
+</MarginNote>
+
+## The nested loop: an inner cycle inside an outer one
+
+The harness runs a **nested loop**, and knowing which loop you are designing is half of harness engineering.
+
+The **inner loop** is the model's own cycle. Claude Code's "agentic loop is powered by two components"<Citation src="how-claude-code-works" /> — the model reasoning and the tools acting — repeating until the task is done. The *internals* of that cycle (how a turn is structured, how tool results return) are a companion-volume concern; here it is enough that an inner loop exists and the model drives it.
+
+The **outer loop** is the harness wrapping that cycle. A long-running harness exists to "bridge the gap between coding sessions"<Citation src="effective-harnesses" /> so the model can make incremental progress across many context windows.
+
+<InsightBox title="Where the control lives">
+Continue-or-stop, compaction, carrying artifacts forward, dispatching a sub-agent — these are all **outer-loop** decisions the harness makes *around* an inner loop it does not reason inside. That is precisely why harness engineering is a distinct discipline from prompt engineering: prompt engineering shapes the inner loop's reasoning; harness engineering builds the outer loop.
+</InsightBox>
+
+<WorkedExample id="locating-a-design-decision" title="Locating a design decision in the frame">
+
+A reader asks: *"My agent re-reads the same large config file on every turn and blows its context budget. Where's the fix?"*
+
+Walk the frame:
+
+- Not the **model** — the model isn't choosing to waste tokens; it has no other way to see the file.
+- It's a **context-assembly** problem — the file lives in the **environment**; the harness is loading all of it into **context** instead of keeping a reference and loading on demand.
+- The lever is an **outer-loop** decision (what the harness puts in the window), realized through the **context/memory component**.
+
+The frame turned a vague complaint into a located design decision — before naming a single API. That is what the frame is *for*.
+
+</WorkedExample>
+
+## How the vocabulary settled
+
+The frame above is recent. The words arrived on a short, dated arc, and it is worth seeing the shape because the vocabulary is still moving.
+
+- **2025-06-17** — Andrej Karpathy popularizes the "agents" framing in a widely-cited keynote: "This is the Decade of Agents." <Tag kind="practitioner" /><Citation src="karpathy-decade-of-agents" />
+- **2025-11-26** — Anthropic adopts "harness" in an official engineering venue, describing a "long-running agent harness" working "across many context windows."<Citation src="effective-harnesses" />
+- **2026-02-05** — Mitchell Hashimoto names the discipline: "I've grown to calling this 'harness engineering.'" <Tag kind="practitioner" /><Citation src="hashimoto-harness-engineering" />
+- **2026-03-10** — LangChain gives the formula its cleanest published form: "Agent = Model + Harness."<Citation src="trivedy-anatomy-agent-harness" />
+
+The shape *is* the story: the concept (autonomous agents) predates a word for its wrapper (harness) by months, and the compact formula arrives last, once the wrapper has a name.
+
+<MarginNote variant="warning" label="Caveat">
+This is dated provenance, not a definition. Hashimoto himself notes there is no industry-accepted term yet — the field has not converged on the vocabulary.
+</MarginNote>
+
+## The shape of this book
+
+This book takes two of the harness's layers — the **environment** and the **context** — and develops them as one discipline. The chapters move from the substrate outward to the window, and inside the window from the problem to the response:
+
+**Environment — the substrate the agent acts in.**
+
+- **Repo & doc design** — making the repository high-signal to read and self-correcting to act in.
+- **The instruction layer** — the always-loaded config file as a context *budget*, not documentation.
+- **Skills & progressive disclosure** — procedural knowledge that loads only when relevant.
+- **Guardrails, permissions & reversibility** — expressing intent in policy and containing failure in mechanism.
+- **Environments at scale** — bounding what the agent must load when the repo is too big to hold.
+
+**Context — the window the model reasons over.**
+
+- **Context rot** — the evidence that long windows degrade, and why that is the problem the rest answers.
+- **Context assembly** — the engineering response: caching, compaction, just-in-time loading, budgeting the window.
+- **Memory** — persisting context across sessions, and the anti-patterns that reintroduce the rot.
+
+<Figure
+  src="/figures/part-map/part-map.svg"
+  caption="The Part's shape: the environment (E1–E5) feeds the context-assembly boundary, which decides what crosses into the context (C1–C3). The C1→C2 arrow is the problem→response spine of the context half."
+  alt="Three columns. Left: an Environment box listing E1 Repo design, E2 CLAUDE.md, E3 Skills, E4 Guardrails, E5 At scale. Center: a context-assembly boundary labeled 'what crosses, and when'. Right: a Context group of three boxes — C1 Rot, C2 Assembly, C3 Memory. Thick arrows flow from Environment through the boundary to each context box; a curved arrow runs from C1 to C2 labeled 'problem to response'."
+  width="100%"
+  id="fig-part-map"
+/>
+
+A closing chapter composes all of it into one design workflow.
+
+<KeyIdea>
+The frame's value is the clean cut: any harness concern is a property of the model, the harness's loop, its layers, or its components. This book develops two of the layers — environment and context; the next chapter argues why they are the most underappreciated, highest-leverage thing an architect designs.
+</KeyIdea>
+
+## What this book leaves to companion volumes
+
+The frame names more of the harness than one book should carry. The rest is **deliberately out of scope here** — each is planned as a companion volume in the series, and this book points outward to it rather than pretending to deliver it:
+
+- **The inner loop's internals** — how a turn and its tool results are structured.
+- **The Agent SDK's surface** — the concrete harness instance whose API we cited above.
+- **Sub-agent orchestration** — the isolation primitive, orchestrator–worker topologies, and when not to use them.
+- **Tools & MCP** — designing the tool interface and the protocol that serves it.
+- **Build vs. buy** — whether to configure an existing harness or build your own.
+- **Evaluation & operations** — measuring and running agents in production.
+
+These are companion concerns, not missing chapters: this book stands on its own for the environment and the context.
+
+## What is still settling
+
+This chapter captures a frame mid-crystallization, so a few honest limits travel with it.
+
+- **The vocabulary is young.** "Harness" entered Anthropic's official vocabulary only in late 2025; "harness engineering" and "Agent = Model + Harness" are 2026 coinages. Expect the terms to keep shifting, and re-check the landscape rather than treating today's words as settled.
+- **The definitional spine is single-vendor-dense.** The definitions of "agent" and "harness" rest largely on Anthropic's framing. The one independent corroboration here (LangGraph) agrees on the **components list**, not on the definitions — so do not over-claim convergence beyond the parts list.
+- **One provenance anchor is a transcript, not a primary.** Karpathy's line is quoted from a published transcript of a spoken keynote, faithful to that mirror and the talk date, but it is "Karpathy said X in a talk," not "Karpathy wrote X."
+
+<Pitfall title="Mistaking the frame for a how-to">
+This chapter defines vocabulary and direction; it does not tell you how to build the inner loop, design a tool, or choose a topology — several of those are companion-volume concerns. Reaching for this chapter as an implementation guide is a category error: its job is to make the rest of *this* book's moves legible, and to mark where the book's scope ends.
+</Pitfall>
+
+## Quick reference
+
+- **Agent = Model + Harness.** The model supplies autonomy; the harness supplies everything around it.
+- **Agent vs. workflow:** an agent's control flow is model-driven; a workflow's is fixed in code.
+- **Three layers:** environment (substrate) → context-assembly (the boundary) → context (the finite window). The harness owns the boundary.
+- **Components:** tool interface, context/memory, control loop, sub-agent orchestration (+ guardrails, observability).
+- **Nested loop:** the model's inner reason→act→observe sits inside the harness's outer cross-session orchestration, where control lives.
+- **This book's scope:** the environment and the context — the two highest-leverage layers; the rest is named here and left to companion volumes.
+
+## Practice
+
+<Exercise id="ch1-ex-1">
+Take an agent you have used or built. Name its harness's four core components (tool interface, context/memory, control loop, sub-agent orchestration). Which one is most primitive — i.e., barely a component at all? What does that tell you about where it sits on the workflow↔agent spectrum?
+</Exercise>
+
+<Practice id="ch1-pr-1" difficulty="3">
+Pick one recurring failure in an agent you run (re-reading files, losing the thread across sessions, over-calling a tool). Locate it in the frame: is it a model problem, an inner-loop problem, a layer-boundary problem, or a component problem? Write one sentence naming the layer/component and the outer-loop decision that would address it — *without* yet choosing an API. The point is to feel the frame do the locating.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch1-ex-1">
+For most coding agents the **control loop** is the richest component (stop conditions, retries, compaction, dispatch) and the **sub-agent orchestration** is often the most primitive — frequently absent entirely (a single-threaded agent). An agent with no orchestration and a thin, fixed control loop is sliding toward the **workflow** end of the spectrum; the more the model (not predefined code) decides what happens next across a rich outer loop, the more it is an **agent** in the sense this chapter defines.
+</Solution>
+
+</ExerciseSolutions>
