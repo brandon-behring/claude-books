@@ -1,0 +1,129 @@
+---
+title: "Session State: resume, fork, and Scratchpads"
+part: 1
+chapter: 7
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - agent-sdk-sessions
+  - claude-code-best-practices
+  - agent-sdk-agent-loop
+description: A session is the persisted conversation, not the filesystem. The architect's tools for carrying or branching state across context windows — continue, resume, and fork — plus the encoded-cwd resume trap and the discipline of capturing durable artifacts as application state rather than shipping transcripts.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.1 (the loop) — you know what a turn is and that hitting max_turns sets an error subtype on the result.">
+- **Distinguish** `continue`, `resume`, and `fork` — and what each does to a session's history
+- **Apply** `resume` to recover a session that hit `error_max_turns`, getting the `cwd` right
+- **Explain** why forking and resuming branch the *conversation*, not the filesystem
+- **Choose** between resuming a transcript and capturing artifacts as application state for cross-host work
+</YouWillLearn>
+
+_The loop of D1.1 runs inside a single context window. Real agents outlive one window — they pause, resume on another host, or branch to try an alternative. The state that survives is the **session**, and this chapter fixes what a session is, the three controls that carry or branch it, and the one discipline that outlasts the session itself. This closes Domain 1: the loop, scaled across many windows._
+
+## A session is the persisted conversation
+
+A session is the conversation history — the prompt and every tool call, tool result, and response — persisted as JSONL on disk at `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`.<Tag kind="official" /><Citation src="agent-sdk-sessions" /> The boundary that matters most is what a session does *not* include:
+
+> "Sessions persist the **conversation**, not the filesystem. To snapshot and revert file changes the agent made, use file checkpointing."<Tag kind="official" /><Citation src="agent-sdk-sessions" />
+
+<ConceptBox title="What persists, and where">
+The session file is the transcript: messages, tool calls, tool results. It lives under `~/.claude/projects/<encoded-cwd>/`, keyed by the working directory. It records what was *said and done* — not the state of the files the agent touched. Conversation and filesystem are two separate kinds of state.
+</ConceptBox>
+
+## continue, resume, and fork
+
+Three controls carry or branch a session.<Tag kind="official" /><Citation src="agent-sdk-sessions" />
+
+| Control | What it does | When to reach for it |
+|---|---|---|
+| **`continue`** | Picks up the **most recent** session in the current `cwd` — no ID needed | Resume after a process restart in the same directory |
+| **`resume: sessionId`** | Picks up a **specific** session by ID | Multi-user / multi-conversation apps where "most recent" is ambiguous |
+| **`fork`** | Starts a **new** session ID from a **copy** of the original's history; the original is untouched | Try an alternative direction without losing the original thread |
+
+`continue` and `resume` extend one thread; `fork` splits one into two. Capture the ID you'll need later from `ResultMessage.session_id` — it is present even on errors.<Tag kind="official" /><Citation src="agent-sdk-sessions" />
+
+<MarginNote variant="tip" label="Tip">
+Exam reflex: **`resume` / `continue` carry** one conversation forward; **`fork` branches** it into a second, independent one (new ID, original unchanged).
+</MarginNote>
+
+## Fork branches the conversation, not the filesystem
+
+The most-missed property of forking is the same boundary from section 1, sharpened:
+
+> "Forking branches the conversation history, not the filesystem. If a forked agent edits files, those changes are real and visible to any session working in the same directory."<Tag kind="official" /><Citation src="agent-sdk-sessions" />
+
+<KeyIdea>
+Forking gives you two *conversations*, not two *worlds*. Both forks share one filesystem, so a file edit in either is real and visible to the other. To branch and revert file changes, you need file checkpointing — forking alone does not sandbox the disk.
+</KeyIdea>
+
+<Pitfall title="Assuming fork or resume snapshots the filesystem">
+Treating a fork as an isolated sandbox — "I'll fork, experiment destructively, and the original is safe" — corrupts the shared working directory. Only the *conversation* branches. Pair forking with file checkpointing if the files must branch too.
+</Pitfall>
+
+## Resume to recover — and the encoded-cwd trap
+
+`resume` is the recovery tool for a loop that ended on a budget. When a session stops with `error_max_turns` (D1.1), you resume it with a higher limit and let it finish rather than restarting from scratch — `resume: sessionId` with a bumped `max_turns`.<Tag kind="official" /><Citation src="agent-sdk-sessions" /> Because the work hit a budget, not a wall, the transcript is intact and resumable.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+The single most common resume bug is the **encoded-cwd** mismatch:
+
+> "If a `resume` call returns a fresh session instead of the expected history, the most common cause is a mismatched `cwd`. Sessions are stored under `~/.claude/projects/<encoded-cwd>/*.jsonl`, where `<encoded-cwd>` is the absolute working directory with every non-alphanumeric character replaced by `-`."<Tag kind="official" /><Citation src="agent-sdk-sessions" />
+
+<Pitfall title="resume silently returns a fresh session">
+If `resume` hands you an empty conversation, you are almost certainly running from a different directory than the original. The lookup path is derived from `cwd` (`/Users/me/proj` → `-Users-me-proj`); resume from the **same** working directory or the SDK looks in the wrong place and starts fresh.
+</Pitfall>
+
+## Scratchpads: durable state beyond the session
+
+Sometimes the session itself is the wrong unit to carry — especially across hosts, where a CI worker or ephemeral container won't have yesterday's transcript file. The robust move is to lift the state you care about *out* of the conversation: "capture the artifacts you care about (analysis output, decisions, file diffs) as application state and pass into a fresh session's prompt," which the docs call "often more robust than shipping transcript files around."<Tag kind="official" /><Citation src="agent-sdk-sessions" /> A scratchpad — a working file the agent writes to and reads from — is the same idea applied within a run; fresh sessions then start from the durable artifact rather than a fragile transcript.<Tag kind="official" /><Citation src="claude-code-best-practices" />
+
+This is where session state shades into *memory* — the design rationale for persisting durable context across many sessions (scratchpads, memory files, retrieval) is developed in the companion volume rather than repeated here: see the *Agentic Systems Design* book, Chapter 10, [*Memory: Persisting Context Across Sessions*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch10-context-memory.mdx).
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d1-07-ex-resume-ci">
+A CI job runs an agent that stops with `error_max_turns` partway through a refactor. The job's container is torn down, and you must finish the work on a **fresh worker** tomorrow. Walk two options: (a) resume the original session by ID — what must be in place for that to work? — and (b) capture artifacts as application state. Which is more robust across hosts, and why?
+</Exercise>
+
+<Practice id="d1-07-pr-three" difficulty="2">
+Without looking back: in one clause each, distinguish `continue`, `resume`, and `fork`.
+</Practice>
+
+<Practice id="d1-07-pr-freshbug" difficulty="2">
+A `resume` call returns an empty, fresh session instead of the expected history. Name the most common cause and the fix.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d1-07-ex-resume-ci">
+**(b) is more robust.** (a) To resume by ID, the original session JSONL must be restored to the **same path** — `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl` — *and* the fresh worker must run from the **same `cwd`**, because the encoded-cwd is derived from the working directory; only then does `resume: sessionId` (with a bumped `max_turns`) find the transcript. That means shipping the transcript file and reproducing the exact directory on every worker. (b) Instead, capture the artifacts that matter — the decisions made, the diff so far, the remaining plan — as application state and seed a **fresh** session's prompt with them. No transcript to ship, no `cwd` to reproduce; the docs call this "often more robust than shipping transcript files around." Resume is for recovering *in place*; cross-host work favors captured artifacts. (And note: neither option restores the *files* the agent edited — that is file checkpointing, separate from session state.)
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **A session is the persisted conversation, not the filesystem** — JSONL under `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`. File state is separate (file checkpointing).
+- **Three controls:** `continue` (most recent in `cwd`), `resume: sessionId` (a specific session), `fork` (new ID from a copy; original untouched). resume/continue carry; fork branches.
+- **Fork branches the conversation, not the disk** — forked file edits are real and shared. Pair with file checkpointing to branch files.
+- **`resume` recovers an `error_max_turns` session** with a bumped budget; the #1 bug is a **mismatched `cwd`** → wrong encoded path → a fresh, empty session.
+- **For cross-host work, capture artifacts as application state** and seed a fresh session's prompt — more robust than shipping transcripts. (Durable memory: *Agentic Systems Design* ch10.)

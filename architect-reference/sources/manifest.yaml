@@ -119,3 +119,13 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D1.7 (Session State). claude-code-best-practices (D1.4) + agent-sdk-agent-loop (D1.1) reused.
+
+- id: agent-sdk-sessions
+  url: https://code.claude.com/docs/en/agent-sdk/sessions
+  title: Work with sessions
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

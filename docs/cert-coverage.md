@@ -27,7 +27,7 @@ Primary owner: **architect-reference**. Cross-references: handbook ch on agents/
 | Multi-step workflows (programmatic vs prompt-based enforcement, handoff) | ⬜ | 🟢 D1.4 (authored 2026-06-01) | ⬜ |
 | Agent SDK hooks (`PostToolUse`, tool interception, normalization) | ⬜ | 🟢 D1.5 (authored 2026-06-01) | ⬜ |
 | Task decomposition (sequential pipelines vs adaptive decomposition) | 🟡 ch10 (delegation) | 🟢 D1.6 (authored 2026-06-01) | ⬜ |
-| Session state (`--resume`, `fork_session`, scratchpads) | 🟡 ch5 (scratchpads) | ⬜ (`fork_session`) | ⬜ |
+| Session state (`--resume`, `fork_session`, scratchpads) | 🟡 ch5 (scratchpads) | 🟢 D1.7 (authored 2026-06-01) | ⬜ |
 
 ## Domain 2 — Tool Design & MCP Integration (18%)
 
