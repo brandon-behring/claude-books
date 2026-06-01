@@ -5,33 +5,19 @@ import { getCollection } from 'astro:content';
 const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
 chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
 ---
-<Base title="The Claude Architect's Reference: Environment & Context Engineering" description="A standalone volume on engineering the two layers around the model — the environment an agent acts in, and the context it reasons over. Authored from strict-live research.">
+<Base title="The Claude Architect's Reference (Cert-Aligned)" description="The cert-aligned volume of the claude-books series — mapped to Anthropic's Claude Certified Architect — Foundations domains D1–D5. References the Agentic Systems Design book for design depth.">
   <article class="prose">
     <h1>The Claude Architect's Reference</h1>
-    <p class="subtitle"><em>Environment &amp; Context Engineering</em></p>
+    <p class="subtitle"><em>Cert-Aligned — Claude Certified Architect: Foundations (D1–D5)</em></p>
 
-    <p>This volume is about the discipline that turns a model into an agent: engineering the <strong>environment</strong> it acts in and the <strong>context</strong> it reasons over. It is self-contained — it assumes a capable model and a harness, and develops the two layers around them.</p>
+    <p>This volume maps 1:1 to Anthropic's <strong>Claude Certified Architect — Foundations</strong> five-domain taxonomy. It is exam-prep altitude: it owns the cert spine and points outward to the <strong>Agentic Systems Design</strong> book where a domain needs design depth.</p>
 
-    <h2>Scope</h2>
-    <p><strong>Covered here:</strong> the environment (repo &amp; doc design, the instruction layer, skills, guardrails, working at scale) and the context (why windows degrade, how to assemble them, how to persist them across sessions).</p>
-    <p><strong>Adjacent — planned companion volumes, not yet available:</strong> Orchestration &amp; Multi-Agent (build-vs-buy, sub-agents), Tools &amp; MCP, Evaluation &amp; Operations, and Prompting. This book points outward to them where its scope ends; it does not depend on them.</p>
+    <h2>Status</h2>
+    <p>Skeleton — the five-domain outline is in <code>OUTLINE.md</code>; chapters are authored in a later round. See <code>docs/BOOK-MAP.md</code> for how this book relates to the others.</p>
 
     <h2>Chapters</h2>
-    <ul>
-      {chapters.map((c) => (
-        <li>
-          <a href={`/chapters/${c.id}/`}>
-            {c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}
-          </a>
-        </li>
-      ))}
-    </ul>
-
-    <h2>Other pages</h2>
-    <ul>
-      <li><a href="/chapters/">Chapter listing</a> (auto-generated)</li>
-      <li><a href="/search/">Search</a> (Pagefind)</li>
-      <li><a href="/references/">References</a></li>
-    </ul>
+    {chapters.length === 0
+      ? <p><em>No chapters yet — see <code>OUTLINE.md</code> for the D1–D5 plan.</em></p>
+      : <ul>{chapters.map((c) => (<li><a href={`/chapters/${c.id}/`}>{c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}</a></li>))}</ul>}
   </article>
 </Base>

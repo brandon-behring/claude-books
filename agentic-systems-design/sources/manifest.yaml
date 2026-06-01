@@ -1,0 +1,690 @@
+# sources/manifest.yaml — captured sources for Agentic Systems Design (tools profile).
+# Cited inline via <Citation src="id" />; built into src/data/references.json by `book-scaffold build-bib`.
+# These are the verified primaries from the harness_frame strict-live dossier
+# (~/Claude/research_agent_harness_frame/bib_ledger.yml — all status: verified, retrieved 2026-05-27).
+# tier ∈ T1-official | T2-release-notes | T3-practitioner | T4-conjecture
+# tool ∈ claude-code | gemini-cli | codex-cli | cross-tool
+#
+# NOTE (HITL per AUTHORS.md): URLs + dates are dossier-verified; re-confirm before promoting
+# the citing chapter to "validated" status.
+
+- id: building-effective-agents
+  url: https://www.anthropic.com/engineering/building-effective-agents
+  title: Building effective agents
+  author: Erik Schluntz and Barry Zhang
+  publish_date: 2024-12-19
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: how-claude-code-works
+  url: https://code.claude.com/docs/en/how-claude-code-works
+  title: How Claude Code works
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: effective-harnesses
+  url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+  title: Effective harnesses for long-running agents
+  author: Justin Young
+  publish_date: 2025-11-26
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: effective-context-engineering
+  url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+  title: Effective context engineering for AI agents
+  author: Prithvi Rajasekaran, Ethan Dixon, Carly Ryan, and Jeremy Hadfield
+  publish_date: 2025-09-29
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: agent-sdk-overview
+  url: https://code.claude.com/docs/en/agent-sdk/overview
+  title: Agent SDK overview
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: building-agents-with-the-sdk
+  url: https://claude.com/blog/building-agents-with-the-claude-agent-sdk
+  title: Building agents with the Claude Agent SDK
+  author: Thariq Shihipar et al.
+  publish_date: 2025-09-29
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: langgraph-overview
+  url: https://docs.langchain.com/oss/python/langgraph/overview
+  title: LangGraph overview
+  author: LangChain
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: karpathy-decade-of-agents
+  url: https://www.latent.space/p/s3
+  title: "Andrej Karpathy: Software in the Age of AI"
+  author: Andrej Karpathy (Latent Space transcript-mirror)
+  publish_date: 2025-06-17
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: hashimoto-harness-engineering
+  url: https://mitchellh.com/writing/my-ai-adoption-journey
+  title: My AI Adoption Journey
+  author: Mitchell Hashimoto
+  publish_date: 2026-02-05
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: trivedy-anatomy-agent-harness
+  url: https://www.langchain.com/blog/the-anatomy-of-an-agent-harness
+  title: The Anatomy of an Agent Harness
+  author: Vivek Trivedy
+  publish_date: 2026-03-10
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+# --- Ch3 (Repo & Doc Design) — from the repo_design strict-live dossier
+# (~/Claude/research_agent_repo_design/bib_ledger.yml — all status: verified, retrieved 2026-05-26).
+# hashimoto-harness-engineering (above) is reused for the failure-breadcrumb claims.
+
+- id: agents-md
+  url: https://agents.md/
+  title: AGENTS.md
+  author: Agentic AI Foundation (Linux Foundation)
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: anthropic-cc-best-practices
+  url: https://code.claude.com/docs/en/best-practices
+  title: Best practices for Claude Code
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: humanlayer-ace
+  url: https://www.humanlayer.dev/blog/advanced-context-engineering
+  title: Advanced Context Engineering for Coding Agents (ACE-FCA)
+  author: Dex Horthy (HumanLayer)
+  publish_date: 2025-10-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: swan-adrs
+  url: https://blog.thestateofme.com/2025/07/10/using-architecture-decision-records-adrs-with-ai-coding-assistants/
+  title: Using Architecture Decision Records (ADRs) with AI coding assistants
+  author: Chris Swan
+  publish_date: 2025-07-10
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: boeckeler-harness
+  url: https://martinfowler.com/articles/harness-engineering.html
+  title: Harness engineering for coding agent users
+  author: Birgitta Böckeler
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: boeckeler-sensors
+  url: https://martinfowler.com/articles/sensors-for-coding-agents.html
+  title: Maintainability sensors for coding agents
+  author: Birgitta Böckeler
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+# --- Ch4 (Instruction Layer) — from the claudemd_discipline dossier.
+# agents-md + anthropic-cc-best-practices (above) are reused.
+
+- id: humanlayer-claudemd
+  url: https://www.humanlayer.dev/blog/writing-a-good-claude-md
+  title: Writing a good CLAUDE.md
+  author: Kyle (HumanLayer)
+  publish_date: 2025-11-25
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: eth-agentsmd-study
+  url: https://arxiv.org/abs/2602.11988
+  title: "Evaluating AGENTS.md: Are Repository-Level Context Files Helpful for Coding Agents?"
+  author: Gloaguen, Mündler, Müller, Raychev, Vechev (ETH Zurich)
+  publish_date: 2026-02-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-skills
+  url: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+  title: Equipping agents for the real world with Agent Skills
+  author: Anthropic
+  publish_date: 2025-10-16
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: robbes-adoption
+  url: https://arxiv.org/abs/2601.18341
+  title: "Agentic Much? Adoption of Coding Agents on GitHub"
+  author: Robbes, Matricon, Degueule, Hora, Zacchiroli
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+# --- Ch5 (Skills & Progressive Disclosure) — from the env_skills dossier (all first-party Anthropic).
+# anthropic-skills (the engineering blog, above) is reused.
+
+- id: anthropic-skills-overview
+  url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+  title: Agent Skills (overview)
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-skills-best-practices
+  url: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+  title: Skill authoring best practices
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-skills-cc
+  url: https://code.claude.com/docs/en/skills
+  title: Extend Claude with skills
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-skills-sdk
+  url: https://code.claude.com/docs/en/agent-sdk/skills
+  title: Agent Skills in the SDK
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropics-skills-repo
+  url: https://github.com/anthropics/skills
+  title: "anthropics/skills: Public repository for Agent Skills"
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: claude-code
+
+- id: anthropic-plugins
+  url: https://code.claude.com/docs/en/discover-plugins
+  title: Discover and install prebuilt plugins through marketplaces
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# --- Ch6 (Guardrails) — from the guardrails dossier.
+# anthropic-cc-best-practices (above) is reused for the reversibility facet.
+
+- id: anthropic-permissions
+  url: https://code.claude.com/docs/en/permissions
+  title: Configure permissions
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-settings
+  url: https://code.claude.com/docs/en/settings
+  title: Claude Code settings
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-sandboxing-docs
+  url: https://code.claude.com/docs/en/sandboxing
+  title: Configure the sandboxed Bash tool
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-sandboxing-blog
+  url: https://www.anthropic.com/engineering/claude-code-sandboxing
+  title: "Beyond permission prompts: making Claude Code more secure and autonomous"
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: replit-fortune
+  url: https://fortune.com/2025/07/23/ai-coding-tool-replit-wiped-database-called-it-a-catastrophic-failure/
+  title: "An AI-powered coding tool wiped out a software company's database"
+  author: Beatrice Nolan (Fortune)
+  publish_date: 2025-07-23
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: replit-register
+  url: https://www.theregister.com/2025/07/21/replit_saastr_vibe_coding_incident/
+  title: "Vibe coding service Replit deleted user's production database, faked data, told fibs galore"
+  author: Simon Sharwood (The Register)
+  publish_date: 2025-07-21
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: replit-aiid
+  url: https://incidentdatabase.ai/cite/1152/
+  title: "Incident 1152: LLM-Driven Replit Agent Executed Unauthorized Destructive Commands During Code Freeze"
+  author: AI Incident Database (Responsible AI Collaborative)
+  publish_date: 2025-07-18
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-containment
+  url: https://www.anthropic.com/engineering/how-we-contain-claude
+  title: How we contain Claude across products
+  author: Max McGuinness, Mikaela Grace, Jiri De Jonghe, Jake Eaton, and Abel Ribbink
+  publish_date: 2026-05-25
+  captured_at: 2026-05-29T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# --- Ch7 (Environments at Scale) — from the cross_domain dossier.
+
+- id: pan-monorepo
+  url: https://tianpan.co/blog/2026-04-17-coding-agents-monorepo-context-window
+  title: "Coding Agents in the Monorepo: Why Context Windows and 50-Service Repos Don't Mix"
+  author: Tian Pan
+  publish_date: 2026-04-17
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: fuhrimann-contract-first
+  url: https://apiconference.net/blog-en/api-contract-first-definitions/
+  title: "API Contract Definitions: Contract first, implementation first, OpenAPI, GraphQL, gRPC"
+  author: Lena Fuhrimann
+  publish_date: 2022-12-05
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-large-codebases
+  url: https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-and-where-to-start
+  title: "How Claude Code works in large codebases: Best practices and where to start"
+  author: Anthropic
+  publish_date: 2026-05-14
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-seeing-like-agent
+  url: https://claude.com/blog/seeing-like-an-agent
+  title: "Seeing like an agent: how we design tools in Claude Code"
+  author: Thariq Shihipar (Anthropic)
+  publish_date: 2026-04-10
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: nygard-adr
+  url: https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
+  title: Documenting Architecture Decisions
+  author: Michael Nygard
+  publish_date: 2011-11-15
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: adr-github
+  url: https://adr.github.io/
+  title: Architectural Decision Records (ADRs)
+  author: ADR GitHub organization
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: barnwell-monorepo
+  url: https://www.d4b.dev/blog/2026-04-03-ai-agents-in-monorepos-what-to-configure-differently-from-a-single-product-repo
+  title: "AI agents in monorepos: what to configure differently from a single-product repo"
+  author: Dave Barnwell
+  publish_date: 2026-04-03
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: nx-savkin-ai
+  url: https://nx.dev/blog/nx-and-ai-why-they-work-together
+  title: Nx and AI — Why They Work so Well Together
+  author: Victor Savkin (Nx)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+# --- Ch8 (Context Rot) — from the context_rot dossier (the evidence layer).
+
+- id: liu-lost-middle
+  url: https://arxiv.org/abs/2307.03172
+  title: "Lost in the Middle: How Language Models Use Long Contexts"
+  author: Liu et al. (TACL)
+  publish_date: 2023-07-06
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: chroma-context-rot
+  url: https://www.trychroma.com/research/context-rot
+  title: "Context Rot: How Increasing Input Tokens Impacts LLM Performance"
+  author: Hong, Troynikov & Huber (Chroma Research)
+  publish_date: 2025-07-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: nolima
+  url: https://arxiv.org/abs/2502.05167
+  title: "NoLiMa: Long-Context Evaluation Beyond Literal Matching"
+  author: Modarressi et al. (ICML)
+  publish_date: 2025-02-07
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: wang-mniah
+  url: https://arxiv.org/abs/2504.04150
+  title: Reasoning on Multiple Needles In A Haystack
+  author: Wang
+  publish_date: 2025-04-05
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: ruler
+  url: https://arxiv.org/abs/2404.06654
+  title: "RULER: What's the Real Context Size of Your Long-Context Language Models?"
+  author: Hsieh et al. (NVIDIA, COLM)
+  publish_date: 2024-04-09
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: horthy-12factor
+  url: https://github.com/humanlayer/12-factor-agents/blob/main/content/factor-03-own-your-context-window.md
+  title: "12-Factor Agents — Factor 3: Own your context window"
+  author: Dex Horthy (HumanLayer)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: martin-classifier-rot
+  url: https://arxiv.org/abs/2605.12366
+  title: "Classifier Context Rot: Monitor Performance Degrades with Context Length"
+  author: Martin & Roger
+  publish_date: 2026-05-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: xiao-pcd
+  url: https://arxiv.org/abs/2506.08371
+  title: Mitigating Posterior Salience Attenuation in Long-Context LLMs with Positional Contrastive Decoding
+  author: Xiao et al.
+  publish_date: 2025-06-10
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+# --- Ch9 (Context Assembly) — from the context_assembly pilot dossier.
+# effective-context-engineering + effective-harnesses (Ch1) and liu-lost-middle (Ch8) are reused.
+
+- id: ji-manus
+  url: https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus
+  title: "Context Engineering for AI Agents: Lessons from Building Manus"
+  author: Yichao Ji (Manus)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-prompt-caching
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-caching
+  title: Prompt caching
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: lumer-cache
+  url: https://arxiv.org/abs/2601.06007
+  title: "Don't Break the Cache: An Evaluation of Prompt Caching for Long-Horizon Agentic Tasks"
+  author: Lumer et al.
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: cc-cache-regression
+  url: https://github.com/anthropics/claude-code/issues/29230
+  title: "Claude Code v2.1.62 — Server-Side KV Cache Stale Context Regression (P1)"
+  author: Taylor (issue reporter)
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: claude-code
+
+- id: langchain-context
+  url: https://www.langchain.com/blog/context-engineering-for-agents
+  title: Context Engineering
+  author: The LangChain Team
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: anthropic-code-exec-mcp
+  url: https://www.anthropic.com/engineering/code-execution-with-mcp
+  title: "Code execution with MCP: Building more efficient agents"
+  author: Jones & Kelly (Anthropic)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-writing-tools
+  url: https://www.anthropic.com/engineering/writing-tools-for-agents
+  title: "Writing effective tools for agents — with agents"
+  author: Aizawa (Anthropic)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-xml-tags
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/use-xml-tags
+  title: "Prompting best practices: use XML tags"
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: ye-muldimif
+  url: https://arxiv.org/abs/2505.07591
+  title: A Multi-Dimensional Constraint Framework for Evaluating and Improving Instruction Following in LLMs
+  author: Ye et al.
+  publish_date: 2025-05-12
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: harada-manyifeval
+  url: https://arxiv.org/abs/2509.21051
+  title: "When Instructions Multiply: Measuring and Estimating LLM Capabilities of Multiple Instructions Following"
+  author: Harada et al. (EMNLP)
+  publish_date: 2025-09-25
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: jaroslawicz-ifscale
+  url: https://arxiv.org/abs/2507.11538
+  title: How Many Instructions Can LLMs Follow at Once?
+  author: Jaroslawicz et al.
+  publish_date: 2025-07-15
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: hsieh-found-middle
+  url: https://arxiv.org/abs/2406.16008
+  title: "Found in the Middle: Calibrating Positional Attention Bias Improves Long Context Utilization"
+  author: Hsieh et al. (ACL Findings)
+  publish_date: 2024-06-23
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+# --- Ch10 (Memory) — from the memory dossier.
+# ji-manus (Ch9) and effective-context-engineering (Ch1) are reused.
+
+- id: memgpt
+  url: https://arxiv.org/abs/2310.08560
+  title: "MemGPT: Towards LLMs as Operating Systems"
+  author: Packer et al.
+  publish_date: 2023-10-12
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: generative-agents
+  url: https://arxiv.org/abs/2304.03442
+  title: "Generative Agents: Interactive Simulacra of Human Behavior"
+  author: Park et al.
+  publish_date: 2023-04-07
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: langmem
+  url: https://www.langchain.com/blog/langmem-sdk-launch
+  title: LangMem SDK for agent long-term memory
+  author: The LangChain Team
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: mem0-state-2026
+  url: https://mem0.ai/blog/state-of-ai-agent-memory-2026
+  title: "State of AI Agent Memory 2026: Benchmarks, Architectures & Production Gaps"
+  author: Mem0 Engineering Team
+  publish_date: 2026-05-27
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: huang-agent-memory
+  url: https://thenewstack.io/agent-memory-decay-contamination/
+  title: "Why your AI agent doesn't actually remember anything"
+  author: Ed Huang
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: cc-memory
+  url: https://code.claude.com/docs/en/memory
+  title: How Claude remembers your project
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-agent-memory
+  url: https://platform.claude.com/docs/en/managed-agents/memory
+  title: Using agent memory
+  author: Anthropic
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: belitz-md-vs-memory
+  url: https://blog.belitz.se/posts/my-md-files-vs-claudes-memory
+  title: "My .md files vs Claude's memory tool: a practitioner comparison"
+  author: Andreas Belitz
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: bustamante-agent-memory
+  url: https://nicolasbustamante.com/blog/agent-memory-engineering
+  title: Agent Memory Engineering
+  author: Nicolas Bustamante
+  publish_date: 2026-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: chen-markdown-memory
+  url: https://dev.to/imaginex/ai-agent-memory-management-when-markdown-files-are-all-you-need-5ekk
+  title: "AI Agent Memory Management: When Markdown Files Are All You Need?"
+  author: Yaohua Chen (ImagineX)
+  publish_date: 2025-01-01
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: langchain-longterm-memory
+  url: https://docs.langchain.com/oss/python/langchain/long-term-memory
+  title: Long-term memory
+  author: LangChain
+  captured_at: 2026-05-26T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+# --- Ch2 (Environment & Context Discipline) — independent practitioner corroboration
+# of the "context engineering" coinage (the Anthropic framing is reused from Ch1).
+# Quotes verified to the primary X posts 2026-05-30; HITL re-confirm before "validated".
+
+- id: lutke-context-engineering
+  url: https://x.com/tobi/status/1935533422589399127
+  title: "On 'context engineering' over 'prompt engineering' (X post)"
+  author: Tobi Lütke (Shopify)
+  publish_date: 2025-06-18
+  captured_at: 2026-05-30T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: karpathy-context-engineering
+  url: https://x.com/karpathy/status/1937902205765607626
+  title: "On 'context engineering': 'filling the context window' (X post)"
+  author: Andrej Karpathy
+  publish_date: 2025-06-25
+  captured_at: 2026-05-30T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
