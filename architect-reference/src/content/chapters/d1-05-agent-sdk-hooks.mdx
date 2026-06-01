@@ -1,0 +1,129 @@
+---
+title: "Agent SDK Hooks: Intercepting, Gating, and Normalizing the Loop"
+part: 1
+chapter: 5
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - agent-sdk-hooks
+  - agent-sdk-permissions
+description: A hook is a typed callback the SDK fires at a named lifecycle event — the architect's control plane to intercept, gate, and normalize the agent loop without touching the model. The events to know, the two interception modes (PreToolUse gates, PostToolUse normalizes), and the deny-beats-allow precedence.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.1 (the agent loop). You know the loop runs tools between model turns. Helpful: D1.3 (subagents) for the subagent-hook events.">
+- **Identify** the key hook events and what triggers each
+- **Apply** the two interception modes — `PreToolUse` to gate a call, `PostToolUse` to normalize a result
+- **Analyze** what happens when several hooks fire on one event, using the `deny > defer > ask > allow` precedence
+- **Recognize** the hook gotchas that silently disable interception (case, `max_turns`, ordering, subagent permissions)
+</YouWillLearn>
+
+_The agent loop of D1.1 runs the model's tool calls automatically. Hooks are how the architect gets **between** the model and those calls — to block a dangerous one, rewrite its input, or clean up its output — without editing the model's prompt. The exam tests three things: which events exist, the two modes of intervention, and who wins when hooks disagree._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the specific event names and the Python/TS roster change faster than the interception *pattern*. Treat the lists as a current snapshot and re-verify against the SDK reference before relying on a specific event.
+</MarginNote>
+
+## Hooks intercept the loop at named events
+
+A hook is a callback that runs your code in response to an agent event: "Hooks are callback functions that run your code in response to agent events, like a tool being called, a session starting, or execution stopping."<Tag kind="official" /><Citation src="agent-sdk-hooks" /> They arrive through two channels that share one lifecycle — **programmatic** hooks (callbacks in your `query()` options) and **filesystem** hooks (shell commands in `settings.json`, loaded via `settingSources`).<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+
+<ConceptBox title="What a hook is — and is not">
+A hook runs in **your application process**, so it consumes host resources and a host failure can kill the agent. It does **not** consume the agent's context window — it is out-of-band control logic, distinct from an in-context system reminder. The model never sees the hook; it only feels its effect.
+</ConceptBox>
+
+## The events you must recognize
+
+Hooks fire at named lifecycle points. The Python SDK exposes ten; the TypeScript SDK extends the same set to nineteen.<Tag kind="official" /><Citation src="agent-sdk-hooks" /> The ones an architect must recognize:
+
+| Event | Fires when | Typical use |
+|---|---|---|
+| `PreToolUse` | a tool call is requested | **block or rewrite** the call before it runs |
+| `PostToolUse` | a tool returns a result | **normalize or replace** the result before the model sees it |
+| `PostToolUseFailure` | a tool execution fails | log or handle the error |
+| `UserPromptSubmit` | a prompt is submitted | inject extra context |
+| `Stop` | the agent stops | persist state before exit |
+| `SubagentStart` / `SubagentStop` | a subagent begins / ends | track spawned parallel work |
+| `PreCompact` | compaction is about to run | archive the full transcript first |
+| `PermissionRequest` | a permission dialog would appear | custom permission handling |
+| `Notification` | an agent status message | forward to Slack / PagerDuty |
+
+The TypeScript-only additions (`PostToolBatch`, `SessionStart`, `SessionEnd`, `Setup`, and others) are why **`SessionStart` / `SessionEnd` are not available as Python SDK callbacks** — Python apps needing them load filesystem hooks from settings instead.<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+
+## `PreToolUse` gates; `PostToolUse` normalizes
+
+The two most-tested events define the two interception modes, and they sit on opposite sides of tool execution.<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+
+- **`PreToolUse` gates** — it runs *before* the tool and returns a `permissionDecision` of `allow`, `deny`, `ask`, or `defer`, optionally with `updatedInput` to rewrite the call. Blocking a write to a `.env` file is a `PreToolUse` hook matching `Write|Edit` that returns `deny` when the target path ends in `.env`.
+- **`PostToolUse` normalizes** — it runs *after* the tool and returns either `additionalContext` (appended to the result) or `updatedToolOutput` (which **replaces** the output before Claude sees it). Stripping noise, redacting secrets, or reshaping a tool's response into a clean form is `PostToolUse` work.
+
+<MarginNote variant="tip" label="Tip">
+Exam reflex: **`PreToolUse` = the gate** (allow/deny/ask/defer, rewrite input); **`PostToolUse` = the normalizer** (`updatedToolOutput` replaces what the model reads). The "tool interception, normalization" task area is exactly these two.
+</MarginNote>
+
+Matchers select which calls a hook sees: they are **regex strings** tested against the tool name — `"Write|Edit"`, `"^mcp__"` for all MCP tools, or omitted to match everything.<Tag kind="official" /><Citation src="agent-sdk-hooks" /> Matchers do *not* filter by argument; filter on the file path or command inside the callback.
+
+## Precedence: `deny` beats `defer` beats `ask` beats `allow`
+
+When several hooks (or permission rules) act on one event, the outcome is decided by a fixed precedence, not by who ran first: "deny takes priority over defer, which takes priority over ask, which takes priority over allow. If any hook returns `deny`, the operation is blocked regardless of other hooks."<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+
+<KeyIdea>
+All matching hooks run **in parallel**, and the **most restrictive** result wins — a single `deny` blocks the call no matter what the others return. The system fails safe: to forbid something, one hook saying so is enough; to permit it, every hook must agree.
+</KeyIdea>
+
+<Pitfall title="Relying on hook execution order">
+Because matching hooks run in parallel and completion order is non-deterministic, a hook that assumes another has "already run" is a race. Write each hook to act independently; never chain side effects across hooks on the same event.
+</Pitfall>
+
+## Hooks and subagents
+
+Two subagent-aware events — `SubagentStart` and `SubagentStop` — let you track spawned work, but the operational gotcha is about permissions. As D1.3 established, **subagents do not inherit the parent's permissions**; each runs its own evaluation chain.<Tag kind="official" /><Citation src="agent-sdk-permissions" /> The clean way to pre-approve a subagent's tools is a `PreToolUse` hook rather than re-prompting inside every child.<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+
+<Pitfall title="Hooks that silently never fire">
+Event names are **case-sensitive** (`PreToolUse`, not `pretooluse`), and hooks may not fire when `max_turns` cuts a session short. A second trap is recursion: a `UserPromptSubmit` hook that spawns subagents can loop if those subagents re-trigger it — guard with a session-state flag.
+</Pitfall>
+
+## Practice
+
+<Exercise id="d1-05-ex-gate-normalize">
+You must enforce two rules on an agent: (a) it may never write to any `.env` file, and (b) every `Bash` result must have its ANSI color codes stripped before the model reads it. For each rule, name the hook event you would use and the specific return field that does the work. Why can't (b) be done with the same event as (a)?
+</Exercise>
+
+<Practice id="d1-05-pr-precedence" difficulty="2">
+Three hooks fire on one `PreToolUse` event and return, respectively, `ask`, `allow`, and `deny`. What happens to the tool call, and what is the one-word rule that decides it?
+</Practice>
+
+<Practice id="d1-05-pr-mode" difficulty="2">
+Without looking back: which hook event and which return field would you use to *replace* a tool's output before the model sees it — and which event/field would you use to *block* the call entirely?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d1-05-ex-gate-normalize">
+**(a) is a gate, (b) is a normalization — opposite sides of tool execution, so they need different events.** (a) Use a **`PreToolUse`** hook with a matcher of `"Write|Edit"`; in the callback, inspect the target path and return `hookSpecificOutput.permissionDecision: "deny"` when it ends in `.env`. The decision must come *before* the write runs — that is what `PreToolUse` is for. (b) Use a **`PostToolUse`** hook with a matcher of `"Bash"`; return `hookSpecificOutput.updatedToolOutput` containing the result with ANSI codes stripped — `updatedToolOutput` *replaces* the output before Claude sees it. (b) can't reuse `PreToolUse` because the output does not exist yet when the call is requested; you can only normalize a result after the tool has produced it.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **A hook is a callback at a named lifecycle event**, delivered programmatically (query options) or via filesystem settings. It runs in your process and does **not** consume agent context.
+- **Two interception modes:** `PreToolUse` **gates** (returns `allow`/`deny`/`ask`/`defer` + optional `updatedInput`); `PostToolUse` **normalizes** (`updatedToolOutput` replaces the result, `additionalContext` appends).
+- **Precedence is `deny > defer > ask > allow`.** Matching hooks run in parallel; the most restrictive wins; one `deny` blocks.
+- **Don't rely on hook order** (non-deterministic) — write each hook independently.
+- **Subagents don't inherit permissions**; pre-approve their tools with a `PreToolUse` hook. Watch the silent-failure traps: case-sensitive names, `max_turns` cut-offs, recursive subagent loops.

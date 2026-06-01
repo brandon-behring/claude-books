@@ -109,3 +109,13 @@
   captured_at: 2026-05-23T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D1.5 (Agent SDK Hooks). agent-sdk-permissions (above, D1.3) is reused.
+
+- id: agent-sdk-hooks
+  url: https://code.claude.com/docs/en/agent-sdk/hooks
+  title: Intercept and control agent behavior with hooks
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
