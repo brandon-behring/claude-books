@@ -411,3 +411,14 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
+
+# --- D5.6 (Information Provenance) — from the 05-claude-api cache.
+# agent-sdk-structured-outputs (D4.4) + anthropic-models-overview (D5.1) reused.
+
+- id: anthropic-citations
+  url: https://platform.claude.com/docs/en/build-with-claude/citations
+  title: Citations
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

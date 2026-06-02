@@ -1,0 +1,113 @@
+---
+title: "Information Provenance: Citations and Temporal Validity"
+part: 5
+chapter: 6
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - anthropic-citations
+  - agent-sdk-structured-outputs
+  - anthropic-models-overview
+description: An architect tracks where each claim came from and when its data is valid. The native Citations API ties quoted text to real document spans so a source cannot be fabricated; the provenance triple is the schema-friendly fallback; and a model's knowledge cutoff bounds what it can be trusted to know without a dated source.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D4.4 (the provenance schema hook) and D5.5 (failed provenance as a human-review signal). Closes Part V and the book.">
+- **Apply** the Citations API to map each claim to a verifiable source span
+- **Distinguish** the three citation location modes by document type
+- **Recognize** the provenance triple as the schema-friendly fallback when Citations cannot be used
+- **Evaluate** temporal provenance — when a model's knowledge cutoff requires a dated source instead
+</YouWillLearn>
+
+_The book closes on the question that underlies trust in any agent output: where did this claim come from, and is it still true? Provenance answers the first — a claim mapped to its source is auditable, one without a source is a trust-me. Temporal validity answers the second. This chapter is the exam-angle treatment; the named features — the Citations API surface, the location modes — are the moving parts, so it is a feature surface._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the Citations API toggle, the three location-mode field names, and the per-model knowledge cutoffs are concrete surfaces that move between releases. Treat every field and date as a current snapshot and re-verify before relying on it.
+</MarginNote>
+
+## Provenance maps every claim to its source
+
+The point of provenance is verifiability. "Claude is capable of providing detailed citations when answering questions about documents, helping you track and verify information sources in responses. All active models support citations, with the exception of Haiku 3."<Tag kind="official" /><Citation src="anthropic-citations" /> You enable it per document with `citations: {"enabled": true}` on the document block, and each cited claim in the response carries a sibling `citations` array pointing back to the exact span of the source it came from.<Tag kind="official" /><Citation src="anthropic-citations" />
+
+<KeyIdea>
+A claim with a verifiable source is auditable; a claim without one is an assertion you have to take on faith. The Citations API's real value is not formatting — it is that the cited text is tied to an actual span in the source document, so the model cannot fabricate a citation to text that is not there. Provenance turns "trust me" into "check line 14."
+</KeyIdea>
+
+## The Citations API and its location modes
+
+How a citation points at its source depends on the document type, and there are three modes. Plain text is chunked to sentences and cited by `char_location`; a PDF is cited by `page_location`; custom content, where you supply the chunks, is cited by `content_block_location`.<Tag kind="official" /><Citation src="anthropic-citations" /> The feature is also output-cheap: "the `cited_text` field is provided for convenience and does not count towards output tokens."<Tag kind="official" /><Citation src="anthropic-citations" />
+
+<ConceptBox title="Three citation location modes">
+- **Plain text** → `char_location` — sentence-chunked; start/end character indices (0-indexed, exclusive end).
+- **PDF** → `page_location` — sentence-chunked; start/end page numbers (1-indexed, exclusive end). Scanned images without extractable text are not citable.
+- **Custom content** → `content_block_location` — you supply the chunks; start/end block indices (0-indexed, exclusive end).
+</ConceptBox>
+
+<Pitfall title="Citations and Structured Outputs are mutually exclusive">
+"Citations cannot be used together with Structured Outputs ... the API will return a 400 error,"<Tag kind="official" /><Citation src="anthropic-citations" /> because cited text must interleave with the response prose, which a strict JSON schema forbids. So you cannot get grammar-guaranteed citations *and* a grammar-constrained JSON shape in the same call — and image citations are not yet supported at all. When you need both provenance and a schema, you fall to the next section.
+</Pitfall>
+
+## The provenance triple: schema-friendly fallback
+
+When the output must be structured JSON, the native Citations API is off the table, so you encode provenance into the schema yourself. This is the D4.4 hook applied to attribution: each extracted claim carries a `source` object with a `document_id`, a `span_quote`, and a `confidence`, and "the caller verifies `span_quote` actually appears in `document_id`. If it doesn't, the model fabricated the citation."<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> It is a manual, checkable provenance you can drop inside any schema.
+
+<KeyIdea>
+The two provenance mechanisms trade the same way as everything in Part IV. Native Citations is grammar-guaranteed but cannot coexist with structured outputs; the provenance triple is structurally compatible with any schema but only as trustworthy as the verification you run on it. Choose by which constraint binds — a strict output shape, or a fabrication-proof citation — because you cannot have both in one call.
+</KeyIdea>
+
+## Temporal provenance: knowing when data is valid
+
+Provenance is not only *where* a claim came from but *when* it can be trusted. Each model has a reliable knowledge cutoff — Opus 4.7 at January 2026, Sonnet 4.6 at August 2025, Haiku 4.5 at February 2025 — and the training-data cutoff is a separate, earlier date.<Tag kind="official" /><Citation src="anthropic-models-overview" /> Past the cutoff the model has no reliable knowledge, so a time-sensitive fact must come from a dated source supplied at request time (retrieval with a citation), not from the model's memory. The use-side workflow for recording claim sources and decision dates is the handbook's territory (its provenance and ADR material is forthcoming).
+
+<MarginNote variant="note" label="Note">
+Cross-book pointer is prose-only — the handbook's provenance chapter is outlined but unpublished, so there is no stable URL to link yet.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d5-06-ex-provenance-with-schema">
+You are building an extraction pipeline that must return structured JSON *and* attribute each extracted fact to a source span. You try the Citations API with `output_config.format` and get a 400. What is the right design?
+
+- **A.** Drop the JSON schema and use the Citations API alone, parsing the prose response downstream.
+- **B.** Keep the schema and add a provenance triple per claim — `document_id`, `span_quote`, `confidence` — then have the caller verify each `span_quote` appears in its source.
+- **C.** Trust the model's cited text without verification, since it was instructed to quote the source.
+- **D.** Send the request twice, once with citations and once with the schema, and merge the two responses.
+</Exercise>
+
+<Practice id="d5-06-pr-citation-modes" difficulty="2">
+Name the three Citations API document modes and the location type each one emits, and state why `cited_text` is attractive on output cost.
+</Practice>
+
+<Practice id="d5-06-pr-temporal" difficulty="3">
+Explain why a question about an event after a model's knowledge cutoff should be answered from a supplied dated source rather than the model's own knowledge, and how that connects to provenance more broadly.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d5-06-ex-provenance-with-schema">
+**B.** Citations and Structured Outputs are mutually exclusive — the 400 is the API telling you so — so when the structured shape is required, you encode provenance into the schema with a triple (`document_id`, `span_quote`, `confidence`) and verify each span against its source caller-side. **A** abandons the structured output the pipeline requires, trading one requirement for the other. **C** is the fabrication trap: an unverified `span_quote` may quote text that is not in the document, which is exactly the failure provenance exists to catch. **D** doubles cost and leaves you reconciling two responses with no guarantee the cited run and the schema run extracted the same facts.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Provenance is verifiability** — the Citations API (enable per document with `citations: {"enabled": true}`) ties each claim to a source span so a citation cannot be fabricated; `cited_text` does not count toward output tokens.
+- **Three location modes** — plain text → `char_location`, PDF → `page_location`, custom content → `content_block_location`; image citations are not yet supported.
+- **Mutual exclusion** — Citations + Structured Outputs return 400; when you need both a schema and provenance, use the provenance triple (`document_id` + `span_quote` + `confidence`) and verify the span caller-side.
+- **Temporal provenance** — each model has a reliable knowledge cutoff (Opus 4.7 Jan 2026, Sonnet 4.6 Aug 2025, Haiku 4.5 Feb 2025); past it, answer time-sensitive questions from a dated source, not the model's memory.
