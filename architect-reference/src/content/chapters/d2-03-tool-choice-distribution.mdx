@@ -1,0 +1,115 @@
+---
+title: "Tool Distribution and tool_choice: auto, any, Forced, and none"
+part: 2
+chapter: 3
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - anthropic-define-tools
+  - anthropic-tool-use
+  - anthropic-parallel-tool-use
+  - agent-sdk-permissions
+  - agent-sdk-mcp
+description: Controlling whether and which tool the model may call — the four tool_choice modes and the extended-thinking constraint that trips people up (per-request steering), and allowedTools scoping versus bypassPermissions (per-agent distribution), with parallel execution as its own orthogonal axis.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.1 (the agent loop) and Chapter D2.1 (tool interfaces). Helpful: Chapter D1.3 (allowedTools on subagents) for the distribution half.">
+- **Identify** the four `tool_choice` modes and what each one forces
+- **Apply** the right mode — and recognize the one case where extended thinking forbids it
+- **Distinguish** per-request steering (`tool_choice`) from per-agent tool distribution (`allowedTools`)
+- **Evaluate** `allowedTools` scoping against the broader `bypassPermissions` for MCP access
+</YouWillLearn>
+
+_Defining a good tool (D2.1) and a good failure (D2.2) is only half the architect's job; the other half is controlling **whether and which** tool the model may reach for. Two knobs do this at two different scopes: `tool_choice` steers a single request — force a tool, free the model, or forbid all tools — while the SDK's `allowedTools` defines which tools even exist for an agent. The exam tests the four `tool_choice` modes (especially the one constraint that trips people up) and the difference between steering a call and distributing a surface._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the `tool_choice` values, the `allowedTools` syntax, and the parallel-execution flag are named API/SDK surfaces that can shift between releases. Treat the specifics as a current snapshot and re-verify against the docs before relying on an exact flag.
+</MarginNote>
+
+## The four `tool_choice` modes
+
+`tool_choice` is the per-request control over tool calling, and it has four documented modes: `auto` (Claude decides — the default when tools are provided), `any` (Claude must use *some* tool but picks which), `{"type": "tool", "name": …}` (forces one specific tool), and `none` (no tools this turn — the default when none are provided).<Tag kind="official" /><Citation src="anthropic-define-tools" /><Citation src="anthropic-tool-use" />
+
+<ConceptBox title="A spectrum of control">
+Read the modes as a spectrum from least to most coercive: `none` forbids all tools, `auto` lets the model choose freely, `any` forces *some* tool, and forced `tool` forces *this* tool. Pick the loosest mode that still guarantees what you need — `auto` for an open agent, `any` when an answer must come through a tool, forced when exactly one tool is valid.
+</ConceptBox>
+
+## Forced modes are incompatible with extended thinking
+
+The constraint the exam loves: only `auto` and `none` are compatible with extended thinking; `any` and forced `tool` return an error, and adaptive thinking carries the same limitation.<Tag kind="official" /><Citation src="anthropic-tool-use" /><Citation src="anthropic-define-tools" /> If you need the model to reason before acting, you cannot also force it to call a tool — the two are mutually exclusive.
+
+<Pitfall title="Forcing a tool with thinking on">
+Setting `tool_choice` to `any` or a forced `tool` while extended (or adaptive) thinking is enabled errors the request. When thinking is on, your only `tool_choice` options are `auto` and `none`. If a design seems to require both forced tool use and visible reasoning, the requirements are in tension — resolve one or the other; don't expect both.
+</Pitfall>
+
+## Forced modes prefill the assistant message
+
+Forcing has a second, subtler effect. "When you have tool_choice as any or tool, the API prefills the assistant message to force a tool to be used. This means that the models will not emit a natural language response or explanation before tool_use content blocks, even if explicitly asked to do so."<Tag kind="official" /><Citation src="anthropic-define-tools" /> A forced call therefore cannot also produce a spoken preamble — there is no room before the `tool_use` block for one.
+
+<MarginNote variant="tip" label="Tip">
+Need a natural-language preamble *and* a specific tool? Use `auto` and ask for the tool in the user message ("Use the get_weather tool in your response") rather than forcing it. Forcing buys a guarantee at the cost of the preamble; `auto` keeps both at the cost of the guarantee.
+</MarginNote>
+
+## Distribution: scope the surface with `allowedTools`
+
+`tool_choice` steers one request; **distribution** decides which tools an agent has at all, and in the SDK that knob is `allowedTools` / `disallowedTools`. The two behave differently: `allowed_tools=["Read", "Grep"]` *pre-approves* the listed tools (others still exist and fall through to the permission mode), while `disallowed_tools=["Bash"]` *removes* the tool from the request entirely, so the model never sees it.<Tag kind="official" /><Citation src="agent-sdk-permissions" />
+
+For MCP access the documented guidance is to scope with `allowedTools` rather than open the gates with a permission mode: a `mcp__github__*` wildcard "grants exactly the MCP server you want and nothing more," whereas `permissionMode: "bypassPermissions"` auto-approves MCP tools but disables every other safety prompt — broader than necessary.<Tag kind="official" /><Citation src="agent-sdk-mcp" />
+
+<KeyIdea>
+`tool_choice` is per-*request* steering — which of the available tools fires *now*. `allowedTools` is per-*agent* surface definition — which tools are available *at all*. Keep the two axes distinct: one shapes a call, the other shapes the toolbox.
+</KeyIdea>
+
+## Parallel execution is a separate request-level control
+
+A third knob is easy to confuse with `tool_choice` but is orthogonal to it: `disable_parallel_tool_use`. Claude 4 models may emit several `tool_use` blocks in one turn by default; setting `disable_parallel_tool_use=true` caps that — with `tool_choice: auto` Claude then uses **at most one** tool, and with `any` or forced `tool` it uses **exactly one**.<Tag kind="official" /><Citation src="anthropic-parallel-tool-use" />
+
+<Pitfall title="Conflating 'one tool' with 'one mode'">
+`disable_parallel_tool_use` governs *how many* tools fire per turn; `tool_choice` governs *whether and which*. They are different axes and they compose — `any` plus `disable_parallel_tool_use` yields exactly one tool call. It is not a fifth `tool_choice` value; don't reach for `tool_choice` when what you actually want is to cap parallelism.
+</Pitfall>
+
+## Practice
+
+<Exercise id="d2-03-ex-mode-selection">
+You are building an agent that (a) must produce a JSON classification by always calling your `record_decision` tool, and (b) you want extended thinking enabled so it reasons first. A colleague sets `tool_choice: {"type": "tool", "name": "record_decision"}`. What goes wrong, and what configuration still gets you as close as possible to guaranteeing the tool is used?
+</Exercise>
+
+<Practice id="d2-03-pr-scope-mcp" difficulty="2">
+An agent should be able to call every tool on an MCP server named `linear` but nothing else dangerous. Give the `allowedTools` entry you would use, and explain in one sentence why this is preferable to `permissionMode: "bypassPermissions"`.
+</Practice>
+
+<Practice id="d2-03-pr-modes-recall" difficulty="3">
+Without looking back: name the four `tool_choice` modes and, for each, give one clause on when an architect would choose it. Then name which two modes are unusable when extended thinking is enabled.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d2-03-ex-mode-selection">
+**Forced `tool` mode is incompatible with extended thinking, so the request errors.** You cannot both force a specific tool and let the model reason with extended (or adaptive) thinking — those are mutually exclusive. Two ways to resolve the tension: (1) **drop extended thinking** and keep `tool_choice: {"type":"tool","name":"record_decision"}`, getting a hard guarantee but no visible reasoning; or (2) **keep thinking and use `tool_choice: auto`**, instructing the model in the user message to call `record_decision` — you keep the reasoning but lose the hard guarantee. No single configuration gives both; and note that any forced mode would also prefill the assistant turn and suppress the reasoning preamble anyway, so the two goals are fundamentally in conflict.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Four `tool_choice` modes** — `auto` (default; Claude decides), `any` (must use some tool), forced `{"type":"tool","name":…}` (this tool), `none` (no tools). A spectrum from free to coerced.
+- **Forced modes break extended thinking** — only `auto` and `none` work with extended (or adaptive) thinking; `any` and forced `tool` error. The single most-tested `tool_choice` constraint.
+- **Forced modes prefill the assistant turn** — no natural-language preamble before the `tool_use` block; for preamble plus a specific tool, use `auto` and ask in the user message.
+- **Distribution ≠ steering** — `allowedTools` defines which tools exist for an agent (`disallowed_tools` removes one entirely); `tool_choice` steers a single request. For MCP, a `mcp__server__*` wildcard beats `bypassPermissions` (narrower, and `allowedTools` does not even constrain bypass).
+- **Parallelism is its own axis** — `disable_parallel_tool_use` caps tools-per-turn (auto → at most one; any/forced → exactly one); it composes with `tool_choice`, it is not a `tool_choice` value.

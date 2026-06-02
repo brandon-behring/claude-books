@@ -174,3 +174,14 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D2.3 (Tool Distribution & tool_choice) — from 03-advanced-tool-use + 05-claude-api + 04-agent-sdk cache.
+# anthropic-tool-use (original), agent-sdk-permissions (D1.3), anthropic-define-tools (D2.1), agent-sdk-mcp (D2.1) reused.
+
+- id: anthropic-parallel-tool-use
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use
+  title: Parallel tool use
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
