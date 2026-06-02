@@ -312,3 +312,29 @@
   captured_at: 2026-05-23T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D4.3 (Structured Output via tool_use + JSON Schema) — from the 07-structured-output cache.
+
+- id: anthropic-cookbook-structured-json
+  url: https://platform.claude.com/cookbook/tool-use-extracting-structured-json
+  title: Extracting Structured JSON using Claude and Tool Use
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-strict-tool-use
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use
+  title: Strict tool use
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-structured-outputs
+  url: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
+  title: Structured outputs
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

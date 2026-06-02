@@ -1,0 +1,137 @@
+---
+title: "Structured Output via Tool Use and JSON Schema"
+part: 4
+chapter: 3
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - anthropic-cookbook-structured-json
+  - anthropic-strict-tool-use
+  - anthropic-structured-outputs
+description: Forcing a known-shape JSON result has two generations. The classic pattern borrows the tool-call channel as a typed output slot; the modern features (strict tool use and output_config.format) use grammar-constrained decoding to make a non-conforming shape unrepresentable. The JSON-Schema subset, additionalProperties false, and the per-request limits are the surfaces to know.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D4.1 (the escalation ladder — this is its top rung) and D2.1-D2.3 (tool definitions, input_schema, tool_choice).">
+- **Apply** the classic tool-use pattern that turns a tool call into a typed output slot
+- **Apply** `strict: true` and `output_config.format` to constrain tool inputs and responses
+- **Recognize** the JSON-Schema subset and the mandatory `additionalProperties: false`
+- **Analyze** the per-request limits, the 24-hour grammar cache, and the refusal failure mode
+</YouWillLearn>
+
+_D4.1 ended with a top rung: when a shape must not be violated, make it unrepresentable. This chapter is that rung's machinery. It has two generations — the older tool-use pattern that is still the right tool for open-ended schemas, and the newer grammar-constrained features that eliminate schema-violation retries entirely — and because the substance here is named API fields, schema rules, and numeric limits, it is a feature surface._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: field names (`output_config.format`, `strict: true`), the schema subset, and the 20/24/16 request limits are concrete surfaces that move between releases. The `output_format` parameter has already migrated once. Treat every field and number as a current snapshot and re-verify before relying on it.
+</MarginNote>
+
+## The classic mechanism: a tool whose input is your output
+
+The oldest reliable way to get JSON is to borrow the tool-call channel. Define a tool whose `input_schema` is exactly the shape you want back, force Claude to call it, and read the call's `input` — that object *is* your extracted JSON; you discard the tool's "result" entirely. The convention is to name the tool `print_X` (`print_summary`, `print_entities`) so the model treats it as committing data rather than taking an action.<Tag kind="official" /><Citation src="anthropic-cookbook-structured-json" /> Forcing the call is what guarantees the extraction happens: `tool_choice: {type: "tool", name: "print_summary"}`.<Tag kind="official" /><Citation src="anthropic-cookbook-structured-json" />
+
+```python
+tools = [{
+    "name": "print_summary",
+    "description": "Prints a summary of the article.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "author":  {"type": "string"},
+            "topics":  {"type": "array", "items": {"type": "string"}},
+            "summary": {"type": "string"},
+        },
+        "required": ["author", "topics", "summary"],
+    },
+}]
+resp = client.messages.create(model="claude-opus-4-7", max_tokens=1024, tools=tools,
+    tool_choice={"type": "tool", "name": "print_summary"}, messages=[...])
+json_summary = next(b.input for b in resp.content if b.type == "tool_use")
+```
+
+<KeyIdea>
+You are not calling a function — you are renting the typed tool-call slot as an output channel. The "tool" never does anything; its `input_schema` is just the most convenient place the API gives you to declare a shape, and `tool_use.input` is where the shaped result comes back.
+</KeyIdea>
+
+## Strict tool use: from shape to guarantee
+
+The classic pattern controls *which* fields appear, but not their types — Claude could still emit `"2"` where you need `2`. Setting `strict: true` on the tool definition closes that gap: "Setting `strict: true` on a tool definition guarantees Claude's tool inputs match your JSON Schema by constraining the model's token sampling to schema-valid outputs (a technique called grammar-constrained sampling)."<Tag kind="official" /><Citation src="anthropic-strict-tool-use" /> The motivation is operational: "Without strict mode, Claude might return incompatible types ('2' instead of 2) or missing required fields, breaking your functions and causing runtime errors."<Tag kind="official" /><Citation src="anthropic-strict-tool-use" /> For "call one of N candidate tools *and* validate its inputs," combine `tool_choice: {type: "any"}` with `strict: true` on each tool.<Tag kind="official" /><Citation src="anthropic-strict-tool-use" />
+
+<Pitfall title="strict is ignored through the OpenAI-compatibility layer">
+`strict: true` is honored only on the native Claude API. Calling through the OpenAI SDK compatibility layer silently drops it — the request succeeds, but you get no grammar guarantee, so a type mismatch you thought was impossible can reappear. Schema-shape guarantees require the native API path.
+</Pitfall>
+
+## Structured outputs: constrain the response itself
+
+Strict tool use constrains a *tool call*. Its sibling constrains Claude's *response* directly: `output_config.format` coerces the final assistant text to a JSON schema using the same pipeline. The two are "two complementary features: JSON outputs (`output_config.format`) ... Strict tool use (`strict: true`)," and the payoff is the elimination of retry loops: "Structured outputs guarantee schema-compliant responses through constrained decoding ... No retries needed for schema violations."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> The request carries `output_config: {format: {type: "json_schema", schema: {...}}}`, and the conforming JSON arrives in the response text.
+
+<ConceptBox title="Two targets, one grammar pipeline">
+- **`output_config.format`** — constrains *what Claude says* (the response text) to a JSON schema. Use when you want a free-form answer coerced to a fixed shape.
+- **`strict: true`** — constrains *how Claude calls your tools* (the `tool_use.input`). Use mid-agent-loop, or for forced single-tool extraction.
+- Both compile your JSON Schema into a grammar and constrain token sampling; they compose in one request.
+</ConceptBox>
+
+Note the migration: "The `output_format` parameter has moved to `output_config.format`. The old beta header (`structured-outputs-2025-11-13`) and `output_format` parameter will continue working during a transition period, but you should migrate to the new shape."<Tag kind="official" /><Citation src="anthropic-structured-outputs" />
+
+## The JSON-Schema subset and its one mandatory rule
+
+Both features accept a *subset* of JSON Schema, not the full draft. Objects, arrays, the scalar types, `enum`, `const`, `anyOf`, and internal `$ref` are supported; external `$ref`, recursive schemas, numerical bounds (`minimum`/`maximum`), and string-length bounds are not — unsupported features return a 400.<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> The one rule that catches everyone: **`additionalProperties: false` is required on every object node** — it is the most common 400 for hand-authored schemas. When you need a numeric or length bound, the SDK helpers strip it from the schema, encode it as description text, and validate it client-side after the call instead.<Tag kind="official" /><Citation src="anthropic-structured-outputs" />
+
+<Pitfall title="The missing additionalProperties: false">
+A schema that validates fine in your editor and then 400s at the API almost always has an object node without `additionalProperties: false`. The constrained decoder requires it on *every* object — nested ones included — because an open object has no closed grammar to compile. When a structured-outputs request rejects with a schema error, scan for the object that is missing it before suspecting anything subtler.
+</Pitfall>
+
+## Limits, caching, and the failure mode that still gets through
+
+Three operational facts complete the picture. **Caching:** the compiled grammar carries a first-request latency, then is "cached for 24 hours from last use," and the cache "invalidates if you change the JSON schema structure or set of tools. Changing only `name` or `description` fields does NOT invalidate cache."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> **Limits:** a request allows at most 20 strict tools, 24 cumulative optional parameters across strict schemas, and 16 union-typed parameters; beyond that (or an internal grammar-size cap) you get a 400 "Schema is too complex for compilation."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> **The one failure constrained decoding cannot prevent:** a refusal. If Claude refuses, the response is `stop_reason: "refusal"` with a 200 status, you are billed, and the output may not match the schema — so a caller must still check for it.<Tag kind="official" /><Citation src="anthropic-structured-outputs" />
+
+This is also why the classic cookbook pattern has a permanent niche: open-ended extraction with `additionalProperties: true` — "I don't know which fields will be present" — is something structured outputs *cannot* do, since it requires `additionalProperties: false`. For open-ended schemas, plain tool use stays the right tool.<Tag kind="official" /><Citation src="anthropic-cookbook-structured-json" />
+
+## Practice
+
+<Exercise id="d4-03-ex-pick-the-primitive">
+You extract a fixed record — `{customer, plan, seats}` with `seats` an integer — and a downstream billing function will crash on a string where it expects a number. You want exactly this one extraction, type-guaranteed, on the native Claude API. Which approach fits best?
+
+- **A.** Force a single `print_record` tool with `tool_choice: {type: "tool", name: "print_record"}` and set `strict: true` on it.
+- **B.** Use the classic cookbook pattern with `additionalProperties: true` so the model can include whatever it finds.
+- **C.** Call through the OpenAI SDK compatibility layer with `strict: true` for portability.
+- **D.** Ask in the prompt for "valid JSON with an integer seats field" and parse the response text.
+</Exercise>
+
+<Practice id="d4-03-pr-additional-properties" difficulty="2">
+A hand-authored structured-outputs schema returns a 400 even though it is valid JSON Schema. State the most likely cause and the one-line fix, and explain why the decoder requires it.
+</Practice>
+
+<Practice id="d4-03-pr-open-ended" difficulty="3">
+Structured outputs is the modern default, yet the older tool-use pattern still has a niche it cannot be replaced in. Name that niche, the exact schema feature that defines it, and why constrained decoding cannot serve it.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d4-03-ex-pick-the-primitive">
+**A.** A single forced tool plus `strict: true` gives both guarantees you need: the forced `tool_choice` ensures exactly this extraction runs, and `strict` constrains the inputs by grammar so `seats` is a real integer, not `"3"` — exactly the "incompatible types breaking your functions" case strict mode exists to prevent. **B** is the open-ended pattern; `additionalProperties: true` is for when you *don't* know the fields, and it forgoes the strict guarantee — wrong for a fixed, type-critical record. **C** silently drops `strict` through the OpenAI-compatibility layer, so you lose the type guarantee precisely where you needed it. **D** is the unconstrained baseline D4.1 warned about — it can parse fine and still hand you `"3"`, the failure you are trying to design out.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Classic tool-use pattern** — define a `print_X` tool whose `input_schema` is your output shape, force it with `tool_choice: {type: "tool", name: ...}`, read `tool_use.input`; the tool result is discarded.
+- **`strict: true`** — grammar-constrains tool *inputs* to the schema (no wrong types, no missing required fields); pair with `tool_choice: {type: "any"}` for "one-of-N and valid." Ignored on the OpenAI-compat layer.
+- **`output_config.format`** — grammar-constrains Claude's *response* to a JSON schema; "no retries needed for schema violations." Migrated from the `output_format` param / `structured-outputs-2025-11-13` beta header.
+- **Schema subset** — a subset of Draft 2020-12; `additionalProperties: false` is **mandatory on every object** (top 400 cause); no numeric/length bounds (SDKs strip them to descriptions + post-validate); no external `$ref` or recursion.
+- **Limits + failure modes** — 20 strict tools / 24 optional params / 16 union types per request; grammar cached 24h from last use (invalidated by schema/tool-set change, not name/description); a refusal returns 200, is billed, and may not match the schema — always check `stop_reason`.
