@@ -6,19 +6,20 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - agent-sdk-subagents
   - agent-sdk-permissions
   - agent-sdk-agent-loop
-description: The mechanics beneath the coordinator–subagent pattern — how a subagent is actually invoked. The Agent tool and its three creation paths, the AgentDefinition contract, why "Agent" must be in allowedTools, the single prompt-string channel into a fresh context, and what a subagent does not inherit (including parent permissions).
+description: The mechanics beneath the coordinator–subagent pattern — how a subagent is actually invoked. The Agent tool and its three creation paths, the AgentDefinition contract, why "Agent" must be in allowedTools, the single prompt-string channel into a fresh context, what crosses back out, and what a subagent does not inherit (including parent permissions).
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -32,13 +33,24 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Configure** an `AgentDefinition` — the required `description`/`prompt` contract and a scoped `tools` set
 - **Diagnose** why a defined subagent never gets invoked — the two top failure modes
 - **Write** the Agent-tool prompt that carries everything a fresh-context subagent needs, knowing what it does *not* inherit
+- **Trace** what crosses *back* — the subagent's final message as the Agent-tool result, and why it may arrive summarized
 </YouWillLearn>
 
-_Chapter D1.2 established when to reach for a subagent and how to cut the work. This chapter drops one level — to the mechanics of actually defining and invoking one. The exam tests whether you can read an `AgentDefinition`, predict whether it will be invoked **at all**, and say what crosses the boundary into the subagent's fresh context — and what silently does not._
+_Chapter D1.2 established when to reach for a subagent and how to cut the work. This chapter drops one level — to the mechanics of actually defining and invoking one, and reading what crosses each way across the context boundary. The exam tests whether you can read an `AgentDefinition`, predict whether it will be invoked **at all**, and say what crosses *into* the subagent's fresh context and what crosses *back* — and what silently does not._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Through which single tool is every subagent invoked, and what was that tool previously named?
+2. Which two `AgentDefinition` fields are required, and what does each control?
+3. A perfectly-defined subagent never runs. Name the two most likely causes.
+4. A subagent is told "fix the bug we discussed." Why does it fail, and what is the only channel that could have carried the context in?
+5. When the subagent finishes, what does the parent receive — and what might happen to it on the way back?
 
 ## The Agent tool is the invocation surface
 
-A subagent is invoked through exactly one tool — the **Agent tool** — and there are three ways to give that tool something to invoke.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+A subagent is invoked through exactly one tool — the **Agent tool** — and there are three ways to give that tool something to invoke.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> Everything in this chapter hangs off that one tool: how you *define* what it runs, how you *allow* it to run, and what crosses the boundary in each direction.
 
 <ConceptBox title="Three ways to create a subagent">
 - **Programmatic** — pass an `AgentDefinition` in the `agents` option of your query. **Recommended for SDK apps.**
@@ -67,7 +79,7 @@ When you create a subagent programmatically, its `AgentDefinition` is a contract
 The `description` does double duty — it is also how Claude decides to invoke the agent automatically (below), so write it specific and keyword-rich rather than generic.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
 
 <MarginNote variant="note" label="Note">
-Need more review? The full field set (`disallowedTools`, `model`, `skills`, `memory`, `mcpServers`, `effort`, `permissionMode`, `background`, …) lives in the Agent SDK reference — recognize the contract shape here, look up the long tail there.
+Need more review? The full field set (`disallowedTools`, `skills`, `memory`, `mcpServers`, `effort`, `permissionMode`, `background`, …) lives in the Agent SDK reference — recognize the contract shape here, look up the long tail there.
 </MarginNote>
 
 ## Enabling invocation: `Agent` in `allowedTools`
@@ -94,6 +106,36 @@ What that means concretely — the subagent **receives** its own system prompt (
 A subagent told to "fix the bug we discussed" has no idea what was discussed — the parent conversation never crossed the boundary. File paths, error text, and prior decisions must be written **into the Agent-tool prompt** or they do not exist for the child.
 </Pitfall>
 
+## What crosses back: the return channel
+
+The boundary is asymmetric, and the exam probes the *outbound* side too. When the subagent finishes, the parent receives the subagent's **final message** as the Agent-tool result — but the parent **may summarize it** rather than carry it through verbatim. If a downstream step depends on the subagent's exact output (a precise list, a diff, a structured payload), instruct the main agent to **preserve the subagent's result verbatim**.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> Two more facts ride the return path: every message generated inside the subagent carries a **`parent_tool_use_id`** linking it to the invoking Agent call,<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> and the subagent's transcript persists independently of the main conversation (it survives main-session compaction).<Tag kind="official" /><Citation src="agent-sdk-subagents" />
+
+<Pitfall title="Trusting that the subagent's exact output reaches the parent">
+Only the subagent's *final message* returns, and the parent may **summarize** it. A coordinator that needs the subagent's verbatim output — e.g. a reviewer's exact line-by-line findings — can silently receive a lossy paraphrase. When fidelity matters, tell the main agent to preserve the result verbatim.
+</Pitfall>
+
+<WorkedExample id="d1-03-define-invoke" title="Defining and invoking a read-only reviewer" expanded>
+A coordinator needs a focused doc reviewer. Programmatic definition, both gates satisfied, both channels handled:
+
+```ts
+const result = await query({
+  prompt: "Use the doc-reviewer agent to check docs/api.md for broken links and stale version numbers.",
+  options: {
+    allowedTools: ["Read", "Grep", "Glob", "Agent"],   // <-- "Agent" is the RUN gate
+    agents: {
+      "doc-reviewer": {
+        description: "Reviews Markdown docs for broken links, stale refs, and version drift; read-only.",  // MATCH gate: specific + keyword-rich
+        prompt: "You are a meticulous documentation reviewer. Report issues as a bulleted list with file:line. Do not edit.",
+        tools: ["Read", "Grep", "Glob"],                 // scoped: cannot edit or run commands
+      },
+    },
+  },
+});
+```
+
+Trace it: (1) **match** — the keyword-rich `description` lets Claude map "check docs/api.md" to the agent; (2) **run** — `"Agent"` in `allowedTools` approves the call; (3) **in** — the file path `docs/api.md` travels in the *prompt string* (the subagent's fresh window has nothing else); (4) **back** — the subagent's bulleted findings return as the Agent-tool result. Because the coordinator will act on exact `file:line` references, the parent prompt should add: *"preserve the reviewer's findings verbatim."* Drop the `"Agent"` entry and nothing runs; vague the `description` to "Reviews things" and nothing matches.
+</WorkedExample>
+
 ## Invocation paths and the one-level limit
 
 Once `Agent` is allowed, a subagent is invoked one of two ways.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
@@ -101,7 +143,7 @@ Once `Agent` is allowed, a subagent is invoked one of two ways.<Tag kind="offici
 - **Automatic** — Claude matches the subagent's `description` to the task. This is why the description must be specific and keyword-rich.
 - **Explicit** — name the agent in the prompt (*"Use the code-reviewer agent to check the auth module"*), bypassing automatic matching.
 
-There is a hard structural limit: **subagents cannot spawn subagents.** Don't include `Agent` in a subagent's `tools` array — delegation is one level deep.<Tag kind="official" /><Citation src="agent-sdk-subagents" /> To attribute work to the right execution context, every message generated inside a subagent carries a **`parent_tool_use_id`** linking it back to the invoking Agent call.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+There is a hard structural limit: **subagents cannot spawn subagents.** Don't include `Agent` in a subagent's `tools` array — delegation is one level deep.<Tag kind="official" /><Citation src="agent-sdk-subagents" />
 
 <Pitfall title="Putting Agent in a subagent's tools">
 This is an attempt to build a three-level hierarchy — coordinator → subagent → sub-subagent. The depth-1 limit means the nested Agent call won't produce a grandchild. If a task seems to need that depth, orchestrate the extra layer from the **parent**, not from inside a child.
@@ -114,17 +156,25 @@ You define a read-only `doc-reviewer` subagent via the `agents` option — `desc
 </Exercise>
 
 <Practice id="d1-03-pr-paths" difficulty="2">
-Without looking back: name the three ways to create a subagent, say which one the SDK docs recommend for SDK apps, and state in one clause why the built-in option needs no `AgentDefinition`.
+Name the three ways to create a subagent, say which one the SDK docs recommend for SDK apps, and state in one clause why the built-in option needs no `AgentDefinition`.
 </Practice>
 
-<Practice id="d1-03-pr-scope" difficulty="3">
-You need a subagent that runs the test suite and reports failures — nothing else. Write its `tools` array, then name **two** things it will *not* inherit from the parent that must therefore travel in the Agent-tool prompt for it to succeed.
+<Practice id="d1-03-pr-return" difficulty="3">
+A coordinator spawns a reviewer subagent and then tries to apply its fixes, but keeps acting on the *wrong* lines. The reviewer's own transcript shows correct `file:line` findings. Explain what is most likely happening on the **return** channel, and the one-line instruction that fixes it.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="d1-03-ex-fix-delegation">
-**Two faults, neither in the `tools` array.** (1) `"Agent"` is not in the parent's `allowedTools`, so the Agent-tool call is never auto-approved — it falls through to `canUseTool` (or is denied in `dontAsk`). **Fix:** add `"Agent"` to `allowedTools`. (2) `description: "Reviews things"` is too vague for automatic matching — descriptions must be specific and keyword-rich so Claude maps the task to the agent. **Fix:** rewrite it (e.g. *"Review Markdown/docs for accuracy, broken links, and stale references; read-only"*), or invoke the agent explicitly by name to bypass matching. The `tools: ["Read", "Grep", "Glob"]` set is exactly right for read-only review — leave it. (Note the two faults map to the two gates: `allowedTools` is the *run* gate, the `description` is the *match* gate.)
+**Two faults, neither in the `tools` array.** (1) `"Agent"` is not in the parent's `allowedTools`, so the Agent-tool call is never auto-approved — it falls through to `canUseTool` (or is denied in `dontAsk`). **Fix:** add `"Agent"` to `allowedTools`. (2) `description: "Reviews things"` is too vague for automatic matching — descriptions must be specific and keyword-rich. **Fix:** rewrite it (e.g. *"Review Markdown/docs for accuracy, broken links, and stale references; read-only"*), or invoke the agent explicitly by name to bypass matching. The `tools: ["Read", "Grep", "Glob"]` set is exactly right for read-only review — leave it. The two faults map to the two gates: `allowedTools` is the *run* gate, the `description` is the *match* gate.
+</Solution>
+
+<Solution for="d1-03-pr-paths">
+**Programmatic** (an `AgentDefinition` in the `agents` option) — **the recommended path for SDK apps**; **filesystem** (`.claude/agents/*.md`, loaded at startup); and the **built-in general-purpose** agent. The built-in needs no `AgentDefinition` because it ships with a default description and prompt — Claude can invoke it through the Agent tool with nothing defined, which is why it is the zero-config fallback.
+</Solution>
+
+<Solution for="d1-03-pr-return">
+The **return channel is lossy by default**: only the subagent's *final message* returns to the parent, and the parent **may summarize** it. So the coordinator is acting on a paraphrase of the reviewer's findings, not the exact `file:line` list the subagent produced. The fix is to instruct the main agent to **preserve the subagent's result verbatim** (and have the reviewer return a structured, easily-quoted format). The subagent's own transcript being correct is the tell that the loss happened on the way *back*, not inside the subagent.
 </Solution>
 
 </ExerciseSolutions>
@@ -135,4 +185,5 @@ You need a subagent that runs the test suite and reports failures — nothing el
 - **`AgentDefinition` = `description` + `prompt`** (both required); `tools`/`model`/`maxTurns` optional. The `description` drives automatic matching, so make it keyword-rich.
 - **`Agent` must be in `allowedTools`** or the subagent never runs. Two gates: description *matches*, `allowedTools` *runs*.
 - **The prompt string is the only inbound channel.** A subagent gets a fresh context — no parent conversation, no parent system prompt, no preloaded skills — but does get project CLAUDE.md + its tools. **Permissions do not inherit**; each subagent has its own evaluation chain.
-- **Delegation is one level deep:** subagents cannot spawn subagents (no `Agent` in a child's `tools`); `parent_tool_use_id` attributes a message to its subagent.
+- **The return channel is asymmetric and lossy:** the parent receives the subagent's **final message** but **may summarize** it; instruct the main agent to preserve it verbatim when fidelity matters. `parent_tool_use_id` attributes a message to its subagent.
+- **Delegation is one level deep:** subagents cannot spawn subagents (no `Agent` in a child's `tools`).
