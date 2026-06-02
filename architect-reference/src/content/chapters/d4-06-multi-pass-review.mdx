@@ -1,0 +1,105 @@
+---
+title: "Multi-Pass Review: Independent Reviewers and Attention Dilution"
+part: 4
+chapter: 6
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - claude-code-best-practices
+  - claude-code-code-review
+  - multi-agent-research-system
+description: A fresh context catches what a self-review cannot, because attention dilutes as the window fills and an implementer is biased toward its own code. The same independent-reviewer pattern scales from a two-session Writer/Reviewer pair to a fleet of specialists guarded by a verification pass.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.2 (coordinator-subagent patterns, isolated context) and D4.4 (verification as the catch above the schema).">
+- **Analyze** why a fresh-context reviewer outperforms a model reviewing its own work
+- **Apply** the Writer/Reviewer pattern and its single-session verification-subagent form
+- **Evaluate** how a fleet of specialists plus a verification pass answers attention dilution
+- **Recognize** the convergence rules that keep multi-pass review from spamming low-value findings
+</YouWillLearn>
+
+_Part IV's final chapter is about checking the work — at scale. The instinct to "ask the model to double-check itself" is exactly the wrong one, for a structural reason: a model reviewing in the same window that wrote the code is both dilated by a full context and biased toward what it just produced. The fix is independence, and it scales from two sessions to a fleet. The principle is stable; the product that embodies it is the illustration — so this is an architectural pattern._
+
+## Why a fresh context beats self-review
+
+Two independent forces make same-session self-review weak. The first is attention dilution: "LLM performance degrades as context fills. When the context window is getting full, Claude may start 'forgetting' earlier instructions or making more mistakes. The context window is the most important resource to manage."<Tag kind="official" /><Citation src="claude-code-best-practices" /> The second is implementer bias: "A fresh context improves code review since Claude won't be biased toward code it just wrote."<Tag kind="official" /><Citation src="claude-code-best-practices" /> A reviewer that never watched the code get written carries neither the polluted context nor the sunk-cost instinct to defend it.
+
+<KeyIdea>
+Independence buys two things at once. A fresh window is at peak performance instead of operating in a context already crowded with the implementation; and a reviewer with no authorship has nothing to rationalize. Self-review forfeits both — it is the most dilated *and* the most biased reviewer you could pick.
+</KeyIdea>
+
+## The Writer/Reviewer pattern and its lightweight form
+
+The canonical realization is two sessions. One writes; a second, with no inherited context, reviews; the first then addresses the feedback. The docs give a worked example: Session A implements a rate limiter, Session B reviews `@src/middleware/rateLimiter.ts` "looking for edge cases, race conditions, and consistency with existing middleware patterns," and Session A applies the result.<Tag kind="official" /><Citation src="claude-code-best-practices" /> The same shape works for tests: "have one Claude write tests, then another write code to pass them."<Tag kind="official" /><Citation src="claude-code-best-practices" /> When spinning up a second session is too heavy, the single-session analog is a verification subagent — "use a subagent to review this code for edge cases" — which runs in its own context window and so inherits none of the parent conversation's assumptions.<Tag kind="official" /><Citation src="claude-code-best-practices" />
+
+<ConceptBox title="One pattern, three scales">
+- **Verification subagent** (one session) — a child in its own context window does a lightweight edge-case pass; cheapest, no separate session.
+- **Writer/Reviewer** (two sessions) — genuinely independent author and reviewer; the quality-critical default.
+- **Fleet** (many agents) — parallel specialists, each on one issue class, productized as a managed service.
+</ConceptBox>
+
+## The fleet: parallelism plus a verification pass
+
+At the top of the scale, the pattern becomes a fleet. In Anthropic's Code Review product, "when a review runs, multiple agents analyze the diff and surrounding code in parallel on Anthropic infrastructure. Each agent looks for a different class of issue, then a verification step checks candidates against actual code behavior to filter out false positives."<Tag kind="official" /><Citation src="claude-code-code-review" /> The surviving findings "are deduplicated, ranked by severity, and posted as inline comments."<Tag kind="official" /><Citation src="claude-code-code-review" /> Fanning out to specialists is the direct architectural answer to attention dilution: rather than ask one reviewer to hold every bug class in one window at once, each agent owns a single class — and the isolated-context, lead-plus-specialists shape is the same one Anthropic's multi-agent research system uses.<Tag kind="official" /><Citation src="multi-agent-research-system" />
+
+<Pitfall title="A fleet without a verification pass amplifies false positives">
+Parallel reviewers have a characteristic failure mode: each independently flags plausible-looking but wrong issues, and with no filter those candidates *accumulate* — more reviewers means more noise, not just more signal. The verification step (re-checking each candidate against actual code behavior) is not optional polish; it is what makes fan-out a net gain. Add reviewers without a verifier and you have built a faster way to generate false positives.
+</Pitfall>
+
+## Convergence: keep multi-pass from spamming
+
+More passes is not strictly better — multi-pass review needs convergence rules, and attention dilution applies to the *instructions* as much as the code. The docs are explicit that "a long `REVIEW.md` dilutes the rules that matter most,"<Tag kind="official" /><Citation src="claude-code-code-review" /> so the broadcast instruction block stays short. And re-review on every push needs a damping rule so trivial diffs don't draw endless commentary: an instruction like "after the first review, suppress new nits and post Important findings only" stops "a one-line fix from reaching round seven on style alone."<Tag kind="official" /><Citation src="claude-code-code-review" /> Production-quality fleet review is real work, not free — Code Review averages roughly \$15–25 and 20 minutes per review at current figures<Tag kind="official" /><Citation src="claude-code-code-review" /> — so the convergence rules are also cost control.
+
+<KeyIdea>
+The same dilution that motivates independent reviewers also governs how you instruct them: a sprawling rule file and an un-damped re-review loop both bury the findings that matter under volume. Independence catches more; convergence rules keep "more" from becoming "noise."
+</KeyIdea>
+
+## Practice
+
+<Exercise id="d4-06-ex-independent-review">
+Claude has just implemented a subtle concurrent cache in one long session, and you want the strongest possible bug-catch before merge. Which approach is most likely to surface a race condition?
+
+- **A.** Ask the same session, in the next turn, to carefully review its own implementation for bugs.
+- **B.** Open a fresh session (or dispatch a verification subagent) that reviews the cache with no context from how it was written.
+- **C.** Re-run the same prompt at a higher temperature to get a different implementation to compare.
+- **D.** Keep reviewing in the same session but paste the code back in so it is fresh in context.
+</Exercise>
+
+<Practice id="d4-06-pr-attention-dilution" difficulty="2">
+Explain, in terms of attention dilution, why fanning a review out to several specialist agents (each looking for one issue class) tends to outperform a single agent asked to find every class of bug in one pass.
+</Practice>
+
+<Practice id="d4-06-pr-verification-pass" difficulty="3">
+A team runs five parallel reviewer agents but no verification step, and finds the review output noisy and untrustworthy. Name the specific multi-agent failure mode at work and what the verification pass does to address it.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d4-06-ex-independent-review">
+**B.** A fresh session or a verification subagent reviews with no inherited context, which removes both weaknesses of self-review at once — the reviewer is at peak performance in a clean window and has no authorship bias toward the code, exactly the conditions the docs credit for catching what self-review misses. **A** is self-review: most dilated (the implementation already fills the context) and most biased (the model defends what it wrote). **C** generates a *second implementation*, not a review, and gives you two artifacts to reconcile rather than a found bug. **D** re-pastes code into an already-polluted context; freshening the code does nothing about the accumulated context or the authorship bias — only a fresh, independent context fixes those.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Fresh context beats self-review** for two independent reasons: attention dilution (performance degrades as the window fills) and implementer bias (a model defends code it just wrote). Independence removes both.
+- **Writer/Reviewer** — one session writes, a second independent session reviews, the writer addresses feedback; the test/code split is a variant; the verification subagent is the single-session, isolated-context form.
+- **Fleet + verification pass** — parallel specialists each own one issue class (the answer to attention dilution); a verification step filters false positives, then dedupe + severity ranking. A fleet without verification amplifies false positives.
+- **Convergence rules** — keep the broadcast instruction block short ("a long REVIEW.md dilutes the rules that matter most") and damp re-review ("suppress new nits, post Important findings only") so trivial diffs don't draw endless passes; this is also cost control.

@@ -65,7 +65,7 @@ Split: prompting basics belong to **handbook**; tool_use + JSON schemas + batch 
 | Structured output via `tool_use` + JSON schemas | ⬜ | 🟢 D4.3 (authored 2026-06-02) | ⬜ |
 | Validation, retry, feedback loops (semantic vs schema errors) | ⬜ | 🟢 D4.4 (authored 2026-06-02) | ⬜ |
 | Batch processing (Message Batches API, custom_id, SLA matching) | 🟡 App B (basics) | 🟢 D4.5 (authored 2026-06-02) | ⬜ |
-| Multi-instance / multi-pass review (independent reviewers, attention dilution) | 🟡 ch10 (worktrees), ch14 (code review) | ⬜ (architecture) | ⬜ |
+| Multi-instance / multi-pass review (independent reviewers, attention dilution) | 🟡 ch10 (worktrees), ch14 (code review) | 🟢 D4.6 (authored 2026-06-02) | ⬜ |
 
 ## Domain 5 — Context Management & Reliability (15%)
 

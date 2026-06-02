@@ -358,3 +358,14 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D4.6 (Multi-Pass / Multi-Instance Review) — from the 06-multi-agent-patterns cache.
+# claude-code-best-practices (D1.4) + multi-agent-research-system (D1.2) reused.
+
+- id: claude-code-code-review
+  url: https://code.claude.com/docs/en/code-review
+  title: Code Review
+  author: Anthropic
+  captured_at: 2026-05-23T00:00:00Z
+  tier: T1-official
+  tool: claude-code
