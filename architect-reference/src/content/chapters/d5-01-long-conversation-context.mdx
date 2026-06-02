@@ -1,0 +1,102 @@
+---
+title: "Long-Conversation Context: Accumulation, Degradation, Compaction"
+part: 5
+chapter: 1
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - agent-sdk-agent-loop
+  - anthropic-models-overview
+description: Context is a finite, accumulating resource, and a long conversation degrades before it overflows. This chapter frames the exam angle — cumulative context, the lost-in-the-middle and summarization failure modes, and lossy automatic compaction — and points to the design book where the degradation mechanics are proven in depth.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.1 (the agent loop and what accumulates per turn). Part V opens here; this is the context-management domain.">
+- **Recognize** context as a finite, cumulative resource and what consumes it
+- **Distinguish** the long-context failure modes — lost-in-the-middle and summarization loss — from simple overflow
+- **Explain** what automatic compaction does and the information it can drop
+- **Apply** the rule that durable instructions belong in re-injected context, not the opening prompt
+</YouWillLearn>
+
+_Part V is the reliability domain — context management, escalation, error propagation, provenance. It opens with the most basic constraint behind all of them: the context window is finite, and a long conversation gets *worse* before it gets full. This chapter is the cert-exam angle; the mechanics of why long context degrades are proven in depth in the design book, to which it points. It is an architectural pattern — the accumulation-and-compaction shape is stable, while the window sizes and message types are the moving surface._
+
+## Context is a finite, accumulating resource
+
+Everything in a session shares one budget. "Context window is cumulative within a session. System prompt, tool definitions, CLAUDE.md, conversation history, tool inputs/outputs all accumulate."<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> And the budget is concrete: current windows are 1M tokens on Opus 4.7 and Sonnet 4.6 and 200k on Haiku 4.5 — though Opus 4.7's tokenizer can consume up to 35% more tokens for the same text, so the same conversation costs more of the budget on one model than another.<Tag kind="official" /><Citation src="anthropic-models-overview" />
+
+<KeyIdea>
+Every turn spends from a fixed pool that never refills within a session. A conversation that "still fits" is not free — it has spent budget that shapes how well the model attends to everything still in the window. Long context is a resource to manage, not a capacity to fill.
+</KeyIdea>
+
+## Degradation comes before overflow
+
+The failure that matters is not hitting the limit — it is the quiet decline well before it. As a window fills, a model attends less reliably to material buried in the middle of a long context (the "lost-in-the-middle" effect), and any progressive summarization of earlier turns discards detail that may later turn out to matter. These degradation mechanisms — context rot, lost-in-the-middle, summarization loss — are the subject of the *Agentic Systems Design* book's chapter on [context rot](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch08-context-rot.mdx), where they are established against the research; this chapter's job is to make you recognize them on the exam.
+
+<KeyIdea>
+"Fits in the window" and "well-attended" are different claims. A conversation can be comfortably under the token limit and still have lost the thread of an instruction given fifty turns ago. Treat the onset of degradation, not the overflow error, as the thing to design against.
+</KeyIdea>
+
+## Compaction: the automatic defense, and its cost
+
+When a session approaches the limit, the loop defends itself: "Automatic compaction triggers near the context limit."<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> The defense is lossy by construction: "Compaction replaces older messages with a summary, so specific instructions from early in the conversation may not be preserved. Persistent rules belong in CLAUDE.md (loaded via settingSources) rather than in the initial prompt, because CLAUDE.md content is re-injected on every request."<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> Compaction buys room by trading away fidelity to the early conversation — exactly the region most at risk from lost-in-the-middle in the first place.
+
+<Pitfall title="A durable instruction stranded in the opening prompt">
+An instruction given only in the first message is the most likely thing compaction discards — it summarizes the oldest turns first, and a one-line rule from turn one rarely survives the summary intact. If a constraint must hold for the whole session, it belongs where it is re-injected on every request (CLAUDE.md), not in the opening prompt where its survival depends on a summarizer's discretion.
+</Pitfall>
+
+## Where the depth lives
+
+This chapter is the exam-angle surface; the design book owns the mechanism. The degradation research, the measurement of context rot, and the assembly strategies that fight it live in the *Agentic Systems Design* book — its chapter on [context rot](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch08-context-rot.mdx) for the failure modes and its chapter on [context assembly](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch09-context-assembly.mdx) for the deliberate construction of what goes in the window. The exam-relevant skill is diagnostic: given a long-session scenario, name whether it is accumulation pressure, lost-in-the-middle, or post-compaction loss, and reach for the matching mitigation.
+
+<MarginNote variant="note" label="Note">
+Cross-book links are provisional — they point at the chapter sources until the design book deploys, then repoint to published URLs.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d5-01-ex-durable-instruction">
+Early in a long session you tell Claude "always cite a file:line for any behavioral claim." Forty turns later it stops doing so, right around when a compaction summary appeared. What is the most reliable fix?
+
+- **A.** Re-paste the instruction manually every few turns to keep it fresh in context.
+- **B.** Move the instruction into CLAUDE.md, which is re-injected on every request and so survives compaction.
+- **C.** Switch to a model with a larger context window so compaction never triggers.
+- **D.** Raise `max_tokens` so the model has more room to comply.
+</Exercise>
+
+<Practice id="d5-01-pr-cumulative" difficulty="2">
+List what accumulates in the context window over a session, and explain why "the conversation still fits" is not the same as "the model is attending to all of it well."
+</Practice>
+
+<Practice id="d5-01-pr-compaction-loss" difficulty="3">
+Explain what automatic compaction does when a session nears the context limit, why an instruction placed only in the opening prompt is at risk, and where a durable rule belongs instead.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d5-01-ex-durable-instruction">
+**B.** CLAUDE.md content is re-injected on every request, so a rule placed there is present in the context after compaction just as before it — exactly what a session-long constraint needs. The timing (failure right after a compaction summary) is the tell that the original instruction was summarized away. **A** works for a few turns but fights the symptom by hand and will fail again at the next compaction. **C** delays the limit but does not address degradation — a larger window still loses the middle, and a long enough session compacts anyway. **D** governs output length, not whether an early instruction is retained, so it is unrelated to the failure.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Cumulative budget** — system prompt, tool defs, CLAUDE.md, conversation history, and tool I/O all accumulate in one finite window (1M tokens on Opus 4.7 / Sonnet 4.6, 200k on Haiku 4.5; tokenizer density varies by model).
+- **Degradation precedes overflow** — lost-in-the-middle and summarization loss erode a long context before it hits the limit; "fits" is not "well-attended." Depth lives in the design book's context-rot chapter.
+- **Compaction is lossy** — it triggers near the limit and replaces older messages with a summary, so early-conversation specifics may not be preserved.
+- **Durable rules belong in re-injected context** — put session-long constraints in CLAUDE.md (re-injected every request), not the opening prompt, so compaction cannot strand them.

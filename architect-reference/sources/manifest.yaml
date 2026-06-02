@@ -369,3 +369,16 @@
   captured_at: 2026-05-23T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# === PART V — D5 · Context Management & Reliability ===
+
+# --- D5.1 (Long-Conversation Context) — from 04-agent-sdk + 05-claude-api cache.
+# agent-sdk-agent-loop (D1.1) reused for cumulative-context + compaction.
+
+- id: anthropic-models-overview
+  url: https://platform.claude.com/docs/en/about-claude/models/overview
+  title: Models overview
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

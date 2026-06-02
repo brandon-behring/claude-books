@@ -73,7 +73,7 @@ Cross-cutting; shared across all three books.
 
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
-| Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | 📘 ch8 (rot), ch9 (assembly) | ⬜ |
+| Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | 🟢 D5.1 (authored 2026-06-02) · 📘 ch8 (rot), ch9 (assembly) | ⬜ |
 | Escalation / ambiguity resolution patterns | 🟡 ch13 | ⬜ | ⬜ |
 | Error propagation across multi-agent systems (structured error context) | ⬜ | ⬜ (primary) | ⬜ |
 | Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 📘 ch7 (at scale), ch9 (compaction) | ⬜ |
