@@ -1,10 +1,12 @@
 # Cert book — Round 1 handoff (clean-session resume point)
 
-**Date:** 2026-06-01 · **Book:** `architect-reference/` (the **Cert** lens, CCA-F D1–D5) · **Status:** Round 1 — structure + conventions settled; **Part I (D1.1–D1.7) + Part II BUILD (D2.1–D2.4) authored (11 of ~30 chapters)**; cert-guide-genre research done. Builds **17 pages**, `validate` clean, all on `main` (pushed).
+**Date:** 2026-06-01 · **Book:** `architect-reference/` (the **Cert** lens, CCA-F D1–D5) · **Status:** Round 1 — structure + conventions settled; **Part I (D1.1–D1.7) + Part II (D2.1–D2.5) + Part III opener D3.1 authored (13 of ~30 chapters)**; cert-guide-genre research done; REFERENCE sub-template locked. Builds **19 pages**, `validate` clean, all on `main` (pushed).
 
 > **Update 2026-06-01 (later session):** D1.3–D1.7 authored end-to-end this session (Subagent Invocation · Multi-Step Workflows · Agent SDK Hooks · Task Decomposition · Session State) — **Part I (Domain 1) is now prose-complete**. The chapter template, the per-chapter loop, and the gotchas below all held verbatim and **still apply** to Parts II–V. **Next move = D2.1 Effective Tool Interfaces** (Part II / D2 · Tool Design & MCP, 18%). New finding: classify each chapter's `volatility` by claim-type (D1.5 Hooks shipped `feature-surface`, the rest `architectural-pattern`).
 
 > **Update 2026-06-01 (Part II BUILD session):** D2.1–D2.4 authored end-to-end (Effective Tool Interfaces · Structured Error Responses · Tool Distribution & `tool_choice` · MCP Server Configuration) — **Part II BUILD is now prose-complete** (4 commits, pushed; **17 pages**). Template + per-chapter loop held verbatim again. Two strict-live findings: **`errorCategory` is a phantom** (absent from every source → D2.2 reframed on the `isError`-vs-JSON-RPC split), and the "3–4 sentences" tool-description guideline **is** cached (cite it; the first recon mis-flagged it). Volatility: D2.1/D2.2 `architectural-pattern`, D2.3/D2.4 `feature-surface`. **Next move = D2.5** (Built-in Tools, REFERENCE→handbook — short outward chapter) **or D3.1** (Part III).
+
+> **Update 2026-06-01 (REFERENCE-chapters session):** D2.5 (Built-in Tools) + D3.1 (CLAUDE.md Hierarchy & `@import`) authored end-to-end — the book's **first two REFERENCE chapters**. Part II is now complete (5/5); Part III is opened. 2 commits, pushed; **19 pages**. The **REFERENCE sub-template is locked**: 4 sections (not 5), ≤2 Pitfalls, **bare-prose cross-book links** (never `<XRef>`), full Practice/Exam-essentials apparatus retained. Findings: D2.5 needed **zero new manifest keys** (existing `agent-sdk-overview`/`agent-loop`/`permissions` covered every claim); **D2.5's outward link is prose-only** (handbook target unwritten — a 404 blob link is worse than none) while **D3.1's is a real provisional blob link** (design ch04 exists on disk); `docs-memory.md` is mostly faithful T1 *paraphrase* not verbatim quotes (cite the source key, don't sharpen). Volatility: D2.5 `feature-surface`, D3.1 `architectural-pattern`. **Next move = D3.2 Slash Commands & Skills** or the rest of Part III.
 
 > **Resume here for a clean/compacted session.** Supersedes the kickoff (`2026-06-01_cert-book-kickoff.md`, now historical). Canonical structure = [`architect-reference/OUTLINE.md`](../../architect-reference/OUTLINE.md). Canonical decisions = the live plan `~/.claude/plans/this-repo-has-gotten-humble-origami.md` + memory `project_cert_book.md`. The two authored chapters **are the template** — copy them.
 
@@ -39,11 +41,12 @@ Frontmatter (tools shape: `title, part, chapter, volatility, tools_compared, cer
 5. **Verify**: `npm -w architect-reference run build:labels && npm -w architect-reference run validate && npm -w architect-reference run build`. The full **build** catches MDX/enum issues that `validate` misses.
 6. **Commit** (`feat(architect-reference): …`) + push. The landing page needs no edit — it auto-groups by `part`.
 
-## Next chapters (Part I + Part II BUILD done → D2.5 or Part III)
+## Next chapters (Part I + Part II + D3.1 done → D3.2 or the rest of Part III)
 
 - ✅ **Part I complete:** D1.1–D1.7 authored, built, committed, pushed. Domain-1 column of `docs/cert-coverage.md` is all 🟢.
-- ✅ **Part II BUILD complete:** D2.1–D2.4 authored, built (17 pages), committed, pushed. Domain-2 rows D2.1–D2.4 all 🟢; D2.5 still ⬜.
-- **Next = D2.5 Built-in Tools** (the one REFERENCE→handbook chapter in Part II — short, outward-pointing; backbone `docs/research/04-agent-sdk/docs-builtin-tools`), **or start Part III (D3.1 CLAUDE.md Hierarchy)** — see `OUTLINE.md` Part III table (mostly REFERENCE→handbook/design). The template, per-chapter loop, and gotchas are unchanged.
+- ✅ **Part II complete:** D2.1–D2.5 authored, built, committed, pushed. Domain-2 rows D2.1–D2.5 all 🟢.
+- ✅ **Part III opened:** D3.1 (CLAUDE.md Hierarchy & `@import`) authored, built (19 pages), pushed. Domain-3 CLAUDE.md row 🟢.
+- **Next = D3.2 Slash Commands & Skills** (REFERENCE → design ch05) or any remaining Part III chapter — see `OUTLINE.md` Part III table (mostly REFERENCE→handbook/design). The REFERENCE sub-template (proven on D2.5/D3.1) and the per-chapter loop are unchanged: **copy `d3-01-claude-md-hierarchy.mdx` for the REFERENCE shape** (or `d2-04-mcp-configuration.mdx` for a feature-surface BUILD-style chapter). Note: most Part III/IV/V chapters that are REFERENCE→design can carry a real provisional blob link (those design chapters exist on disk); REFERENCE→handbook chapters use a prose-only outward pointer until the handbook ships.
 
 ## Gotchas
 

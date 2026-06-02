@@ -6,7 +6,7 @@
 
 **Backbone.** [`docs/research-program/`](../docs/research-program/) + the in-repo cache `docs/research/{02,03,04,05,06,07,08}`. **Coverage tracker:** [`docs/cert-coverage.md`](../docs/cert-coverage.md) — this outline is its architect-column source.
 
-**Status.** Round 1 — structure settled + **Part I (D1.1–D1.7) and Part II BUILD (D2.1–D2.4) authored; 17 pages, pushed**. D2.5 (REFERENCE→handbook) + D3.1–D5.6 are placed but unauthored; **next = D2.5 or D3.1**.
+**Status.** Round 1 — structure settled + **Part I (D1.1–D1.7), Part II (D2.1–D2.5), and Part III's opener D3.1 authored; 13 chapters, 19 pages, pushed**. D2.5 + D3.1 are the first two REFERENCE chapters — the REFERENCE sub-template is now locked (4 sections, ≤2 Pitfalls, bare-prose cross-book links, full Practice/Exam-essentials apparatus). D3.2–D5.6 are placed but unauthored; **next = D3.2 or the rest of Part III**.
 
 ---
 
@@ -51,7 +51,7 @@ The biggest domain; the agent loop it opens with is the substrate every later do
 
 **Backbone:** `docs/research/02-mcp-spec`, `03-advanced-tool-use`, `04-agent-sdk`, `05-claude-api/docs-tool-use`.
 
-**Status (2026-06-01):** D2.1–D2.4 (all BUILD) authored end-to-end — Effective Tool Interfaces · Structured Error Responses · Tool Distribution & `tool_choice` · MCP Server Configuration. D2.5 (Built-in Tools, REFERENCE→handbook) deferred. Volatility: D2.1/D2.2 `architectural-pattern`, D2.3/D2.4 `feature-surface`. Strict-live finding: **`errorCategory` is a phantom** (absent from every source) → D2.2 reframed on the `isError`-vs-JSON-RPC channel split.
+**Status (2026-06-01):** D2.1–D2.5 authored end-to-end — Effective Tool Interfaces · Structured Error Responses · Tool Distribution & `tool_choice` · MCP Server Configuration · Built-in Tools (D2.5, the REFERENCE→handbook chapter that completes Part II, 5/5). Volatility: D2.1/D2.2 `architectural-pattern`, D2.3/D2.4/D2.5 `feature-surface`. Strict-live findings: **`errorCategory` is a phantom** (→ D2.2 reframed on the `isError`-vs-JSON-RPC channel split); D2.5 needed **zero new manifest keys** (existing `agent-sdk-overview`/`agent-loop`/`permissions` covered every claim — the plan's 2 proposed keys were dropped as backing only marginal extras).
 
 | Ch | Title (task area) | Mode | cert_domains |
 |---|---|---|---|
@@ -64,6 +64,8 @@ The biggest domain; the agent loop it opens with is the substrate every later do
 ## Part III — D3 · Claude Code Configuration & Workflows (20%) · REFERENCE + thin BUILD
 
 Handbook is the use-side primary owner; this book is the design / exam angle. **Backbone:** `docs/research/08-claude-code-internals`.
+
+**Status (2026-06-01):** D3.1 (CLAUDE.md Hierarchy & `@import`) authored — **Part III opened**. `architectural-pattern`; the second REFERENCE chapter, outward-linking to design ch04 (`ch04-environment-instruction-layer.mdx`, which exists on disk — unlike D2.5's handbook target, so D3.1 carries a real provisional blob link while D2.5's outward pointer is prose-only). Backbone `docs/research/08-claude-code-internals/docs-memory.md` + `docs-settings.md` → 2 new manifest keys (`claude-code-memory`, `claude-code-settings`). Strict-live note: `docs-memory.md` is mostly faithful T1 *paraphrase*, not verbatim quotes (verbatim only at :42–44/:48–50/:54–56) — cite the source key, don't sharpen; the ch04-owned context-budget metrics are deliberately **not** restated here.
 
 | Ch | Title (task area) | Mode | cert_domains |
 |---|---|---|---|
