@@ -49,7 +49,7 @@ Primary owner: **handbook**. Cross-references: field-guide observations on CLAUD
 |---|---|---|---|
 | CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | 🟢 D3.1 (authored 2026-06-01) · 📘 ch4 (instruction layer) | ⬜ |
 | Custom slash commands + skills (`.claude/commands/`, `.claude/skills/`) | 🟡 ch8 | 🟢 D3.2 (authored 2026-06-02) · 📘 ch5 (skills) | ⬜ |
-| `.claude/rules/` with YAML glob path-scoping | 🟡 ch9 | ⬜ | ⬜ |
+| `.claude/rules/` with YAML glob path-scoping | 🟡 ch9 | 🟢 D3.3 (authored 2026-06-02) | ⬜ |
 | Plan mode vs direct execution | 🟡 ch3 | ⬜ | ⬜ |
 | Iterative refinement (concrete examples, test-driven, interview pattern) | 🟡 ch6, ch7 | ⬜ | ⬜ |
 | CI/CD integration (`-p` flag, `--output-format json`, `--json-schema`) | 🟡 ch12 | ⬜ | ⬜ |

@@ -1,0 +1,139 @@
+---
+title: "Path-Scoped Rules: Modular, Glob-Triggered Instructions"
+part: 3
+chapter: 3
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - claude-code-memory
+description: The .claude/rules/ system — a modular, eager-loaded instruction layer parallel to CLAUDE.md, with optional glob path-scoping so a rule loads only when Claude reads matching files. Covers unconditional vs path-scoped rules, the glob format, and the directory and symlink mechanics.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D3.1 (the CLAUDE.md scopes and the concatenation model) and D3.2 (skills also use a paths glob). You have written at least one CLAUDE.md.">
+- **Distinguish** `.claude/rules/` from CLAUDE.md — a *parallel* system, not a subsystem
+- **Apply** the `paths` frontmatter to scope a rule to files matching a glob
+- **Explain** when a path-scoped rule actually triggers — on file-read, not at launch or every tool use
+- **Recognize** the directory and symlink mechanics of the rules system
+</YouWillLearn>
+
+_D3.1 covered the always-on CLAUDE.md; D3.2 covered the lazy, invocable skill. Rules are the third shape of the instruction layer: modular markdown files that load eagerly like CLAUDE.md, but can be **glob-scoped** so a rule only enters context when Claude touches the files it governs. The architect's job here is to know that rules are a separate, equal-priority system — and to use path-scoping to keep file-specific guidance out of unrelated work._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the `.claude/rules/` path, the `paths` frontmatter field, and the glob syntax are concrete surfaces that move between releases. Treat them as a current snapshot and re-verify before relying on them.
+</MarginNote>
+
+## A system parallel to CLAUDE.md
+
+`.claude/rules/*.md` is a modular rules system, loaded into context every session, with recursive discovery across subdirectories.<Tag kind="official" /><Citation src="claude-code-memory" /> The relationship to CLAUDE.md is the fact to fix first: "Rules without `paths` frontmatter are loaded at launch with the same priority as `.claude/CLAUDE.md`."<Tag kind="official" /><Citation src="claude-code-memory" /> A rule is not nested under CLAUDE.md or overridden by it — the two are *parallel* instruction sources discovered separately and loaded at equal priority.
+
+<KeyIdea>
+Rules sit beside CLAUDE.md, not under it. D3.1's concatenation-not-precedence applies here too: an unconditional rule and your `.claude/CLAUDE.md` both land in context at the same priority. The reason to reach for a rule instead of more CLAUDE.md lines is *modularity and scoping*, not precedence.
+</KeyIdea>
+
+## Path-scoping with the `paths` frontmatter
+
+The lever that makes rules more than "another CLAUDE.md" is the optional `paths` field. Give a rule a `paths` glob and it stops loading unconditionally: "path-scoped rules trigger when Claude reads files matching the pattern, not on every tool use."<Tag kind="official" /><Citation src="claude-code-memory" /> So a rule scoped to `src/api/**/*.ts` costs nothing until Claude actually reads an API file — and then applies while that work is in scope.
+
+```yaml
+---
+paths:
+  - "src/api/**/*.ts"
+---
+
+# API Development Rules
+- All API endpoints must include input validation
+```
+
+The glob format is the same one skills use for their `paths` field:<Tag kind="official" /><Citation src="claude-code-memory" />
+
+<ConceptBox title="Glob patterns for paths">
+- `**/*.ts` — all TypeScript files in any directory
+- `src/**/*` — everything under `src/`
+- `*.md` — Markdown in the project root only
+- `src/components/*.tsx` — React components in one directory
+- `src/**/*.{ts,tsx}` — brace expansion across multiple extensions
+</ConceptBox>
+
+<Pitfall title="A path-scoped rule is not loaded at launch">
+Unconditional rules (no `paths`) load at session start; path-scoped rules do **not**. They activate when Claude first reads a matching file — so a rule scoped to `src/api/**` has no effect during work that never touches `src/api/`. If a rule must always apply, leave `paths` off; if it should bind only to certain files, scope it and accept that it is silent until one of those files is read.
+</Pitfall>
+
+## Layout and symlinks
+
+Rules can mix unconditional and path-scoped files in one tree, and discovery recurses into subdirectories:
+
+```
+.claude/
+└── rules/
+    ├── code-style.md      # no paths: loaded unconditionally
+    ├── security.md        # no paths: loaded unconditionally
+    ├── frontend/
+    │   └── react.md       # paths: src/frontend/**/*.tsx
+    └── backend/
+        └── api.md         # paths: src/api/**/*.ts
+```
+
+The unconditional files (`code-style.md`, `security.md`) are always in context; the nested path-scoped files wait for a matching file-read.<Tag kind="official" /><Citation src="claude-code-memory" /> Rules can also be shared from a central directory by symlink: "symlinks work in `.claude/rules/` — link shared rules from a central dir; circular symlinks are detected gracefully."<Tag kind="official" /><Citation src="claude-code-memory" />
+
+## Choosing the shape: rule vs CLAUDE.md vs skill
+
+The three instruction shapes now in view divide cleanly by *when* they load and *what* they carry:
+
+<ConceptBox title="Three instruction shapes">
+- **CLAUDE.md** (D3.1) — always-on context, concatenated across scopes. For broadly-applicable rules you can't infer from code.
+- **`.claude/rules/`** (this chapter) — modular instruction files at the same priority; optionally `paths`-scoped so file-specific guidance loads only when relevant.
+- **Skills** (D3.2) — lazy capabilities; only a description until invoked. For invocable workflows, not standing rules.
+</ConceptBox>
+
+The practical rule of thumb: reach for a `paths`-scoped rule when guidance is real but only relevant to part of the tree — it is the one shape that lets you write file-specific instructions without paying for them on every unrelated turn.
+
+## Practice
+
+<Exercise id="d3-03-ex-scoped-vs-unconditional">
+You have a one-line standard — "all API endpoints must validate their input" — that is only relevant when someone edits files under `src/api/`. You want it in front of Claude during that work but not cluttering context the rest of the time. How should you author it?
+
+- **A.** As a line in `CLAUDE.md`, so it is always loaded and never missed.
+- **B.** As an unconditional rule `.claude/rules/api.md` with no `paths`, so it loads every session.
+- **C.** As a path-scoped rule `.claude/rules/api.md` with `paths: ["src/api/**/*.ts"]`, so it loads only when Claude reads an API file.
+- **D.** As a skill at `.claude/skills/api/SKILL.md`, so Claude can invoke it when needed.
+</Exercise>
+
+<Practice id="d3-03-pr-glob" difficulty="2">
+Write the `paths` frontmatter value that scopes a rule to every TypeScript and TSX file anywhere in the repository, using a single pattern.
+</Practice>
+
+<Practice id="d3-03-pr-rules-vs-claudemd" difficulty="3">
+A teammate put a 40-line, framework-specific style guide in `CLAUDE.md` and is annoyed that it loads even when Claude edits unrelated backend files. Explain, in terms of the rules system, the change that fixes this — and why simply moving the text into an *unconditional* `.claude/rules/` file would not.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d3-03-ex-scoped-vs-unconditional">
+**C.** A path-scoped rule is exactly this case: with `paths: ["src/api/**/*.ts"]` the standard loads only when Claude reads a matching API file, and stays out of context otherwise. **A** and **B** both load the line *unconditionally* — `CLAUDE.md` and an un-scoped rule sit in context at the same priority every session, which is the clutter you wanted to avoid. **D** misuses a skill: skills are invocable *capabilities/workflows*, not standing rules that should bind automatically while editing a file. The lever that matters is `paths`, and only a rule (or a skill) offers it — so the rule is the right shape for a standing, file-scoped instruction.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Parallel to CLAUDE.md** — `.claude/rules/*.md` loads every session with recursive subdir discovery; rules without `paths` load unconditionally at the **same priority as `.claude/CLAUDE.md`** (not a subsystem of it).
+- **Path-scoping** — a `paths` glob makes a rule trigger only when Claude reads matching files, **not at launch and not on every tool use**.
+- **Glob format** — same as skill `paths`: `**/*.ts`, `src/**/*`, brace expansion `{ts,tsx}`.
+- **Mechanics** — unconditional and path-scoped rules can mix in one tree; symlinks work, with circular symlinks detected gracefully.
+- **Choosing the shape** — CLAUDE.md (always-on), rules (modular, optionally glob-gated), skills (lazy capability). Reach for a `paths`-scoped rule for guidance that is real but only relevant to part of the tree.
