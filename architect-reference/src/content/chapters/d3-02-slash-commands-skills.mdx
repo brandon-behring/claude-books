@@ -1,0 +1,123 @@
+---
+title: "Slash Commands & Skills: Stored Prompts, Lazy-Loaded Capabilities"
+part: 3
+chapter: 2
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - claude-code-commands
+  - claude-code-skills
+description: Two ways to extend the workflow — a slash command (a stored prompt recognized at message start) and a skill (a lazy-loaded, auto-invocable, directory-bundled capability). The merged model where commands became skills, the lazy-load lifecycle, the SKILL.md frontmatter, and the four scopes.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D3.1 (the always-on CLAUDE.md instruction layer) and D2.5 (tool names are matched exactly). No prior skill-authoring assumed.">
+- **Distinguish** a slash command from a skill — and recognize that commands have *merged into* skills
+- **Explain** how a skill lazy-loads (a short description at startup, the full body only on invocation)
+- **Recognize** the SKILL.md frontmatter fields and the four skill scopes
+- **Apply** the `user-invocable` / `disable-model-invocation` switches to control who can call a skill
+</YouWillLearn>
+
+_D3.1's CLAUDE.md is always-on context. This chapter is the other half of the instruction layer: capabilities the agent loads only when it needs them. A slash command is a stored prompt you trigger by typing `/name`; a skill is a richer, directory-bundled capability that Claude can also reach for on its own. The exam-relevant fact is that these two have converged — and that a skill's lazy-loading is what keeps it cheap._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the SKILL.md frontmatter fields, the scope paths, and the bundled-command roster are concrete surfaces that move between releases. Treat each field name and path as a current snapshot and re-verify before relying on it.
+</MarginNote>
+
+## Commands and skills have merged
+
+A slash command controls Claude Code from inside a session, and "a command is only recognized at the start of your message. Text that follows the command name is passed to it as arguments."<Tag kind="official" /><Citation src="claude-code-commands" /> Alongside the 70-plus built-in commands, some entries are **bundled skills**: "they use the same mechanism as skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant. Everything else is a built-in command whose behavior is coded into the CLI."<Tag kind="official" /><Citation src="claude-code-commands" />
+
+That same mechanism is why the two authoring formats have converged: "Custom commands have been merged into skills. A file at `.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create `/deploy` and work the same way. Your existing `.claude/commands/` files keep working."<Tag kind="official" /><Citation src="claude-code-skills" /> Old flat-file commands still run; skills are the recommended form for new work because they add directory bundling, frontmatter, and auto-invocation.
+
+<KeyIdea>
+A slash command and a skill are no longer two systems. A command is the legacy flat-file shape; a skill is the same idea with a directory, frontmatter, and the ability for Claude to invoke it unprompted. Author new work as a skill; reach for `.claude/commands/` only to keep an existing one alive.
+</KeyIdea>
+
+## Skills are lazy-loaded directories
+
+A skill is "a markdown directory: `.claude/skills/<name>/SKILL.md`," with optional supporting files (`reference.md`, `scripts/`, and the like) alongside.<Tag kind="official" /><Citation src="claude-code-skills" /> The reason a skill is cheap is its loading model — unlike CLAUDE.md, which loads every session: "skills load on demand. The agent receives skill descriptions at startup and loads the full content when relevant."<Tag kind="official" /><Citation src="claude-code-skills" /> Each description is roughly 100 tokens; the full body materializes only when the skill is invoked.
+
+And once invoked it persists: "the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. Claude Code does not re-read the skill file on later turns."<Tag kind="official" /><Citation src="claude-code-skills" /> So a skill body is a *standing* instruction once loaded, not a step replayed each turn.
+
+<KeyIdea>
+The description is the skill's retrieval interface — it is the only part loaded at startup, and it is what Claude matches against to decide whether to auto-invoke. A vague description is an undiscoverable skill, no matter how good the body.
+</KeyIdea>
+
+## SKILL.md frontmatter and the four scopes
+
+The `SKILL.md` frontmatter is where a skill declares its behavior. Among the fields: `name` (lowercase letters, numbers, hyphens; max 64 chars), `description` (drives auto-invocation; `description` + `when_to_use` capped at 1,536 chars), `argument-hint`, `disable-model-invocation`, `user-invocable`, `allowed-tools` (CLI-only), `model`, `effort`, `context`, and `paths` (glob patterns that limit when the skill activates).<Tag kind="official" /><Citation src="claude-code-skills" />
+
+Skills resolve across four scopes by precedence — "enterprise > personal > project; plugin skills use a `plugin-name:skill-name` namespace and never conflict": Enterprise (managed settings, all users), Personal (`~/.claude/skills/`, all your projects), Project (`.claude/skills/`, auto-discovered from cwd up to repo root), and Plugin (namespaced).<Tag kind="official" /><Citation src="claude-code-skills" />
+
+<ConceptBox title="The four skill scopes">
+- **Enterprise** — managed settings; applies to all users in the org (highest precedence).
+- **Personal** — `~/.claude/skills/<name>/SKILL.md`; all your projects.
+- **Project** — `.claude/skills/<name>/SKILL.md`; this repo, discovered from cwd up to the root.
+- **Plugin** — `<plugin>/skills/<name>/SKILL.md`; invoked as `/plugin-name:skill-name`, namespaced so it never collides.
+</ConceptBox>
+
+<Pitfall title="The description is not optional decoration">
+`name` defaults to the directory, so it is easy to skip `description` — but `description` is what Claude reads at startup to decide whether to auto-invoke. Omit it and the skill is still user-invocable by `/name`, yet effectively invisible to the model. If you want Claude to reach for a skill on its own, the description carries that entire decision.
+</Pitfall>
+
+## Who can invoke it — and where the design depth lives
+
+Two frontmatter switches decide *who* may call a skill. `user-invocable: false` hides it from the `/` menu so only Claude can invoke it; `disable-model-invocation: true` does the inverse — only the user can trigger it via `/`, and Claude cannot auto-invoke (it also blocks subagent preloading).<Tag kind="official" /><Citation src="claude-code-skills" /> Between them you can build a skill that is purely automatic, purely manual, or both.
+
+The deeper craft — how to write a description that gets discovered, when to extract a skill out of CLAUDE.md, and the progressive-disclosure design behind all of this — is developed in the companion volume rather than repeated here: see the *Agentic Systems Design* book, Chapter 5, [*Skills & Progressive Disclosure*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch05-environment-skills.mdx).
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d3-02-ex-command-vs-skill">
+Your team has a 2,000-token deployment runbook you want Claude to follow whenever it deploys — ideally without anyone having to remember to paste it. Where should it live, and why?
+
+- **A.** In `CLAUDE.md`, so the runbook is always available to every session.
+- **B.** As a skill at `.claude/skills/deploy/SKILL.md`, so only its ~100-token description costs context until it is invoked.
+- **C.** As a slash command at `.claude/commands/deploy.md`, since that is the only way to get a `/deploy` command.
+- **D.** Pasted inline into each prompt at deploy time, so it is always fresh.
+</Exercise>
+
+<Practice id="d3-02-pr-scopes" difficulty="2">
+Name the four skill scopes in precedence order, and identify the one whose naming convention guarantees it never collides with a same-named skill from another source.
+</Practice>
+
+<Practice id="d3-02-pr-lazy-load" difficulty="3">
+A skill's full `SKILL.md` body is about 3,000 tokens. (a) Roughly how much of it enters context at session start? (b) When does the rest load, and how long does it stay in the conversation once it does?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d3-02-ex-command-vs-skill">
+**B.** A skill lazy-loads: only its ~100-token description sits in context at startup, and the full 2,000-token body loads on invocation — and Claude can auto-invoke it when a deploy is relevant. **A** is the D3.1 budget mistake: a CLAUDE.md is loaded *every session*, so the whole 2,000 tokens would be spent on every unrelated turn. **C** is wrong on the "only way" claim — commands have merged into skills, so `.claude/commands/deploy.md` and `.claude/skills/deploy/SKILL.md` both create `/deploy`; the skill form is recommended. **D** defeats the point of a reusable capability. The skill is the form that is both cheap (lazy) and discoverable (auto-invocable).
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Commands merged into skills** — `.claude/commands/x.md` and `.claude/skills/x/SKILL.md` both create `/x`; old commands keep working, skills are recommended (directory bundling, frontmatter, auto-invocation).
+- **A command is recognized only at message start** — text after the command name is passed as arguments.
+- **Skills lazy-load** — a ~100-token description at session start, the full body on invocation; once loaded it stays for the rest of the session and is not re-read.
+- **The description is the retrieval interface** — it is what Claude matches to auto-invoke; omit it and the skill is effectively invisible to the model.
+- **Four scopes** — enterprise > personal > project; plugin skills are namespaced (`plugin-name:skill-name`) and never conflict.
+- **Who-can-invoke switches** — `user-invocable: false` (Claude-only), `disable-model-invocation: true` (user-only). Design depth on progressive disclosure → *Agentic Systems Design* ch05.

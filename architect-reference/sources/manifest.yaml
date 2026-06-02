@@ -230,3 +230,21 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D3.2 (Slash Commands & Skills) — from the 08-claude-code-internals cache.
+
+- id: claude-code-commands
+  url: https://code.claude.com/docs/en/commands
+  title: Commands
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-skills
+  url: https://code.claude.com/docs/en/skills
+  title: Extend Claude with skills
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
