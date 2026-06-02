@@ -6,18 +6,19 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - agent-sdk-hooks
   - agent-sdk-permissions
-description: A hook is a typed callback the SDK fires at a named lifecycle event — the architect's control plane to intercept, gate, and normalize the agent loop without touching the model. The events to know, the two interception modes (PreToolUse gates, PostToolUse normalizes), and the deny-beats-allow precedence.
+description: A hook is a typed callback the SDK fires at a named lifecycle event — the architect's control plane to intercept, gate, and normalize the agent loop without touching the model. The events to know, the two interception modes (PreToolUse gates, PostToolUse normalizes), the four PreToolUse decisions including what defer does, and the deny-beats-defer-beats-ask-beats-allow precedence.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -29,6 +30,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 <YouWillLearn prerequisites="Chapter D1.1 (the agent loop). You know the loop runs tools between model turns. Helpful: D1.3 (subagents) for the subagent-hook events.">
 - **Identify** the key hook events and what triggers each
 - **Apply** the two interception modes — `PreToolUse` to gate a call, `PostToolUse` to normalize a result
+- **Define** the four `PreToolUse` decisions — including what `defer` does that the other three don't
 - **Analyze** what happens when several hooks fire on one event, using the `deny > defer > ask > allow` precedence
 - **Recognize** the hook gotchas that silently disable interception (case, `max_turns`, ordering, subagent permissions)
 </YouWillLearn>
@@ -38,6 +40,16 @@ _The agent loop of D1.1 runs the model's tool calls automatically. Hooks are how
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: the specific event names and the Python/TS roster change faster than the interception *pattern*. Treat the lists as a current snapshot and re-verify against the SDK reference before relying on a specific event.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. What is a hook, and does it consume the agent's context window?
+2. Which event gates a call before it runs, and which normalizes a result after?
+3. Name the four decisions a `PreToolUse` hook can return — and say what `defer` does.
+4. Three hooks return `ask`, `allow`, and `deny` on one event. What happens, and why?
+5. A subagent can't use a tool the parent could. Why — and what hook cleanly pre-approves it?
 
 ## Hooks intercept the loop at named events
 
@@ -78,12 +90,34 @@ Exam reflex: **`PreToolUse` = the gate** (allow/deny/ask/defer, rewrite input); 
 
 Matchers select which calls a hook sees: they are **regex strings** tested against the tool name — `"Write|Edit"`, `"^mcp__"` for all MCP tools, or omitted to match everything.<Tag kind="official" /><Citation src="agent-sdk-hooks" /> Matchers do *not* filter by argument; filter on the file path or command inside the callback.
 
+<WorkedExample id="d1-05-pretooluse-gate" title="A PreToolUse gate: forbid writes to .env" expanded>
+The rule: the agent may never write a `.env` file. That is a *gate* (a decision before the tool runs), so it is a `PreToolUse` hook. The matcher selects the write tools; the callback inspects the path and returns a decision:
+
+```json
+{
+  "hookSpecificOutput": {
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Cannot modify .env files"
+  }
+}
+```
+
+Wiring: a `PreToolUse` hook with matcher `"Write|Edit"`; inside the callback, if the target path ends in `.env`, return the object above; otherwise return `"allow"`. Note what the matcher does *not* do — it selects by **tool name**, not by argument, so the `.env` test must happen *inside* the callback on the call's input. Because this is a gate, it has to be `PreToolUse`: at `PostToolUse` the write has already happened.
+</WorkedExample>
+
 ## Precedence: `deny` beats `defer` beats `ask` beats `allow`
 
-When several hooks (or permission rules) act on one event, the outcome is decided by a fixed precedence, not by who ran first: "deny takes priority over defer, which takes priority over ask, which takes priority over allow. If any hook returns `deny`, the operation is blocked regardless of other hooks."<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+When several hooks (or permission rules) act on one event, the outcome is decided by a fixed precedence, not by who ran first: "When multiple hooks or permission rules apply, deny takes priority over defer, which takes priority over ask, which takes priority over allow. If any hook returns `deny`, the operation is blocked regardless of other hooks."<Tag kind="official" /><Citation src="agent-sdk-hooks" /> The four decisions are not symmetric, and `defer` is the one candidates miss:
+
+<ConceptBox title="The four PreToolUse decisions">
+- **`allow`** — permit the call (may carry an `updatedInput` to rewrite it).
+- **`ask`** — surface a permission prompt to the human (may also carry `updatedInput`).
+- **`deny`** — block the call outright; one `deny` wins over everything else.
+- **`defer`** — the special one: it **ends the query so the host can resume it later from the persisted session** — a pause-and-hand-back, not an allow or a block. Note `updatedInput` is **ignored** with `defer` (it applies only to `allow`/`ask`).<Tag kind="official" /><Citation src="agent-sdk-hooks" />
+</ConceptBox>
 
 <KeyIdea>
-All matching hooks run **in parallel**, and the **most restrictive** result wins — a single `deny` blocks the call no matter what the others return. The system fails safe: to forbid something, one hook saying so is enough; to permit it, every hook must agree.
+All matching hooks run **in parallel**, and the **most restrictive** result wins — a single `deny` blocks the call no matter what the others return. The system fails safe: to forbid something, one hook saying so is enough; to permit it, every hook must agree. `defer` sits just under `deny` because pausing the whole query is more restrictive than asking or allowing.
 </KeyIdea>
 
 <Pitfall title="Relying on hook execution order">
@@ -108,14 +142,22 @@ You must enforce two rules on an agent: (a) it may never write to any `.env` fil
 Three hooks fire on one `PreToolUse` event and return, respectively, `ask`, `allow`, and `deny`. What happens to the tool call, and what is the one-word rule that decides it?
 </Practice>
 
-<Practice id="d1-05-pr-mode" difficulty="2">
-Without looking back: which hook event and which return field would you use to *replace* a tool's output before the model sees it — and which event/field would you use to *block* the call entirely?
+<Practice id="d1-05-pr-defer" difficulty="3">
+A teammate sets a `PreToolUse` hook to return `defer` with an `updatedInput` that rewrites a command, expecting the rewritten command to run. Two things are wrong with that expectation. Name what `defer` actually does to the query, and what happens to the `updatedInput`.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="d1-05-ex-gate-normalize">
-**(a) is a gate, (b) is a normalization — opposite sides of tool execution, so they need different events.** (a) Use a **`PreToolUse`** hook with a matcher of `"Write|Edit"`; in the callback, inspect the target path and return `hookSpecificOutput.permissionDecision: "deny"` when it ends in `.env`. The decision must come *before* the write runs — that is what `PreToolUse` is for. (b) Use a **`PostToolUse`** hook with a matcher of `"Bash"`; return `hookSpecificOutput.updatedToolOutput` containing the result with ANSI codes stripped — `updatedToolOutput` *replaces* the output before Claude sees it. (b) can't reuse `PreToolUse` because the output does not exist yet when the call is requested; you can only normalize a result after the tool has produced it.
+**(a) is a gate, (b) is a normalization — opposite sides of tool execution, so they need different events.** (a) Use a **`PreToolUse`** hook with a matcher of `"Write|Edit"`; in the callback, inspect the target path and return `hookSpecificOutput.permissionDecision: "deny"` when it ends in `.env`. The decision must come *before* the write runs. (b) Use a **`PostToolUse`** hook with a matcher of `"Bash"`; return `hookSpecificOutput.updatedToolOutput` containing the result with ANSI codes stripped — `updatedToolOutput` *replaces* the output before Claude sees it. (b) can't reuse `PreToolUse` because the output does not exist yet when the call is requested; you can only normalize a result after the tool has produced it.
+</Solution>
+
+<Solution for="d1-05-pr-precedence">
+**The call is blocked.** All matching hooks run in parallel and the **most restrictive** result wins, so the `deny` overrides the `allow` and the `ask` — the precedence is `deny > defer > ask > allow`. The one-word rule is **restrictive** (equivalently, "deny wins"): one hook saying deny is enough to block; permitting requires every hook to agree.
+</Solution>
+
+<Solution for="d1-05-pr-defer">
+Both expectations are wrong. **`defer` does not run the call** — it ends the query so the host can resume it later from the persisted session (a pause-and-hand-back, not an allow). And **`updatedInput` is ignored with `defer`** — that field applies only to `allow` (or `ask`). To run a rewritten command, the hook must return `allow` with `updatedInput`, not `defer`.
 </Solution>
 
 </ExerciseSolutions>
@@ -124,6 +166,7 @@ Without looking back: which hook event and which return field would you use to *
 
 - **A hook is a callback at a named lifecycle event**, delivered programmatically (query options) or via filesystem settings. It runs in your process and does **not** consume agent context.
 - **Two interception modes:** `PreToolUse` **gates** (returns `allow`/`deny`/`ask`/`defer` + optional `updatedInput`); `PostToolUse` **normalizes** (`updatedToolOutput` replaces the result, `additionalContext` appends).
+- **The four decisions:** `allow` / `ask` / `deny`, and **`defer` — ends the query so the host can resume it later** from the persisted session (and `updatedInput` is ignored with `defer`).
 - **Precedence is `deny > defer > ask > allow`.** Matching hooks run in parallel; the most restrictive wins; one `deny` blocks.
 - **Don't rely on hook order** (non-deterministic) — write each hook independently.
 - **Subagents don't inherit permissions**; pre-approve their tools with a `PreToolUse` hook. Watch the silent-failure traps: case-sensitive names, `max_turns` cut-offs, recursive subagent loops.
