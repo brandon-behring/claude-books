@@ -6,7 +6,7 @@
 
 **Backbone.** [`docs/research-program/`](../docs/research-program/) + the in-repo cache `docs/research/{02,03,04,05,06,07,08}`. **Coverage tracker:** [`docs/cert-coverage.md`](../docs/cert-coverage.md) — this outline is its architect-column source.
 
-**Status.** Round 1 — structure settled + **Part I (D1.1–D1.7), Part II (D2.1–D2.5), and Part III's opener D3.1 authored; 13 chapters, 19 pages, pushed**. D2.5 + D3.1 are the first two REFERENCE chapters — the REFERENCE sub-template is now locked (4 sections, ≤2 Pitfalls, bare-prose cross-book links, full Practice/Exam-essentials apparatus). D3.2–D5.6 are placed but unauthored; **next = D3.2 or the rest of Part III**.
+**Status.** Round 1 — structure settled + **Part I (D1.1–D1.7), Part II (D2.1–D2.5), and all of Part III (D3.1–D3.6) authored; 18 chapters, 24 pages, pushed**. The REFERENCE sub-template is locked (proven across D2.5/D3.1/D3.2/D3.4/D3.5); **D3.5 introduced the first `stable-principle` chapter**; D3.4/D3.5 introduced cert→handbook blob links. D4.1–D5.6 are placed but unauthored; **next = Part IV (D4.1) or Part V**.
 
 ---
 
@@ -65,7 +65,7 @@ The biggest domain; the agent loop it opens with is the substrate every later do
 
 Handbook is the use-side primary owner; this book is the design / exam angle. **Backbone:** `docs/research/08-claude-code-internals`.
 
-**Status (2026-06-01):** D3.1 (CLAUDE.md Hierarchy & `@import`) authored — **Part III opened**. `architectural-pattern`; the second REFERENCE chapter, outward-linking to design ch04 (`ch04-environment-instruction-layer.mdx`, which exists on disk — unlike D2.5's handbook target, so D3.1 carries a real provisional blob link while D2.5's outward pointer is prose-only). Backbone `docs/research/08-claude-code-internals/docs-memory.md` + `docs-settings.md` → 2 new manifest keys (`claude-code-memory`, `claude-code-settings`). Strict-live note: `docs-memory.md` is mostly faithful T1 *paraphrase*, not verbatim quotes (verbatim only at :42–44/:48–50/:54–56) — cite the source key, don't sharpen; the ch04-owned context-budget metrics are deliberately **not** restated here.
+**Status (2026-06-02): Part III COMPLETE — D3.1–D3.6 authored.** D3.1 CLAUDE.md Hierarchy (`architectural-pattern`, →design ch04) · D3.2 Slash Commands & Skills (`feature-surface`, →design ch05) · D3.3 Path-Scoped Rules (`feature-surface`, BUILD; parallel-to-CLAUDE.md) · D3.4 Plan Mode vs Direct Execution (`architectural-pattern`, →handbook ch03) · D3.5 Iterative Refinement (**`stable-principle` — the book's first**, →handbook ch03) · D3.6 CI/CD Integration (`feature-surface`, BUILD). Builds 24 pages. Manifest +6 keys (`claude-code-{memory,settings,commands,skills,permission-modes,cli-reference,headless,github-actions}` — note D3.3 reused `claude-code-memory`, D3.5 reused `claude-code-best-practices`, so 0 keys each). New precedents: D3.4/D3.5 carry **cert→handbook blob links** (handbook ch03 exists on disk); D2.5-style **prose-only** outward links are reserved for not-yet-written targets. Strict-live: synthesized dossiers (`docs-memory.md`, `docs-builtin-tools.md`, the interview-pattern note) are faithful T1 paraphrase — cite the source key, don't sharpen; the `--json-schema` example in D3.6 is illustrative (no fabricated output payload).
 
 | Ch | Title (task area) | Mode | cert_domains |
 |---|---|---|---|
