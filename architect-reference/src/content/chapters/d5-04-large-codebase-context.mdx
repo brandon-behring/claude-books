@@ -1,0 +1,106 @@
+---
+title: "Large-Codebase Context: Compaction, Scratchpads, Delegation"
+part: 5
+chapter: 4
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - agent-sdk-agent-loop
+  - claude-code-best-practices
+description: A large codebase has more relevant files than any window holds, and reading them all is the trap, not the solution. The three levers that extend the horizon are compaction, scratchpads that externalize state to disk, and subagent delegation that pays exploration cost in a separate context.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D5.1 (cumulative, finite context) and D1.7 (session state and scratchpads).">
+- **Recognize** why reading an entire large codebase into context is a failure mode, not a strategy
+- **Apply** compaction and its customization knobs to extend a long working session
+- **Explain** how subagent delegation pays exploration cost in a separate context window
+- **Distinguish** which lever — compaction, scratchpads, delegation — fits which situation
+</YouWillLearn>
+
+_A large codebase has more relevant code than any context window can hold, so the question is never "how do I fit it all in" but "how do I keep the right slice in and the rest out." This chapter is the exam-angle inventory of the levers; the design book owns the at-scale mechanics. It is an architectural pattern — the levers are stable, the commands and hooks that drive them are the surface._
+
+## The codebase does not fit, and reading it all is the trap
+
+Context is cumulative and finite (D5.1): conversation history and every tool input and output accumulate in the window over a session.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> A large codebase has far more relevant files than that window holds, and the naive response — have the agent read everything "to be safe" — is itself the failure: it fills the window with material that crowds out the work and degrades the model's attention to what matters.
+
+<KeyIdea>
+The goal is not to load the codebase; it is to load the *slice* the task needs and keep the rest out. Every irrelevant file read is context spent against the budget and attention diluted across noise. On a large codebase, what you decline to read is as much a design decision as what you read.
+</KeyIdea>
+
+## Compaction extends a long session
+
+When a working session approaches the limit, compaction reclaims room by summarizing older turns, and it is both automatic and steerable. Automatic compaction triggers near the context limit,<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> and three knobs customize it: a "Summary instructions" section in CLAUDE.md that tells the compactor what to preserve, the `PreCompact` hook that runs before compaction, and a manual `/compact` sent on demand.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+<ConceptBox title="Three compaction knobs">
+- **CLAUDE.md "Summary instructions"** — the compactor reads CLAUDE.md like any context; a section describing what to preserve steers what survives the summary.
+- **`PreCompact` hook** — runs before compaction (e.g. to archive the full transcript first); receives whether the trigger was manual or automatic.
+- **Manual `/compact`** — trigger compaction on demand, before the automatic threshold, at a natural breakpoint you choose.
+</ConceptBox>
+
+Compaction is lossy (D5.1), so the same caution applies: durable rules belong in re-injected CLAUDE.md, not in turns the summary may discard.
+
+## Delegation pays exploration cost in another window
+
+The lever that matters most for *breadth* is delegation. "Since context is your fundamental constraint, subagents are one of the most powerful tools available. When Claude researches a codebase it reads lots of files, all of which consume your context. Subagents run in separate context windows and report back summaries."<Tag kind="official" /><Citation src="claude-code-best-practices" /> A subagent can read the twenty files that answer "where is auth enforced," and the main agent receives the three-line answer rather than the twenty files — the exploration cost is paid in the child's window and discarded with it. Scratchpads are the complementary move: state written to a file (D1.7) lives on disk, not in the window, and the main agent reads it back only when needed.
+
+<KeyIdea>
+Compaction, delegation, and scratchpads all do one thing: move bulk *out* of the main context. Compaction summarizes it away, delegation spends it in a child window that returns only a summary, and a scratchpad parks it on disk. The main agent's window stays scoped to the decision in front of it.
+</KeyIdea>
+
+## Where the depth lives
+
+This chapter is the exam-angle inventory; the design book owns the at-scale mechanics. The engineering of context at codebase scale — retrieval, the discipline of what to assemble into a window, and the cost trade-offs of fan-out — lives in the *Agentic Systems Design* book's chapters on [the environment at scale](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch07-environment-at-scale.mdx) and [context assembly](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch09-context-assembly.mdx). The exam-relevant skill is selecting the lever: compaction for a long single session, delegation for breadth of exploration, scratchpads for state that must outlive a compaction.
+
+<MarginNote variant="note" label="Note">
+Cross-book links are provisional — they point at the chapter sources until the design book deploys, then repoint to published URLs.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d5-04-ex-explore-large">
+An agent must understand how authentication flows through a 5,000-file codebase before making a change, and the relevant code is spread across dozens of files. What keeps the main session's context usable?
+
+- **A.** Read every file that might be relevant into the main session so nothing is missed.
+- **B.** Dispatch subagents to explore subsystems and report back summaries, keeping the main context scoped to the change itself.
+- **C.** Raise `max_tokens` so the main session can hold more of the codebase.
+- **D.** Run `/compact` repeatedly while reading files so the window never fills.
+</Exercise>
+
+<Practice id="d5-04-pr-compaction-knobs" difficulty="2">
+Name the three ways to customize or trigger compaction, and state which one steers *what content survives* the summary.
+</Practice>
+
+<Practice id="d5-04-pr-delegation" difficulty="3">
+Explain how dispatching a subagent to investigate part of a codebase protects the main agent's context, and what the main agent receives back instead of the files the subagent read.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d5-04-ex-explore-large">
+**B.** Delegation pays the exploration cost in the subagents' separate context windows and returns only summaries, so the main session learns where authentication flows without absorbing dozens of files — exactly the "subagents run in separate context windows and report back summaries" pattern. **A** is the trap this chapter names: reading everything into the main window fills it with material that crowds out the actual change and dilutes attention. **C** buys a bigger budget but still spends it on noise, and a larger window degrades on irrelevant bulk just the same. **D** fights symptoms — compacting mid-exploration repeatedly summarizes away the very findings you are gathering, and is no substitute for never loading the bulk into the main window in the first place.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Reading it all is the trap** — a large codebase exceeds any window; loading everything "to be safe" fills the context with noise and degrades attention. Load the task's slice, keep the rest out.
+- **Compaction** — triggers automatically near the limit and is steerable three ways: a CLAUDE.md "Summary instructions" section (steers what survives), the `PreCompact` hook, and manual `/compact`.
+- **Delegation** — subagents read files in their own context windows and report back summaries, so exploration cost is paid in the child window, not the main one; scratchpads (D1.7) park state on disk.
+- **Pick the lever** — compaction for a long single session, delegation for breadth of exploration, scratchpads for state that must outlive a compaction; depth lives in the design book's at-scale and context-assembly chapters.

@@ -76,7 +76,7 @@ Cross-cutting; shared across all three books.
 | Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | 🟢 D5.1 (authored 2026-06-02) · 📘 ch8 (rot), ch9 (assembly) | ⬜ |
 | Escalation / ambiguity resolution patterns | 🟡 ch13 | 🟢 D5.2 (authored 2026-06-02) | ⬜ |
 | Error propagation across multi-agent systems (structured error context) | ⬜ | 🟢 D5.3 (authored 2026-06-02) | ⬜ |
-| Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 📘 ch7 (at scale), ch9 (compaction) | ⬜ |
+| Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 🟢 D5.4 (authored 2026-06-02) · 📘 ch7 (at scale), ch9 (compaction) | ⬜ |
 | Human review workflows + confidence calibration | ⬜ | ⬜ | ⬜ |
 | Information provenance (claim-source mappings, temporal data) | 🟡 ch6 (ADRs) | ⬜ | ⬜ |
 
