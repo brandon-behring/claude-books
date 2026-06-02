@@ -185,3 +185,30 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D2.4 (MCP Server Configuration) — from 04-agent-sdk + 08-claude-code-internals + 02-mcp-spec cache.
+# agent-sdk-mcp (D2.1) reused.
+
+- id: agent-sdk-claude-code-features
+  url: https://code.claude.com/docs/en/agent-sdk/claude-code-features
+  title: Use Claude Code features in the SDK
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-mcp
+  url: https://code.claude.com/docs/en/mcp
+  title: Connect Claude Code to tools via MCP
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: mcp-spec-lifecycle
+  url: https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle
+  title: "Lifecycle — Model Context Protocol Specification 2025-11-25"
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

@@ -1,0 +1,116 @@
+---
+title: "MCP Server Configuration: .mcp.json, Scopes, and Env-Var Expansion"
+part: 2
+chapter: 4
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - agent-sdk-mcp
+  - agent-sdk-claude-code-features
+  - claude-code-mcp
+  - mcp-spec-lifecycle
+description: Wiring an MCP server so it resolves predictably across personal, team, and machine contexts. The two config paths, the three scopes and their precedence, the local-scope-versus-local-settings trap, env-var expansion for secrets, and the transports atop a mid-revision wire protocol.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D2.1 (MCP tools surface as mcp__server__tool) and Chapter D2.3 (allowedTools wildcards scope an MCP server). No prior MCP-server operations assumed.">
+- **Choose** the config location — programmatic vs `.mcp.json` — and the right scope for an audience
+- **Apply** env-var expansion to keep secrets out of a committed config
+- **Distinguish** MCP "local scope" from general "local settings" — they are different files
+- **Recognize** the scope-precedence order that decides which definition wins
+</YouWillLearn>
+
+_D2.1 through D2.3 designed tools, their failures, and their distribution; this chapter is where an external MCP server actually gets **connected**. Almost every trap here is about *location* — which file holds the config, which scope it lives in, which directory it resolves against — plus one notorious naming collision between "local scope" and "local settings." Get the location right and a server resolves predictably across personal, team, and machine contexts; get it wrong and the agent silently never sees the tools._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: file paths, scope names, env-var syntax, and the transport list are concrete config surfaces that move between releases — and the MCP wire protocol itself is mid-revision (see the last section). Treat every path and flag as a current snapshot and re-verify before relying on it.
+</MarginNote>
+
+## Two ways to configure a server
+
+An MCP server reaches an agent through one of two configuration paths. You can register it **programmatically** — `mcp_servers` in Python, `mcpServers` in TypeScript — or declare it in a **`.mcp.json`** file at the project root.<Tag kind="official" /><Citation src="agent-sdk-mcp" /> The file-based path is not automatic, though: `.mcp.json` loads only when the SDK's `settingSources` includes `"project"`.<Tag kind="official" /><Citation src="agent-sdk-claude-code-features" /><Citation src="agent-sdk-mcp" />
+
+<ConceptBox title="Programmatic vs file-based">
+Programmatic config lives in your code — explicit, versioned with the application, invisible to the CLI. `.mcp.json` lives in the repo — shareable, committed, and read by both the CLI and any SDK run that opts into the `"project"` source. Choosing between them is choosing *who owns the wiring*: the application, or the repository.
+</ConceptBox>
+
+## Three scopes and their files
+
+Claude Code stores MCP servers in three scopes, each a different file with a different audience: **Local** (`~/.claude.json`, under a per-project key — current project only, not shared), **Project** (`.mcp.json` at the repo root — shared via version control, with a one-time approval prompt on first use), and **User** (`~/.claude.json` — available across all your projects).<Tag kind="official" /><Citation src="claude-code-mcp" />
+
+When the same server name appears in more than one scope, Claude Code connects once, using the highest-precedence source: **Local → Project → User → plugin-provided → claude.ai connectors** (the first three match duplicates by name).<Tag kind="official" /><Citation src="claude-code-mcp" />
+
+<KeyIdea>
+Pick the scope by *audience*, and the file follows. Credential-bearing or experimental servers → Local (private to you, this project). Team-shared servers → Project (a committed `.mcp.json`). Cross-project personal servers → User. The first question is never "which file?" — it is "who should see this server?"
+</KeyIdea>
+
+## "Local scope" is not "local settings"
+
+The single most confusing collision in MCP configuration is the word *local*. "MCP local-scoped servers are stored in `~/.claude.json` (your home directory), while general local settings use `.claude/settings.local.json` (in the project directory)."<Tag kind="official" /><Citation src="claude-code-mcp" /> They are different files in different directories — one in your home, one in the project — and they hold different things.
+
+<Pitfall title="The two 'local' files">
+Editing `.claude/settings.local.json` to change a *local-scoped MCP server* is a silent no-op: that server lives in `~/.claude.json`, not in the project's local settings file. When a local-scoped server will not load, check the home-directory `~/.claude.json` (under its per-project key), not `.claude/settings.local.json`. Memorize the two paths; the names will not help you.
+</Pitfall>
+
+## Env-var expansion keeps secrets out of the file
+
+Because a Project-scoped `.mcp.json` is committed to version control, secrets must never be written into it literally — they are referenced through env-var expansion instead. `.mcp.json` supports `${VAR}` (expands, or fails the parse if unset) and `${VAR:-default}` (expands, or uses the default), and the expansion works inside `command`, `args`, `env`, `url`, and `headers`.<Tag kind="official" /><Citation src="claude-code-mcp" /> So a committed config carries `"Authorization": "Bearer ${API_KEY}"`, and the key itself lives only in the environment.
+
+<MarginNote variant="tip" label="Tip">
+One snag: `${CLAUDE_PROJECT_DIR}` in a hand-written `.mcp.json` must use the default form, `${CLAUDE_PROJECT_DIR:-.}`, because it is set in the server's environment rather than Claude Code's. Plugin-provided configs are the exception — they substitute it directly, no default needed.
+</MarginNote>
+
+## Transports and the snapshot-dated wire protocol
+
+A server's `type` selects its transport: `stdio` for local processes (the default), `sse` (Server-Sent Events, now deprecated), `http` (Streamable HTTP), and `sdk` for an in-process server built inside your application.<Tag kind="official" /><Citation src="agent-sdk-mcp" /> Those four are the configuration surface you choose from, per server.
+
+Beneath the config sits the MCP wire protocol — and it is mid-revision, so cite it with a date. Under the 2025-11-25 specification, an `initialize` handshake "MUST be the first interaction between client and server," negotiating protocol version and capabilities before any tool call.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" /> The 2026-07-28 release candidate removes that handshake for a stateless model, so the wire details here are a dated snapshot, not a permanent contract.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" />
+
+<MarginNote variant="note" label="Note">
+The handshake and transport list are 2025-11-25 protocol facts on a moving target — the cache flags a 2026-07-28 RC that eliminates the `initialize` handshake. Re-verify the wire protocol before relying on it; the *configuration* surface (scopes, files, env vars) is the more stable part of this chapter.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d2-04-ex-scope-and-secret">
+Your team needs a `postgres` MCP server available to everyone who clones the repo, but the connection string must not be committed. (a) Which scope and file do you use? (b) Show the `env` field using the documented expansion syntax. (c) A teammate later adds the *same* server name in their personal `~/.claude.json`. Which definition wins on their machine, and why?
+</Exercise>
+
+<Practice id="d2-04-pr-two-locals" difficulty="2">
+A colleague says: "I put my MCP server in local settings — in `.claude/settings.local.json` — but Claude Code can't find it." In one or two sentences, explain their mistake and name the file a local-scoped MCP server actually lives in.
+</Practice>
+
+<Practice id="d2-04-pr-project-dir" difficulty="3">
+You reference `${CLAUDE_PROJECT_DIR}` in a `command` field of a hand-written (non-plugin) `.mcp.json` and the config fails to parse. What is the documented fix, and why is it needed here but not in a plugin-provided config?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d2-04-ex-scope-and-secret">
+**(a) Project scope — a `.mcp.json` at the repo root**, committed to version control so every clone gets the server. **(b)** Reference the secret through env-var expansion rather than inlining it, e.g. `"env": { "DATABASE_URL": "${DATABASE_URL}" }` (or `"${DATABASE_URL:-...}"` if a safe default exists) — expansion works in `env`, `url`, and `headers`, so no literal credential is committed. **(c) The teammate's definition wins on their machine.** Their `~/.claude.json` entry is **Local** scope, and precedence runs **Local → Project → User**, matched by name — so the local definition overrides the shared project one for them. That is the intended override path for personal credentials, not a conflict.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Two config paths** — programmatic (`mcp_servers`/`mcpServers`) or a `.mcp.json` at the project root; the file loads only when `settingSources` includes `"project"`.
+- **Three scopes, three audiences** — Local (`~/.claude.json`, per-project, private), Project (`.mcp.json`, committed/shared, approval-prompted), User (`~/.claude.json`, all projects). Precedence: Local → Project → User → plugin → claude.ai, matched by name.
+- **"Local scope" ≠ "local settings"** — a local-scoped MCP server lives in `~/.claude.json` (home), not `.claude/settings.local.json` (project). Editing the wrong one is a silent no-op.
+- **Env-var expansion** — `${VAR}` and `${VAR:-default}` in `command`/`args`/`env`/`url`/`headers` keep secrets out of a committed `.mcp.json`; `${CLAUDE_PROJECT_DIR}` needs the `:-` form in hand-written configs.
+- **Transports + a moving wire protocol** — `stdio`/`sse` (deprecated)/`http`/`sdk`; the 2025-11-25 `initialize` handshake is a dated snapshot the 2026-07-28 RC removes — cite the wire protocol with a version.
