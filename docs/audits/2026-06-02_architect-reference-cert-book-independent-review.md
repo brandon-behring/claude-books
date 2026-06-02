@@ -11,7 +11,7 @@
 2. **Part B — 30 independent single-pass reviewers**, one per chapter, each reading its chapter plus the in-repo strict-live cache files backing its citations, and scoring claim-support / cert-depth / exam-item-quality / technical-accuracy against a 6-axis rubric. **31 agents · ~1.9M tokens · 515 tool calls.**
 3. **Part C — synthesis** into the rubric-scored report below.
 
-> **Confidence & limits.** The per-chapter reviews are a **single independent pass** (the proportionate "Hybrid" depth chosen for this run). The deterministic findings (Appendix A) and the two headline factual errors — **D5.6** (training-cutoff direction) and **D5.3** (seven-week concurrency) — were **re-verified by hand against the repo**. The **13 HIGH-severity _claim-support_ findings**, predominantly "overreach"/"misattributed" judgments, are the contestable category; an optional multi-vote adversarial **confirm pass is available but was not run** (see *Escalation available*). Finding-instances by the structured-data count: **40 HIGH · 81 MEDIUM · 95 LOW**, across 23 of 30 chapters (the synthesis narrative rounds HIGH to ~41).
+> **Confidence & limits.** The per-chapter reviews are a **single independent pass** (the proportionate "Hybrid" depth chosen for this run). The deterministic findings (Appendix A) and the two headline factual errors — **D5.6** (training-cutoff direction) and **D5.3** (seven-week concurrency) — were **re-verified by hand against the repo**. The **13 HIGH-severity _claim-support_ findings**, predominantly "overreach"/"misattributed" judgments, were the contestable category, so they were then put through an adversarial multi-vote **confirm pass** (3 distinct-lens skeptics each — see *Confirmation pass* below): **9 confirmed, 4 struck as reviewer over-reach → 36 HIGH effective**. Finding-instances by the raw structured-data count: **40 HIGH · 81 MEDIUM · 95 LOW**, across 23 of 30 chapters (the synthesis narrative rounds HIGH to ~41).
 
 ---
 
@@ -42,6 +42,8 @@
 | **Freshness** | 4.53 | Volatility classes are correctly assigned and named surfaces are current as of 2026-06-02; the only systemic exposure is that the cache (and a few chapters) predate Opus 4.8 and the 10 feature-surface chapters need disciplined re-verification. |
 
 ## Findings
+
+_The 13 HIGH **claim-support** findings were subsequently put through an adversarial confirm pass (see **Confirmation pass** below): 9 stand, **4 were struck as reviewer over-reach** — D1.5:95, the D4.2 XML-block citation, D4.5:69 (batch billing), and D5.3:40 (MAST percentages). Do not act on those four._
 
 | Chapter | Dimension | Severity | Location | Issue | Cache-trace / evidence | Recommendation |
 |---|---|---|---|---|---|---|
@@ -118,11 +120,34 @@
 
 ---
 
-## Escalation available (offered, not run)
+## Confirmation pass — adversarial verification of the claim-support findings (2026-06-02)
 
-The review surfaced **13 HIGH-severity claim-support findings** — above the **≥5** threshold set for the optional **adversarial confirm pass** (N independent skeptics per finding, each prompted to *refute* it; majority-refute kills the finding). Because these are single-pass "overreach"/"misattributed" judgments, confirming them before any fix work would raise confidence that the survivors are real and avoid re-tagging citations that are in fact sound.
+Each of the 13 HIGH-severity **claim-support** findings was stress-tested by **3 independent skeptics** working distinct lenses — *literal-verbatim*, *substance*, and *book-convention* — each tasked to **refute** the finding by going back to the source. Majority-refute kills the finding; a finding that survives is hardened. **39 skeptic agents; some consulted the live source pages beyond the cache.**
 
-This pass was **not run** — the agreed depth for this round was Hybrid ("start with 1"). It is available on request before Round-2 fixes begin.
+**Outcome: 9 CONFIRMED · 4 KILLED · 0 SPLIT.** The 4 killed findings were reviewer over-reach — the cited claims are adequately supported — and are **struck from the Round-2 fix list**. The 9 confirmed findings survived refutation and stand.
+
+| # | Chapter | Location | Charge | Votes (R/U) | Verdict | Majority rationale |
+|---|---|---|---|---|---|---|
+| 1 | D1.1 | d1-01-agentic-loops.mdx:44 | unsupported | 1R / 2U | **CONFIRMED** | Quoted phrase "an LLM autonomously using tools in a loop" is in no backing cache; live-fetching the cited post shows it says "LLMs using tools based on environmental feedback in a loop" — faithful in substance, but the quotation marks assert verbatim text not in the source. |
+| 2 | D1.1 | d1-01-agentic-loops.mdx:113 | unsupported | 0R / 3U | **CONFIRMED** | Neither quoted string ("powered by two components", "primary building blocks of execution") exists in any cache; the two cited sources were never captured. |
+| 3 | D1.5 | d1-05-agent-sdk-hooks.mdx:95 | misattributed | 3R / 0U | **KILLED** | The cited file docs-permissions.md (= agent-sdk-permissions) *does* state the permission-inheritance fact at line 97, matching both clauses — the citation is correct. |
+| 4 | D1.7 | d1-07-session-state.mdx:93 | overreach | 0R / 3U | **CONFIRMED** | The scratchpad sentence is tagged official to claude-code-best-practices, but that cache flags the scratchpad phrasing as drifted out of the current page. |
+| 5 | D4.2 | d4-02 Exercise solution (ambiguous edge), :116 | misattributed | 1R / 2U | **CONFIRMED** | The sentence is quote-marked and prefixed "the docs are explicit that," but the string is not verbatim in the cited docs — it is the cache author's synthesis. |
+| 6 | D4.2 | "Target the ambiguous case directly":86 | misattributed | 1R / 2U | **CONFIRMED** | The quoted "schema locks the shape but examples still teach content" clause is not verbatim in the backing source. |
+| 7 | D4.2 | "Target the ambiguous case", XML block | misattributed | 2R / 1U | **KILLED** | Under the book convention, the official Tag attaches to the *interpretive principle* (a faithful paraphrase of the T1-backed dossier), not to the worked XML artifact — defensible. |
+| 8 | D4.4 | d4-04-validation-retry-feedback.mdx:40 | overreach | 0R / 3U | **CONFIRMED** | The quoted semantic-error sentence appears only in blog-semantic-vs-schema-errors.md, whose next line flags it as "Anthropic docs synthesis," not verbatim source. |
+| 9 | D4.5 | d4-05-batch-processing.mdx:69 / :111 | overreach | 2R / 1U | **KILLED** | docs-batch-api.md:25 states near-verbatim "not billed for errored, canceled, or expired requests" — the billing claim is supported. |
+| 10 | D5.3 | d5-03-error-propagation.mdx:40 | overreach | 3R / 0U | **KILLED** | The MAST percentages (41.77/36.94/21.30) and the "cover 79% of breakdowns" framing are both present verbatim in the cited cache; the chapter's "covering most of them" is faithful. |
+| 11 | D5.5 | d5-05-human-review-confidence.mdx:49 | overreach | 0R / 3U | **CONFIRMED** | The three cited field names live only in a synthesis cache that itself flags them "extrapolated"; the SDK true-fetch cache does not contain them. |
+| 12 | D5.6 | d5-06-information-provenance.mdx:75 | unsupported | 0R / 3U | **CONFIRMED** | The "training-data cutoff is a separate, earlier date" assertion has no support in docs-models-overview.md — and is contradicted by its cutoff table (training ≥ reliable). |
+| 13 | D5.6 | d5-06-information-provenance.mdx:48 | misattributed | 1R / 2U | **CONFIRMED** | The uncited KeyIdea's load-bearing "the model cannot fabricate a citation" claim does not appear in docs-citations.md. |
+
+### The 4 struck (KILLED) findings — do not act on these
+
+- **D1.5 — d1-05-agent-sdk-hooks.mdx:95** (charge `misattributed`, refuted 3–0): the cited `agent-sdk-permissions` cache (docs-permissions.md:97) *does* contain the permission-inheritance fact matching both clauses; the citation is correct, not misattributed.
+- **D4.2 — "Target the ambiguous case directly", XML block** (charge `misattributed`, refuted 2–1): the official Tag attaches to the interpretive principle (a faithful paraphrase of the T1-backed dossier), not to the worked XML artifact — defensible under the book's convention.
+- **D4.5 — d4-05-batch-processing.mdx:69 / :111** (charge `overreach`, refuted 2–1): docs-batch-api.md states verbatim "not billed for errored, canceled, or expired requests"; the chapter's billing claim is supported near-verbatim.
+- **D5.3 — d5-03-error-propagation.mdx:40** (charge `overreach`, refuted 3–0): the cited cache states the three MAST percentages and the "cover 79% of breakdowns" framing verbatim; the chapter reports them faithfully. (Note: D5.3's *separate* HIGH technical-accuracy finding — the "~7-week concurrency" — is unaffected and stands.)
 
 ## Reproduction & evidence
 
