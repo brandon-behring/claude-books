@@ -6,19 +6,20 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - multi-agent-research-system
   - when-to-use-multi-agent
   - building-effective-agents
-description: The coordinator–subagent (orchestrator-worker) pattern — a lead agent that decomposes a task and spawns isolated-context subagents. When the pattern earns its 3–10x token cost, why decomposition must split by context and not by role, and the one multi-agent pattern that works across domains.
+description: The coordinator–subagent (orchestrator-worker) pattern — a lead agent that decomposes a task and spawns isolated-context subagents. Teaches why a second agent ever helps, when the pattern earns its 3–10x token cost, the full single-vs-multi trade-off (including reliability and maintainability), why decomposition must split by context and not by role, and the one variant that works across domains.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -28,13 +29,30 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 
 <YouWillLearn prerequisites="Chapter D1.1 (the agent loop). You have run at least one agent and understand that each agent reasons over a finite context window.">
+- **Explain** why a single agent's one finite context window is the constraint that multiple agents relieve
 - **Describe** the coordinator–subagent (orchestrator-worker) pattern and the property that defines it — **isolated context**
-- **Decide** when the pattern earns its 3–10× token cost, using the three win-conditions (context protection, parallelization, specialization)
+- **Decide** when the pattern earns its 3–10× token cost, using the three win-conditions, and read the full single-vs-multi trade-off (cost, latency, reliability, maintainability, coherence)
 - **Distinguish** context-centric decomposition from the role-based anti-pattern that loses information at every handoff
 - **Select** the verification-subagent pattern — the one multi-agent shape that holds up across domains
 </YouWillLearn>
 
-_Once the agent loop of D1.1 can run tools, the next architectural question is whether to run **more than one agent**. This chapter develops the canonical multi-agent shape — a coordinator that spawns isolated subagents — and, just as importantly, the discipline of **not** reaching for it. The exam tests judgment here: when the pattern wins, how to cut the work, and which single variant is reliable._
+_Once the agent loop of D1.1 can run tools, the next architectural question is whether to run **more than one agent**. This chapter develops the canonical multi-agent shape — a coordinator that spawns isolated subagents — and, just as importantly, the discipline of **not** reaching for it. The exam tests judgment here: when the pattern wins, what it costs on every axis, how to cut the work, and which single variant is reliable._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. What single property *defines* a subagent and separates it from a plain tool call?
+2. Name the three conditions under which coordinator–subagent earns its token cost.
+3. Roughly what token multiplier does multi-agent cost versus a single agent, and does it buy speed or thoroughness?
+4. Besides cost, name two axes on which a multi-agent system is *worse* than a single agent.
+5. A teammate proposes splitting a task into planner → implementer → tester → reviewer. What is the name of this anti-pattern and the metaphor for its failure?
+
+## Why run more than one agent
+
+A single agent (D1.1) is one model reasoning over **one finite context window**. That window is the bottleneck: everything the agent reads, every tool result, every intermediate thought accumulates in it, and a model attends less reliably as it fills. So the motivation for a second agent is not "more brains" — it is **more windows**. When a subtask would flood the main window with data the final answer doesn't need, or when independent paths could be explored at once, splitting the work across separate context windows relieves the constraint a single loop cannot.
+
+That is the line *Building Effective Agents* draws between a workflow and an agent: an agent is a "system where LLMs dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> A *coordinator* of subagents is one such system — an agent whose tool is "spawn another agent."
 
 ## The orchestrator and its workers
 
@@ -44,11 +62,18 @@ The canonical multi-agent shape is **hub-and-spoke**: a lead agent analyzes the 
 A **lead agent** decomposes a task, dispatches **subagents** (each with its own objective, tools, and context window), and integrates their returned results. The coordinator owns planning and synthesis; the subagents own focused execution.
 </ConceptBox>
 
-This is a real architecture with measured stakes, not a toy. Anthropic's research system, built this way with a lead plus parallel subagents, outperformed a strong single agent by **90.2%** on its internal eval — but multi-agent systems also use roughly **15× the tokens of a chat**, and token usage alone explains about **80%** of the performance variance.<Tag kind="official" /><Citation src="multi-agent-research-system" />
+This is a real architecture with measured stakes, not a toy. In Anthropic's research system, "a multi-agent system with Claude Opus 4 as the lead agent and Claude Sonnet 4 subagents outperformed single-agent Claude Opus 4 by 90.2% on our internal research eval."<Tag kind="official" /><Citation src="multi-agent-research-system" /> The number is real but **specific to that model pairing and that eval** — read it as evidence the pattern can pay off, not as a portable benchmark.
 
-<KeyIdea>
-The coordinator–subagent pattern buys capability by spending tokens. Its power and its cost come from the same source — more agents doing more work in parallel — so the architect's real decision is not *how* to build it but *whether* the task justifies it.
-</KeyIdea>
+<WorkedExample id="d1-02-hub-spoke" title="Hub-and-spoke: comparing three regions' climate policy" expanded>
+A lead agent receives: *"Compare the climate-disclosure rules of the EU, the US, and Japan."* Decomposed hub-and-spoke:
+
+1. **Lead plans** — three regions are *independent research paths* with no shared state, so it spawns one subagent per region.
+2. **Subagents run in isolation** — the EU subagent searches EU sources in its **own context window**; it never sees the US subagent's intermediate pages, and neither pollutes the lead's window.
+3. **Artifacts, not transcripts** — each subagent writes its full findings to a file and returns a **compact reference**, so 2,000 tokens of raw sources per region don't stream back through the lead.<Tag kind="official" /><Citation src="multi-agent-research-system" />
+4. **Lead synthesizes** — it reads the three references and writes the comparison.
+
+The win conditions stack here: **context protection** (raw sources stay out of the lead) and **parallelization** (three regions at once). Note what is *not* split — the final synthesis stays in one agent, because comparing the three regions needs all three in one window.
+</WorkedExample>
 
 ## Isolated context is the whole point
 
@@ -62,7 +87,7 @@ On the exam, "isolated context window" and "does not see parent state" are the p
 
 ## When the pattern earns its cost
 
-Because multi-agent costs **3–10× the tokens** of a single agent for an equivalent task, the official guidance leads with restraint: "Start with the simplest approach that works, and add complexity only when evidence supports it."<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> Try improved prompting, context compaction, and the Tool Search Tool on one agent first.
+The capability is bought with tokens. "In our data, agents typically use about 4× more tokens than chat interactions, and multi-agent systems use about 15× more tokens than chats,"<Tag kind="official" /><Citation src="multi-agent-research-system" /> and against a single agent on an equivalent task, "multi-agent implementations typically use 3-10x more tokens than single-agent approaches."<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> So the official guidance leads with restraint: "Start with the simplest approach that works, and add complexity only when evidence supports it."<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> Try improved prompting, context compaction, and the Tool Search Tool on one agent first.
 
 Reach for coordinator–subagent only when one of three conditions holds:<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
 
@@ -72,8 +97,22 @@ Reach for coordinator–subagent only when one of three conditions holds:<Tag ki
 | **Parallelization** | Genuinely independent paths to explore concurrently | **Thoroughness, not speed** (coordination often makes wall-clock slower) |
 | **Specialization** | Tool-set overload (avoid 20+ tools on one agent), conflicting personas, or deep domain expertise | Focused agents that outperform an overloaded generalist |
 
+Cost is only the first axis. The full trade-off — the one a scenario question makes you weigh — is worse for multi-agent on most rows, and the architect must be able to name them:
+
+<ConceptBox title="Single vs multi-agent: the full trade-off">
+| Dimension | Single agent | Multi-agent |
+|---|---|---|
+| **Token usage** | Baseline | **3–10× higher** |
+| **Latency** | Fast, sequential | **Often slower** despite parallelism (coordination + slowest-subagent) |
+| **Reliability** | One point of failure | **Multiple failure points** — more places an error can enter |
+| **Maintainability** | One prompt set | **Multiple prompt sets** to keep in sync |
+| **Context coherence** | Unified | **Fragmented** at handoffs |
+</ConceptBox>
+
+Multi-agent is not "more advanced and therefore better"; it trades cost, latency, reliability, and maintainability for capability on tasks that genuinely need separate windows. Three of those five rows are *downsides* — which is why the exam frames the decision as restraint first.
+
 <Pitfall title="Reaching for multi-agent before trying the cheap fixes">
-Teams "invest months building elaborate multi-agent architectures only to discover that improved prompting on a single agent achieved equivalent results." Before splitting: can better prompting, compaction, or the Tool Search Tool (a large tool-count reducer) solve it on one agent? If yes, stay single-agent.
+Teams "invest months building elaborate multi-agent architectures only to discover that improved prompting on a single agent achieved equivalent results."<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> Before splitting: can better prompting, compaction, or the Tool Search Tool (a large tool-count reducer) solve it on one agent? If yes, stay single-agent.
 </Pitfall>
 
 ## Decompose by context, not by role
@@ -96,12 +135,6 @@ One multi-agent shape "consistently succeeds across domains": the **verification
 
 Its failure mode is **early victory**: verifiers tend to declare success after one or two checks. The documented mitigation is an explicit instruction — "You MUST run the complete test suite before marking as passed."<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
 
-The deeper *environment* angle on isolation — how bounding what each agent loads is the same discipline that makes a large codebase legible — is developed in the companion volume: see the *Agentic Systems Design* book, Chapter 7, [*Environments at Scale*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch07-environment-at-scale.mdx).
-
-<MarginNote variant="note" label="Note">
-Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
-</MarginNote>
-
 ## Practice
 
 <Exercise id="d1-02-ex-decide">
@@ -109,11 +142,11 @@ A support agent has 40 tools spanning CRM, order history, messaging, and analyti
 </Exercise>
 
 <Practice id="d1-02-pr-decompose" difficulty="3">
-Without looking back: a colleague says "we split by role — planner, implementer, tester, reviewer — for clean separation of concerns." Name the failure mode this invites, the metaphor the guidance uses for it, and the one-sentence rule for where you *should* place a split instead.
+A colleague says "we split by role — planner, implementer, tester, reviewer — for clean separation of concerns." Name the failure mode this invites, the metaphor the guidance uses for it, and the one-sentence rule for where you *should* place a split instead.
 </Practice>
 
-<Practice id="d1-02-pr-cost" difficulty="2">
-Multi-agent parallelization is described as buying "thoroughness, not speed." In one or two sentences, explain why total latency often *rises* despite running subagents in parallel — and name the rough token multiplier you are paying for that thoroughness.
+<Practice id="d1-02-pr-tradeoff" difficulty="2">
+Your lead has approved a multi-agent design purely because "it's more scalable." Name **two** trade-off axes (besides token cost) on which the multi-agent design is actually *worse* than a single agent, and state each in the form "single → multi."
 </Practice>
 
 <ExerciseSolutions>
@@ -122,12 +155,30 @@ Multi-agent parallelization is described as buying "thoroughness, not speed." In
 **Multi-agent is plausibly warranted — for *specialization* — but the proposed split is the role-based anti-pattern.** The real signal is **tool-set overload** (40 tools on one agent; the guidance says avoid 20+ and prefer focused agents). So the justified cut is by **tool/domain context** — e.g. a CRM-and-orders agent vs a messaging-and-analytics agent — each carrying a focused tool set. The proposed *intake → diagnosis → resolution → follow-up* split is **problem-centric**: those are sequential phases of one tightly-coupled ticket, so they would lose fidelity at every handoff (the telephone game) and add coordination cost. Decompose by what context is independent (tool domains), not by what step comes next. And first confirm the Tool Search Tool alone can't relieve the tool overload on a single agent.
 </Solution>
 
+<Solution for="d1-02-pr-decompose">
+The failure mode is **context loss / information-fidelity degradation at handoffs**, plus constant coordination overhead — the guidance calls it **"the telephone game."** It happens because planner/implementer/tester/reviewer are *sequential phases of one tightly-coupled task*, not independent contexts. The rule: **place a split only at a true context boundary** — independent paths, clean-interface components, or blackbox verification — never by "what step comes next."
+</Solution>
+
+<Solution for="d1-02-pr-tradeoff">
+Any two of: **Reliability** — single (one point of failure) → multi (multiple failure points). **Maintainability** — single (one prompt set) → multi (multiple prompt sets to keep in sync). **Latency** — single (fast sequential) → multi (often slower despite parallelism). **Context coherence** — single (unified) → multi (fragmented at handoffs). "More scalable" is not free: three of the five trade-off rows move the *wrong* way when you add agents.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
 
-- **Coordinator–subagent = hub-and-spoke:** a lead agent decomposes, spawns subagents, and synthesizes; subagents run in **isolated context windows** and do not see parent state.
+- **Why multi-agent at all:** a single agent has one finite context window; extra agents buy *more windows*, not more intelligence.
+- **Coordinator–subagent = hub-and-spoke:** a lead decomposes, spawns subagents, and synthesizes; subagents run in **isolated context windows** and do not see parent state.
 - **Isolation is the feature** (context protection); large outputs use the **artifacts pattern** — write to storage, pass a reference back.
-- **Cost is 3–10× tokens.** Start single-agent; reach for multi-agent only for **context protection, parallelization, or specialization**.
-- **Decompose by context, not role.** planner/implementer/tester/reviewer is the telephone-game anti-pattern; split at true context boundaries (independent paths, clean-interface components, blackbox verification).
+- **Cost is 3–10× tokens** (and ~15× vs a chat). The 90.2% gain was **Opus 4 lead + Sonnet 4 subagents vs single Opus 4** — not a portable number.
+- **The full trade-off is mostly worse for multi-agent:** higher tokens, often higher latency, **multiple failure points**, **multiple prompt sets**, fragmented coherence. Start single-agent; split only for context protection, parallelization, or specialization.
+- **Decompose by context, not role.** planner/implementer/tester/reviewer is the telephone-game anti-pattern; split at true context boundaries.
 - **The verification subagent is the reliable variant** — blackbox-test the result; mitigate early victory with "run the complete test suite before marking as passed."
+
+## Further reading
+
+The *environment* angle on isolation — how bounding what each agent loads is the same discipline that makes a large codebase legible — is developed in the *Agentic Systems Design* book, Chapter 7, [*Environments at Scale*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch07-environment-at-scale.mdx). Optional depth; this chapter stands on its own.
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
+</MarginNote>
