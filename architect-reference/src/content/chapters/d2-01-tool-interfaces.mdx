@@ -1,0 +1,116 @@
+---
+title: "Effective Tool Interfaces: Descriptions, Boundaries, and Naming"
+part: 2
+chapter: 1
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - anthropic-define-tools
+  - writing-tools-for-agents
+  - mcp-spec-tools
+  - agent-sdk-mcp
+description: A tool's caller-facing contract — description, operation boundary, name, and response shape — is what a non-deterministic model reads to select and use it. Why the description is the highest-leverage surface, when to consolidate, how to namespace, and the object schema every interface stands on.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.1 (the agent loop) — you know a tool is name + description + input schema, called via the tool_use round-trip. No tool-authoring experience assumed.">
+- **Explain** why a tool's description is the highest-leverage factor in its performance
+- **Apply** consolidation and service-namespacing to a set of overlapping or service-spanning tools
+- **Evaluate** a tool response for high-signal content and a tool name against the documented constraints
+- **Identify** the object input schema that is the structural floor of every tool interface
+</YouWillLearn>
+
+_Part I built the agent and its orchestration; Part II turns to the **tools** that agent reaches for. A tool is a contract between a deterministic system and a non-deterministic caller — and the architect's leverage is not the implementation behind it but the four surfaces the model actually reads: the description, the operation boundary, the name, and the response. Get those right and a capable model selects the tool correctly; get them wrong and no amount of model quality rescues it._
+
+## The description is the highest-leverage surface
+
+Of every field on a tool definition, the description moves performance the most: detailed descriptions are "by far the most important factor in tool performance."<Tag kind="official" /><Citation src="anthropic-define-tools" /> A description is not documentation for a human reader — it is the surface the model selects from, so it must spell out what the tool does, when it should be used (and when it should not), what each parameter means, and any caveats.<Tag kind="official" /><Citation src="anthropic-define-tools" /> The guidance even sets a floor: aim for "at least 3-4 sentences per tool description, more if the tool is complex."<Tag kind="official" /><Citation src="anthropic-define-tools" />
+
+The gap is concrete. A `get_stock_price` described as *"Retrieves the current stock price for a given ticker symbol… returns the latest trade price in USD… It will not provide any other information"* tells the model exactly when to reach for it and what it gets back; the same tool described as *"Gets the stock price for a ticker"* leaves it guessing about inputs, outputs, and boundaries.<Tag kind="official" /><Citation src="anthropic-define-tools" />
+
+<KeyIdea>
+For the agent, the description *is* the API. The model never reads your implementation; it chooses tools by their descriptions alone — so the description is where an architect spends the first and largest share of design effort.
+</KeyIdea>
+
+## Consolidate operations to reduce selection ambiguity
+
+The second surface is the operation boundary — how much each tool does. The documented default is to consolidate: "Consolidate related operations into fewer tools. Rather than creating a separate tool for every action (create_pr, review_pr, merge_pr), group them into a single tool with an action parameter. Fewer, more capable tools reduce selection ambiguity."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Every extra near-equivalent tool is one more line the model can pick wrong.
+
+The deeper principle is to design for the agent's affordances, not mirror your API's endpoints: rather than make the model chain `list_users` + `list_events` + `create_event`, give it one `schedule_event`; rather than `get_customer_by_id` + `list_transactions` + `list_notes`, give it `get_customer_context`.<Tag kind="official" /><Citation src="writing-tools-for-agents" /> A tool that returns exactly the workflow the agent needs beats three tools it must orchestrate.
+
+<Pitfall title="Two tools, one job">
+When two tools carry near-duplicate descriptions — `analyze_content` vs `analyze_document` — the model misroutes between them. Either fold them into one tool with a disambiguating parameter, or make each description's boundary unambiguous ("use `analyze_document` only when the input is a stored file with a `document_id`"). Vague, overlapping boundaries are a documented cause of tool-selection errors.<Tag kind="official" /><Citation src="writing-tools-for-agents" />
+</Pitfall>
+
+## Namespace tool names by service
+
+A name is the model's fastest disambiguator, and the documented convention is to namespace by service: "Use meaningful namespacing in tool names… prefix names with the service (e.g., github_list_prs, slack_send_message). This makes tool selection unambiguous as your library grows."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Bare `search` becomes a liability the moment a second `search` exists; `github_search` and `jira_search` never collide.
+
+Names also carry hard constraints that differ by regime. A Claude API tool name must match `^[a-zA-Z0-9_-]{1,64}$`.<Tag kind="official" /><Citation src="anthropic-define-tools" /> An MCP tool name **should** be 1–128 characters of ASCII letters, digits, underscore, hyphen, or dot — no spaces — and unique within its server.<Tag kind="official" /><Citation src="mcp-spec-tools" /> Those MCP tools then reach the agent through a fixed pattern, `mcp__<server>__<tool>`: a `list_issues` tool on a server keyed `github` becomes `mcp__github__list_issues`.<Tag kind="official" /><Citation src="agent-sdk-mcp" />
+
+<MarginNote variant="tip" label="Tip">
+Consistent prefixes pay off later: the wildcard scoping of D2.3 (`mcp__github__*`) and the server configuration of D2.4 both key off these names. Naming is a distribution decision, not just a readability one.
+</MarginNote>
+
+## Return only high-signal information
+
+The response is the half of the contract authors forget. The model reads every token a tool returns, so a tool should "return only high-signal information… semantic, stable identifiers (e.g., slugs or UUIDs) rather than opaque internal references, and include only the fields Claude needs to reason about its next step."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Bloated responses waste the context window and bury the fields that matter.
+
+The shape of the response also shapes the *next* call. A semantic identifier the model can pass straight into the following tool keeps a multi-step task cheap; an opaque internal handle forces a re-lookup. High-signal responses are what make tool chaining work.<Tag kind="official" /><Citation src="writing-tools-for-agents" />
+
+<ConceptBox title="The response is half the contract">
+The input schema shapes the call *in*; the response shapes the call *out* — and the call after it. An interface designed only at the input boundary is half-specified. Treat the response fields as deliberately as the parameters.
+</ConceptBox>
+
+## The structural floor: an object input schema
+
+Beneath the design judgments sits a requirement no interface can skip. Every tool's input schema is a JSON Schema **object**: in the Claude API a tool definition's three required fields are `name`, `description`, and an `input_schema` object;<Tag kind="official" /><Citation src="anthropic-define-tools" /> in MCP the `inputSchema` is required and **must** be a valid JSON Schema object, not null.<Tag kind="official" /><Citation src="mcp-spec-tools" /> A tool that takes no arguments still declares an empty object schema — the object is the floor every interface stands on.
+
+<MarginNote variant="note" label="Note">
+A related field, `strict: true`, makes the model's inputs conform to that schema exactly — but it belongs to the *error* contract (preventing malformed calls), which is D2.2's subject. Here it is enough that the schema is structurally an object.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d2-01-ex-consolidate-vs-split">
+A teammate ships three tools — `get_customer_by_id`, `list_customer_transactions`, and `list_customer_notes` — and reports that the agent often calls only the first and then stalls. You may redesign the interface. Propose a single consolidated tool (give its name, a one-sentence description, and the boundary it draws), and name the two interface principles your redesign applies.
+</Exercise>
+
+<Practice id="d2-01-pr-namespace" difficulty="2">
+You are adding a `search` capability to both a GitHub integration and a Jira integration in the same agent. Give both tool names following the documented convention, and state in one sentence why a bare `search` would become a problem as the tool library grows.
+</Practice>
+
+<Practice id="d2-01-pr-description-audit" difficulty="3">
+You inherit a tool whose entire description reads "Gets data for a record." List three things a good tool description must add (per the documented best practice), and explain why the model — not a human reader — is the audience that makes this the highest-leverage fix.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d2-01-ex-consolidate-vs-split">
+**Consolidate the three into one `get_customer_context` tool** (namespace it — e.g. `crm_get_customer_context` — if the agent spans services). Its description should state what it returns and when to use it: *"Returns a customer's profile, recent transactions, and notes for a given customer ID; use it whenever you need context about a customer before acting."* The redesign applies **consolidation** (fewer, more capable tools reduce selection ambiguity) and **design-for-affordances** (one call returns the context the agent needs instead of three CRUD calls it must chain). The agent stalled because three thin tools forced multi-step chaining that the descriptions never made obvious; a single high-signal response also lets any follow-up call reuse the returned identifiers cheaply.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **The description is the highest-leverage surface** — "by far the most important factor in tool performance." Say what the tool does, when (and when not) to use it, and what each parameter means; aim for 3–4 sentences minimum.
+- **Consolidate to reduce selection ambiguity** — fewer, more capable tools (an `action` parameter over `create_pr`/`review_pr`/`merge_pr`); design for the agent's affordances, not your API's endpoints.
+- **Namespace names by service** — `github_list_prs`, not a bare `search`. API names match `^[a-zA-Z0-9_-]{1,64}$`; MCP names are 1–128 ASCII chars and surface as `mcp__server__tool`.
+- **Return only high-signal information** — semantic, stable identifiers and only the fields the model needs; the response shapes the next call.
+- **The input schema must be an object** — the structural floor of every tool; `strict: true` (D2.2) then makes inputs conform to it.
