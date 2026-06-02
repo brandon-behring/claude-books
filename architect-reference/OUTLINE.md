@@ -6,7 +6,7 @@
 
 **Backbone.** [`docs/research-program/`](../docs/research-program/) + the in-repo cache `docs/research/{02,03,04,05,06,07,08}`. **Coverage tracker:** [`docs/cert-coverage.md`](../docs/cert-coverage.md) — this outline is its architect-column source.
 
-**Status.** Round 1 — structure settled + **all of Part I authored (D1.1–D1.7, 13 pages, pushed)**. D2.1–D5.6 are placed but unauthored; **next = D2.1**.
+**Status.** Round 1 — structure settled + **Part I (D1.1–D1.7) and Part II BUILD (D2.1–D2.4) authored; 17 pages, pushed**. D2.5 (REFERENCE→handbook) + D3.1–D5.6 are placed but unauthored; **next = D2.5 or D3.1**.
 
 ---
 
@@ -50,6 +50,8 @@ The biggest domain; the agent loop it opens with is the substrate every later do
 ## Part II — D2 · Tool Design & MCP Integration (18%) · BUILD
 
 **Backbone:** `docs/research/02-mcp-spec`, `03-advanced-tool-use`, `04-agent-sdk`, `05-claude-api/docs-tool-use`.
+
+**Status (2026-06-01):** D2.1–D2.4 (all BUILD) authored end-to-end — Effective Tool Interfaces · Structured Error Responses · Tool Distribution & `tool_choice` · MCP Server Configuration. D2.5 (Built-in Tools, REFERENCE→handbook) deferred. Volatility: D2.1/D2.2 `architectural-pattern`, D2.3/D2.4 `feature-surface`. Strict-live finding: **`errorCategory` is a phantom** (absent from every source) → D2.2 reframed on the `isError`-vs-JSON-RPC channel split.
 
 | Ch | Title (task area) | Mode | cert_domains |
 |---|---|---|---|
