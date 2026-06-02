@@ -393,3 +393,21 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D5.3 (Error Propagation Across Multi-Agent Systems) — from the 10-reliability-governance cache.
+
+- id: anthropic-april-23-postmortem
+  url: https://www.anthropic.com/engineering/april-23-postmortem
+  title: An update on recent Claude Code quality reports
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: augment-multi-agent-failure
+  url: https://www.augmentcode.com/guides/why-multi-agent-llm-systems-fail-and-how-to-fix-them
+  title: Why multi-agent LLM systems fail and how to fix them
+  author: Augment Code
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool

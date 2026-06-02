@@ -1,0 +1,107 @@
+---
+title: "Error Propagation Across Multi-Agent Systems"
+part: 5
+chapter: 3
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - augment-multi-agent-failure
+  - anthropic-april-23-postmortem
+description: In a chain of agents an error does not stay local — an upstream ambiguity becomes a downstream wrong decision, and concurrent faults compound into degradation no single component test reproduces. The defenses are structured error context across boundaries, independent validation, and circuit breakers.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D1.2 (coordinator-subagent patterns), D2.2 (structured error responses), and D5.2 (escalation, which a mid-pipeline agent often cannot do).">
+- **Analyze** how an error or ambiguity propagates and compounds across agent handoffs
+- **Explain** why a mid-pipeline agent turns an upstream ambiguity into a silent wrong decision
+- **Recognize** why a compounding cross-system failure evades per-component testing
+- **Apply** the defenses — structured error context, independent validation, circuit breakers
+</YouWillLearn>
+
+_A single agent fails visibly; a pipeline of agents fails by degrees. An error introduced at one stage rarely announces itself — it rides the handoff to the next stage as if it were sound input, and concurrent faults aggregate into a degradation that looks like nothing in particular. This chapter is about that propagation and the architecture that contains it. The pattern is durable; the percentages that illustrate it are evidence, so this is an architectural pattern._
+
+## Failures compound across agent boundaries
+
+Multi-agent systems fail far more often than their individual agents do. One practitioner analysis, drawing on the MAST taxonomy of 1,600-plus execution traces, reports that "multi-agent LLM systems fail at rates between 41-86.7% in production because specification ambiguity and unstructured coordination protocols cause agents to misinterpret roles, duplicate work, and skip verification."<Tag kind="practitioner" /><Citation src="augment-multi-agent-failure" /> That taxonomy sorts the breakdowns into three categories covering most of them: specification problems (41.77%), coordination failures (36.94%), and verification gaps (21.30%).<Tag kind="practitioner" /><Citation src="augment-multi-agent-failure" />
+
+<KeyIdea>
+A chain's reliability is not its weakest agent's reliability — it is the product of the handoffs. Each boundary between agents is both a place an error can enter and a place an existing error passes through unexamined. Adding agents multiplies the surfaces where intent can be dropped, so a pipeline is less reliable than any single stage unless the boundaries are actively defended.
+</KeyIdea>
+
+## An upstream ambiguity becomes a downstream wrong decision
+
+The propagation mechanism is specific. "Agents cannot read between lines, infer context, or ask clarifying questions during execution. Every ambiguity becomes a decision point where agents explore all possible interpretations, selecting suboptimal ones."<Tag kind="practitioner" /><Citation src="augment-multi-agent-failure" /> This is the multi-agent counterpart to D5.2's escalation problem: an interactive agent can pause and ask, but a mid-pipeline agent usually has no one to ask, so it *resolves* the ambiguity — and a quietly-wrong resolution is handed downstream as if it were settled fact. The next agent has no signal that the input it received was a guess.
+
+<Pitfall title="Role-based decomposition with under-specified handoffs">
+The combination that manufactures silent errors is a role-split pipeline ("planner → coder → reviewer") whose handoffs are prose rather than contract. Each role re-interprets the loosely-worded output of the last, and because no agent can stop to confirm, every interpretation gap becomes a committed decision. The fix is at the boundary, not the agent: specify what crosses it precisely enough that there is nothing left to guess.
+</Pitfall>
+
+## Compounding failures evade per-component testing
+
+When multiple faults run at once, their aggregate is not the sum of their symptoms — and that is what makes them hard to catch. Anthropic's April-23 postmortem describes three production bugs running concurrently for roughly seven weeks, producing "broad, inconsistent degradation" that no single bug's symptom resembled; the most stubborn one "crossed context management, API header semantics, and the extended-thinking system."<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" /> Detection was the central lesson: the bugs hit different traffic slices, and neither internal usage nor the existing eval suite reproduced them.<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" />
+
+<KeyIdea>
+A compounding failure is invisible to component tests precisely because it lives *between* components. Each part passes its own eval; the degradation only appears in the interaction, on traffic slices no single test exercises. This is why "every unit test is green" is not evidence that a multi-stage system is healthy — the failure mode is the integration, not the unit.
+</KeyIdea>
+
+## Defenses: structured context, independent validation, circuit breakers
+
+The countermeasures all push against under-specified, unchecked boundaries. The practitioner remedies are to convert prose specs into machine-validatable schemas, to enforce typed and schema-validated messages between agents (with MCP named as the schema-enforced substrate), to deploy isolated judge agents for independent validation, and to add circuit breakers that isolate a misbehaving agent before it cascades.<Tag kind="practitioner" /><Citation src="augment-multi-agent-failure" /> The payoff is concrete: "PwC achieved a 7x accuracy improvement (10% to 70%) through structured validation loops."<Tag kind="practitioner" /><Citation src="augment-multi-agent-failure" />
+
+<ConceptBox title="Containing propagation">
+- **Structured error context** — the error that crosses a boundary must carry machine-readable context (D2.2), not a prose apology, so the next stage can route on it instead of mis-reading it as input.
+- **Independent validation** — an isolated judge between stages (the D4.6 reviewer pattern) catches a wrong-but-plausible handoff before it propagates.
+- **Circuit breakers** — isolate a misbehaving agent so one stage's failure does not cascade through the chain.
+- **Escalation where possible** — keep the human-reachable decision (D5.2) at the coordinator, not buried in a subagent that cannot ask.
+</ConceptBox>
+
+The single-agent equivalent is the postmortem's own remedy — broad per-model evaluations on every prompt change, ablation testing, and soak periods before rollout<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" /> — the same instinct as independent validation, applied to a pipeline of one.
+
+## Practice
+
+<Exercise id="d5-03-ex-silent-propagation">
+In a planner → coder → reviewer pipeline, the planner occasionally emits an ambiguous spec, the coder silently picks a wrong interpretation, and the reviewer — reading only the code — rates it fine. Bad output ships. What is the most effective fix?
+
+- **A.** Upgrade the coder to a more capable model so it interprets ambiguous specs correctly.
+- **B.** Make the planner emit a typed, schema-validated spec and add an independent validation step that checks the coder's output against that spec before the reviewer runs.
+- **C.** Lengthen the reviewer's prompt to tell it to look harder for problems.
+- **D.** Retry the whole pipeline a second time and compare the two outputs.
+</Exercise>
+
+<Practice id="d5-03-pr-mast-categories" difficulty="2">
+Name the three MAST failure categories reported for multi-agent systems and which is the largest. Explain in one sentence why specification problems propagate especially badly in a pipeline.
+</Practice>
+
+<Practice id="d5-03-pr-compounding" difficulty="3">
+Using the April-23 postmortem as the example, explain why a compounding cross-system failure can pass every per-component evaluation, and what kind of testing the postmortem concluded was needed instead.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d5-03-ex-silent-propagation">
+**B.** The failure is a boundary failure: an ambiguous handoff that no stage is positioned to catch. Fixing the boundary — a typed, schema-validated spec so there is less to misinterpret, plus an independent validation step that checks the coder's output against that spec — intercepts the wrong interpretation before it reaches the reviewer. **A** makes one agent smarter but leaves the ambiguous *interface* intact; a better coder still has to guess at an under-specified spec. **C** asks the reviewer to work harder while still reading only the code, blind to the spec it was meant to satisfy. **D** doubles cost and gives two artifacts to compare with no oracle for which is right — a wrong-but-consistent interpretation reproduces on the retry.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Failures compound across boundaries** — multi-agent systems fail at much higher rates than their parts (the MAST taxonomy: specification 41.77%, coordination 36.94%, verification 21.30%); a chain's reliability is the product of its handoffs, not its best agent.
+- **Ambiguity propagates silently** — a mid-pipeline agent cannot pause to ask (unlike D5.2's interactive escalation), so it resolves an ambiguity and passes the guess downstream as settled fact.
+- **Compounding failures evade unit tests** — they live between components, on traffic slices no single test exercises; all-green component evals do not prove a multi-stage system healthy.
+- **Defenses** — structured error context across boundaries (D2.2), independent validation / isolated judges (D4.6), circuit breakers to stop cascades, and keeping the escalable decision at the coordinator (D5.2); the single-agent analog is broad evals + ablation + soak periods.
