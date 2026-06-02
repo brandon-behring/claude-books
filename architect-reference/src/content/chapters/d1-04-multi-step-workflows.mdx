@@ -6,20 +6,21 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - agent-sdk-overview
   - claude-code-best-practices
   - when-to-use-multi-agent
   - multi-agent-research-system
-description: A multi-step task's control flow is enforced either in your code (programmatic) or in the model (prompt-based). When to choose each, why every step boundary is a handoff that leaks fidelity, the Writer/Reviewer pattern as the handoff that works, and how a task-description contract makes a handoff survivable.
+description: A multi-step task's control flow is enforced either in your code (programmatic) or in the model (prompt-based). When to choose each, why every step boundary is a handoff that leaks fidelity, the Writer/Reviewer pattern as the handoff that works, how a written artifact makes a handoff survivable, and how a programmatic validation gate rejects-and-retries a bad step before it propagates.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -31,18 +32,29 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 <YouWillLearn prerequisites="Chapters D1.1 (the loop) and D1.3 (subagent invocation). You can invoke a subagent and know that only the prompt string crosses into it.">
 - **Compare** the two places a multi-step workflow's control flow can live — in your code (programmatic) or in the model (prompt-based)
 - **Analyze** why every step boundary is a *handoff*, and where fidelity leaks across one
+- **Design** a handoff contract — and a written artifact (a spec or a test file) that carries it across the boundary
+- **Build** a programmatic validation gate that rejects a malformed step and retries it before the next step consumes it
 - **Evaluate** when to enforce a workflow programmatically versus trusting the model to follow it
-- **Design** a handoff contract — objective, output format, boundaries — that survives the crossing
 </YouWillLearn>
 
-_Most real agent work is several steps, not one. The question this chapter answers is not *what* the steps are but *who enforces the order* — your application code, or the model itself. That choice, and how you design the handoff between steps, is an **Evaluate**-level judgment: the exam gives you a workflow and asks where the control flow belongs and why._
+_Most real agent work is several steps, not one. The question this chapter answers is not *what* the steps are but *who enforces the order* — your application code, or the model itself — and how you keep a bad step from poisoning the next one. That choice is an **Evaluate**-level judgment: the exam gives you a workflow and asks where the control flow belongs, how the handoff is specified, and where the gate goes._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Name the two places a multi-step workflow's control flow can live, and one property each buys.
+2. Why is every step boundary a place fidelity can leak?
+3. In the Writer/Reviewer pattern, why must the reviewer *not* inherit the writer's context?
+4. What three things does a handoff contract specify, and what *file* can carry it across a boundary?
+5. A programmatic pipeline produces a malformed step-2 output. What does a validation gate do, and what are its two kinds of check?
 
 ## Two places to enforce a workflow
 
 A multi-step workflow's control flow lives in exactly one of two places. Either **your code** drives the sequence — run a step, take its output, decide the next call — or **the model** drives it, having been told the steps in a prompt. The Agent SDK frames the split directly: "With the Client SDK, you implement a tool loop. With the Agent SDK, Claude handles it."<Tag kind="official" /><Citation src="agent-sdk-overview" />
 
 <ConceptBox title="Programmatic vs prompt-based enforcement">
-- **Programmatic** — your application owns the steps. You sequence the calls, pass each output to the next stage, and can insert validation gates between them. Deterministic and auditable.
+- **Programmatic** — your application owns the steps. You sequence the calls, pass each output to the next stage, and can insert **validation gates** between them. Deterministic and auditable.
 - **Prompt-based** — the model owns the steps. One agent is told the whole procedure (or an orchestrator self-directs), and you trust it to follow. Flexible and adaptive.
 </ConceptBox>
 
@@ -50,9 +62,7 @@ These are not rival products — Anthropic notes the same workflow "translate[s]
 
 ## Every step boundary is a handoff
 
-Whichever layer enforces the steps, each transition between them is a **handoff** — the output of step *N* becomes the input of step *N+1* — and a handoff is where information is lost. Chapter D1.2 named the worst case: dividing a tightly-coupled task by role (planner → implementer → tester → reviewer) "creates constant coordination overhead and context loss at handoffs — the telephone game," spending more tokens coordinating than executing.<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
-
-The lesson for *workflow design* is that prompt-based handoffs across a long sequential chain are the most fidelity-fragile arrangement: each step re-narrates the last, and detail erodes at every retelling.
+Whichever layer enforces the steps, each transition between them is a **handoff** — the output of step *N* becomes the input of step *N+1* — and a handoff is where information is lost. Chapter D1.2 named the worst case: dividing a tightly-coupled task by role (planner → implementer → tester → reviewer) "creates constant coordination overhead and context loss at handoffs — the telephone game," spending more tokens coordinating than executing.<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> Prompt-based handoffs across a long sequential chain are the most fidelity-fragile arrangement: each step re-narrates the last, and detail erodes at every retelling.
 
 <Pitfall title="A sequential chain of role-agents">
 A pipeline of one-job agents passing work down the line *looks* like clean separation of concerns, but every arrow is a lossy handoff. If the steps share state, keep them in one context; reserve cross-agent handoffs for boundaries where little context needs to travel.
@@ -70,24 +80,59 @@ Here the *absence* of inheritance is the feature. The reviewer's value comes fro
 A single agent asked to review the code it just wrote is the biased case the Writer/Reviewer pattern exists to avoid. Hand the review to a fresh context — a second session, or a verification subagent (D1.3) in its own window — not back to the writer.
 </Pitfall>
 
-## Designing the handoff contract
+## The handoff contract and its artifact
 
 When work *does* cross a boundary, what crosses must be specified, not assumed. Anthropic's research system makes each handoff an explicit contract: "Each subagent needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries."<Tag kind="official" /><Citation src="multi-agent-research-system" /> That is the same discipline as D1.3's rule that everything the subagent needs goes *in the prompt* — applied to every step of a multi-step flow.
+
+The most robust way to carry that contract across a boundary is as a **written artifact** — a file the next step reads, not prose it re-narrates. Two concrete forms appear in the best-practices guidance:
+
+- **A spec file.** After an interview/planning phase, "start a fresh session to execute it … and you have a written spec to reference."<Tag kind="official" /><Citation src="claude-code-best-practices" /> The spec, not the conversation, is what crosses to the implementation step.
+- **A test file.** In the test/code split, the *tests* are the contract: one Claude writes them, another writes code to pass them. The implementer's target is the file, not a description of it.
+
+<KeyIdea>
+A handoff survives in proportion to how little it depends on memory. A re-narrated handoff degrades at every retelling; a handoff carried by a **written artifact** — a spec or a test suite the next step reads from disk — does not. Turn the contract into a file whenever a step boundary matters.
+</KeyIdea>
 
 <MarginNote variant="tip" label="Tip">
 A good handoff contract — objective, output format, boundaries — makes a handoff survivable regardless of who enforces the workflow. Vague handoffs are where both programmatic and prompt-based pipelines fail.
 </MarginNote>
 
-A precise contract is what lets a programmatic pipeline insert a *validation gate* between steps (reject a malformed output before the next stage consumes it) and what lets a prompt-based flow be followed at all.
+## The validation gate: reject before propagating
+
+A precise contract is also what lets a **programmatic** pipeline put a gate between steps — a check the step-N output must pass before step N+1 is allowed to consume it. The gate does two kinds of check, and the distinction is the one Domain 4 builds on (D4.4):
+
+<ConceptBox title="Two checks a validation gate runs">
+- **Schema / structural** — is the output the *right shape*? Required fields present, types correct, enums valid, parses cleanly. Cheap and mechanical.
+- **Semantic** — is the output *right*? The shape can be perfect and the content wrong (a draft that omits a required claim, a total that doesn't add up). Needs domain logic, not a schema.
+</ConceptBox>
+
+On failure, the gate does not pass the bad output downstream — it **rejects and retries**: re-prompt the failing step with the *specific* errors, and only advance when the output passes. That is the difference between a programmatic pipeline and a prompt-based one: the gate is enforced in your code, where a malformed step cannot quietly become the next step's input.
+
+<WorkedExample id="d1-04-validation-gate" title="A gated content pipeline" expanded>
+A programmatic flow: **research → draft → [gate] → publish.**
+
+1. **Research** runs; its notes are written to `research.md` (the artifact crossing to *draft*).
+2. **Draft** produces an article keyed to a contract: `{ title, sections[≥3], every claim cites a research.md line }`.
+3. **The gate** (your code, not the model) runs two checks on the draft:
+   - *Schema:* does it have a title and ≥3 sections, and does every claim carry a citation marker? (parse check)
+   - *Semantic:* does each cited line actually exist in `research.md`? (a fabricated citation passes the schema but fails here)
+4. **On failure** — say a claim cites a non-existent line — the gate **rejects** the draft and re-prompts the draft step: *"Claim 4 cites research.md:88, which does not exist. Re-cite from real lines."* It loops until the draft passes, then lets **publish** consume it.
+
+Without the gate, the fabricated citation flows straight into publish — a silent failure caught only by a reader. The gate is the programmatic analogue of D1.1's rule that a failed step is a result to handle, not something to wave through.
+</WorkedExample>
+
+<Pitfall title="A gate that only checks the schema">
+A schema check confirms the *shape* and nothing else — a structurally perfect output can be semantically wrong (valid JSON, fabricated data). A gate that stops at the schema lets the dangerous failures through. Pair every structural check with a semantic one wherever the step's *content* can be wrong, not just its form.
+</Pitfall>
 
 ## Choosing where the control flow lives
 
 The Evaluate-level call: **enforce programmatically** when the workflow needs determinism, an audit trail, validation gates between steps, or a fixed and repeatable sequence — the steps are known in advance and you want them to run the same way every time. **Stay prompt-based** when the path is flexible, the model can sensibly self-direct, and the orchestration code would cost more than it saves.
 
-This pairs with two neighboring decisions: whether to split into multiple agents at all (D1.2) and whether the decomposition is a fixed pipeline or an adaptive one (D1.6). Enforcement locus is *how* the steps are driven; those chapters cover *whether* and *into what shape*.
+This pairs with two neighboring decisions: whether to split into multiple agents at all (D1.2) and whether the decomposition is a fixed pipeline or an adaptive one (D1.6). Enforcement locus is *how* the steps are driven; those chapters cover *whether* and *into what shape*. The mechanics of the validation/retry loop itself — schema vs semantic errors, bounded retries — are developed in D4.4.
 
 <MarginNote variant="note" label="Note">
-Need more review? The fixed-vs-adaptive *structure* of a multi-step task is D1.6 (Task Decomposition); whether to involve more than one agent is D1.2. This chapter is the enforcement axis only.
+Need more review? The fixed-vs-adaptive *structure* of a multi-step task is D1.6 (Task Decomposition); whether to involve more than one agent is D1.2; the validation/retry loop in depth is D4.4.
 </MarginNote>
 
 ## Practice
@@ -100,24 +145,31 @@ A content workflow runs four steps — research → draft → fact-check → pol
 In one sentence each, distinguish programmatic from prompt-based workflow enforcement, and name one condition under which each is the right choice.
 </Practice>
 
-<Practice id="d1-04-pr-fresh" difficulty="2">
-Without looking back: in the Writer/Reviewer pattern, why must the reviewer *not* inherit the writer's context — and what bias does that prevent?
+<Practice id="d1-04-pr-gate" difficulty="2">
+A teammate's pipeline validates every inter-step output against a JSON schema and still ships wrong data. Name the kind of check the schema is doing, the kind it is *missing*, and what the gate should do on a failure instead of passing the output along.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="d1-04-ex-pipeline">
-**Choose (b), but split at one boundary only.** The fact-check is failing for the exact reason the Writer/Reviewer pattern addresses — a context biased toward the draft it just produced rationalizes its own claims. Hand the fact-check to a **fresh context** (a second session or a verification subagent), passing an explicit handoff contract: the draft, the claims to verify, the success criteria, the output format. That is a programmatic handoff — your code routes the draft to the reviewer and the verdict back.
+**Choose (b), but split at one boundary only.** The fact-check is failing for the exact reason the Writer/Reviewer pattern addresses — a context biased toward the draft it just produced rationalizes its own claims. Hand the fact-check to a **fresh context** (a second session or a verification subagent), passing an explicit handoff contract: the draft, the claims to verify, the success criteria, the output format. That is a programmatic handoff — your code routes the draft to the reviewer and the verdict back. Keep **research → draft coupled** in one context: they are tightly coupled and share state, so a handoff there would only leak fidelity. And do **not** split all four steps into role-agents — that is the telephone-game pipeline, four lossy handoffs where you needed one. The skill is placing the *single* split where fresh context buys independence.
+</Solution>
 
-Keep **research → draft coupled** in one context: they are tightly coupled and share state, so a handoff there would only leak fidelity. And do **not** split all four steps into role-agents (researcher/drafter/checker/polisher) — that is the telephone-game pipeline, four lossy handoffs where you needed one. The skill is placing the *single* split where fresh context buys independence, not maximizing the number of agents.
+<Solution for="d1-04-pr-enforce">
+**Programmatic** enforcement puts the control flow in *your code* — you sequence the steps, pass each output to the next, and can gate between them; choose it when you need determinism, an audit trail, validation gates, or a fixed repeatable sequence. **Prompt-based** enforcement puts the control flow in *the model* — it is told the procedure and self-directs; choose it when the path is flexible, the model can sensibly adapt, and orchestration code would cost more than it saves.
+</Solution>
+
+<Solution for="d1-04-pr-gate">
+The schema is doing a **structural** check — right shape, fields present, types valid — and is **missing the semantic check**: whether the content is actually *correct* (valid JSON can still carry fabricated or contradictory data). The gate should not pass a failing output along; it should **reject and retry** — re-prompt the failing step with the specific error and only advance once the output passes both the structural and semantic checks.
 </Solution>
 
 </ExerciseSolutions>
 
 ## Exam essentials
 
-- **Two enforcement loci:** a multi-step workflow's control flow lives in **your code** (programmatic — you sequence steps, gate between them; deterministic/auditable) or **the model** (prompt-based — told the steps, self-directs; flexible).
+- **Two enforcement loci:** a multi-step workflow's control flow lives in **your code** (programmatic — you sequence steps and gate between them; deterministic/auditable) or **the model** (prompt-based — told the steps, self-directs; flexible).
 - **Every step boundary is a handoff**, and handoffs leak. A sequential chain of role-agents is the most fidelity-fragile arrangement — the telephone game.
 - **Writer/Reviewer is the handoff that works** *because* the reviewer has fresh context — it can't defend code it never wrote. Don't let an author review its own work.
-- **A handoff contract** — objective, output format, boundaries — makes any handoff survivable and lets a programmatic pipeline add validation gates.
-- **Choose programmatic** for determinism / audit / validation gates / fixed sequence; **prompt-based** for flexible self-direction. (Whether to split = D1.2; pipeline vs adaptive = D1.6.)
+- **Carry the contract in a written artifact** — a spec file or a test file the next step reads from disk — so the handoff doesn't depend on re-narration.
+- **A programmatic validation gate** runs a **structural** check *and* a **semantic** check between steps, and on failure **rejects and retries** rather than propagating the bad output. (The loop in depth: D4.4.)
+- **Choose programmatic** for determinism / audit / gates / fixed sequence; **prompt-based** for flexible self-direction. (Whether to split = D1.2; pipeline vs adaptive = D1.6.)
