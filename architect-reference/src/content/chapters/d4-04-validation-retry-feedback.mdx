@@ -1,0 +1,111 @@
+---
+title: "Validation, Retry, and Feedback Loops"
+part: 4
+chapter: 4
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - agent-sdk-structured-outputs
+  - anthropic-structured-outputs
+description: Constrained decoding eliminates schema errors, never semantic ones — valid JSON can still hold wrong data. The architect's job is the layer above the schema, discriminating the two error kinds, encoding semantic checks into the schema itself, and closing a bounded validate-feed-back-retry loop that escalates to a human on exhaustion.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D4.3 (structured outputs and what constrained decoding guarantees — and what it doesn't).">
+- **Distinguish** schema errors from semantic errors and know which the API can and cannot catch
+- **Apply** the Agent SDK's retry loop and discriminate its result by `subtype`
+- **Design** schema-level fields that turn an opaque "is it correct?" into a measurable cross-check
+- **Evaluate** how to bound a validate-feed-back-retry loop and when to escalate to a human
+</YouWillLearn>
+
+_D4.3 closed with a hard guarantee — a schema a response cannot violate — and one caveat: a refusal still gets through. This chapter is about a deeper caveat. Constrained decoding guarantees the shape, never the truth. A perfectly schema-valid record can name the wrong customer or fabricate a total. The pattern for catching that lives above the API, in your validation loop — and the loop, not its current field names, is what this chapter is about, which makes it an architectural pattern._
+
+## Two kinds of error: schema and semantic
+
+Structured outputs (D4.3) eliminates a whole class of failure: "Always valid: No more JSON.parse() errors. Type safe: Guaranteed field types and required fields. Reliable: No retries needed for schema violations."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> What it cannot touch is the other class: "Instead of parsing errors (which structured outputs eliminate), you now need to think about semantic errors — responses that are valid JSON matching your schema but contain incorrect data."<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> A schema can require `customer_name` to be a non-empty string; it cannot know the source said "Jane" while the model wrote "John."
+
+<KeyIdea>
+A schema constrains *form*, never *fact*. Constrained decoding makes a wrong-shaped output impossible and a wrong-*data* output exactly as likely as before. Once you adopt structured outputs, your remaining error budget is entirely semantic — so that is where your validation effort should move.
+</KeyIdea>
+
+## The SDK retry loop handles the schema layer
+
+For the residual schema mismatches in a multi-tool agentic run, the Agent SDK adds a retry loop: "the SDK validates the output against it, re-prompting on mismatch. If validation does not succeed within the retry limit, the result is an error instead of structured data."<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> Crucially, exhaustion is a *result you inspect*, not an exception that throws — you discriminate on `subtype`: `success` carries the typed payload in `message.structured_output`; `error_max_structured_output_retries` means the budget ran out and you must fall back.<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" />
+
+<Pitfall title="Not handling the exhausted-retries subtype">
+Because exhaustion returns a result rather than raising, code that reads `message.structured_output` without first checking `subtype` will silently process `undefined` on the failure path. The two subtypes — `success` and `error_max_structured_output_retries` — are the contract; branch on them explicitly and define the fallback (simpler schema, simpler prompt, or human review). The retry *count* itself is not documented, so never hard-code an assumption about how many attempts you got.
+</Pitfall>
+
+## Encode the semantic check into the schema
+
+You cannot retry your way out of a semantic error the SDK never sees — so make the model commit to signals a caller *can* check. The pattern is to add fields whose only job is verification:
+
+<ConceptBox title="Schema-level semantic-hook patterns">
+- **`detected_pattern`** — the model declares the format it inferred (e.g. `currency_usd`); the caller re-checks it against the value with a regex.
+- **`stated_total` vs `calculated_total`** — the model both copies the document's total and re-sums the line items; the caller compares them, and a mismatch means bad source or a fabricated number.
+- **`conflict_detected` + `conflict_reason`** — the model flags when two source fields contradict; `true` routes to human review.
+- **Nullable "other" + detail** — a closed `enum` plus an always-nullable detail string lets the model *refuse to confabulate* a category instead of forcing a wrong one.
+- **Provenance triple** — `claim` + `source.span_quote` + `confidence`; the caller verifies the quoted span actually appears in the cited document (D5.6).
+</ConceptBox>
+
+Each pattern converts an un-checkable judgment ("is this right?") into a mechanical test ("does `calculated_total` equal the sum?").<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> The model is doing the same extraction either way; you are just asking it to show enough of its work that a downstream check can catch a lie.
+
+## Close the loop: validate, feed back, retry, escalate
+
+The full pattern stacks three independent layers, and skipping any one surfaces a different failure: "structured outputs handles layer 1, application code handles layer 2, the feedback loop is what closes layer 3."<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> Layer 1 is constrained decoding (schema errors gone). Layer 2 is your application code running the semantic cross-checks above. Layer 3 re-prompts with the *specific* failures ("`calculated_total` does not equal the sum of line items; re-extract correcting this") for a bounded number of attempts, then falls back.
+
+<Pitfall title="Unbounded or schema-thrashing retry loops">
+Two ways the feedback loop bites back. First, an unbounded loop on a genuinely ambiguous task never converges — bound the attempts and escalate to human review on exhaustion, because the alternative is paying inference forever for an answer that will not come. Second, each retry is a full inference, so a three-retry run costs roughly four times a clean one — and if you mutate the schema between attempts you also invalidate the grammar cache (D4.3) and re-pay compilation. Keep the schema fixed across retries; vary only the feedback message.
+</Pitfall>
+
+The schema-design heuristics fold back into D4.3: keep schemas focused, and "make those fields optional" when the source might not contain them — an over-`required` schema turns a missing field into a retry and then an exhausted-budget error.<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" />
+
+## Practice
+
+<Exercise id="d4-04-ex-semantic-catch">
+An invoice extractor uses structured outputs and never returns malformed JSON, but once in a while it reports a `total` that doesn't match the line items — and those slip through to billing. You want to catch them automatically. What is the most effective design?
+
+- **A.** Add `strict: true` to the extraction tool so the totals are type-guaranteed.
+- **B.** Add both `stated_total` and `calculated_total` to the schema and have application code compare them, routing any mismatch to human review.
+- **C.** Raise `max_tokens` so the model has room to compute the total more carefully.
+- **D.** Tighten the JSON schema with a `minimum` constraint on `total`.
+</Exercise>
+
+<Practice id="d4-04-pr-subtype" difficulty="2">
+Name the two result subtypes the Agent SDK returns for a structured-output run, state what each means for the caller, and explain why you must branch on `subtype` before reading the payload.
+</Practice>
+
+<Practice id="d4-04-pr-three-layers" difficulty="3">
+A pipeline must catch a fabricated `customer_name` (valid string, wrong person). Name the three layers of the validation-retry-feedback pattern, say which layer can catch this error and which cannot, and what schema-level hook would make the catch possible.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d4-04-ex-semantic-catch">
+**B.** A wrong-but-well-typed total is a *semantic* error — valid JSON, incorrect data — so no schema or type guarantee touches it. The fix is to make the error checkable: have the model emit both the document's `stated_total` and its own `calculated_total`, then let application code compare them and route mismatches to review. **A** (`strict`) guarantees the total is a number, which it already was; it does nothing about a number being *wrong*. **C** (more tokens) addresses truncation, not arithmetic fabrication. **D** (`minimum`) is both unsupported by the structured-outputs subset and irrelevant — a bound on magnitude can't detect a total that's internally inconsistent with the line items.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Schema vs semantic** — constrained decoding eliminates syntax/type/required/enum errors; semantic errors (valid JSON, wrong data) are invisible to the API and need domain logic.
+- **SDK retry loop** — validates and re-prompts on mismatch; the result is `success` (payload in `message.structured_output`) or `error_max_structured_output_retries` (fall back). It's a result you check, not an exception; the retry count is undocumented.
+- **Schema-level semantic hooks** — `detected_pattern`, `stated_total` vs `calculated_total`, `conflict_detected`, nullable "other" + detail, and the provenance triple turn "is it correct?" into a mechanical cross-check.
+- **Three layers** — API constrained decoding (schema) + application-code semantic checks + a bounded feedback loop that re-prompts with the specific errors; escalate to human review on exhaustion.
+- **Loop economics** — bound the attempts (each retry is a full inference, ~4× for three retries) and keep the schema stable across retries so you don't re-pay grammar compilation.

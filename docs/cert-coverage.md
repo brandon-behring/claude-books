@@ -63,7 +63,7 @@ Split: prompting basics belong to **handbook**; tool_use + JSON schemas + batch 
 | Explicit criteria over vague instructions | 🟡 ch4 | 🟢 D4.1 (authored 2026-06-02) | ⬜ |
 | Few-shot prompting (targeting ambiguous cases, format consistency) | 🟡 ch4, App B | 🟢 D4.2 (authored 2026-06-02) | ⬜ |
 | Structured output via `tool_use` + JSON schemas | ⬜ | 🟢 D4.3 (authored 2026-06-02) | ⬜ |
-| Validation, retry, feedback loops (semantic vs schema errors) | ⬜ | ⬜ (primary) | ⬜ |
+| Validation, retry, feedback loops (semantic vs schema errors) | ⬜ | 🟢 D4.4 (authored 2026-06-02) | ⬜ |
 | Batch processing (Message Batches API, custom_id, SLA matching) | 🟡 App B (basics) | ⬜ (deep) | ⬜ |
 | Multi-instance / multi-pass review (independent reviewers, attention dilution) | 🟡 ch10 (worktrees), ch14 (code review) | ⬜ (architecture) | ⬜ |
 

@@ -338,3 +338,13 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D4.4 (Validation, Retry & Feedback Loops) — from the 07-structured-output cache.
+
+- id: agent-sdk-structured-outputs
+  url: https://code.claude.com/docs/en/agent-sdk/structured-outputs
+  title: Get structured output from agents
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
