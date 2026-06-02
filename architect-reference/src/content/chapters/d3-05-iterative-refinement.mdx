@@ -1,0 +1,118 @@
+---
+title: "Iterative Refinement: The Loop, the Interview, and Test-Driven Prompting"
+part: 3
+chapter: 5
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+description: Agentic work is iterative. The explore-plan-implement-commit rhythm, the interview pattern (Claude interviews you, writes a spec, a fresh session implements), and test-driven prompting are the durable disciplines — methodology that survives any tool rename, hence a stable principle.
+sources:
+  - claude-code-best-practices
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D3.4 (plan mode as the read-only 'plan' phase). You have run at least one multi-step task with Claude.">
+- **Apply** the four-phase explore → plan → implement → commit rhythm
+- **Recognize** the interview pattern — and why a *fresh* session implements the spec
+- **Evaluate** when to give Claude verification criteria, and why that is the highest-leverage move
+- **Recognize** the course-correct-early discipline — when to `/clear` and restart rather than keep correcting
+</YouWillLearn>
+
+_D3.4's plan mode is one phase of a larger loop. This chapter is the loop itself — how an architect drives a task from understanding to a committed change, refining as they go. These are disciplines, not features: the explore-plan-implement-commit rhythm, the interview pattern, and test-driven prompting outlast any particular keybinding or tool name, which is why this chapter is a stable principle rather than a feature surface._
+
+## The four-phase rhythm
+
+Letting Claude jump straight to coding produces code that solves the wrong problem; the antidote is a phased loop. "The recommended workflow has four phases: Explore [plan mode, read files] → Plan [create detailed implementation plan] → Implement [switch out of plan mode, verify against plan] → Commit [descriptive message + PR]."<Tag kind="official" /><Citation src="claude-code-best-practices" /> Explore and Plan are the read-only front half (D3.4's plan mode is exactly this); Implement and Commit are where edits land. Skip the plan phase only when the diff is one-sentence-describable.<Tag kind="official" /><Citation src="claude-code-best-practices" />
+
+<KeyIdea>
+The loop's whole purpose is to separate *understanding* from *editing*. Explore and Plan build a shared model of the change before a single line moves; Implement then checks its work against that plan. Collapse the two and Claude optimizes a problem it never confirmed it understood.
+</KeyIdea>
+
+## The interview pattern
+
+For a large feature with an unclear design space, the most effective opening is to invert the usual flow and let Claude drive the questions: "For larger features, have Claude interview you first. Start with a minimal prompt and ask Claude to interview you using the `AskUserQuestion` tool. Claude asks about things you might not have considered yet, including technical implementation, UI/UX, edge cases, and tradeoffs."<Tag kind="official" /><Citation src="claude-code-best-practices" /> The interview ends by writing a complete spec to a file, and then a *fresh* session implements from that spec — the interview session is full of question-answer thrashing, while the implementation session starts with clean context whose only input is the written spec.
+
+<ConceptBox title="Anatomy of an interview prompt">
+1. **Brief description** — enough to anchor what the project is.
+2. **Interview directive** — explicitly ask Claude to use the `AskUserQuestion` tool.
+3. **Question scope** — technical implementation, UI/UX, edge cases, concerns, tradeoffs.
+4. **Quality filter** — "don't ask obvious questions, dig into the hard parts I might not have considered."
+5. **Termination + artifact** — "keep interviewing until we've covered everything, then write a complete spec to `SPEC.md`."
+</ConceptBox>
+
+The spec file is the bridge between the two sessions: a deliverable you can review *and* the context bootstrap the implementation session reads.
+
+## Give Claude a way to verify its work
+
+The highest-return habit in the whole loop is supplying a success criterion: "Include tests, screenshots, or expected outputs so Claude can check itself. This is the single highest-leverage thing you can do. ... Without clear success criteria, it might produce something that looks right but actually doesn't work."<Tag kind="official" /><Citation src="claude-code-best-practices" /> This is also what turns a vague prompt concrete — "the build is failing" becomes "the build fails with this error: [paste]; fix it, verify the build succeeds, and address the root cause." Test-driven prompting is the same instinct formalized: for a bug, ask for "a failing test that reproduces the issue, then fix it"; for longer work, have Claude write the tests first and keep them as the persistent contract.<Tag kind="official" /><Citation src="claude-code-best-practices" />
+
+<KeyIdea>
+A verification criterion moves the feedback loop *off the human*. Give Claude a test to pass or a screenshot to match and it can iterate against ground truth on its own turns; withhold one and you become the only thing standing between a plausible-looking result and a working one.
+</KeyIdea>
+
+<Pitfall title="The trust-then-verify gap">
+A plausible implementation with no way to check it is the most expensive kind of output: it passes a glance and fails in production. If the prompt that produced it had no test, no expected output, and no screenshot to diff, you have not finished the task — you have deferred the verification to whoever notices the bug later. Bake the success criterion into the prompt, not into a future incident.
+</Pitfall>
+
+## Course-correct early — and know when to restart
+
+Iteration only pays if the loop stays clean. "The best results come from tight feedback loops" — correct Claude quickly rather than letting a wrong direction run. But there is a threshold: "If you've corrected Claude more than twice on the same issue in one session, the context is cluttered with failed approaches. Run `/clear` and start fresh with a more specific prompt that incorporates what you learned. A clean session with a better prompt almost always outperforms a long session with accumulated corrections."<Tag kind="official" /><Citation src="claude-code-best-practices" />
+
+<Pitfall title="Correcting over and over">
+Past the second correction on the same point, each further nudge is fighting a context now polluted with failed attempts — the very approaches you are trying to steer away from are still in the window, pulling the model back toward them. The move is not a third correction; it is `/clear` plus a better initial prompt that folds in what the failed rounds taught you.
+</Pitfall>
+
+The hands-on mechanics of this loop — the session rhythm turn by turn, and the dedicated treatments of the interview pattern and the testing discipline — are the handbook's territory: see the *Use* book, Chapter 3, [*Your First Working Session*](https://github.com/brandon-behring/claude-books/blob/main/handbook/src/content/chapters/ch03-first-session.mdx), with the interview-pattern and testing-and-verification chapters forthcoming there.
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the handbook is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d3-05-ex-interview-vs-direct">
+You are kicking off a sizeable new feature — a billing system — whose design space you have not fully thought through (proration rules, failure modes, and edge cases are still fuzzy). What is the most effective way to start Claude on it?
+
+- **A.** Write one detailed prompt with every requirement and verification criterion you can think of, for maximum autonomy.
+- **B.** Use the interview pattern: a minimal prompt asking Claude to interview you with `AskUserQuestion`, ending in a written `SPEC.md`, then a fresh session implements from it.
+- **C.** Give a vague one-liner and course-correct turn by turn as the design reveals itself.
+- **D.** Use plan mode alone — let Claude explore the codebase and propose an approach without interviewing you.
+</Exercise>
+
+<Practice id="d3-05-pr-four-phase" difficulty="2">
+Name the four phases of the recommended workflow in order, and state the one condition under which you would skip the plan phase.
+</Practice>
+
+<Practice id="d3-05-pr-tdd-variant" difficulty="3">
+For a bug that has a known reproduction, give the test-driven prompt pattern the docs recommend, and explain why it outperforms simply asking Claude to "fix the login bug."
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d3-05-ex-interview-vs-direct">
+**B.** A large feature with an unsettled design space is the documented home of the interview pattern: a minimal prompt asks Claude to interview you via `AskUserQuestion`, surfacing edge cases and tradeoffs you have not considered, and the interview ends in a `SPEC.md` that a fresh session then implements from clean context. **A** assumes you already hold a complete spec — but the premise is that you do not, so you would be encoding gaps as requirements. **C** burns turns thrashing and pollutes context with half-formed direction. **D** is the closest miss: plan mode (D3.4) makes Claude explore the *code*, but the interview pattern makes Claude interrogate *you* about intent and tradeoffs — and here the unknowns live in your requirements, not in the codebase. The interview elicits the spec; plan mode would plan against a spec you have not written yet.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Four-phase rhythm** — Explore (read-only / plan mode) → Plan → Implement (verify against plan) → Commit; skip the plan only when the diff is one-sentence-describable.
+- **Interview pattern** — for large features, Claude interviews you via `AskUserQuestion`, writes a `SPEC.md`, and a **fresh** session implements from it (clean context).
+- **Verification is the single highest-leverage move** — include tests, screenshots, or expected outputs so Claude checks itself; without criteria, the human is the only feedback loop.
+- **Concrete beats vague** — replace "the build is failing" with the error plus "address the root cause"; the delta is verb + concrete example/test/file + a verification step.
+- **Course-correct early, then restart** — tight loops beat drift, but after two corrections on the same issue, `/clear` and rewrite the prompt incorporating what you learned.
