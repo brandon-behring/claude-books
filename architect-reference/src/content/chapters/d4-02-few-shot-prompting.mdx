@@ -1,0 +1,127 @@
+---
+title: "Few-Shot Prompting for Ambiguous Cases"
+part: 4
+chapter: 2
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+description: Examples are the most reliable way to steer format, tone, and structure — and the only clean way to pin down an ambiguous case. The pattern is 3-5 relevant, diverse, structured examples, with at least one placed on the edge case showing the desired handling.
+sources:
+  - anthropic-multishot-prompting
+  - anthropic-claude-4-best-practices
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D4.1 (explicit criteria, and the escalation ladder where few-shot is the second rung).">
+- **Apply** the 3-5-example sweet spot and explain what each example is doing
+- **Distinguish** the three example-quality criteria — relevant, diverse, structured
+- **Analyze** an extraction or classification task to find the ambiguous case that needs an example
+- **Recognize** how few-shot composes with structured outputs rather than competing with it
+</YouWillLearn>
+
+_D4.1's escalation ladder put examples on the second rung: when a plain instruction can't fully pin a behavior — especially on the messy, ambiguous inputs — a demonstration does what a description cannot. This chapter is that rung. It is an architectural pattern: the 3-5-example construction and its quality criteria are stable across model versions, with the example-tag syntax as the illustration that may shift._
+
+## Examples are the most reliable steering mechanism
+
+When a behavior is hard to describe, demonstrate it. "Examples are one of the most reliable ways to steer Claude's output format, tone, and structure. A few well-crafted examples (known as few-shot or multishot prompting) can dramatically improve accuracy and consistency."<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> An example carries information a sentence struggles to: the exact field ordering, the precise tone, how a borderline input should resolve. The model does not memorize the examples — it extracts the implicit pattern across them and applies it to the new input.
+
+<KeyIdea>
+An instruction is a rule the model must interpret; an example is a behavior the model can copy. Where description is ambiguous ("handle missing data gracefully"), demonstration is exact (here is an input with missing data and here is the output I want for it). Few-shot wins precisely on the cases instructions can't fully specify.
+</KeyIdea>
+
+## The 3-5 sweet spot
+
+The documented count is small and specific: "Include 3-5 examples for best results. You can also ask Claude to evaluate your examples for relevance and diversity, or to generate additional ones based on your initial set."<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> The range is not arbitrary — too few examples and the model latches onto an incidental trait; too many and you burn context for no gain and risk contradictory examples confusing it.
+
+<ConceptBox title="What each example buys you (and why not fewer, not more)">
+- **0 examples** — the model infers shape from the instruction alone; fine for trivial shapes, breaks on edge cases.
+- **1-2 examples** — high risk of picking up an *incidental* pattern (a capitalization habit, a sentence length) instead of the intended one.
+- **3-5 examples** — the sweet spot: one canonical case + one or two variants + one edge case. Enough diversity to disambiguate the real pattern, few enough to stay cheap.
+- **6+ examples** — diminishing returns, rising context cost, and a growing chance two examples disagree and teach "either is acceptable."
+</ConceptBox>
+
+## Relevant, diverse, structured
+
+Quality matters more than count. The three criteria are explicit: "When adding examples, make them: **Relevant:** Mirror your actual use case closely. **Diverse:** Cover edge cases and vary enough that Claude doesn't pick up unintended patterns. **Structured:** Wrap examples in `<example>` tags (multiple examples in `<examples>` tags) so Claude can distinguish them from instructions."<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> Diversity is the criterion most often neglected and the most consequential: three examples that all happen to share an irrelevant trait teach that trait as if it were the rule.
+
+<Pitfall title="Accidental patterns and disagreeing examples">
+Two failure modes hide in a careless example set. First, an *incidental* shared trait — every sample input ends in a period, every output capitalizes the first field — gets learned as a requirement, because the model generalizes from whatever is common across the examples, intended or not. Second, two examples that handle the *same* edge case *differently* teach the model that either resolution is fine, which is worse than no example at all. Audit the set for both before adding a sixth example.
+</Pitfall>
+
+## Target the ambiguous case directly
+
+This is the heart of the cert task area. When an extraction or classification has a messy case — a missing field, an "other" bucket, an unusual variant — do not write a separate rule for it; show an example *on* that case with the handling you want. The model generalizes from the example treatment, not from a prose rule beside it. Put the ambiguous input in the middle of the set with its desired output:
+
+```xml
+<examples>
+  <example>
+    <input>Order #4815 shipped on Apr 3 via UPS tracking 1Z999AA10123456784.</input>
+    <output>{"order_id": "4815", "carrier": "UPS", "tracking": "1Z999AA10123456784"}</output>
+  </example>
+  <example>
+    <input>Customer asked about order status yesterday but gave no order number.</input>
+    <output>{"order_id": null, "carrier": null, "tracking": null}</output>
+  </example>
+  <example>
+    <input>Shipped today via 'FedEx Express Saver' - see ref 7712-4488-9933.</input>
+    <output>{"order_id": null, "carrier": "FedEx", "tracking": "7712-4488-9933"}</output>
+  </example>
+</examples>
+```
+
+The middle example *is* the ambiguous case: it teaches that "no order number" resolves to `null` — not an empty string, not `"unknown"`, not `"n/a"`.<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> Few-shot also composes with the next rung of the ladder: with structured outputs (D4.3), "the schema locks the *shape* but examples still teach *content* and *edge-case handling*" — the two are complementary, not redundant.<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> A schema can require `order_id` to be a string-or-null; only an example teaches that *this* kind of input is the null one.
+
+The use-side craft of building and iterating on an example set lives in the *Use* book's prompt-engineering chapter (forthcoming), alongside D4.1's hands-on companion material.
+
+<MarginNote variant="note" label="Note">
+Cross-book pointer is prose-only — the handbook's prompt-engineering chapter is outlined but unpublished, so there is no stable URL yet.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d4-02-ex-ambiguous-edge">
+You are extracting `{invoice_id, amount, due_date}` from emails. Most are clean, but some have no due date at all, and the pipeline keeps emitting `"due_date": "unknown"` for those — which the downstream date parser rejects. You want missing dates to come back as `null`. What is the most reliable fix?
+
+- **A.** Add a sentence to the instruction: "if there is no due date, use null, not 'unknown'."
+- **B.** Include 3-5 examples, one of which is an email with no due date whose output shows `"due_date": null`.
+- **C.** Raise the example count to 10 clean invoices so the model has more data to generalize from.
+- **D.** Post-process every `"unknown"` string into `null` after the model returns.
+</Exercise>
+
+<Practice id="d4-02-pr-three-criteria" difficulty="2">
+Name the three example-quality criteria from the docs, and explain why "diverse" is the one whose absence most often silently corrupts a few-shot prompt.
+</Practice>
+
+<Practice id="d4-02-pr-count" difficulty="3">
+A colleague uses a single, carefully chosen example and is puzzled that the model copies an odd quirk of it (it always quotes the first field). Explain what is happening in terms of the 3-5 guidance, and what changing the count fixes.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d4-02-ex-ambiguous-edge">
+**B.** The ambiguous case — an input with no due date — is exactly what an example should *demonstrate*: place one in the set whose output shows `"due_date": null`, and the model generalizes from that treatment. **A** is the D4.1 instinct (be explicit), and it helps, but a prose rule beside the examples is weaker than a demonstration on the case itself — the docs are explicit that the model "generalizes from the example treatment, not from a separate written rule." **C** adds volume without diversity: ten *clean* invoices never show the missing-date case, so the model still has nothing to copy for it. **D** works mechanically but is a band-aid that hard-codes one symptom ("unknown"); the model may emit "none" or "" next, and you are now maintaining a translation table instead of fixing the prompt. The few-shot fix targets the root cause.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Few-shot is the most reliable steering mechanism** for format, tone, and structure — the model extracts the implicit pattern across examples, so it disambiguates where instructions can't.
+- **3-5 examples** is the documented sweet spot: 1-2 risks learning an incidental trait, 6+ burns context and risks contradictions; budget the 3-5 as one canonical + variants + one edge case.
+- **Relevant, diverse, structured** — mirror the real use case, vary enough to avoid spurious patterns, and wrap each in `<example>` (group in `<examples>`) so the model separates examples from instructions and input.
+- **Target the ambiguous case** — put an example *on* the edge case (null field, "other" bucket) showing the desired handling; the example teaches it, a prose rule beside it teaches it less reliably.
+- **Composes with structured outputs** — the schema locks shape, examples teach content and edge-case handling; complementary, not redundant.
