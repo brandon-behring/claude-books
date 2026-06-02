@@ -30,7 +30,7 @@ Books consume `@brandon_m_behring/book-scaffold-astro` (sibling repo at `~/book-
 **Margin note categories** (`<MarginNote variant="..." label="...">`):
 - Variants: `note` / `warning` / `tip`
 - Approved category labels: Official, Tip, Warning, Cost, Enterprise, Template, Note
-- **25-word cap on body** — enforced by scaffold validator (Phase 2.6)
+- **Asides only — function, not word count.** A `<MarginNote>` is the chapter's *one* secondary-disclosure layer (NN/g progressive disclosure): an aside the median reader can skip without losing the thread. Smell test: if a note is load-bearing, **promote it into the body**; if it holds two ideas, split or cut; keep them sparse. Use `<Sidenote>` (numbered) for a source-pointer, `<MarginNote>` (unnumbered) for an aside. (Grounded in `docs/research/11-pedagogy/02-information-design/`. The old "25-word cap, validator-enforced" was guidance only — never actually wired — and is retired.)
 
 **Other editorial rules**:
 - All Anthropic-attributed claims include a source URL (cite via `<Tag kind="official">` or footnote)

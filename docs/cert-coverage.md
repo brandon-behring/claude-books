@@ -15,6 +15,8 @@ The books target the publicly-known taxonomy. The confidential v0.1 PDF is inter
 
 **Agentic Systems Design — Environment & Context (11 ch, shipped 2026-05-30):** environment engineering (E1–E5) + context (rot / assembly / memory) at reference altitude. The cert-aligned Architect's Reference XRefs into it where D1/D3/D5 need design depth.
 
+> **2026-06-02 Round-2 note.** After an independent audit ([`docs/audits/2026-06-02_*-independent-review.md`](./audits/2026-06-02_architect-reference-cert-book-independent-review.md), conditional pass; cert-depth the binding weakness), the cert book's genre is being revised **up** to a **self-contained study guide** — teach-from-scratch prose + per-chapter "Do I Know This Already?" diagnostics + expanded worked examples (see `architect-reference/OUTLINE.md`). **Domain 1 (D1.1–D1.7) is the pilot**, rewritten 2026-06-02; coverage status is unchanged (all task areas remain 🟢 — this is a depth/genre change, not new coverage). D2–D5 rollout is pending pilot review.
+
 ## Domain 1 — Agentic Architecture & Orchestration (27%)
 
 Primary owner: **architect-reference**. Cross-references: handbook ch on agents/parallel work (use-side only); field-guide observations on multi-agent setups.

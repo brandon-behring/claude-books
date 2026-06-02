@@ -35,7 +35,9 @@ const REQUIRED_FRONTMATTER = [
 ];
 const VOLATILITY_ENUM = ['stable-principle', 'architectural-pattern', 'feature-surface'];
 const APPROVED_LABELS = ['Official', 'Tip', 'Warning', 'Cost', 'Enterprise', 'Template', 'Note'];
-const MARGIN_WORD_CAP = 25;
+// The 25-word cap was retired (guidance only, never wired). This is a soft smell-test
+// threshold: a margin note this long is likely displaced body text, per the new guideline.
+const MARGIN_ADVISORY_WORDS = 60;
 // Verbatim markers of the confidential instructor PDF; none may appear in published prose.
 const PDF_SIGNATURES = [/instructor[_-]/i, /Claude\+Certified\+Architect/i, /Need to Know/i, /confidential/i];
 
@@ -215,7 +217,7 @@ function checkManifestDuplicates(manifest) {
   return { id: 4, title: 'Manifest duplicate ids', findings: out };
 }
 
-// ── Check 5: MarginNote 25-word body cap ─────────────────────────────────────
+// ── Check 5: MarginNote length advisory (smell test, not a hard cap) ──────────
 function checkMarginWordCap(chapters) {
   const out = [];
   for (const ch of chapters) {
@@ -225,12 +227,12 @@ function checkMarginWordCap(chapters) {
         .replace(/[*_`[\]()]/g, ' ')              // strip md emphasis / link punctuation
         .replace(/https?:\/\/\S+/g, ' ')          // a bare URL is not a "word"
         .trim().split(/\s+/).filter(Boolean);
-      if (words.length > MARGIN_WORD_CAP)
-        out.push(finding('WARN', `${ch.name}:${ch.bodyStartLine + lineOf(ch.body, m.index) - 1}`,
-          `MarginNote body is ${words.length} words (cap ${MARGIN_WORD_CAP})`));
+      if (words.length > MARGIN_ADVISORY_WORDS)
+        out.push(finding('INFO', `${ch.name}:${ch.bodyStartLine + lineOf(ch.body, m.index) - 1}`,
+          `MarginNote body is ${words.length} words — long for an aside; apply the smell test (promote to body or split)`));
     }
   }
-  return { id: 5, title: 'MarginNote 25-word cap', findings: out };
+  return { id: 5, title: 'MarginNote length (advisory)', findings: out };
 }
 
 // ── Check 6: MarginNote label whitelist ──────────────────────────────────────
@@ -285,11 +287,14 @@ function checkStructure(chapters) {
       if (!ch.body.includes(tok)) out.push(finding('FAIL', ch.name, `missing ${tok}`));
     }
     const headings = [...ch.body.matchAll(/^## (.+)$/gm)].map((m) => m[1].trim());
-    if (headings.length && headings[headings.length - 1] !== 'Exam essentials')
-      out.push(finding('WARN', ch.name, `last ## heading is "${headings[headings.length - 1]}", not Exam essentials`));
-    const content = headings.filter((h) => h !== 'Practice' && h !== 'Exam essentials').length;
-    if (content < 3 || content > 6)
-      out.push(finding('WARN', ch.name, `${content} content sections (expected 4–5)`));
+    // Template scaffolding sections (study-guide genre); the rest are teaching sections.
+    const TEMPLATE = ['Do I know this already?', 'Practice', 'Exam essentials', 'Further reading'];
+    const last = headings[headings.length - 1];
+    if (headings.length && last !== 'Exam essentials' && last !== 'Further reading')
+      out.push(finding('WARN', ch.name, `last ## heading is "${last}", expected Exam essentials or Further reading`));
+    const content = headings.filter((h) => !TEMPLATE.includes(h)).length;
+    if (content < 3 || content > 12)
+      out.push(finding('INFO', ch.name, `${content} teaching sections (unusual count)`));
   }
   return { id: 9, title: 'Structural presence', findings: out };
 }
