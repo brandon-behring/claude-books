@@ -1,0 +1,112 @@
+---
+title: "Batch Processing: The Message Batches API"
+part: 4
+chapter: 5
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - anthropic-batch-processing
+  - anthropic-structured-outputs
+description: When nothing is waiting on the answer, batch trades latency for half the price. The Message Batches API processes up to 100,000 async requests at a 50 percent discount with a 24-hour SLA, and its one non-negotiable contract is custom_id matching, because results come back in any order.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D4.3-D4.4 (structured outputs, which compose with batch). Familiarity with the Messages API request shape.">
+- **Evaluate** when an async batch beats a real-time call on cost and throughput
+- **Apply** the `custom_id` contract to match results that return out of order
+- **Recognize** the batch envelope — size limits, single-shot requests, no streaming
+- **Recognize** the billing model and the extended-output beta
+</YouWillLearn>
+
+_The first three chapters of Part IV controlled a single response. This one scales to a hundred thousand of them. A batch is the right tool whenever the work is large and nothing is waiting on the answer — and its surface (the endpoint, the size limits, the `custom_id` rule, the beta header) is exactly the kind of named detail that shifts between releases, so this is a feature-surface chapter._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the `/v1/messages/batches` endpoint, the 100,000 / 256 MB limits, the 24-hour SLA, and the `output-300k-2026-03-24` beta header are concrete surfaces that move between releases. Treat every number and header as a current snapshot and re-verify before relying on it.
+</MarginNote>
+
+## The cost-latency trade
+
+The Message Batches API exists for one trade: give up immediacy, get half off. "The Message Batches API is a powerful, cost-effective way to asynchronously process large volumes of Messages requests. This approach is well-suited to tasks that do not require immediate responses, with most batches finishing in less than 1 hour while reducing costs by 50% and increasing throughput."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> The discount is a flat 50% on both input and output across all tiers, and it *stacks* with prompt-caching discounts. The cost of the discount is a service-level agreement measured in hours, not milliseconds: most batches finish within an hour, but the guarantee is 24, and a batch that does not complete in 24 hours expires.<Tag kind="official" /><Citation src="anthropic-batch-processing" /> Results stay retrievable for 29 days after creation.
+
+<KeyIdea>
+Batch is not "a faster way to do many calls" — it is a *cheaper, slower* way, and the decision rule is purely latency tolerance. If a human or a synchronous system is blocked on the result, batch is wrong. If the work is an overnight job, a backfill, or an offline evaluation, batch halves the bill for free.
+</KeyIdea>
+
+## The custom_id contract
+
+A batch is a set, not a sequence, and that has one non-negotiable consequence: "Batch results can be returned in any order, and may not match the ordering of requests when the batch was created. ... To correctly match results with their corresponding requests, always use the `custom_id` field."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> Every request carries a unique `custom_id` (1–64 characters, alphanumeric plus `-` and `_`), and that id is the only thread connecting an output back to the input that produced it.
+
+<Pitfall title="Relying on result order, or reusing custom_ids">
+Two failure modes destroy a batch's results even when every request succeeds. Relying on positional order — assuming result *n* answers request *n* — silently mismatches outputs to inputs, and nothing in the response will flag it. Reusing a `custom_id` across requests makes two results indistinguishable. Treat the `custom_id` as a primary key: unique, meaningful, and the *only* sanctioned way to join results to requests.
+</Pitfall>
+
+## The batch envelope: what fits and what it can't do
+
+A batch is bounded by size and by shape. **Size:** "A Message Batch is limited to either 100,000 Message requests or 256 MB in size, whichever is reached first."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> Exceed the payload and the create call returns HTTP 413 — break huge datasets into multiple batches. **Shape:** a batch supports all Messages API features including beta features, "however, streaming is not supported for batch requests,"<Tag kind="official" /><Citation src="anthropic-batch-processing" /> and each request is single-shot — there is no follow-up turn inside a batch, so multi-turn tool round-trips do not work. Structured outputs (D4.3), by contrast, compose cleanly: a batched request can carry `output_config.format` and you get schema-valid JSON at 50% off.<Tag kind="official" /><Citation src="anthropic-structured-outputs" />
+
+<ConceptBox title="Inside vs outside the batch envelope">
+- **Inside** — vision, tool use, system prompts, structured outputs, prompt caching, other beta features; a single user→assistant turn per request.
+- **Outside** — streaming (unsupported); multi-turn tool loops (the request is single-shot, no `tool_result` round-trip); `max_tokens: 0` cache pre-warm (the ephemeral cache would expire before any follow-up).
+</ConceptBox>
+
+## Billing, result types, and the lifecycle
+
+You pay only for what works: a result is `succeeded`, `errored`, `canceled`, or `expired`, and "you are not billed for errored, canceled, or expired requests."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> For unusually long generations there is an opt-in: the `output-300k-2026-03-24` beta header "raises the `max_tokens` cap to 300,000 for batch requests using Claude Opus 4.7, Claude Opus 4.6, or Claude Sonnet 4.6" — batch-only, and a single 300k generation can itself take over an hour, so submit it with the 24-hour window in mind.<Tag kind="official" /><Citation src="anthropic-batch-processing" />
+
+<ConceptBox title="The batch lifecycle">
+1. **Create** — `POST /v1/messages/batches` with a list of `{custom_id, params}` objects; the response carries `processing_status: "in_progress"` and `expires_at` (24h out).
+2. **Poll** — `GET /v1/messages/batches/{id}` until `processing_status == "ended"`.
+3. **Stream** — pull results from `results_url` as JSONL, one result per line (stream rather than download whole for large batches).
+4. **Match** — join each result to its request by `custom_id`.
+5. **Clean up** (optional) — `DELETE` the batch before the 29-day retention window closes.
+</ConceptBox>
+
+## Practice
+
+<Exercise id="d4-05-ex-batch-or-realtime">
+You must classify 80,000 archived support tickets overnight to populate an analytics dashboard read the next morning. Cost matters; latency does not. Which design fits best?
+
+- **A.** A real-time loop calling the Messages API once per ticket, parallelized for throughput.
+- **B.** One Message Batch of 80,000 requests, each with a unique `custom_id`, results matched by `custom_id` after `processing_status` reaches `ended`.
+- **C.** A streaming batch so the dashboard can update ticket-by-ticket as results arrive.
+- **D.** A single Messages API request containing all 80,000 tickets in one prompt.
+</Exercise>
+
+<Practice id="d4-05-pr-custom-id" difficulty="2">
+Explain why `custom_id` is mandatory rather than optional in a batch workflow, and describe the specific failure that occurs if a caller instead assumes results return in submission order.
+</Practice>
+
+<Practice id="d4-05-pr-limits" difficulty="3">
+State the two limits that bound a single Message Batch and which one is reported by an HTTP 413 on creation. Then name one Messages API capability that does *not* work inside a batch and why.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d4-05-ex-batch-or-realtime">
+**B.** The job is large, offline, and cost-sensitive with no one waiting — the exact profile batch is built for: 50% off, and 80,000 requests sits within the 100,000-request limit. Matching by `custom_id` after the batch ends is the required pattern because results return unordered. **A** works but forfeits the 50% discount and adds rate-limit and orchestration overhead for latency nobody needs. **C** is impossible — streaming is not supported for batch requests. **D** collapses 80,000 independent classifications into one prompt, which blows past context limits and produces a single entangled response with no per-ticket structure.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **The trade** — batch is async and 50% off (input and output, all tiers, stacks with caching); most finish under an hour, the SLA is 24 hours, then the batch expires; results retained 29 days. Choose it by latency tolerance alone.
+- **`custom_id` contract** — results return in any order; match by the unique `custom_id` (1–64 chars, alphanumeric + `-` + `_`). Never rely on positional order; never reuse an id.
+- **Envelope** — 100,000 requests *or* 256 MB per batch (HTTP 413 over payload); streaming unsupported; each request is single-shot (no multi-turn tool loop). Structured outputs compose (schema-valid at 50% off).
+- **Billing + beta** — billed only for `succeeded`; `errored`/`canceled`/`expired` are free; the `output-300k-2026-03-24` beta raises `max_tokens` to 300,000 on batch for Opus 4.7/4.6 and Sonnet 4.6.
+- **Lifecycle** — `POST /v1/messages/batches` → poll until `ended` → stream `results_url` JSONL → match by `custom_id` → optional `DELETE` before the 29-day window.

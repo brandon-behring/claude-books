@@ -348,3 +348,13 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D4.5 (Batch Processing) — from the 05-claude-api cache.
+
+- id: anthropic-batch-processing
+  url: https://platform.claude.com/docs/en/build-with-claude/batch-processing
+  title: Batch processing (Message Batches API)
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
