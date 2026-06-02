@@ -6,7 +6,7 @@
 
 **Backbone.** [`docs/research-program/`](../docs/research-program/) + the in-repo cache `docs/research/{02,03,04,05,06,07,08}`. **Coverage tracker:** [`docs/cert-coverage.md`](../docs/cert-coverage.md) — this outline is its architect-column source.
 
-**Status.** Round 1 — structure settled + **Part I (D1.1–D1.7), Part II (D2.1–D2.5), and all of Part III (D3.1–D3.6) authored; 18 chapters, 24 pages, pushed**. The REFERENCE sub-template is locked (proven across D2.5/D3.1/D3.2/D3.4/D3.5); **D3.5 introduced the first `stable-principle` chapter**; D3.4/D3.5 introduced cert→handbook blob links. D4.1–D5.6 are placed but unauthored; **next = Part IV (D4.1) or Part V**.
+**Status.** Round 1 — **PROSE-COMPLETE. All five Parts authored: Part I (D1.1–D1.7), Part II (D2.1–D2.5), Part III (D3.1–D3.6), Part IV (D4.1–D4.6), Part V (D5.1–D5.6) — 30 chapters, 36 pages, validate clean, all pushed to `origin/main`.** The REFERENCE sub-template is locked; **stable-principle** chapters are D3.5 (first) + D4.1; D5.3 introduced the book's first `<Tag kind="practitioner">` (Augment Code, T3). Manifest at **44 source keys**. Source backbone (per-chapter sources in `sources/manifest.yaml`) spans the 04/05/06/07/08/09/10 caches. **Next = Round 2 polish** (cross-book XRef once design deploys; two-tier practice-exam pools; per-chapter `last_verified` refresh as the feature surfaces drift).
 
 ---
 
@@ -80,6 +80,8 @@ Handbook is the use-side primary owner; this book is the design / exam angle. **
 
 Prompting basics belong to the handbook; `tool_use` + schemas + batch + multi-pass are this book's. **Backbone:** `docs/research/05-claude-api`, `07-structured-output`.
 
+**Status (2026-06-02): Part IV COMPLETE — D4.1–D4.6 authored.** Volatility: D4.1 `stable-principle` (the book's second; explicit-criteria methodology), D4.2 `architectural-pattern` (few-shot construction), D4.3/D4.5 `feature-surface` (structured-output + batch API surfaces), D4.4/D4.6 `architectural-pattern` (validation-loop + independent-review patterns). D4.1/D4.2 outward links are **prose-only** (handbook has no prompting chapter on disk — ch01–04 only). Strict-live: D4.3 API fields (`output_config.format`, `strict: true`, `additionalProperties: false`, 20/24/16 limits) all verified firsthand; D4.4 retry count left undisclosed (cache does not state it). Manifest +9 keys here (`anthropic-increase-consistency`, `-claude-4-best-practices`, `-multishot-prompting`, `-cookbook-structured-json`, `-strict-tool-use`, `-structured-outputs`, `agent-sdk-structured-outputs`, `anthropic-batch-processing`, `claude-code-code-review`).
+
 | Ch | Title (task area) | Mode | cert_domains |
 |---|---|---|---|
 | D4.1 | Explicit Criteria over Vague Instructions | REFERENCE → handbook | [4] |
@@ -92,6 +94,8 @@ Prompting basics belong to the handbook; `tool_use` + schemas + batch + multi-pa
 ## Part V — D5 · Context Management & Reliability (15%) · mostly REFERENCE
 
 **Backbone:** `docs/research/` context-rot / assembly / memory dossiers (the design book is the depth owner).
+
+**Status (2026-06-02): Part V COMPLETE — D5.1–D5.6 authored.** Volatility: D5.1/D5.2/D5.3/D5.4/D5.5 `architectural-pattern`, D5.6 `feature-surface` (Citations API surface). Outward links: D5.1 → design ch08/ch09 and D5.4 → design ch07/ch09 are **real blob links** (those design chapters exist on disk); D5.2/D5.6 → handbook are **prose-only** (no escalation/provenance chapter on disk). Strict-live wins: **lost-in-the-middle is NOT in the in-repo cache** (D5.1 names it but attributes the depth to design ch08 via the blob link — no fabricated cache cite); **the "85% per-step → 20% pipeline" folklore is NOT in the Augment source**, so D5.3 omits it and frames the product-across-the-chain intuition as the chapter's own observation; D5.3 introduced the first `<Tag kind="practitioner">` (Augment, T3). Manifest +5 keys here (`anthropic-models-overview`, `agent-sdk-user-input`, `anthropic-april-23-postmortem`, `augment-multi-agent-failure`, `anthropic-citations`); D5.4 reused only, 0 new.
 
 | Ch | Title (task area) | Mode | cert_domains |
 |---|---|---|---|
