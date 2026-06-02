@@ -52,7 +52,7 @@ Primary owner: **handbook**. Cross-references: field-guide observations on CLAUD
 | `.claude/rules/` with YAML glob path-scoping | 🟡 ch9 | 🟢 D3.3 (authored 2026-06-02) | ⬜ |
 | Plan mode vs direct execution | 🟡 ch3 | 🟢 D3.4 (authored 2026-06-02) | ⬜ |
 | Iterative refinement (concrete examples, test-driven, interview pattern) | 🟡 ch6, ch7 | 🟢 D3.5 (authored 2026-06-02) | ⬜ |
-| CI/CD integration (`-p` flag, `--output-format json`, `--json-schema`) | 🟡 ch12 | ⬜ | ⬜ |
+| CI/CD integration (`-p` flag, `--output-format json`, `--json-schema`) | 🟡 ch12 | 🟢 D3.6 (authored 2026-06-02) | ⬜ |
 
 ## Domain 4 — Prompt Engineering & Structured Output (20%)
 
