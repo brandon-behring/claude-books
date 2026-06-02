@@ -1,0 +1,106 @@
+---
+title: "Human Review and Confidence Calibration"
+part: 5
+chapter: 5
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+description: Not every output earns automatic trust. The architect calibrates which results proceed and which route to a human, using checkable confidence signals and a tiered funnel — cheap auto-checks, then an isolated judge, then a person — so the human sees only the decisions where their judgment changes the outcome.
+sources:
+  - agent-sdk-structured-outputs
+  - augment-multi-agent-failure
+  - claude-code-best-practices
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D4.4 (semantic checks and the schema hooks), D4.6 (isolated reviewers), and D5.2 (escalation as the upstream half of human-in-the-loop).">
+- **Evaluate** which outputs can proceed automatically and which must route to a human
+- **Apply** checkable confidence signals as routing criteria rather than trusting self-reported confidence
+- **Design** a tiered review funnel that escalates only what each tier cannot resolve
+- **Calibrate** the human-review threshold by stakes and uncertainty
+</YouWillLearn>
+
+_D4.4 closed the validation loop with the model — detect a semantic error, feed it back, retry. This chapter closes the other loop: when automation is not enough, route to a human. The architect's job is calibration — deciding, per output, whether to trust it, verify it automatically, or escalate it to a person. The routing-and-funnel pattern is durable; the specific fields are illustration, so this is an architectural pattern._
+
+## Not every output earns automatic trust
+
+The cheapest reliability move is to give the model a way to check itself: "Include tests, screenshots, or expected outputs so Claude can check itself. This is the single highest-leverage thing you can do."<Tag kind="official" /><Citation src="claude-code-best-practices" /> But some judgments cannot be auto-verified — a wrong-but-plausible extraction, a borderline classification, a high-stakes decision with no ground truth to diff against. Those are where a human belongs. Confidence calibration is the discipline of deciding, output by output, which path each one takes.
+
+<KeyIdea>
+Calibration is an economic decision, not a quality slogan. For each output, weigh the cost of a wrong auto-accept against the cost of a human glance. Where the wrong-accept is cheap and reversible, automate; where it is expensive or irreversible, route to a person. "Review everything" and "trust everything" are both failures to calibrate.
+</KeyIdea>
+
+## Confidence as a routing signal
+
+To route, you need a signal you can act on — and the reliable signals are *checkable*, not self-reported. The schema hooks from D4.4 double as confidence signals: when a model's `calculated_total` disagrees with the document's `stated_total`, "both demand human review";<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> when a `conflict_detected` flag is true, the record routes to human review;<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> and a structured `confidence` field (high / medium / low) on an extraction gives the caller an explicit value to threshold on.<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> Each is a place where the system can say "I am not sure" in a form a router can read.
+
+<ConceptBox title="Signals that should trigger human review">
+- **Cross-check mismatch** — `calculated_total` ≠ `stated_total`: either the source is bad or a value was fabricated; both need a human.
+- **Self-flagged conflict** — `conflict_detected: true`: the model found contradictory source fields and is asking for adjudication.
+- **Low stated confidence** — a `confidence` of medium or low on a high-stakes field.
+- **Failed provenance** — a cited span that does not appear in the source document (D5.6), meaning the citation was fabricated.
+</ConceptBox>
+
+<Pitfall title="Trusting self-reported confidence as ground truth">
+A model's own "high confidence" is a claim, not a measurement — a confidently-wrong output reports high confidence too. Treat self-reported confidence as one input, and calibrate it against *checkable* signals (the cross-checks above) rather than letting it gate the human queue by itself. The signals worth routing on are the ones a caller can independently verify.
+</Pitfall>
+
+## Independent validation before the human
+
+Between auto-accept and the human sits an automated reviewer tier: an isolated judge. Independent validation — "deploy isolated judge agents" — is one of the practitioner-recommended defenses, and the gains are real: "PwC achieved a 7x accuracy improvement (10% to 70%) through structured validation loops."<Tag kind="practitioner" /><Citation src="augment-multi-agent-failure" /> The judge works for the same reason the D4.6 reviewer does: a fresh, isolated context has no authorship bias toward the output it is checking. Its job is to filter — resolve what it can, escalate only what it cannot — so the human queue stays small and high-value.
+
+<KeyIdea>
+Build review as a funnel, not a gate. Cheap automated checks handle the obvious cases; an isolated judge catches the wrong-but-plausible ones; the human sees only what survives both. Each tier escalates only what it cannot resolve, so the most expensive reviewer — the person — spends attention exclusively on the decisions that actually need it.
+</KeyIdea>
+
+## Calibrating the threshold
+
+Where the human-review line falls is the calibration, and it is set by stakes times uncertainty. A low-stakes, high-confidence output proceeds automatically; a high-stakes, low-confidence one goes to a person; the middle is where the judge tier earns its keep. This makes human review the downstream half of human-in-the-loop, with escalation (D5.2) as the upstream half — the agent asks before acting when intent is unclear, and a human checks after producing when confidence is low. Calibrate the thresholds so a reviewer sees the few outputs where their judgment changes the outcome, and nothing it does not.
+
+## Practice
+
+<Exercise id="d5-05-ex-route-to-human">
+A clinical-data extraction pipeline auto-accepts every result. Most are fine, but occasionally a high-stakes field is extracted wrong with no flag, and it reaches a patient record. You want to catch these without manually reviewing all output. What is the best design?
+
+- **A.** Retry every extraction with the model a second time and accept it if the two runs agree.
+- **B.** Have the model emit a `confidence` field and cross-check signals (e.g. `conflict_detected`), route low-confidence and flagged records through an isolated judge, and send what the judge cannot clear to a human.
+- **C.** Trust the model's self-reported confidence and auto-accept anything it marks "high."
+- **D.** Send every extracted record to a human reviewer to be safe.
+</Exercise>
+
+<Practice id="d5-05-pr-confidence-signals" difficulty="2">
+Name three signals an extraction pipeline can surface that should trigger human review, and explain why a model's self-reported "high confidence" is not, by itself, a reliable one.
+</Practice>
+
+<Practice id="d5-05-pr-tiered-funnel" difficulty="3">
+Describe the tiered review funnel (auto-check → isolated judge → human), state what each tier escalates, and explain why the isolated judge catches errors that the cheap auto-checks miss.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d5-05-ex-route-to-human">
+**B.** The design calibrates: checkable signals (`confidence`, `conflict_detected`) select which records are uncertain, an isolated judge clears the merely-plausible ones, and only what the judge cannot resolve reaches a human — so high-stakes errors are caught without reviewing everything. **A** retries with the same model, and a confidently-wrong extraction reproduces on the second run, so agreement is not evidence of correctness. **C** trusts self-reported confidence, which a confidently-wrong output also reports as "high" — the exact trap. **D** is safe but uncalibrated: it spends the most expensive reviewer on every record, most of which need no human, and does not scale.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Calibrate, don't blanket-trust or blanket-review** — decide per output by weighing the cost of a wrong auto-accept against a human glance; verification is the highest-leverage habit where it is possible.
+- **Route on checkable signals** — cross-check mismatches (`calculated_total` ≠ `stated_total`), self-flagged `conflict_detected`, low `confidence`, and failed provenance are routable signals; self-reported confidence alone is a claim, not a measurement.
+- **Tiered funnel** — cheap auto-checks → isolated judge (fresh context, no authorship bias) → human; each tier escalates only what it cannot resolve, keeping the human queue small (structured validation loops drove a documented 7× accuracy gain).
+- **Threshold by stakes × uncertainty** — high-stakes + low-confidence routes to a human; human review is the downstream half of human-in-the-loop, escalation (D5.2) the upstream half.

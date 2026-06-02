@@ -77,7 +77,7 @@ Cross-cutting; shared across all three books.
 | Escalation / ambiguity resolution patterns | 🟡 ch13 | 🟢 D5.2 (authored 2026-06-02) | ⬜ |
 | Error propagation across multi-agent systems (structured error context) | ⬜ | 🟢 D5.3 (authored 2026-06-02) | ⬜ |
 | Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 🟢 D5.4 (authored 2026-06-02) · 📘 ch7 (at scale), ch9 (compaction) | ⬜ |
-| Human review workflows + confidence calibration | ⬜ | ⬜ | ⬜ |
+| Human review workflows + confidence calibration | ⬜ | 🟢 D5.5 (authored 2026-06-02) | ⬜ |
 | Information provenance (claim-source mappings, temporal data) | 🟡 ch6 (ADRs) | ⬜ | ⬜ |
 
 ## How to update
