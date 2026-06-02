@@ -212,3 +212,21 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D3.1 (CLAUDE.md Hierarchy & @import) — from the 08-claude-code-internals cache.
+
+- id: claude-code-memory
+  url: https://code.claude.com/docs/en/memory
+  title: How Claude remembers your project
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-settings
+  url: https://code.claude.com/docs/en/settings
+  title: Claude Code Settings
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

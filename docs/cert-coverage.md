@@ -47,7 +47,7 @@ Primary owner: **handbook**. Cross-references: field-guide observations on CLAUD
 
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
-| CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | 📘 ch4 (instruction layer) | ⬜ |
+| CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | 🟢 D3.1 (authored 2026-06-01) · 📘 ch4 (instruction layer) | ⬜ |
 | Custom slash commands + skills (`.claude/commands/`, `.claude/skills/`) | 🟡 ch8 | 📘 ch5 (skills) | ⬜ |
 | `.claude/rules/` with YAML glob path-scoping | 🟡 ch9 | ⬜ | ⬜ |
 | Plan mode vs direct execution | 🟡 ch3 | ⬜ | ⬜ |

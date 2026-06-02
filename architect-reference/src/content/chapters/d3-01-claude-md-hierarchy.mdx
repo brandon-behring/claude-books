@@ -1,0 +1,122 @@
+---
+title: "CLAUDE.md Hierarchy & @import: Four Scopes That Concatenate"
+part: 3
+chapter: 1
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - claude-code-memory
+  - claude-code-settings
+description: How Claude Code assembles persistent instructions from four CLAUDE.md scopes that concatenate without precedence — the opposite of the strict five-level settings hierarchy — plus the @import mechanism (depth-5, first-use approval), the AGENTS.md bridge, and the managed claudeMd / claudeMdExcludes controls. The exam angle on the instruction layer; the design book owns the context-budget depth.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D2.4 (MCP scopes and their precedence; the local-scope-versus-local-settings trap). You have written at least one CLAUDE.md and know each session starts with a fresh context window.">
+- **Distinguish** the four CLAUDE.md scopes and the order they load in
+- **Explain** why CLAUDE.md files *concatenate* rather than override — and how that inverts the strict settings precedence
+- **Apply** `@import` syntax, including its recursion limit and first-use approval behavior
+- **Recognize** the `AGENTS.md` bridge and the managed `claudeMd` / `claudeMdExcludes` enforcement controls
+</YouWillLearn>
+
+_D2.4 resolved MCP servers and settings across a strict precedence where the highest scope wins. The instruction layer looks like the same machinery — files at managed, user, project, and local scopes — but it behaves in the opposite way: the files do not compete, they **concatenate**. This chapter is the exam angle on that distinction and on the `@import` mechanism that stitches files together. The design rationale for treating the file as a context **budget** lives in the companion volume, not here._
+
+## Four scopes that load broadest-first
+
+Claude Code assembles its persistent instructions from up to four CLAUDE.md scopes, loaded broadest to most specific: **Managed policy**, then **User** (`~/.claude/CLAUDE.md`), then **Project** (`./CLAUDE.md` or `./.claude/CLAUDE.md`), then **Local** (`./CLAUDE.local.md`, which you add to `.gitignore`).<Tag kind="official" /><Citation src="claude-code-memory" /> Discovery walks up the directory tree from your working directory; a CLAUDE.md nested *below* cwd is not loaded at launch but **on demand**, when Claude first reads a file in that subdirectory.<Tag kind="official" /><Citation src="claude-code-memory" /> The managed-policy file is the one scope that **cannot be excluded** by any individual setting — which is exactly what makes it the instrument for org-enforced instructions.<Tag kind="official" /><Citation src="claude-code-memory" />
+
+<ConceptBox title="The four CLAUDE.md scopes">
+- **Managed policy** — a platform path (e.g. `/etc/claude-code/CLAUDE.md`) or the `claudeMd` key in `managed-settings.json`. Org-enforced; cannot be excluded.
+- **User** — `~/.claude/CLAUDE.md`. Your personal defaults, across every project.
+- **Project** — `./CLAUDE.md` or `./.claude/CLAUDE.md`. Committed; shared with the team.
+- **Local** — `./CLAUDE.local.md`. Gitignored; your overrides for this one project.
+</ConceptBox>
+
+<MarginNote variant="tip" label="Tip">
+Exam discriminator: of the four scopes, only the **managed-policy** CLAUDE.md is immune to `claudeMdExcludes`. If a question asks which instructions a developer cannot opt out of, that is the one.
+</MarginNote>
+
+## Concatenation, not precedence
+
+Here is the property that separates the instruction layer from every settings file: the discovered CLAUDE.md files do not override one another. "All discovered files are concatenated into context rather than overriding each other. Across the directory tree, content is ordered from the filesystem root down to your working directory."<Tag kind="official" /><Citation src="claude-code-memory" /> Within a single directory, `CLAUDE.local.md` is appended after `CLAUDE.md`.<Tag kind="official" /><Citation src="claude-code-memory" />
+
+Contrast *settings*, which resolve by strict precedence: when the same setting appears in multiple scopes, Claude Code applies them "in priority order: Managed (highest) … Project … User (lowest)," so a higher scope overrides a lower one.<Tag kind="official" /><Citation src="claude-code-settings" /> The two layers use opposite models, and that is the whole trap.
+
+<KeyIdea>
+There is no "winning" CLAUDE.md. Two files that say the same thing don't conflict — both are in context at once. **Settings override; instructions accumulate.** A developer who reasons about CLAUDE.md the way they reason about `settings.json` will predict the wrong behavior every time.
+</KeyIdea>
+
+<Pitfall title="Expecting a deeper CLAUDE.md to override a shallower one">
+A subdirectory's CLAUDE.md does not *replace* the project root's — both load, simultaneously, into the same context. If the root says "use tabs" and a subdirectory says "use spaces," Claude sees both instructions and no rule about which wins. To actually *suppress* an ancestor file you need `claudeMdExcludes` (next section), not a closer file.
+</Pitfall>
+
+## @import: stitching files together
+
+A CLAUDE.md can pull in other files with `@path/to/import`. The imported files expand and load at launch alongside the referencing file; relative paths resolve relative to the file containing the import; and the import chain has a **maximum recursion depth of 5**.<Tag kind="official" /><Citation src="claude-code-memory" /> The first time a session encounters an import, Claude shows an approval dialog — and **declining it disables imports permanently** (the dialog does not reappear).<Tag kind="official" /><Citation src="claude-code-memory" />
+
+<MarginNote variant="note" label="Note">
+What happens when an import chain exceeds depth 5 — silent truncation or an error — is not documented. Don't design a CLAUDE.md layout that depends on a specific overflow behavior.
+</MarginNote>
+
+## AGENTS.md, managed policy, and the budget you don't develop here
+
+Three controls round out the layer. First, the cross-tool bridge: **Claude Code reads `CLAUDE.md`, not `AGENTS.md`** — to share one instruction set with other agents, create a `CLAUDE.md` that imports `@AGENTS.md`.<Tag kind="official" /><Citation src="claude-code-memory" /> Second, managed settings can deploy instructions with no file at all: the **`claudeMd`** key carries inline CLAUDE.md content, honored only in managed/policy settings, and it loads *before* the user and project files.<Tag kind="official" /><Citation src="claude-code-memory" /><Citation src="claude-code-settings" /> Third, **`claudeMdExcludes`** — glob patterns matched against absolute paths, merged across layers — skips ancestor CLAUDE.md files, with the single exception that the managed-policy file can never be excluded.<Tag kind="official" /><Citation src="claude-code-memory" />
+
+<ConceptBox title="AGENTS.md is a bridge, not a second loader">
+Claude Code has exactly one instruction loader: the CLAUDE.md hierarchy. `AGENTS.md` does not load on its own — it participates only when a CLAUDE.md imports it. The bridge is a single line (`@AGENTS.md`), which is why the same file can serve Claude Code and other tools at once without duplicating its contents.
+</ConceptBox>
+
+The discipline behind *what* belongs in these files — treating the always-loaded CLAUDE.md as a permanent slice of the context budget rather than as documentation, and the one controlled study that measures the cost of overstuffing it — is developed in the companion volume rather than repeated here: see the *Agentic Systems Design* book, Chapter 4, [*The Instruction Layer: CLAUDE.md & AGENTS.md*](https://github.com/brandon-behring/claude-books/blob/main/agentic-systems-design/src/content/chapters/ch04-environment-instruction-layer.mdx).
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the *Agentic Systems Design* book is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d3-01-ex-scope-concat">
+A monorepo has `/repo/CLAUDE.md` ("use tabs") and `/repo/services/api/CLAUDE.md` ("use 2-space indent"). A developer runs Claude Code from `/repo/services/api/`, and both files are discovered. Which statement describes what Claude Code actually loads, and why?
+
+- **A.** Only the `services/api/CLAUDE.md` loads — the closest file overrides its ancestors.
+- **B.** Only the root `/repo/CLAUDE.md` loads — the project-root file takes precedence.
+- **C.** Both load and concatenate (root first, then `api`); with no precedence, both instructions sit in context at once.
+- **D.** Both load, but `api`'s lines override the root's, the way `settings.local.json` overrides user settings.
+</Exercise>
+
+<Practice id="d3-01-pr-import-depth" difficulty="2">
+You add `@./standards/api.md` to a CLAUDE.md; `api.md` itself imports `@../shared/base.md`, which imports further still. (a) What is the documented maximum recursion depth for an `@import` chain? (b) The first time this import runs, what does Claude Code show you, and what is the lasting consequence of declining it?
+</Practice>
+
+<Practice id="d3-01-pr-agents-bridge" difficulty="2">
+A teammate keeps shared instructions in `AGENTS.md` so several tools read them, but reports that Claude Code "ignores the file entirely." In a sentence or two, explain why, and give the one-line fix that makes Claude Code pick up the same content.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d3-01-ex-scope-concat">
+**C.** CLAUDE.md files do not compete: "All discovered files are concatenated into context rather than overriding each other," ordered "from the filesystem root down to your working directory." So both "use tabs" and "use 2-space indent" are in context simultaneously — which is itself a smell, because contradictory ancestor instructions are *not* resolved by proximity. **A** and **B** both assume a precedence the instruction layer does not have. **D** is the high-value trap: it imports the *settings* model (where `settings.local.json` overrides user settings, Managed → User) onto *memory*, where files merge instead. To actually suppress the root file on this machine you would use `claudeMdExcludes`, not a closer CLAUDE.md.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Four scopes, broadest-first** — Managed → User → Project → Local; discovery walks up from cwd, nested files load on demand, and the **managed file cannot be excluded**.
+- **Concatenate, don't override** — there is no precedence between CLAUDE.md files (root → cwd order; `CLAUDE.local.md` appended after `CLAUDE.md`). This is the **opposite** of the strict five-level *settings* precedence (Managed highest → User lowest) — the single most common instruction-layer error is conflating the two.
+- **`@import`** — `@path` expands at launch, resolves relative to the importing file, caps at **recursion depth 5**, and prompts an approval dialog on first use (declining disables imports **permanently**).
+- **`AGENTS.md`** — Claude Code reads `CLAUDE.md` only; it picks up `AGENTS.md` solely through a `@AGENTS.md` import.
+- **Managed controls** — `claudeMd` deploys inline policy content (loads before user/project); `claudeMdExcludes` globs away ancestor files by absolute path — but never the managed-policy CLAUDE.md.
