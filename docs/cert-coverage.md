@@ -39,7 +39,7 @@ Primary owner: **architect-reference**. Cross-references: handbook on built-in t
 | Structured error responses (`isError`, `errorCategory`, retryability) | ⬜ | 🟢 D2.2 (authored 2026-06-01) | ⬜ |
 | Tool distribution + `tool_choice` (`auto`/`any`/forced) | ⬜ | 🟢 D2.3 (authored 2026-06-01) | ⬜ |
 | MCP server config (`.mcp.json` vs `~/.claude.json`, env var expansion) | 🟡 ch8 (consume-side) | 🟢 D2.4 (authored 2026-06-01) | ⬜ |
-| Built-in tools (Read, Write, Edit, Bash, Grep, Glob) | 🟡 ch3, ch8 | ⬜ | ⬜ |
+| Built-in tools (Read, Write, Edit, Bash, Grep, Glob) | 🟡 ch3, ch8 | 🟢 D2.5 (authored 2026-06-01) | ⬜ |
 
 ## Domain 3 — Claude Code Configuration & Workflows (20%)
 

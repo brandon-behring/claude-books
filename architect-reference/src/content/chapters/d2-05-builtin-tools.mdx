@@ -1,0 +1,130 @@
+---
+title: "Built-in Tools: The Roster, Execution Order, and Permission Gating"
+part: 2
+chapter: 5
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-01
+last_verified: 2026-06-01
+sources:
+  - agent-sdk-overview
+  - agent-sdk-agent-loop
+  - agent-sdk-permissions
+description: The fixed roster of built-in tools every agent ships with — Read, Write, Edit, Bash, Grep, Glob — their exact, case-sensitive names, the read-only-versus-state-modifying line that decides which run in parallel, and the permission modes and allow/deny rules that gate them. Closes on the allowlist-is-not-a-sandbox trap.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D2.3 (allowedTools distributes a tool surface; tool_choice steers selection) and Chapter D1.3 (a subagent runs its own allowedTools). No prior Agent SDK operations assumed.">
+- **Recognize** the six core built-in tools and that their names are matched exactly
+- **Distinguish** which tools run concurrently from which run sequentially — and the one property that decides
+- **Apply** the six permission modes and the allow/deny rule syntax to gate those tools
+- **Recognize** the allowlist-is-not-a-sandbox trap: `allowed_tools` does not constrain `bypassPermissions`
+</YouWillLearn>
+
+_D2.1 through D2.4 designed tools, their failure contracts, their distribution, and the wiring of external MCP servers. This chapter steps back to the tools an agent already has on the first turn — the fixed built-in roster — and the permission machinery that decides whether any given one actually fires. The exam angle is recognition: the exact roster, the read-versus-write execution split, the six modes, and one high-value trap where a developer thinks they have locked an agent down and have not._
+
+<MarginNote variant="note" label="Note">
+This is a **feature-surface** chapter: the tool names, the mode list, and the rule syntax are concrete surfaces that move between releases. Treat every name and flag as a current snapshot and re-verify before relying on it; the *principles* (read/write execution, evaluation order) are the stable part.
+</MarginNote>
+
+## The built-in tool roster
+
+Every agent starts with a fixed roster of built-in tools — the SDK ships roughly thirteen of them, in six categories, identical to those that power Claude Code.<Tag kind="official" /><Citation src="agent-sdk-overview" /><Citation src="agent-sdk-agent-loop" /> The six that do the everyday work of reading and changing a codebase are **`Read`**, **`Write`**, **`Edit`** (file operations), **`Grep`**, **`Glob`** (search), and **`Bash`** (execution). The parity with Claude Code is explicit: "The SDK includes the same tools that power Claude Code,"<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> and "Everything that makes Claude Code powerful is available in the SDK."<Tag kind="official" /><Citation src="agent-sdk-overview" /> Beyond this built-in set sit MCP server tools (Chapter D2.4) and your own custom tools; this chapter is about the built-ins every agent has from the start.
+
+These names are **exact** — they appear verbatim in `allowed_tools` / `allowedTools` rules and as the `tool_use.name` block in messages, so `Read` is the tool and `read` is not.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+<ConceptBox title="The six core tools">
+- **`Read`** — read any file in the working directory (text, with optional offset/limit).
+- **`Write`** — create a new file.
+- **`Edit`** — make a precise, in-place edit to an existing file.
+- **`Grep`** — search file contents with a regular expression.
+- **`Glob`** — find files by pattern (`**/*.ts`, `src/**/*.py`).
+- **`Bash`** — run terminal commands, scripts, and git operations.
+</ConceptBox>
+
+<Pitfall title="Tool names are matched exactly">
+A rule's tool name is compared literally against the tool's registered name. `allowed_tools=["read"]` or `["BASH"]` pre-approves *nothing* — the tools are `Read` and `Bash`. A mis-cased name fails silently: no error, just a tool that keeps falling through to a permission prompt as if it were never listed.
+</Pitfall>
+
+## Read-only and state-modifying tools run differently
+
+The roster splits along a line that the runtime cares about: whether a tool *reads* state or *changes* it. Read-only tools — `Read`, `Glob`, `Grep`, and MCP tools marked read-only — can run **concurrently**; tools that modify state — `Edit`, `Write`, and `Bash` — run **sequentially** to avoid conflicts. Custom tools default to sequential execution and opt into parallelism by setting `readOnlyHint` in their annotations.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
+
+<KeyIdea>
+Parallelism here is a *property of the tool's nature*, not a switch you flip per request. That makes it orthogonal to `disable_parallel_tool_use` from Chapter D2.3, which is a request-level cap on how many tools a single turn may invoke. One is about what a tool *is* (read vs write); the other is about how many calls you *allow* in a turn. They compose.
+</KeyIdea>
+
+## Gating the tools: six permission modes
+
+Having a tool in the roster does not mean it fires. When the model requests a tool, the active **permission mode** is consulted, and there are six: `default`, `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, and `auto` (TypeScript-only).<Tag kind="official" /><Citation src="agent-sdk-permissions" /> Two are worth memorizing for the exam because they change the *tool surface* directly: **`plan` restricts the agent to read-only tools**, so it explores and proposes a plan without editing source files; **`acceptEdits` auto-approves file edits and filesystem commands** (`mkdir`, `touch`, `rm`, `mv`, `cp`, `sed`) — but only inside `cwd` plus `additionalDirectories`, and paths outside that scope, or protected paths, still prompt.<Tag kind="official" /><Citation src="agent-sdk-permissions" />
+
+<ConceptBox title="Six permission modes">
+| Mode | What it does to the tool surface |
+|---|---|
+| `default` | No auto-approvals; unmatched tools hit your `canUseTool` callback (no callback ⇒ deny). |
+| `acceptEdits` | Auto-approves edits + filesystem commands inside `cwd`/`additionalDirectories`; other `Bash` follows default rules. |
+| `plan` | Read-only tools only; no edits to source files. |
+| `dontAsk` | Anything not pre-approved by rules is denied; `canUseTool` is never called. |
+| `bypassPermissions` | All tools run without prompts — but deny rules, explicit `ask` rules, and hooks still apply. Cannot run as root on Unix. |
+| `auto` (TS only) | A model classifier approves or denies each call. |
+</ConceptBox>
+
+## Allow and deny rules — and the allowlist trap
+
+Within a mode, **allow and deny rules** pre-approve or block specific tools and calls. A bare name and a scoped pattern behave differently: `allowed_tools=["Read", "Grep"]` auto-approves those tools; `disallowed_tools=["Bash"]` *removes* `Bash` from the request entirely, so the model never sees it; and `disallowed_tools=["Bash(rm *)"]` keeps `Bash` available but denies any `rm *` call — in **every** mode, including `bypassPermissions`.<Tag kind="official" /><Citation src="agent-sdk-permissions" /> All of this resolves through a fixed sequence: "When Claude requests a tool, the SDK checks permissions in this order: 1. Hooks. 2. Deny rules. 3. Permission mode. 4. Allow rules. 5. canUseTool callback."<Tag kind="official" /><Citation src="agent-sdk-permissions" />
+
+The high-value trap lives in the gap between *pre-approving* and *restricting*. `allowed_tools` only pre-approves the tools you list; it does **not** filter everything else out. Set `allowed_tools=["Read"]` alongside `permission_mode="bypassPermissions"` and the agent "still approves every tool, including `Bash`, `Write`, and `Edit`."<Tag kind="official" /><Citation src="agent-sdk-permissions" /> The allowlist was never a sandbox.
+
+<Pitfall title="allowed_tools is an allowlist, not a sandbox">
+To *expand* what runs without prompting, list tools in `allowed_tools`. To *restrict* what an agent can do, that list is the wrong instrument — under `bypassPermissions` it is ignored entirely. Read-only confinement comes from `plan` mode (read-only tools only) or from a **deny rule** (`disallowed_tools`), which blocks even under `bypassPermissions`. Reach for the allowlist to permit; reach for the mode or a deny rule to forbid.
+</Pitfall>
+
+Day-to-day use of these tools — the muscle memory of `Read`, `Edit`, and `Bash` inside a working session — is the handbook's territory (the *Use* book's chapter on Claude Code's toolset); this chapter is the architect's exam angle on the roster and the permission surface that gates it.
+
+## Practice
+
+<Exercise id="d2-05-ex-allowlist-vs-bypass">
+A developer wants a "read-only" agent for an automated audit. They configure it with `allowed_tools=["Read"]`, reasoning that listing only `Read` confines the agent to reading. To suppress every approval prompt in the headless run, they also set `permission_mode="bypassPermissions"`. Which tools can the agent actually use, and what is the one-line fix that would genuinely confine it?
+
+- **A.** Only `Read`; `bypassPermissions` still honors the allowlist, so the agent stays read-only as intended.
+- **B.** `Read` plus the filesystem commands (`mkdir`, `rm`, `mv`, `cp`) that `bypassPermissions` auto-approves.
+- **C.** Every tool, including `Bash`, `Write`, and `Edit`; `allowed_tools` only pre-approves and never restricts.
+- **D.** No tools; `allowed_tools=["Read"]` and `bypassPermissions` conflict, so the query raises an error.
+</Exercise>
+
+<Practice id="d2-05-pr-parallel" difficulty="2">
+An agent is asked to read three configuration files and then apply one edit. Which of those four operations may the SDK run concurrently, which must run on its own, and what single property of a tool decides the answer?
+</Practice>
+
+<Practice id="d2-05-pr-modes" difficulty="3">
+You need an agent that can explore a repository and propose changes but must not modify any source file — and you do not want to hand-maintain an allow/deny list to get there. (a) Which single permission mode gives you this? (b) Which mode would instead auto-approve edits *inside* the working directory while still prompting for paths outside it?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d2-05-ex-allowlist-vs-bypass">
+**C.** `allowed_tools` *pre-approves* the tools you list; it never *restricts* the ones you omit. Paired with `bypassPermissions`, the configuration "still approves every tool, including `Bash`, `Write`, and `Edit`" — the allowlist is silently irrelevant. **A** is the core misconception (treating the allowlist as a filter). **B** confuses this with `acceptEdits`, which is the mode that auto-approves filesystem commands — `bypassPermissions` approves *everything*, not just filesystem ops. **D** invents a conflict; the two settings combine without error, which is exactly why the trap is dangerous. **The fix:** drop `bypassPermissions` and use `permission_mode="plan"` (read-only tools only), or keep a stricter mode and add a deny rule such as `disallowed_tools=["Write", "Edit", "Bash"]` — deny rules block even under `bypassPermissions`. The lesson: reach for the allowlist to *permit*, and for the mode or a deny rule to *forbid*.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **The roster is fixed and the names are exact** — `Read`, `Write`, `Edit`, `Grep`, `Glob`, `Bash` are the six core built-ins (of ~13), identical to Claude Code's; they appear verbatim in allow/deny rules and as `tool_use.name`, and a mis-cased name matches nothing.
+- **Read vs write decides parallelism** — read-only tools (`Read`/`Glob`/`Grep`) run concurrently; state-modifying tools (`Edit`/`Write`/`Bash`) run sequentially; custom tools default to sequential and opt in via `readOnlyHint`. This is orthogonal to D2.3's `disable_parallel_tool_use`.
+- **Six permission modes** — `default`, `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, `auto` (TS). `plan` = read-only; `acceptEdits` = auto-approve edits/filesystem ops inside `cwd`/`additionalDirectories`, prompt outside.
+- **Five-step evaluation order** — Hooks → Deny rules → Permission mode → Allow rules → `canUseTool`. Deny rules and hooks fire *before* the mode, so they bind even under `bypassPermissions`.
+- **The allowlist trap** — `allowed_tools` pre-approves, it does not restrict; with `bypassPermissions` it approves everything regardless. Confine with `plan` mode or a deny rule, never with the allowlist alone.
