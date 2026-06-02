@@ -1,0 +1,112 @@
+---
+title: "Explicit Criteria over Vague Instructions"
+part: 4
+chapter: 1
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+description: The controllable lever for output quality is the specification, not the model. Name the success criteria and the output shape explicitly; positive instruction beats negative; the model will not infer a requirement you did not state. This is durable methodology — a stable principle, not a feature surface.
+sources:
+  - anthropic-increase-consistency
+  - anthropic-claude-4-best-practices
+  - anthropic-multishot-prompting
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="None beyond having prompted Claude for a structured result and been surprised by the variation between runs.">
+- **Apply** explicit output-format specification instead of relying on the model to infer a shape
+- **Distinguish** positive instruction ("do this") from negative instruction ("don't do that") and know which steers better
+- **Evaluate** when an explicit instruction is enough and when to escalate to examples or a hard schema
+- **Recognize** why this is a durable principle rather than a feature of any one model version
+</YouWillLearn>
+
+_Part IV opens the domain the exam weights at 20% — getting a model to produce what you actually need. The first lever is the cheapest and the most overlooked: the prompt's own precision. Everything later in this Part (few-shot, structured outputs, validation loops) is an escalation from this baseline. The principle here outlasts every model version — newer models make it *more* true, not less — which is why this chapter is a stable principle, not a feature surface._
+
+## Specify the output format; do not leave it to inference
+
+The single most reliable quality lever is to state the output contract explicitly. "Precisely define your desired output format using JSON, XML, or custom templates so that Claude understands every output formatting element you require."<Tag kind="official" /><Citation src="anthropic-increase-consistency" /> A vague instruction ("summarize this") leaves the shape — length, fields, ordering, what to do with missing data — for the model to guess, and a guess varies from run to run. An explicit instruction ("return JSON with keys `sentiment`, `key_issues` (list), and `action_items` (list of objects with `team` and `task`)") removes the variance at its source.
+
+<KeyIdea>
+Consistency is a property of the specification, not of the model. If two runs of the same prompt disagree, the disagreement was *latent in the prompt* — you left a degree of freedom unstated and the model resolved it differently each time. Pin every degree of freedom you care about, and the output stops drifting.
+</KeyIdea>
+
+## The model will not infer what you did not ask for
+
+Modern models follow instructions more literally, which makes implicit expectations a liability. "Claude Opus 4.7 interprets prompts more literally and explicitly than Claude Opus 4.6, particularly at lower effort levels. It will not silently generalize an instruction from one item to another, and it will not infer requests you didn't make."<Tag kind="official" /><Citation src="anthropic-claude-4-best-practices" /> The upside is precision and less thrash; the cost is that a requirement you held in your head but never wrote down will simply not be honored. The fix is not a cleverer prompt that the model "figures out" — it is stating the requirement.
+
+<Pitfall title="Expecting the model to read your intent">
+A prompt that works because the model generously guessed your intent is a prompt that will break the moment the model, the effort level, or the input distribution shifts. "It'll figure out the format from the one example" is precisely the assumption the more-literal models invalidate by design. If a behavior matters, it belongs in the instruction — not in your expectation of the model's charity.
+</Pitfall>
+
+## Tell the model what to do, not what to avoid
+
+When you are steering format or tone, a positive instruction outperforms a prohibition. The docs are explicit that demonstrating the wanted behavior beats forbidding the unwanted one: "Positive examples showing how Claude can communicate with the appropriate level of concision tend to be more effective than negative examples or instructions that tell the model what not to do."<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> "Respond in smoothly flowing prose" steers better than "do not use markdown lists," because a prohibition names a forbidden region without locating the target inside the (still vast) permitted one. A positive instruction points straight at the destination. The same logic applies to eliminating preambles: state "respond directly without preamble" rather than enumerating the openings you dislike.<Tag kind="official" /><Citation src="anthropic-claude-4-best-practices" />
+
+<KeyIdea>
+A negative instruction shrinks the output space; a positive instruction *aims* within it. "Don't be verbose" rules out one failure but leaves a thousand acceptable lengths; "answer in one sentence" picks the one you meant. Specify the target, not the anti-target.
+</KeyIdea>
+
+## The escalation ladder: instruction, then examples, then a hard schema
+
+Explicit instruction is the first rung, not the only one. The documented hierarchy is to ask plainly first and escalate only when you need a stronger guarantee: "Try simply asking the model to conform to your output structure first, as newer models can reliably match complex schemas when told to, especially if implemented with retries. For classification tasks, use either tools with an enum field containing your valid labels or structured outputs."<Tag kind="official" /><Citation src="anthropic-claude-4-best-practices" /> Plain instruction handles most cases; a few-shot example (the next chapter) disambiguates edge cases; a hard schema (D4.3) makes a shape *unrepresentable* to violate. Each rung costs more — context, latency, setup — so you climb only as far as the stakes require.
+
+<ConceptBox title="The escalation ladder for output control">
+1. **Explicit instruction** — name the format and the criteria in the prompt. Cheapest; handles the common case.
+2. **Few-shot examples** (D4.2) — demonstrate the desired handling, especially on ambiguous inputs the instruction can't fully pin down.
+3. **Structured outputs / strict tools** (D4.3) — constrain decoding so a non-conforming shape cannot be emitted at all. Strongest guarantee; highest setup cost.
+</ConceptBox>
+
+The hands-on craft of writing these prompts — the iteration rhythm, the worked before-and-after examples — is the *Use* book's territory; its prompt-engineering chapter is the use-side companion to this exam-angle treatment (forthcoming in the handbook).
+
+<MarginNote variant="note" label="Note">
+Cross-book pointer is prose-only: the handbook's prompt-engineering chapter is outlined but not yet published, so there is no stable URL to link yet.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d4-01-ex-vague-vs-explicit">
+A nightly job asks Claude to "summarize each support ticket." The summaries come back wildly inconsistent — some one line, some three paragraphs, some with a sentiment label and some without — and a downstream parser keeps breaking. What is the most direct fix?
+
+- **A.** Lower the temperature so the model is more deterministic across runs.
+- **B.** Add "be consistent and don't write too much" to the prompt.
+- **C.** Specify the exact output contract: a fixed set of fields, each with a stated type and length, e.g. JSON with `summary` (≤2 sentences), `sentiment` (enum), `action_needed` (boolean).
+- **D.** Switch to a larger model so it infers the intended format more reliably.
+</Exercise>
+
+<Practice id="d4-01-pr-positive-instruction" difficulty="2">
+Rewrite the negative instruction "don't include any preamble and don't use markdown headers" as a positive specification, and explain in one sentence why the positive form steers more reliably.
+</Practice>
+
+<Practice id="d4-01-pr-escalation-ladder" difficulty="3">
+You need a model to return one of exactly four category labels, and a malformed or out-of-set label will crash the pipeline. Name the three rungs of the escalation ladder in order, and say which rung you would stop at here and why.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d4-01-ex-vague-vs-explicit">
+**C.** The inconsistency is latent in the prompt: "summarize" leaves length, fields, and sentiment-handling unstated, so the model resolves them differently each run. Specifying the exact contract — fixed fields, each with a type and a length bound — removes those degrees of freedom and is what a downstream parser needs. **A** (temperature) reduces token-level randomness but does nothing about an *underspecified shape*; a deterministic model still has to invent a structure you never gave it. **B** is a negative, vague instruction — "too much" is undefined and "be consistent" names the goal without specifying the target. **D** is the exact assumption modern literal-following models invalidate: a bigger model will not infer a contract you didn't write, and may follow your vague prompt *more* faithfully, not less.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Consistency lives in the specification** — if two runs disagree, a degree of freedom was left unstated; pin the format (fields, types, lengths, missing-data handling) explicitly.
+- **Modern models follow instructions literally** — Opus 4.7 "will not infer requests you didn't make," so an unstated requirement is an unmet one; state it rather than expecting the model to read intent.
+- **Positive beats negative** — "respond in flowing prose" / "answer in one sentence" steers better than "don't use lists" / "don't be verbose"; aim at the target instead of ruling out one failure.
+- **Escalation ladder** — explicit instruction → few-shot examples (D4.2) → structured outputs / strict tools (D4.3); climb only as far as the stakes require, since each rung costs more.
+- **Why stable-principle** — "be explicit about what you want" survives every model version; newer, more-literal models make it more load-bearing, not less.

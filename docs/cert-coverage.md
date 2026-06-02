@@ -60,7 +60,7 @@ Split: prompting basics belong to **handbook**; tool_use + JSON schemas + batch 
 
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
-| Explicit criteria over vague instructions | 🟡 ch4 | ⬜ | ⬜ |
+| Explicit criteria over vague instructions | 🟡 ch4 | 🟢 D4.1 (authored 2026-06-02) | ⬜ |
 | Few-shot prompting (targeting ambiguous cases, format consistency) | 🟡 ch4, App B | ⬜ | ⬜ |
 | Structured output via `tool_use` + JSON schemas | ⬜ | ⬜ (primary) | ⬜ |
 | Validation, retry, feedback loops (semantic vs schema errors) | ⬜ | ⬜ (primary) | ⬜ |

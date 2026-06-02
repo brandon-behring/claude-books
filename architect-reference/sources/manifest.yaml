@@ -284,3 +284,31 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# === PART IV — D4 · Prompt Engineering & Structured Output ===
+
+# --- D4.1 (Explicit Criteria over Vague Instructions) — from 07-structured-output + 05-claude-api cache.
+
+- id: anthropic-increase-consistency
+  url: https://platform.claude.com/docs/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency
+  title: Increase output consistency
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-4-best-practices
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices
+  title: Prompting best practices
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-multishot-prompting
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/multishot-prompting
+  title: "Prompting best practices: Use examples effectively (multishot / few-shot)"
+  author: Anthropic
+  captured_at: 2026-05-23T00:00:00Z
+  tier: T1-official
+  tool: claude-code
