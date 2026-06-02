@@ -6,18 +6,19 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - multi-agent-research-system
   - when-to-use-multi-agent
-description: Once you've decided to decompose, the structural choice is fixed-in-advance (a sequential pipeline — predictable, cheap, auditable) versus decided-at-runtime (adaptive — the orchestrator scales effort to the task). Why open-ended work can't be hardcoded, why predictable work shouldn't be adaptive, and the failure modes at both extremes.
+description: Once you've decided to decompose, the structural choice is fixed-in-advance (a sequential pipeline — predictable, cheap, auditable) versus decided-at-runtime (adaptive — the orchestrator scales effort to the task). Why open-ended work can't be hardcoded, why predictable work shouldn't be adaptive, the quantified token cost of choosing adaptive, and the failure modes at both extremes.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -29,11 +30,22 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 <YouWillLearn prerequisites="Chapter D1.2 (coordinator–subagent patterns). You can decide whether a task has true context boundaries worth splitting on.">
 - **Distinguish** a fixed sequential pipeline from adaptive decomposition
 - **Explain** why open-ended, path-dependent work cannot be reduced to a hardcoded pipeline
+- **Quantify** what adaptive decomposition costs — the token multiplier and what it buys
 - **Evaluate** which structure a given task needs, trading predictability and cost against capability
 - **Select** the mitigation for the failure mode at each extreme — over-decomposition and rigid pipelining
 </YouWillLearn>
 
 _Chapter D1.2 settled **whether** to split a task and **where** the context boundaries are. This chapter asks a different question about the same task: once it is cut into pieces, is the set of pieces **fixed in advance**, or **decided at runtime**? That is the pipeline-versus-adaptive choice, and getting it wrong is expensive in opposite directions — an Evaluate-level judgment the exam probes with concrete tasks._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. What distinguishes a sequential pipeline from adaptive decomposition — and *when* is each structure set?
+2. Why can't open-ended research be reduced to a hardcoded pipeline?
+3. Roughly what token multiplier does an adaptive multi-agent flow cost versus a single agent, and does parallelism buy speed or thoroughness?
+4. Name the over-decomposition failure mode and the heuristic that guards against it.
+5. Which structure is usually programmatically enforced, and why?
 
 ## Two shapes of a decomposed task
 
@@ -62,9 +74,25 @@ The **1 / 2–4 / 10+** effort-scaling ladder (simple / comparison / complex) is
 
 ## When the path is predictable → pipeline
 
-The opposite case is just as common and far cheaper to run. When a task's steps are **known, repeatable, and the same every time**, a fixed sequential pipeline is the right structure: it is deterministic, auditable, and predictable in cost, and it asks the orchestrator to make no runtime judgment at all. A pipeline is typically *programmatically* enforced (D1.4) — your code drives the fixed sequence — precisely because nothing about the structure needs to be decided live.
+The opposite case is just as common and far cheaper to run. When a task's steps are **known, repeatable, and the same every time**, a fixed sequential pipeline is the right structure: it is deterministic, auditable, and predictable in cost, and it asks the orchestrator to make no runtime judgment at all. A pipeline is typically *programmatically* enforced (D1.4) — your code drives the fixed sequence — precisely because nothing about the structure needs to be decided live. Reaching for adaptivity here is wasted capability: you pay for an orchestrator's deliberation to re-derive a structure you already knew at design time.
 
-Reaching for adaptivity here is wasted capability: you pay for an orchestrator's deliberation to re-derive a structure you already knew at design time.
+## The cost you are choosing
+
+"Cheaper" and "more expensive" are not hand-waving — the choice has a price tag, and the exam expects the number. An adaptive multi-agent flow "typically use[s] 3-10x more tokens than single-agent approaches for equivalent tasks,"<Tag kind="official" /><Citation src="when-to-use-multi-agent" /> and on the absolute scale, "multi-agent systems use about 15× more tokens than chats."<Tag kind="official" /><Citation src="multi-agent-research-system" /> What that spend buys is **thoroughness, not speed** — parallel subagents explore a larger space, but coordination plus the slowest subagent often make the wall-clock *slower*, not faster.<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
+
+<KeyIdea>
+A sequential pipeline's cost is **bounded and predictable** — the same fixed steps every run. An adaptive flow's cost is **variable and can spike**: it pays the 3–10× multiplier *and* depends on the orchestrator sizing effort correctly. You choose adaptive for capability on open-ended work, knowing you are buying thoroughness at several times the token cost — not buying speed.
+</KeyIdea>
+
+<WorkedExample id="d1-06-pipeline-vs-adaptive" title="The same data, two shapes" expanded>
+Two tasks that look superficially similar decompose oppositely:
+
+**Pipeline — summarize 200 support tickets to a fixed JSON shape.** The steps are identical for every ticket (read → extract fields → emit JSON), so the structure is fixed at design time. Cost is *bounded*: 200 × (one fixed path). You fan the same path across all 200 tickets — parallel throughput, not adaptive structure — and your code enforces it (D1.4). No orchestrator judgment, no token-multiplier surprise.
+
+**Adaptive — "find out whether any competitor shipped feature X; go as deep as the question needs."** Depth is unknowable up front and each finding changes what to look at next (path-dependent), so a lead agent sizes the decomposition at runtime via the ladder: a quick check might be **1 agent, 3–10 calls**; a real comparison **2–4 subagents**; a deep dive **10+**. The capability to branch is the point — but it costs **3–10× the tokens** of a single agent, and the guard is the effort ladder so it doesn't spawn ten subagents to confirm an obvious "no."
+
+Same input domain (text about a topic); opposite structures, because one path is predictable and one is not.
+</WorkedExample>
 
 ## The failure mode at each extreme
 
@@ -75,7 +103,7 @@ Both shapes fail, in opposite ways, when matched to the wrong task.
 **Rigid pipelining** is the inverse: forcing a fixed sequence onto path-dependent work, which then cannot adapt when a step surfaces something the design didn't anticipate. And a pipeline cut by *role* rather than context is the telephone-game anti-pattern of D1.2 — sequential phases of one coupled task, losing fidelity at every handoff.<Tag kind="official" /><Citation src="when-to-use-multi-agent" />
 
 <Pitfall title="Over-decomposing a simple task">
-Adaptive structure without effort-scaling spawns subagents the task never needed — the "50 subagents for a simple query" failure. If you go adaptive, the orchestrator must be told how to size effort to complexity, or it will over-spend.
+Adaptive structure without effort-scaling spawns subagents the task never needed — the "50 subagents for a simple query" failure, paying the 3–10× multiplier for nothing. If you go adaptive, the orchestrator must be told how to size effort to complexity, or it will over-spend.
 </Pitfall>
 
 <Pitfall title="Forcing a pipeline onto open-ended work">
@@ -84,7 +112,7 @@ A hardcoded sequence applied to inherently dynamic, path-dependent work is britt
 
 ## Choosing the structure
 
-The Evaluate-level call comes down to **predictability**. Choose a **sequential pipeline** when the steps are knowable in advance and you value determinism, auditability, and bounded cost. Choose **adaptive decomposition** when the task is open-ended and path-dependent and that capability is worth the orchestrator overhead and variable cost. Either way, the orchestrator (or the author) must size effort to the task — adaptivity does not excuse you from judgment; it relocates it to runtime.
+The Evaluate-level call comes down to **predictability**. Choose a **sequential pipeline** when the steps are knowable in advance and you value determinism, auditability, and bounded cost. Choose **adaptive decomposition** when the task is open-ended and path-dependent and that capability is worth the orchestrator overhead and the 3–10× variable cost. Either way, the orchestrator (or the author) must size effort to the task — adaptivity does not excuse you from judgment; it relocates it to runtime.
 
 <MarginNote variant="note" label="Note">
 Need more review? Whether to decompose at all (and where the boundaries are) is D1.2; how a multi-step flow is *enforced* once structured is D1.4. This chapter is the fixed-vs-adaptive shape only.
@@ -93,21 +121,29 @@ Need more review? Whether to decompose at all (and where the boundaries are) is 
 ## Practice
 
 <Exercise id="d1-06-ex-pipeline-vs-adaptive">
-Evaluate the right decomposition structure for each task and justify it in one or two sentences. (a) A nightly job that summarizes each of 200 incoming support tickets into the same fixed JSON shape. (b) "Find out whether any of our competitors have shipped feature X — go as deep as the question needs." For whichever you call adaptive, name the failure mode you must guard against.
+Evaluate the right decomposition structure for each task and justify it in one or two sentences. (a) A nightly job that summarizes each of 200 incoming support tickets into the same fixed JSON shape. (b) "Find out whether any of our competitors have shipped feature X — go as deep as the question needs." For whichever you call adaptive, name the failure mode you must guard against and roughly the token cost you are accepting.
 </Exercise>
 
 <Practice id="d1-06-pr-rule" difficulty="3">
 State, in one sentence, the rule for when you can hardcode a sequential pipeline versus when you must decompose adaptively.
 </Practice>
 
-<Practice id="d1-06-pr-overdecomp" difficulty="2">
-Without looking back: name the documented over-decomposition failure mode, and the heuristic an adaptive orchestrator uses to avoid it.
+<Practice id="d1-06-pr-cost" difficulty="2">
+A lead chose an adaptive multi-agent decomposition for a fixed, predictable nightly job, citing "scalability." Name the rough token multiplier they are now paying versus a single-agent pipeline, state what that spend actually buys (and does *not* buy), and say why it is wasted here.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="d1-06-ex-pipeline-vs-adaptive">
-**(a) Sequential pipeline. (b) Adaptive.** (a) The steps are known and identical for every ticket, and the output is a fixed shape — there is nothing to decide at runtime, so a deterministic pipeline wins on cost, auditability, and predictability. (You fan the *same* fixed path out across 200 tickets; that is parallel throughput, not adaptive structure.) (b) The depth is unknowable up front and each finding changes what to look at next — "you can't hardcode a fixed path… inherently dynamic and path-dependent" — so the orchestrator must scale the decomposition to what it discovers. The failure mode to guard against on (b) is **over-decomposition**: don't let it spawn ten subagents to confirm a competitor obviously hasn't shipped the feature — size effort to the query (the 1 / 2–4 / 10+ ladder).
+**(a) Sequential pipeline. (b) Adaptive.** (a) The steps are known and identical for every ticket, and the output is a fixed shape — nothing to decide at runtime, so a deterministic pipeline wins on cost, auditability, and predictability. (You fan the *same* fixed path across 200 tickets — parallel throughput, not adaptive structure.) (b) The depth is unknowable up front and each finding changes what to look at next — "you can't hardcode a fixed path… inherently dynamic and path-dependent" — so the orchestrator must scale the decomposition to what it discovers. On (b) guard against **over-decomposition** (don't spawn ten subagents to confirm an obvious "no" — size effort via the 1 / 2–4 / 10+ ladder), and accept that you are paying roughly **3–10× the tokens** of a single agent for the thoroughness.
+</Solution>
+
+<Solution for="d1-06-pr-rule">
+**Hardcode a sequential pipeline when the steps are knowable and identical in advance (predictable, repeatable); decompose adaptively only when the task is open-ended and path-dependent — when step N+1 depends on what step N discovers, so no design-time sequence can capture it.**
+</Solution>
+
+<Solution for="d1-06-pr-cost">
+They are paying roughly **3–10× the tokens** of a single-agent pipeline (about 15× a chat). That spend buys **thoroughness — a larger explored space — not speed** (coordination plus the slowest subagent often make it *slower* in wall-clock). It is wasted here because a fixed, predictable nightly job has **nothing to decide at runtime**: the orchestrator's judgment is re-deriving a structure already known at design time, so you pay the multiplier for capability the task never needed. A deterministic pipeline is the correct, bounded-cost shape.
 </Solution>
 
 </ExerciseSolutions>
@@ -117,5 +153,6 @@ Without looking back: name the documented over-decomposition failure mode, and t
 - **Two shapes, distinguished by *when* the structure is set:** a **sequential pipeline** is fixed at design time; **adaptive decomposition** is decided at runtime by the orchestrator.
 - **Adaptive when the path can't be hardcoded** — open-ended, path-dependent work where step *N+1* depends on step *N*. Scale effort to the input (the 1 / 2–4 / 10+ heuristic).
 - **Pipeline when steps are predictable** — deterministic, auditable, bounded cost, usually programmatically enforced (D1.4). Adaptivity here is wasted.
+- **Adaptive costs 3–10× the tokens** of a single agent (≈15× a chat), and buys **thoroughness, not speed**. A pipeline's cost is bounded; an adaptive flow's is variable and can spike.
 - **Two opposite failure modes:** over-decomposition ("50 subagents for a simple query") for adaptive; rigid/role-based pipelining (the telephone game) for fixed.
 - **Choosing turns on predictability** — and either way the orchestrator must size effort to the task. (Whether to split = D1.2; how to enforce = D1.4.)
