@@ -1,0 +1,110 @@
+---
+title: "Escalation and Ambiguity Resolution"
+part: 5
+chapter: 2
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - agent-sdk-user-input
+  - claude-code-best-practices
+description: When an agent is uncertain or blocked, the reliable architecture makes it surface the decision rather than guess at intent. AskUserQuestion is the structured mechanism, the interview pattern is its proactive form, and the check-in is a control point where a human resolves what the model cannot.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D3.4-D3.5 (plan mode and the interview pattern) and D1.3 (subagents and their isolation).">
+- **Apply** the escalate-don't-guess principle when a task is ambiguous or blocked
+- **Recognize** the `AskUserQuestion` structured-clarification mechanism and its limits
+- **Distinguish** proactive escalation (the interview pattern) from reactive check-ins
+- **Analyze** why a subagent cannot escalate and how to design around it
+</YouWillLearn>
+
+_Reliability is not only about catching errors after the fact; it is about not committing to a wrong interpretation in the first place. When intent is ambiguous, a well-built agent asks rather than assumes. This chapter is the exam angle on that discipline — the mechanism and its limits — and points to the handbook for the hands-on use-side workflow. The principle is durable; the tool that carries it is the illustration, so this is an architectural pattern._
+
+## Escalate, don't guess
+
+The foundational move is to surface a decision the model cannot make on its own. "While working on a task, Claude sometimes needs to check in with users. It might need permission before deleting files, or need to ask which database to use for a new project. Your application needs to surface these requests to users so Claude can continue with their input."<Tag kind="official" /><Citation src="agent-sdk-user-input" /> An architect's job is to make those check-ins possible and routine — to design the agent so that hitting an ambiguity raises a question instead of silently resolving it.
+
+<KeyIdea>
+A silently-resolved ambiguity is a coin flip on intent that nobody chose to take. Escalation converts that flip into a decision made by the one party who actually knows the answer. The cost of asking is one round trip; the cost of guessing wrong is the whole task built on the wrong branch.
+</KeyIdea>
+
+## AskUserQuestion: structured clarification
+
+The mechanism is a built-in tool with a deliberately bounded shape. Each `AskUserQuestion` call carries 1–4 questions, each question a `header` (≤12 characters) and 2–4 `options` with a `label` and a `description`; the response maps each question to the chosen label, and free-text is handled by offering an "Other" choice and passing the typed text rather than the literal `"Other"`.<Tag kind="official" /><Citation src="agent-sdk-user-input" /> The structure is the point: bounded multiple-choice makes the human's answer fast to give and unambiguous to route back into the agent's flow.
+
+<ConceptBox title="The AskUserQuestion shape">
+- **Per call** — 1 to 4 questions.
+- **Per question** — a `question`, a short `header` (≤12 chars), 2 to 4 `options`, and a `multiSelect` flag.
+- **Per option** — a `label` and a `description` (optionally a `preview` for a visual mockup).
+- **Answer** — a map from each question to its chosen label (an array or comma-joined string when `multiSelect`); free-text rides in on an "Other" option.
+</ConceptBox>
+
+<Pitfall title="A subagent that hits ambiguity cannot ask">
+Subagents cannot call `AskUserQuestion`. A subagent that runs into an ambiguous requirement has no way to escalate — it must guess or fail, the exact failure escalation exists to prevent. Resolve the open questions *before* delegating: have the coordinator clarify intent, then hand the subagent a fully-specified task. Design the decomposition so the part that needs a human stays with the agent that can reach one.
+</Pitfall>
+
+## The interview pattern: escalate before you start
+
+Escalation is strongest when it is proactive — ask the questions before any work depends on the answers. That is the interview pattern from D3.5: Claude interviews you with `AskUserQuestion`, writes a spec, and a fresh session implements from it.<Tag kind="official" /><Citation src="claude-code-best-practices" /> The natural home for this is plan mode, since "clarifying questions are especially common in `plan` mode, where Claude explores the codebase and asks questions before proposing a plan."<Tag kind="official" /><Citation src="agent-sdk-user-input" /> Front-loading the questions resolves ambiguity while it is still cheap — before a single edit is built on a guessed interpretation.
+
+<KeyIdea>
+Ambiguity gets more expensive the longer it survives — a wrong assumption caught at the interview costs a question; the same assumption caught after implementation costs a rebuild. Plan mode and the interview pattern are escalation moved as early as it will go.
+</KeyIdea>
+
+## The check-in as a control point
+
+A clarifying question is also a deliberate pause, and the SDK treats it as one: the approval callback "can stay pending indefinitely" while a human decides, and for long delays the agent can return a deferred decision that ends the query and resumes later from the persisted session.<Tag kind="official" /><Citation src="agent-sdk-user-input" /> That makes escalation the upstream half of human-in-the-loop — the agent yields control at the moment of uncertainty, and the human resolves what the model could not (the downstream half, routing low-confidence *output* to review, is D5.5). The hands-on, use-side treatment of when and how to prompt for clarification is the handbook's territory (its escalation-patterns chapter is forthcoming).
+
+<MarginNote variant="note" label="Note">
+Cross-book pointer is prose-only — the handbook's escalation chapter is outlined but unpublished, so there is no stable URL to link yet.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d5-02-ex-ambiguous-db">
+An agent is scaffolding a new service and reaches a step that needs a database, but the request never said which one. What is the most reliable design?
+
+- **A.** Pick the most common default (say, PostgreSQL) and proceed, noting the choice in a comment.
+- **B.** Call `AskUserQuestion` with a short set of bounded options (Postgres / MySQL / SQLite) and continue once the user chooses.
+- **C.** Infer the database from whatever is already installed on the build machine.
+- **D.** Fail the task with an error explaining that the requirement was underspecified.
+</Exercise>
+
+<Practice id="d5-02-pr-askuserquestion-shape" difficulty="2">
+State the limits of a single `AskUserQuestion` call (questions per call, options per question) and describe how the response associates an answer with the question it answers.
+</Practice>
+
+<Practice id="d5-02-pr-subagent-limit" difficulty="3">
+A subagent is dispatched to implement a feature and discovers the spec is ambiguous. Explain why it cannot resolve this with `AskUserQuestion` and how you would restructure the work so the ambiguity is handled correctly.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d5-02-ex-ambiguous-db">
+**B.** The database choice is a genuine intent decision the model cannot infer, so the reliable move is to surface it: `AskUserQuestion` with a few bounded options gets a fast, unambiguous answer and lets the agent continue on the right branch. **A** guesses — a reasonable default is still a coin flip on a decision with downstream lock-in (migrations, drivers, hosting). **C** infers intent from an accident of the environment; what is installed on a build machine is not a statement of what the project should use. **D** is the over-correction: failing throws away a recoverable situation that one bounded question would resolve. Escalation, not guessing and not giving up, is the pattern.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Escalate, don't guess** — design the agent to surface an ambiguous or blocked decision rather than silently pick an interpretation; the cost of asking is one round trip, the cost of guessing wrong is the whole task.
+- **`AskUserQuestion`** — 1–4 questions per call, 2–4 bounded options each (`label` + `description`, short `header`); the answer maps question to chosen label; free-text via an "Other" option. The bounded shape makes answers fast and routable.
+- **Proactive beats reactive** — the interview pattern and plan mode front-load clarifying questions, resolving ambiguity while it is still cheap, before work is built on a guess.
+- **Subagents cannot escalate** — `AskUserQuestion` is unavailable in subagents, so resolve open questions in the coordinator before delegating a fully-specified task.
+- **Check-in as control point** — a clarifying question is a deliberate pause; the callback can stay pending or defer-and-resume, making escalation the upstream half of human-in-the-loop (D5.5 is the downstream half).

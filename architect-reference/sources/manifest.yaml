@@ -382,3 +382,14 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D5.2 (Escalation & Ambiguity Resolution) — from the 04-agent-sdk cache.
+# claude-code-best-practices (D1.4) reused for the interview pattern.
+
+- id: agent-sdk-user-input
+  url: https://code.claude.com/docs/en/agent-sdk/user-input
+  title: Handle approvals and user input
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
