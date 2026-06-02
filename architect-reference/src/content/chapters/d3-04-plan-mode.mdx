@@ -1,0 +1,114 @@
+---
+title: "Plan Mode vs Direct Execution: Research Before You Edit"
+part: 3
+chapter: 4
+volatility: architectural-pattern
+tools_compared: [claude-code]
+cert_domains: [3]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-02
+last_verified: 2026-06-02
+sources:
+  - claude-code-permission-modes
+  - agent-sdk-permissions
+description: Plan mode restricts Claude to read-only research and a written proposal — no edits — and approving the plan exits the mode into a write mode. Choosing plan versus going direct is a risk-containment decision, not a named-mode toggle; "direct execution" is simply working in a write mode.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="Chapter D2.5 (the six permission modes and how they gate tools). No prior plan-mode use assumed.">
+- **Explain** what plan mode restricts and how it differs from the write (execution) modes
+- **Recognize** how to enter and exit plan mode — and that approving a plan *ends* it
+- **Evaluate** when to plan first versus go direct, by reversal cost and uncertainty
+- **Apply** that judgment to a concrete change
+</YouWillLearn>
+
+_D2.5 enumerated the six permission modes as a tool-gating mechanism. This chapter zooms in on the one an architect chooses on purpose: `plan`. Plan mode is read-only research with a written proposal at the end — and the real exam question is not "what is plan mode" but "when do you plan first versus edit directly." That is a risk-containment decision, and there is no named "direct execution" mode — going direct just means working in a mode that lets edits through._
+
+## What plan mode restricts
+
+Plan mode is the one mode whose purpose is to change nothing: "Plan mode tells Claude to research and propose changes without making them. Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source. Permission prompts still apply the same as default mode."<Tag kind="official" /><Citation src="claude-code-permission-modes" /> It is read-only — best for exploring a codebase before changing it.<Tag kind="official" /><Citation src="claude-code-permission-modes" />
+
+Its contrast is not a single "direct" mode but the **write modes** from D2.5 — `default` (reads auto-approved, edits prompt) and `acceptEdits` (edits and common filesystem commands auto-approved) — the modes that let changes through.<Tag kind="official" /><Citation src="agent-sdk-permissions" /> "Going direct" is shorthand for working in one of those, not a toggle of its own.
+
+<KeyIdea>
+Plan mode is the only mode defined by what it *won't* do. Every other mode is a point on the convenience-versus-caution axis for *approving edits*; plan mode steps off that axis entirely — research and propose, edit nothing — until you approve.
+</KeyIdea>
+
+## Entering and exiting plan mode
+
+You can enter plan mode four ways: cycle with `Shift+Tab` (the CLI cycle runs `default` → `acceptEdits` → `plan`), prefix a single prompt with `/plan` (optionally with a task, `/plan fix the auth bug`), start the session with `claude --permission-mode plan`, or set `permissions.defaultMode: "plan"` in settings.<Tag kind="official" /><Citation src="claude-code-permission-modes" />
+
+Exit is the part that trips people up: "Approving a plan exits plan mode and switches the session to the permission mode each approve option describes, so Claude starts editing. To plan again, cycle back to plan mode with `Shift+Tab`, or prefix your next prompt with `/plan`."<Tag kind="official" /><Citation src="claude-code-permission-modes" /> When the plan is ready Claude presents it, and each approve option (auto, accept-edits, review-each-edit) names the *write* mode the session lands in.
+
+<Pitfall title="Approving the plan ends the read-only guarantee">
+Plan mode protects you only up to the moment you approve. The approve options aren't "yes, looks good" — each one is a choice of which write mode to drop into, and the next step can edit immediately. If you want to keep researching, choose "keep planning"; if you approve, you have left read-only behind. Treat the approval screen as the real decision point, not a formality.
+</Pitfall>
+
+## The decision: plan first, or go direct?
+
+Because plan mode adds a research-and-review round before any edit, the choice between it and going direct is a bet on **reversal cost** and **uncertainty**:
+
+<ConceptBox title="When to plan vs go direct">
+- **Plan first** when a wrong turn is expensive to undo or the design space is unclear: an unfamiliar codebase, a change spanning many files, a risky or irreversible operation, or anything where you want to see the blast radius before a single edit lands.
+- **Go direct** when the change is small and the code is familiar: a one- or two-line diff, an iterative tweak you can eyeball, a tight feedback loop where re-running is cheap.
+</ConceptBox>
+
+<KeyIdea>
+Plan mode converts an *unbounded* reversal cost into a *bounded* one. Go direct on a multi-file rename in an unfamiliar repo and you discover missed call sites as broken edits you now have to walk back. Plan first and the same misunderstanding surfaces in a proposal you reject for free — the mistake is caught before it touches the tree.
+</KeyIdea>
+
+## Where plan mode fits the workflow
+
+Plan mode is the front of the iterative loop — the "explore and plan" phase before "implement and commit" (the rhythm developed in D3.5). It is also why a hybrid like running the strongest model for planning and a faster one for execution is attractive: the expensive reasoning is spent where the leverage is, before edits begin.
+
+The hands-on mechanics — how the approval screen looks, how to drive the loop turn by turn — are the handbook's territory rather than this book's: see the *Use* book, Chapter 3, [*Your First Working Session*](https://github.com/brandon-behring/claude-books/blob/main/handbook/src/content/chapters/ch03-first-session.mdx).
+
+<MarginNote variant="note" label="Note">
+Cross-book link is provisional — it points at the chapter source until the handbook is deployed, then repoints to its published URL.
+</MarginNote>
+
+## Practice
+
+<Exercise id="d3-04-ex-plan-or-direct">
+You are asked to rename a widely-used helper function across an unfamiliar ~40-file service, and you want Claude to carry it out. Which approach best contains the risk, and why?
+
+- **A.** Start in `acceptEdits` and let Claude rename call sites as it finds them — the fastest path to a green tree.
+- **B.** Start in plan mode so Claude maps every call site and proposes the complete change set before editing; approve once it is complete.
+- **C.** Use `bypassPermissions` so nothing interrupts the multi-file edit.
+- **D.** Work in `default` mode and approve each edit as it appears, catching mistakes one prompt at a time.
+</Exercise>
+
+<Practice id="d3-04-pr-plan-restricts" difficulty="2">
+While in plan mode, which kinds of actions can Claude take, and which can it not? Name what still happens that people sometimes assume plan mode suppresses.
+</Practice>
+
+<Practice id="d3-04-pr-exit-mode" difficulty="3">
+You are in plan mode, Claude presents a plan, and you approve it by choosing the "accept edits" option. (a) What permission mode is the session in now? (b) What must you do to get back to planning for the next change?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="d3-04-ex-plan-or-direct">
+**B.** The change is unfamiliar, multi-file, and expensive to get wrong — exactly the profile where planning first pays. In plan mode Claude maps the full set of call sites and proposes the complete edit before touching anything, so a missed reference shows up in a proposal you can reject, not as breakage you have to walk back. **A** and **D** both start editing before the scope is known: you discover missed call sites as broken edits (A) or as a long stream of one-at-a-time approvals with no view of the whole (D). **C** removes the safety entirely — and approving plans is the opposite move from skipping permission checks. Plan mode here converts an unbounded reversal cost into a bounded one.
+</Solution>
+
+</ExerciseSolutions>
+
+## Exam essentials
+
+- **Plan mode = read-only research** — Claude reads, explores via shell, and writes a plan, but does **not** edit source; permission prompts still apply the same as default mode.
+- **"Direct execution" is not a mode** — it is working in a write mode (`default`/`acceptEdits`); plan's contrast is the modes that let edits through.
+- **Enter** — `Shift+Tab` cycle (`default` → `acceptEdits` → `plan`), `/plan [task]`, `--permission-mode plan`, or `defaultMode` in settings.
+- **Exit** — approving a plan **exits** plan mode into the chosen write mode and Claude starts editing; to plan again, cycle back with `Shift+Tab` or prefix `/plan`.
+- **The decision** — plan when reversal cost is high or the design space is uncertain (unfamiliar / multi-file / risky); go direct for small diffs in known code. Plan contains misunderstandings *before* edits.

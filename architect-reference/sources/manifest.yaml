@@ -248,3 +248,13 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D3.4 (Plan Mode vs Direct Execution) — from the 08-claude-code-internals cache.
+
+- id: claude-code-permission-modes
+  url: https://code.claude.com/docs/en/permission-modes
+  title: Choose a permission mode
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
