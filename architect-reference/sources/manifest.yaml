@@ -163,3 +163,14 @@
   captured_at: 2026-05-22T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- D2.2 (Structured Error Responses) — from 03-advanced-tool-use cache.
+# mcp-spec-tools (D2.1), anthropic-define-tools (D2.1), writing-tools-for-agents (D2.1) reused.
+
+- id: anthropic-handle-tool-calls
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls
+  title: Handle tool calls
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code

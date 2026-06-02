@@ -36,7 +36,7 @@ Primary owner: **architect-reference**. Cross-references: handbook on built-in t
 | Task area | Handbook | Architect's Ref | Field-Guide |
 |---|---|---|---|
 | Effective tool interfaces (descriptions, boundaries, naming) | ⬜ | 🟢 D2.1 (authored 2026-06-01) | ⬜ |
-| Structured error responses (`isError`, `errorCategory`, retryability) | ⬜ | ⬜ (primary) | ⬜ |
+| Structured error responses (`isError`, `errorCategory`, retryability) | ⬜ | 🟢 D2.2 (authored 2026-06-01) | ⬜ |
 | Tool distribution + `tool_choice` (`auto`/`any`/forced) | ⬜ | ⬜ (primary) | ⬜ |
 | MCP server config (`.mcp.json` vs `~/.claude.json`, env var expansion) | 🟡 ch8 (consume-side) | ⬜ (deeper) | ⬜ |
 | Built-in tools (Read, Write, Edit, Bash, Grep, Glob) | 🟡 ch3, ch8 | ⬜ | ⬜ |
