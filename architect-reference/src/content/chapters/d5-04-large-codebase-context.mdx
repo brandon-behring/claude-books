@@ -11,6 +11,7 @@ last_verified: 2026-06-02
 sources:
   - agent-sdk-agent-loop
   - claude-code-best-practices
+  - claude-code-commands
 description: A large codebase has more relevant files than any window holds, and reading them all is the trap, not the solution. The three levers that extend the horizon are compaction, scratchpads that externalize state to disk, and subagent delegation that pays exploration cost in a separate context.
 ---
 
@@ -18,6 +19,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -31,9 +33,20 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Apply** compaction and its customization knobs to extend a long working session
 - **Explain** how subagent delegation pays exploration cost in a separate context window
 - **Distinguish** which lever — compaction, scratchpads, delegation — fits which situation
+- **Distinguish** `/compact` (condense, same task) from `/clear` (reset, new task), and why a disk scratchpad survives both
 </YouWillLearn>
 
 _A large codebase has more relevant code than any context window can hold, so the question is never "how do I fit it all in" but "how do I keep the right slice in and the rest out." This chapter is the exam-angle inventory of the levers; the design book owns the at-scale mechanics. It is an architectural pattern — the levers are stable, the commands and hooks that drive them are the surface._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Why is "read every possibly-relevant file into the main session" a failure mode rather than caution?
+2. Name the three knobs that customize or trigger compaction, and which one steers *what content* survives.
+3. `/compact` and `/clear` both free context — what is the difference, and when do you reach for each?
+4. A subagent explores twenty files; what does the main agent receive back, and where was the context cost paid?
+5. You wrote a `PLAN.md` scratchpad, then ran `/compact`, then later `/clear`. Is the plan still available? Why?
 
 ## The codebase does not fit, and reading it all is the trap
 
@@ -55,6 +68,16 @@ When a working session approaches the limit, compaction reclaims room by summari
 
 Compaction is lossy (D5.1), so the same caution applies: durable rules belong in re-injected CLAUDE.md, not in turns the summary may discard.
 
+## `/compact` vs `/clear`, and the scratchpad beneath both
+
+Two commands free context, and confusing them wastes work. `/compact [instructions]` "frees context by summarizing" — it condenses the conversation in place, so you keep going on the *same* task with a shorter history, and the optional instructions focus what the summary keeps.<Tag kind="official" /><Citation src="claude-code-commands" /> `/clear` instead starts a *fresh* conversation — it discards the working context entirely, with the previous one still available via `/resume` (aliases `/reset`, `/new`).<Tag kind="official" /><Citation src="claude-code-commands" />
+
+The decision rule is **continuity**. Reach for `/compact` to *continue* a task whose history has grown long but is still relevant. Reach for `/clear` to *switch* to an unrelated task — or when a session is cluttered with failed approaches, the D3.5 rule that after more than two corrections on the same issue, "a clean session with a better prompt almost always outperforms a long session with accumulated corrections."<Tag kind="official" /><Citation src="claude-code-best-practices" /> Compaction keeps a lossy summary; clearing keeps nothing in the window at all.
+
+<KeyIdea>
+`/compact` condenses, `/clear` resets — and a **scratchpad on disk survives both**. Compaction only summarizes the *window* and `/clear` only wipes the *window*, so state you wrote to a file (D1.7) is untouched by either: the agent re-reads `PLAN.md` after a compaction, or in a freshly-cleared session, exactly as it left it. The durable layer of a long task does not live in the conversation at all.
+</KeyIdea>
+
 ## Delegation pays exploration cost in another window
 
 The lever that matters most for *breadth* is delegation. "Since context is your fundamental constraint, subagents are one of the most powerful tools available. When Claude researches a codebase it reads lots of files, all of which consume your context. Subagents run in separate context windows and report back summaries."<Tag kind="official" /><Citation src="claude-code-best-practices" /> A subagent can read the twenty files that answer "where is auth enforced," and the main agent receives the three-line answer rather than the twenty files — the exploration cost is paid in the child's window and discarded with it. Scratchpads are the complementary move: state written to a file (D1.7) lives on disk, not in the window, and the main agent reads it back only when needed.
@@ -62,6 +85,17 @@ The lever that matters most for *breadth* is delegation. "Since context is your 
 <KeyIdea>
 Compaction, delegation, and scratchpads all do one thing: move bulk *out* of the main context. Compaction summarizes it away, delegation spends it in a child window that returns only a summary, and a scratchpad parks it on disk. The main agent's window stays scoped to the decision in front of it.
 </KeyIdea>
+
+<WorkedExample id="d5-04-levers-on-one-task" title="Four levers across one long task" expanded>
+A refactor spanning a 5,000-file service, in one sitting:
+
+1. **Delegate the exploration.** Instead of reading auth's twenty files into the main window, dispatch a subagent — "find every place auth is enforced; report the files and the enforcement pattern." It reads twenty files in *its* window and returns a three-line summary; the main context never absorbed the bulk.
+2. **Externalize the plan.** Write the refactor plan to `PLAN.md` — a scratchpad on disk, not in the window. State now lives somewhere compaction and clearing cannot reach.
+3. **Condense, don't reset, mid-task.** Halfway through, the window nears the limit. Run `/compact` (optionally focused: "keep the auth findings and the plan"). The history condenses, you continue the *same* refactor, and `PLAN.md` is untouched on disk.
+4. **Reset for the unrelated bug.** A production bug interrupts — unrelated to the refactor. Run `/clear` for a fresh window (the refactor session stays in `/resume`), fix the bug, then return and **re-read `PLAN.md`** to resume the refactor exactly where you left it.
+
+The lesson is matching the lever to the move: *delegation* for breadth, a *scratchpad* for state that must outlive the window, `/compact` to **continue** with less, `/clear` to **switch** cleanly. Confusing the two commands is the common error — compacting when you meant to switch drags stale context forward; clearing when you meant to continue throws away the thread (and only `/resume` can recover it).
+</WorkedExample>
 
 ## Where the depth lives
 
@@ -96,11 +130,20 @@ Explain how dispatching a subagent to investigate part of a codebase protects th
 **B.** Delegation pays the exploration cost in the subagents' separate context windows and returns only summaries, so the main session learns where authentication flows without absorbing dozens of files — exactly the "subagents run in separate context windows and report back summaries" pattern. **A** is the trap this chapter names: reading everything into the main window fills it with material that crowds out the actual change and dilutes attention. **C** buys a bigger budget but still spends it on noise, and a larger window degrades on irrelevant bulk just the same. **D** fights symptoms — compacting mid-exploration repeatedly summarizes away the very findings you are gathering, and is no substitute for never loading the bulk into the main window in the first place.
 </Solution>
 
+<Solution for="d5-04-pr-compaction-knobs">
+The three are (1) a **CLAUDE.md "Summary instructions" section**, (2) the **`PreCompact` hook**, and (3) **manual `/compact`**. The one that steers *what content survives* the summary is the **CLAUDE.md "Summary instructions" section** — the compactor reads CLAUDE.md like any other context, so a section describing what to preserve directs what the summary keeps. The `PreCompact` hook runs *before* compaction (e.g. to archive the full transcript) and manual `/compact` controls *when* it happens, not what survives — though `/compact`'s optional focus instructions also nudge the summary's content.
+</Solution>
+
+<Solution for="d5-04-pr-delegation">
+Dispatching a subagent protects the main agent's context because the subagent runs in its **own separate context window**: it reads the files needed to answer the question *there*, spending that exploration cost against its own budget, and that window is discarded when it returns. The main agent receives back only a **summary** — the three-line answer ("auth is enforced in middleware X via pattern Y"), not the twenty files the subagent read — so the main context learns the conclusion without absorbing the bulk that produced it. Exploration cost is paid in the child window and thrown away with it.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
 
 - **Reading it all is the trap** — a large codebase exceeds any window; loading everything "to be safe" fills the context with noise and degrades attention. Load the task's slice, keep the rest out.
 - **Compaction** — triggers automatically near the limit and is steerable three ways: a CLAUDE.md "Summary instructions" section (steers what survives), the `PreCompact` hook, and manual `/compact`.
+- **`/compact` vs `/clear`** — `/compact` condenses the conversation to *continue* the same task (keeps a lossy summary); `/clear` starts a *fresh* conversation for an unrelated task or after >2 failed corrections (previous in `/resume`; aliases `/reset`, `/new`). A disk scratchpad (D1.7) survives both — neither command touches a file.
 - **Delegation** — subagents read files in their own context windows and report back summaries, so exploration cost is paid in the child window, not the main one; scratchpads (D1.7) park state on disk.
 - **Pick the lever** — compaction for a long single session, delegation for breadth of exploration, scratchpads for state that must outlive a compaction; depth lives in the design book's at-scale and context-assembly chapters.
