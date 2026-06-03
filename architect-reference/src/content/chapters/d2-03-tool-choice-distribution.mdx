@@ -6,21 +6,22 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [2]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - anthropic-define-tools
   - anthropic-tool-use
   - anthropic-parallel-tool-use
   - agent-sdk-permissions
   - agent-sdk-mcp
-description: Controlling whether and which tool the model may call — the four tool_choice modes and the extended-thinking constraint that trips people up (per-request steering), and allowedTools scoping versus bypassPermissions (per-agent distribution), with parallel execution as its own orthogonal axis.
+description: Controlling whether and which tool the model may call — the four tool_choice modes, the extended-thinking constraint, the any+strict guarantee of a schema-valid call, and the prompt-cache invalidation cost — plus allowedTools scoping versus bypassPermissions, with parallel execution as its own orthogonal axis.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -32,15 +33,26 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 <YouWillLearn prerequisites="Chapter D1.1 (the agent loop) and Chapter D2.1 (tool interfaces). Helpful: Chapter D1.3 (allowedTools on subagents) for the distribution half.">
 - **Identify** the four `tool_choice` modes and what each one forces
 - **Apply** the right mode — and recognize the one case where extended thinking forbids it
+- **Combine** `tool_choice: any` with `strict: true` to guarantee a schema-valid tool call
 - **Distinguish** per-request steering (`tool_choice`) from per-agent tool distribution (`allowedTools`)
 - **Evaluate** `allowedTools` scoping against the broader `bypassPermissions` for MCP access
 </YouWillLearn>
 
-_Defining a good tool (D2.1) and a good failure (D2.2) is only half the architect's job; the other half is controlling **whether and which** tool the model may reach for. Two knobs do this at two different scopes: `tool_choice` steers a single request — force a tool, free the model, or forbid all tools — while the SDK's `allowedTools` defines which tools even exist for an agent. The exam tests the four `tool_choice` modes (especially the one constraint that trips people up) and the difference between steering a call and distributing a surface._
+_Defining a good tool (D2.1) and a good failure (D2.2) is only half the architect's job; the other half is controlling **whether and which** tool the model may reach for. Two knobs do this at two different scopes: `tool_choice` steers a single request — force a tool, free the model, or forbid all tools — while the SDK's `allowedTools` defines which tools even exist for an agent. The exam tests the four `tool_choice` modes (especially the one constraint that trips people up), the `any`+`strict` guarantee, and the difference between steering a call and distributing a surface._
 
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: the `tool_choice` values, the `allowedTools` syntax, and the parallel-execution flag are named API/SDK surfaces that can shift between releases. Treat the specifics as a current snapshot and re-verify against the docs before relying on an exact flag.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Name the four `tool_choice` modes and what each forces.
+2. Which two modes are unusable when extended thinking is on?
+3. You need a *guaranteed schema-valid* tool call without forcing one specific tool. What two settings do you combine?
+4. What does changing `tool_choice` do to your prompt cache?
+5. `tool_choice` vs `allowedTools` — which steers a request, and which defines the toolbox?
 
 ## The four `tool_choice` modes
 
@@ -66,6 +78,33 @@ Forcing has a second, subtler effect. "When you have tool_choice as any or tool,
 Need a natural-language preamble *and* a specific tool? Use `auto` and ask for the tool in the user message ("Use the get_weather tool in your response") rather than forcing it. Forcing buys a guarantee at the cost of the preamble; `auto` keeps both at the cost of the guarantee.
 </MarginNote>
 
+## Guarantee a schema-valid call: `any` + `strict`
+
+`any` guarantees that *a* tool fires, but not that its *inputs* are valid — and forcing one specific tool isn't always what you want. Compose two switches to get both guarantees at once: "Combine `tool_choice: {'type': 'any'}` with strict tool use to guarantee both that one of your tools will be called AND that the tool inputs strictly follow your schema. Set `strict: true` on your tool definitions to enable schema validation."<Tag kind="official" /><Citation src="anthropic-define-tools" /> `any` covers *that a tool is called*; `strict: true` (D2.2) covers *that its arguments match the schema*. Together they make "some tool, well-formed" a hard guarantee — the right shape for a classifier or extractor that must always emit structured output through a tool.
+
+<MarginNote variant="note" label="Note">
+`strict: true` is available on all tools except `mcp_toolset`. It is the same prevention switch D2.2 uses against malformed inputs — here it composes with `any` to pin both *whether* a tool fires and *how* its inputs are shaped.
+</MarginNote>
+
+<WorkedExample id="d2-03-any-strict" title="A classifier that must always emit valid JSON" expanded>
+A `record_decision` tool must be called on every turn with a schema-valid payload (`{ "label": "approve" | "deny" | "escalate", "reason": string }`). Thinking is **off** for this step.
+
+- **`tool_choice: {"type": "any"}`** guarantees *a* tool is called — with only `record_decision` available, that is it.
+- **`strict: true`** on `record_decision` guarantees the `label`/`reason` inputs match the schema exactly (no missing field, no out-of-enum label).
+
+```jsonc
+// request
+{ "tools": [{ "name": "record_decision", "strict": true, "input_schema": { /* label enum + reason */ } }],
+  "tool_choice": { "type": "any" } }
+```
+
+The pair makes "some tool, well-formed" a hard guarantee. Note what you *cannot* add: extended thinking — `any` is incompatible with it. If you needed the model to reason first, you would drop to `auto` and lose the hard guarantee, or move the reasoning to a prior, tool-free turn.
+</WorkedExample>
+
+<MarginNote variant="warning" label="Cost">
+Changing `tool_choice` between turns **invalidates cached message blocks** under prompt caching — tool definitions and the system prompt stay cached, but message content must be reprocessed. Toggling `tool_choice` per turn forfeits that cache; keep it stable across cached turns.<Tag kind="official" /><Citation src="anthropic-define-tools" />
+</MarginNote>
+
 ## Distribution: scope the surface with `allowedTools`
 
 `tool_choice` steers one request; **distribution** decides which tools an agent has at all, and in the SDK that knob is `allowedTools` / `disallowedTools`. The two behave differently: `allowed_tools=["Read", "Grep"]` *pre-approves* the listed tools (others still exist and fall through to the permission mode), while `disallowed_tools=["Bash"]` *removes* the tool from the request entirely, so the model never sees it.<Tag kind="official" /><Citation src="agent-sdk-permissions" />
@@ -87,21 +126,29 @@ A third knob is easy to confuse with `tool_choice` but is orthogonal to it: `dis
 ## Practice
 
 <Exercise id="d2-03-ex-mode-selection">
-You are building an agent that (a) must produce a JSON classification by always calling your `record_decision` tool, and (b) you want extended thinking enabled so it reasons first. A colleague sets `tool_choice: {"type": "tool", "name": "record_decision"}`. What goes wrong, and what configuration still gets you as close as possible to guaranteeing the tool is used?
+You are building an agent that (a) must produce a JSON classification by calling your `record_decision` tool on every turn with valid inputs, and (b) you also want extended thinking enabled so it reasons first. A colleague sets `tool_choice: {"type": "tool", "name": "record_decision"}`. What goes wrong? What configuration gets you the *schema-valid guaranteed* tool call, and what must you give up to also keep thinking?
 </Exercise>
 
 <Practice id="d2-03-pr-scope-mcp" difficulty="2">
 An agent should be able to call every tool on an MCP server named `linear` but nothing else dangerous. Give the `allowedTools` entry you would use, and explain in one sentence why this is preferable to `permissionMode: "bypassPermissions"`.
 </Practice>
 
-<Practice id="d2-03-pr-modes-recall" difficulty="3">
-Without looking back: name the four `tool_choice` modes and, for each, give one clause on when an architect would choose it. Then name which two modes are unusable when extended thinking is enabled.
+<Practice id="d2-03-pr-cache" difficulty="3">
+A latency-sensitive workflow uses prompt caching and toggles `tool_choice` between `auto` and a forced tool on alternate turns, then is surprised that caching "barely helps." Explain what is happening to the cache and the one change that restores most of the benefit.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="d2-03-ex-mode-selection">
-**Forced `tool` mode is incompatible with extended thinking, so the request errors.** You cannot both force a specific tool and let the model reason with extended (or adaptive) thinking — those are mutually exclusive. Two ways to resolve the tension: (1) **drop extended thinking** and keep `tool_choice: {"type":"tool","name":"record_decision"}`, getting a hard guarantee but no visible reasoning; or (2) **keep thinking and use `tool_choice: auto`**, instructing the model in the user message to call `record_decision` — you keep the reasoning but lose the hard guarantee. No single configuration gives both; and note that any forced mode would also prefill the assistant turn and suppress the reasoning preamble anyway, so the two goals are fundamentally in conflict.
+**Forced `tool` mode is incompatible with extended thinking, so the request errors** — you cannot both force a specific tool and let the model reason with extended (or adaptive) thinking. To get a *schema-valid guaranteed* tool call, combine **`tool_choice: {"type": "any"}`** (guarantees some tool fires — here only `record_decision` exists) with **`strict: true`** on the tool (guarantees the inputs match the schema). But `any` is *also* incompatible with thinking, so to keep the hard guarantee you must **give up extended thinking on this turn** (or move the reasoning to a prior tool-free turn and force/`any` the decision on the next). No single configuration gives you a forced, schema-valid call *and* visible reasoning at once; forcing also prefills the assistant turn and suppresses the preamble.
+</Solution>
+
+<Solution for="d2-03-pr-scope-mcp">
+Use **`allowedTools: ["mcp__linear__*"]`** — the wildcard pre-approves exactly the `linear` server's tools and nothing else. It is preferable to `permissionMode: "bypassPermissions"` because bypass auto-approves the MCP tools *and* disables every other safety prompt across the whole agent (far broader than you need), whereas the scoped wildcard grants exactly the one server and leaves all other gates intact.
+</Solution>
+
+<Solution for="d2-03-pr-cache">
+Every turn that *changes* `tool_choice` **invalidates the cached message blocks** — tool definitions and the system prompt stay cached, but the message content has to be reprocessed — so alternating `auto`/forced means roughly every other turn pays full message-processing cost, which is why caching "barely helps." The fix: **keep `tool_choice` stable across the cached turns** (don't toggle it per turn); if some steps genuinely need a forced tool, group them so the value changes as rarely as possible rather than every turn.
 </Solution>
 
 </ExerciseSolutions>
@@ -110,6 +157,7 @@ Without looking back: name the four `tool_choice` modes and, for each, give one 
 
 - **Four `tool_choice` modes** — `auto` (default; Claude decides), `any` (must use some tool), forced `{"type":"tool","name":…}` (this tool), `none` (no tools). A spectrum from free to coerced.
 - **Forced modes break extended thinking** — only `auto` and `none` work with extended (or adaptive) thinking; `any` and forced `tool` error. The single most-tested `tool_choice` constraint.
+- **`any` + `strict: true` = a schema-valid guaranteed call** — `any` guarantees *a* tool fires, `strict: true` guarantees its inputs match the schema; compose them for classifiers/extractors. (`strict` is on all tools except `mcp_toolset`.)
 - **Forced modes prefill the assistant turn** — no natural-language preamble before the `tool_use` block; for preamble plus a specific tool, use `auto` and ask in the user message.
-- **Distribution ≠ steering** — `allowedTools` defines which tools exist for an agent (`disallowed_tools` removes one entirely); `tool_choice` steers a single request. For MCP, a `mcp__server__*` wildcard beats `bypassPermissions` (narrower, and `allowedTools` does not even constrain bypass).
-- **Parallelism is its own axis** — `disable_parallel_tool_use` caps tools-per-turn (auto → at most one; any/forced → exactly one); it composes with `tool_choice`, it is not a `tool_choice` value.
+- **`tool_choice` changes invalidate the prompt cache** — message blocks must be reprocessed (tool defs + system prompt stay cached); keep `tool_choice` stable across cached turns.
+- **Distribution ≠ steering** — `allowedTools` defines which tools exist (`disallowed_tools` removes one entirely); `tool_choice` steers a request. For MCP, a `mcp__server__*` wildcard beats `bypassPermissions` (narrower). Parallelism is its own axis (`disable_parallel_tool_use`).
