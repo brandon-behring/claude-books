@@ -18,6 +18,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -34,6 +35,16 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 </YouWillLearn>
 
 _A single agent fails visibly; a pipeline of agents fails by degrees. An error introduced at one stage rarely announces itself — it rides the handoff to the next stage as if it were sound input, and concurrent faults aggregate into a degradation that looks like nothing in particular. This chapter is about that propagation and the architecture that contains it. The pattern is durable; the percentages that illustrate it are evidence, so this is an architectural pattern._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Why is a pipeline of agents *less* reliable than its single most reliable agent?
+2. Why does a mid-pipeline agent turn an upstream ambiguity into a silent wrong decision, where an interactive one would not?
+3. The MAST taxonomy sorts multi-agent failures into which three categories — and which is the largest?
+4. Overlapping production bugs degraded quality for weeks, yet every component eval stayed green. Why couldn't the unit tests see it?
+5. Name two boundary defenses that contain error propagation across agents.
 
 ## Failures compound across agent boundaries
 
@@ -53,11 +64,25 @@ The combination that manufactures silent errors is a role-split pipeline ("plann
 
 ## Compounding failures evade per-component testing
 
-When multiple faults run at once, their aggregate is not the sum of their symptoms — and that is what makes them hard to catch. Anthropic's April-23 postmortem describes three production bugs running concurrently for roughly seven weeks, producing "broad, inconsistent degradation" that no single bug's symptom resembled; the most stubborn one "crossed context management, API header semantics, and the extended-thinking system."<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" /> Detection was the central lesson: the bugs hit different traffic slices, and neither internal usage nor the existing eval suite reproduced them.<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" />
+When multiple faults run at once, their aggregate is not the sum of their symptoms — and that is what makes them hard to catch. Anthropic's April-23 postmortem describes three production bugs with distinct, partly-overlapping windows: a reasoning-effort default change (Mar 4–Apr 7), a caching bug that broke thinking blocks (Mar 26–Apr 10), and a verbosity-reduction prompt (Apr 16–Apr 20).<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" /> Those windows *union* to a roughly seven-week span (Mar 4–Apr 20) — but that is the aggregate reach, not a stretch in which all three ran at once: the first two overlapped, while the third began only after both had been fixed. Even so, the combined effect "looked like broad, inconsistent degradation" that no single bug's symptom resembled, and the most stubborn one — the caching bug — crossed context management, the API layer, and the extended-thinking system.<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" /> Detection was the central lesson: the bugs hit different traffic slices, and neither internal usage nor the existing eval suite reproduced them.<Tag kind="official" /><Citation src="anthropic-april-23-postmortem" />
 
 <KeyIdea>
 A compounding failure is invisible to component tests precisely because it lives *between* components. Each part passes its own eval; the degradation only appears in the interaction, on traffic slices no single test exercises. This is why "every unit test is green" is not evidence that a multi-stage system is healthy — the failure mode is the integration, not the unit.
 </KeyIdea>
+
+<WorkedExample id="d5-03-april-23-timeline" title="Why three overlapping bugs passed every unit test" expanded>
+The April-23 incident is the canonical compounding failure. Three independent bugs, three windows:
+
+| Bug | Window | Layer(s) it touched |
+| --- | --- | --- |
+| Reasoning-effort default change | Mar 4 – Apr 7 | inference defaults |
+| Caching bug (broke thinking blocks) | Mar 26 – Apr 10 | context mgmt × API × extended thinking |
+| Verbosity-reduction prompt | Apr 16 – Apr 20 | system prompt |
+
+Read the dates carefully: the first two **overlapped** (Mar 26 – Apr 7), but the third started *after* both were already fixed. So "seven weeks" is the **union** of the windows (Mar 4 – Apr 20), not a span of three-way concurrency — a distinction worth getting right, because it changes what a responder is actually hunting for (one persistent fault versus a shifting set).
+
+Now the reason it hid: each bug, tested in isolation, passes. The reasoning-effort change is a valid config; the cache works on most paths; the verbosity prompt is well-formed. The degradation lived in the *interaction* and in *which traffic slices* each bug touched — so neither internal usage nor the existing eval suite reproduced it, and "broad, inconsistent degradation" was all the aggregate looked like. The postmortem's remedy is integration-level: per-model evaluations on every prompt change, ablation testing, and soak periods before rollout — exercising the system as it actually runs, because the failure was never inside any one unit.
+</WorkedExample>
 
 ## Defenses: structured context, independent validation, circuit breakers
 
@@ -95,6 +120,14 @@ Using the April-23 postmortem as the example, explain why a compounding cross-sy
 
 <Solution for="d5-03-ex-silent-propagation">
 **B.** The failure is a boundary failure: an ambiguous handoff that no stage is positioned to catch. Fixing the boundary — a typed, schema-validated spec so there is less to misinterpret, plus an independent validation step that checks the coder's output against that spec — intercepts the wrong interpretation before it reaches the reviewer. **A** makes one agent smarter but leaves the ambiguous *interface* intact; a better coder still has to guess at an under-specified spec. **C** asks the reviewer to work harder while still reading only the code, blind to the spec it was meant to satisfy. **D** doubles cost and gives two artifacts to compare with no oracle for which is right — a wrong-but-consistent interpretation reproduces on the retry.
+</Solution>
+
+<Solution for="d5-03-pr-mast-categories">
+The three MAST categories are **specification problems (41.77%)**, **coordination failures (36.94%)**, and **verification gaps (21.30%)**; **specification problems are the largest**. Specification problems propagate especially badly in a pipeline because a mid-pipeline agent cannot pause to ask — an under-specified handoff becomes a guess the agent resolves and passes downstream as settled fact, so a single ambiguity at the top seeds a wrong decision that every later stage treats as valid input.
+</Solution>
+
+<Solution for="d5-03-pr-compounding">
+A compounding cross-system failure can pass every per-component evaluation because it lives **between** components, not inside any one: each part passes its own eval in isolation, and the degradation emerges only from their *interaction*, on traffic slices no single test exercises. In the April-23 case three bugs with overlapping windows (the union running Mar 4 – Apr 20) produced "broad, inconsistent degradation" that no single bug's symptom resembled, and neither internal usage nor the existing eval suite reproduced it. The postmortem concluded that **integration-level testing** was needed instead — broad per-model evaluations on every prompt change, ablation testing, and soak periods before rollout — testing the system as it actually runs rather than each unit alone.
 </Solution>
 
 </ExerciseSolutions>
