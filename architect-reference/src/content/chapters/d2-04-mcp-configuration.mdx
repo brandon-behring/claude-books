@@ -6,20 +6,21 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [2]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - agent-sdk-mcp
   - agent-sdk-claude-code-features
   - claude-code-mcp
   - mcp-spec-lifecycle
-description: Wiring an MCP server so it resolves predictably across personal, team, and machine contexts. The two config paths, the three scopes and their precedence, the local-scope-versus-local-settings trap, env-var expansion for secrets, and the transports atop a mid-revision wire protocol.
+description: Wiring an MCP server so it resolves predictably across personal, team, and machine contexts. The two config paths and strictMcpConfig, claude mcp add --scope, the three scopes and their precedence, the local-scope-versus-local-settings trap, env-var expansion for secrets, verifying the connection via system:init, and the transports atop a mid-revision wire protocol.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -29,29 +30,44 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 
 <YouWillLearn prerequisites="Chapter D2.1 (MCP tools surface as mcp__server__tool) and Chapter D2.3 (allowedTools wildcards scope an MCP server). No prior MCP-server operations assumed.">
-- **Choose** the config location — programmatic vs `.mcp.json` — and the right scope for an audience
+- **Choose** the config location — programmatic (with `strictMcpConfig`) vs `.mcp.json` — and the right scope for an audience
+- **Install** a server with `claude mcp add` and the `--scope` / `--transport` flags
 - **Apply** env-var expansion to keep secrets out of a committed config
-- **Distinguish** MCP "local scope" from general "local settings" — they are different files
-- **Recognize** the scope-precedence order that decides which definition wins
+- **Verify** a server actually connected by reading its `system:init` status before the agent runs
+- **Distinguish** MCP "local scope" from general "local settings," and recognize the scope-precedence order
 </YouWillLearn>
 
-_D2.1 through D2.3 designed tools, their failures, and their distribution; this chapter is where an external MCP server actually gets **connected**. Almost every trap here is about *location* — which file holds the config, which scope it lives in, which directory it resolves against — plus one notorious naming collision between "local scope" and "local settings." Get the location right and a server resolves predictably across personal, team, and machine contexts; get it wrong and the agent silently never sees the tools._
+_D2.1 through D2.3 designed tools, their failures, and their distribution; this chapter is where an external MCP server actually gets **connected**. Almost every trap here is about *location* — which file holds the config, which scope it lives in, which directory it resolves against — plus one notorious naming collision and one silent-failure mode: a server that never connected. Get the location right and check the connection, and a server resolves predictably across personal, team, and machine contexts; get it wrong and the agent silently never sees the tools._
 
 <MarginNote variant="note" label="Note">
-This is a **feature-surface** chapter: file paths, scope names, env-var syntax, and the transport list are concrete config surfaces that move between releases — and the MCP wire protocol itself is mid-revision (see the last section). Treat every path and flag as a current snapshot and re-verify before relying on it.
+This is a **feature-surface** chapter: file paths, scope names, env-var syntax, CLI flags, and the transport list are concrete config surfaces that move between releases — and the MCP wire protocol itself is mid-revision (see the last section). Treat every path and flag as a current snapshot and re-verify before relying on it.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Name the two ways to configure an MCP server, and what `strictMcpConfig: true` does.
+2. What flag on `claude mcp add` chooses local vs project vs user scope?
+3. Where does a *local-scoped* MCP server live — and how does that differ from "local settings"?
+4. After wiring a server, how do you confirm it actually connected before the agent runs?
+5. What are the three config `type` transports, and what is the default connection timeout?
 
 ## Two ways to configure a server
 
 An MCP server reaches an agent through one of two configuration paths. You can register it **programmatically** — `mcp_servers` in Python, `mcpServers` in TypeScript — or declare it in a **`.mcp.json`** file at the project root.<Tag kind="official" /><Citation src="agent-sdk-mcp" /> The file-based path is not automatic, though: `.mcp.json` loads only when the SDK's `settingSources` includes `"project"`.<Tag kind="official" /><Citation src="agent-sdk-claude-code-features" /><Citation src="agent-sdk-mcp" />
 
+For a reproducible, clean-room config there is a third lever: **`strictMcpConfig: true` uses only the servers you pass in `mcpServers`, ignoring `.mcp.json`, user settings, and plugins.**<Tag kind="official" /><Citation src="agent-sdk-mcp" /> It is how you guarantee an SDK run sees exactly the servers you declared and nothing the machine happens to carry.
+
 <ConceptBox title="Programmatic vs file-based">
-Programmatic config lives in your code — explicit, versioned with the application, invisible to the CLI. `.mcp.json` lives in the repo — shareable, committed, and read by both the CLI and any SDK run that opts into the `"project"` source. Choosing between them is choosing *who owns the wiring*: the application, or the repository.
+Programmatic config lives in your code — explicit, versioned with the application, invisible to the CLI; `strictMcpConfig: true` makes it the *only* source. `.mcp.json` lives in the repo — shareable, committed, and read by both the CLI and any SDK run that opts into the `"project"` source. Choosing between them is choosing *who owns the wiring*: the application, or the repository.
 </ConceptBox>
 
-## Three scopes and their files
+## Three scopes — and `claude mcp add --scope`
 
 Claude Code stores MCP servers in three scopes, each a different file with a different audience: **Local** (`~/.claude.json`, under a per-project key — current project only, not shared), **Project** (`.mcp.json` at the repo root — shared via version control, with a one-time approval prompt on first use), and **User** (`~/.claude.json` — available across all your projects).<Tag kind="official" /><Citation src="claude-code-mcp" />
+
+The CLI is how you actually install one and pick its scope: `claude mcp add <name> --scope <local|project|user> --transport <http|stdio|sse> …` — for example, `claude mcp add --transport http --scope project notion https://mcp.notion.com/mcp` registers a project-scoped HTTP server.<Tag kind="official" /><Citation src="claude-code-mcp" /> `--scope` is the flag that decides *who sees the server*; omit it and you get Local (the default).
 
 When the same server name appears in more than one scope, Claude Code connects once, using the highest-precedence source: **Local → Project → User → plugin-provided → claude.ai connectors** (the first three match duplicates by name).<Tag kind="official" /><Citation src="claude-code-mcp" />
 
@@ -75,42 +91,77 @@ Because a Project-scoped `.mcp.json` is committed to version control, secrets mu
 One snag: `${CLAUDE_PROJECT_DIR}` in a hand-written `.mcp.json` must use the default form, `${CLAUDE_PROJECT_DIR:-.}`, because it is set in the server's environment rather than Claude Code's. Plugin-provided configs are the exception — they substitute it directly, no default needed.
 </MarginNote>
 
+## Verify the server connected
+
+A wired server that never connected is the silent failure of this chapter — the agent simply runs without the tools and you find out from a confusing answer. Don't assume; check. **Detect connection failures via the `system:init` message: each server's `status` is one of `connected | failed | needs-auth | pending | disabled` — read it before letting the agent run.**<Tag kind="official" /><Citation src="agent-sdk-mcp" /> The default connection timeout is **60 seconds** for server initialization, so a slow-starting server may need pre-warming or a lighter-weight package.<Tag kind="official" /><Citation src="agent-sdk-mcp" />
+
+<WorkedExample id="d2-04-add-and-verify" title="Wire a project server, then confirm it connected" expanded>
+Add a project-scoped server with the CLI, then gate the run on its status:
+
+```bash
+# the CLI sets scope (--scope) and transport (--transport); project => committed .mcp.json
+claude mcp add --transport http --scope project notion https://mcp.notion.com/mcp
+```
+
+```python
+# Before letting the agent act, read system:init and refuse to run on a bad status:
+async for message in query(prompt="…", options=options):
+    if message.type == "system" and message.subtype == "init":
+        bad = [s for s in message.data.get("mcp_servers", [])
+               if s.get("status") != "connected"]
+        if bad:
+            raise RuntimeError(f"MCP servers not connected: {bad}")  # status: failed / needs-auth / pending / disabled
+```
+
+If `notion` comes back `needs-auth`, the OAuth flow hasn't completed; `failed` usually means a missing env var, an uninstalled package, a bad connection string, or an unreachable host — and remember the 60-second init timeout. Checking `status` turns a silent "the tools just aren't there" into an explicit, actionable failure.
+</WorkedExample>
+
 ## Transports and the snapshot-dated wire protocol
 
-A server's `type` selects its transport: `stdio` for local processes (the default), `sse` (Server-Sent Events, now deprecated), `http` (Streamable HTTP), and `sdk` for an in-process server built inside your application.<Tag kind="official" /><Citation src="agent-sdk-mcp" /> Those four are the configuration surface you choose from, per server.
+A server's `type` selects its transport, and there are **three** config transports: `stdio` for local processes, `sse` (Server-Sent Events, now **deprecated** — use HTTP), and `http` (Streamable HTTP; JSON configs accept `streamable-http` as an alias for `http`).<Tag kind="official" /><Citation src="claude-code-mcp" /> Separately — and this is *not* a `.mcp.json` `type` — the SDK lets you run an MCP server **in-process inside your application** (an SDK deployment mode, e.g. a built-in tool server), rather than as an external process or endpoint.<Tag kind="official" /><Citation src="agent-sdk-mcp" />
 
 Beneath the config sits the MCP wire protocol — and it is mid-revision, so cite it with a date. Under the 2025-11-25 specification, an `initialize` handshake "MUST be the first interaction between client and server," negotiating protocol version and capabilities before any tool call.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" /> The 2026-07-28 release candidate removes that handshake for a stateless model, so the wire details here are a dated snapshot, not a permanent contract.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" />
 
 <MarginNote variant="note" label="Note">
-The handshake and transport list are 2025-11-25 protocol facts on a moving target — the cache flags a 2026-07-28 RC that eliminates the `initialize` handshake. Re-verify the wire protocol before relying on it; the *configuration* surface (scopes, files, env vars) is the more stable part of this chapter.
+The handshake is a 2025-11-25 protocol fact on a moving target — the cache flags a 2026-07-28 RC that eliminates the `initialize` handshake. Re-verify the wire protocol before relying on it; the *configuration* surface (scopes, files, env vars) is the more stable part of this chapter.
 </MarginNote>
 
 ## Practice
 
 <Exercise id="d2-04-ex-scope-and-secret">
-Your team needs a `postgres` MCP server available to everyone who clones the repo, but the connection string must not be committed. (a) Which scope and file do you use? (b) Show the `env` field using the documented expansion syntax. (c) A teammate later adds the *same* server name in their personal `~/.claude.json`. Which definition wins on their machine, and why?
+Your team needs a `postgres` MCP server available to everyone who clones the repo, but the connection string must not be committed. (a) Which scope and file do you use, and what `claude mcp add` flag sets that scope? (b) Show the `env` field using the documented expansion syntax. (c) A teammate later adds the *same* server name in their personal `~/.claude.json`. Which definition wins on their machine, and why?
 </Exercise>
 
 <Practice id="d2-04-pr-two-locals" difficulty="2">
 A colleague says: "I put my MCP server in local settings — in `.claude/settings.local.json` — but Claude Code can't find it." In one or two sentences, explain their mistake and name the file a local-scoped MCP server actually lives in.
 </Practice>
 
-<Practice id="d2-04-pr-project-dir" difficulty="3">
-You reference `${CLAUDE_PROJECT_DIR}` in a `command` field of a hand-written (non-plugin) `.mcp.json` and the config fails to parse. What is the documented fix, and why is it needed here but not in a plugin-provided config?
+<Practice id="d2-04-pr-verify" difficulty="3">
+An agent "doesn't seem to have" its MCP tools, but the config looks right and no error is thrown. Name the message and field you inspect to diagnose this, the status values that would explain it, and the default timeout that could be the cause.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="d2-04-ex-scope-and-secret">
-**(a) Project scope — a `.mcp.json` at the repo root**, committed to version control so every clone gets the server. **(b)** Reference the secret through env-var expansion rather than inlining it, e.g. `"env": { "DATABASE_URL": "${DATABASE_URL}" }` (or `"${DATABASE_URL:-...}"` if a safe default exists) — expansion works in `env`, `url`, and `headers`, so no literal credential is committed. **(c) The teammate's definition wins on their machine.** Their `~/.claude.json` entry is **Local** scope, and precedence runs **Local → Project → User**, matched by name — so the local definition overrides the shared project one for them. That is the intended override path for personal credentials, not a conflict.
+**(a) Project scope — a `.mcp.json` at the repo root** (committed so every clone gets the server), installed with **`claude mcp add … --scope project`**. **(b)** Reference the secret through env-var expansion rather than inlining it, e.g. `"env": { "DATABASE_URL": "${DATABASE_URL}" }` (or `"${DATABASE_URL:-…}"` if a safe default exists) — expansion works in `env`, `url`, and `headers`, so no literal credential is committed. **(c) The teammate's definition wins on their machine.** Their `~/.claude.json` entry is **Local** scope, and precedence runs **Local → Project → User**, matched by name — so the local definition overrides the shared project one for them. That is the intended override path for personal credentials, not a conflict.
+</Solution>
+
+<Solution for="d2-04-pr-two-locals">
+The mistake is conflating "MCP **local scope**" with "general **local settings**." A *local-scoped MCP server* is stored in **`~/.claude.json`** (the home directory, under a per-project key), **not** in `.claude/settings.local.json` (the project's machine-local settings). Editing the latter to change an MCP server is a silent no-op — point them at `~/.claude.json`.
+</Solution>
+
+<Solution for="d2-04-pr-verify">
+Inspect the **`system:init` message** and its **`mcp_servers`** field — each server reports a `status`. A status other than **`connected`** explains the missing tools: **`failed`** (missing env var, uninstalled package, bad connection string, unreachable host), **`needs-auth`** (OAuth not completed), **`pending`**, or **`disabled`**. The **60-second** default initialization timeout is a common cause of `failed`/`pending` for slow-starting servers — pre-warm or use a lighter package. Always read `status` before letting the agent run rather than discovering the gap from a wrong answer.
 </Solution>
 
 </ExerciseSolutions>
 
 ## Exam essentials
 
-- **Two config paths** — programmatic (`mcp_servers`/`mcpServers`) or a `.mcp.json` at the project root; the file loads only when `settingSources` includes `"project"`.
+- **Two config paths** — programmatic (`mcp_servers`/`mcpServers`) or a `.mcp.json` at the project root (loads only when `settingSources` includes `"project"`). **`strictMcpConfig: true`** uses *only* `mcpServers`, ignoring `.mcp.json`/user/plugins.
+- **`claude mcp add … --scope <local|project|user> --transport <http|stdio|sse>`** installs a server and picks its scope; `--scope` defaults to Local.
 - **Three scopes, three audiences** — Local (`~/.claude.json`, per-project, private), Project (`.mcp.json`, committed/shared, approval-prompted), User (`~/.claude.json`, all projects). Precedence: Local → Project → User → plugin → claude.ai, matched by name.
-- **"Local scope" ≠ "local settings"** — a local-scoped MCP server lives in `~/.claude.json` (home), not `.claude/settings.local.json` (project). Editing the wrong one is a silent no-op.
-- **Env-var expansion** — `${VAR}` and `${VAR:-default}` in `command`/`args`/`env`/`url`/`headers` keep secrets out of a committed `.mcp.json`; `${CLAUDE_PROJECT_DIR}` needs the `:-` form in hand-written configs.
-- **Transports + a moving wire protocol** — `stdio`/`sse` (deprecated)/`http`/`sdk`; the 2025-11-25 `initialize` handshake is a dated snapshot the 2026-07-28 RC removes — cite the wire protocol with a version.
+- **"Local scope" ≠ "local settings"** — a local-scoped MCP server lives in `~/.claude.json` (home), not `.claude/settings.local.json` (project).
+- **Env-var expansion** — `${VAR}` / `${VAR:-default}` in `command`/`args`/`env`/`url`/`headers`; `${CLAUDE_PROJECT_DIR}` needs the `:-` form in hand-written configs.
+- **Verify the connection** — read the `system:init` `status` (`connected`/`failed`/`needs-auth`/`pending`/`disabled`) before running; the default init timeout is **60s**.
+- **Three config transports** — `stdio` / `sse` (deprecated) / `http` (`streamable-http` alias); the SDK in-process server is a separate deployment mode, not a `type`. The 2025-11-25 `initialize` handshake is a dated snapshot the 2026-07-28 RC removes.
