@@ -19,6 +19,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -32,9 +33,20 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Apply** the Writer/Reviewer pattern and its single-session verification-subagent form
 - **Evaluate** how a fleet of specialists plus a verification pass answers attention dilution
 - **Recognize** the convergence rules that keep multi-pass review from spamming low-value findings
+- **Recognize** Code Review's concrete surfaces — availability, the three trigger modes, the severity taxonomy, and the neutral check run
 </YouWillLearn>
 
 _Part IV's final chapter is about checking the work — at scale. The instinct to "ask the model to double-check itself" is exactly the wrong one, for a structural reason: a model reviewing in the same window that wrote the code is both dilated by a full context and biased toward what it just produced. The fix is independence, and it scales from two sessions to a fleet. The principle is stable; the product that embodies it is the illustration — so this is an architectural pattern._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Why is asking a model to review its own code in the same session the *weakest* review — for which two independent reasons?
+2. Name the three scales of the independent-reviewer pattern, cheapest first.
+3. What does the verification pass do in a fleet review, and what fails without it?
+4. Name Code Review's three severity tags, and which one you would block a merge on.
+5. Code Review's check run never blocks a merge on its own — so how do you actually gate on its findings?
 
 ## Why a fresh context beats self-review
 
@@ -62,6 +74,22 @@ At the top of the scale, the pattern becomes a fleet. In Anthropic's Code Review
 Parallel reviewers have a characteristic failure mode: each independently flags plausible-looking but wrong issues, and with no filter those candidates *accumulate* — more reviewers means more noise, not just more signal. The verification step (re-checking each candidate against actual code behavior) is not optional polish; it is what makes fan-out a net gain. Add reviewers without a verifier and you have built a faster way to generate false positives.
 </Pitfall>
 
+## Code Review in practice: availability, triggers, severity
+
+The productized form of the pattern has a concrete surface the exam can probe. **Availability** is gated: "Code Review is in research preview, available for Team and Enterprise subscriptions. It is not available for organizations with Zero Data Retention enabled."<Tag kind="official" /><Citation src="claude-code-code-review" />
+
+**Triggers** come in three modes per repo: *once after PR creation*, *after every push*, or *manual* — invoked by commenting `@claude review` (which then subscribes to subsequent pushes) or `@claude review once` (a single one-off pass).<Tag kind="official" /><Citation src="claude-code-code-review" /> The one-off is the lever for "review this PR now, but don't enroll it in re-review on every push."
+
+**Severity** is a fixed three-tag taxonomy on every finding:
+
+<ConceptBox title="Code Review severity tags">
+- 🔴 **Important** — a bug that should be fixed before merging.
+- 🟡 **Nit** — a minor issue, worth fixing but not blocking.
+- 🟣 **Pre-existing** — a bug already in the codebase, not introduced by this PR.
+</ConceptBox>
+
+And one subtlety that catches people: the check run "always completes with a neutral conclusion so it never blocks merging through branch protection rules."<Tag kind="official" /><Citation src="claude-code-code-review" /> Code Review *advises*; it does not gate. To actually block a merge on findings, read the severity breakdown from the check-run output in your own CI and fail the step yourself.<Tag kind="official" /><Citation src="claude-code-code-review" />
+
 ## Convergence: keep multi-pass from spamming
 
 More passes is not strictly better — multi-pass review needs convergence rules, and attention dilution applies to the *instructions* as much as the code. The docs are explicit that "a long `REVIEW.md` dilutes the rules that matter most,"<Tag kind="official" /><Citation src="claude-code-code-review" /> so the broadcast instruction block stays short. And re-review on every push needs a damping rule so trivial diffs don't draw endless commentary: an instruction like "after the first review, suppress new nits and post Important findings only" stops "a one-line fix from reaching round seven on style alone."<Tag kind="official" /><Citation src="claude-code-code-review" /> Production-quality fleet review is real work, not free — Code Review averages roughly \$15–25 and 20 minutes per review at current figures<Tag kind="official" /><Citation src="claude-code-code-review" /> — so the convergence rules are also cost control.
@@ -69,6 +97,21 @@ More passes is not strictly better — multi-pass review needs convergence rules
 <KeyIdea>
 The same dilution that motivates independent reviewers also governs how you instruct them: a sprawling rule file and an un-damped re-review loop both bury the findings that matter under volume. Independence catches more; convergence rules keep "more" from becoming "noise."
 </KeyIdea>
+
+<WorkedExample id="d4-06-gate-on-review" title="Making an advisory review actually block a merge" expanded>
+Your team wants a merge blocked when Code Review finds a real bug — but its check run is **neutral by design** and never blocks through branch protection. So you build the gate yourself, on top of the surfaces above:
+
+1. **Trigger once.** On a PR you want checked but *not* re-reviewed on every push, comment `@claude review once`. The fleet runs, the verification pass filters false positives, and findings post as inline comments tagged 🔴 Important / 🟡 Nit / 🟣 Pre-existing.
+2. **Read the severity breakdown.** Code Review writes a machine-readable severity count into the check-run output; a CI step parses it (e.g. `gh` + `jq`) to pull the 🔴 Important count.
+3. **Fail on Important.** Exit non-zero when it is positive, so *your own* required check (not Code Review's) goes red and branch protection blocks the merge:
+
+```bash
+important=$(gh ... --jq '... | .important')
+[ "$important" -gt 0 ] && { echo "Code Review: $important Important finding(s)"; exit 1; }
+```
+
+The reasoning ties three threads together. Code Review deliberately *advises* rather than gates, so a research-preview tool can never wedge a team's merge queue. The 🔴/🟡/🟣 taxonomy is what makes a self-built gate *precise* — block on Important, let Nits and Pre-existing through. And the exit-code discipline from D3.6 is what converts an advisory signal into an enforced one. Note also the cost lever: `@claude review once` runs a single pass, where "after every push" multiplies the ~\$15–25 per-review cost by your push count.
+</WorkedExample>
 
 ## Practice
 
@@ -95,6 +138,14 @@ A team runs five parallel reviewer agents but no verification step, and finds th
 **B.** A fresh session or a verification subagent reviews with no inherited context, which removes both weaknesses of self-review at once — the reviewer is at peak performance in a clean window and has no authorship bias toward the code, exactly the conditions the docs credit for catching what self-review misses. **A** is self-review: most dilated (the implementation already fills the context) and most biased (the model defends what it wrote). **C** generates a *second implementation*, not a review, and gives you two artifacts to reconcile rather than a found bug. **D** re-pastes code into an already-polluted context; freshening the code does nothing about the accumulated context or the authorship bias — only a fresh, independent context fixes those.
 </Solution>
 
+<Solution for="d4-06-pr-attention-dilution">
+Attention dilution says performance degrades as the context window fills — so a single agent asked to find *every* class of bug must hold the diff, the surrounding code, and a long checklist of bug categories in one window, and its attention to any one class thins as the others crowd in. Fanning out gives **each specialist its own fresh context with a single mandate** — race conditions, or injection, or edge cases — so none of them is operating dilated, and each brings full attention to its one class. The fleet trades one over-loaded reviewer for many focused ones; that is the direct architectural answer to dilution (paired, crucially, with a verification pass so the extra candidates don't become noise).
+</Solution>
+
+<Solution for="d4-06-pr-verification-pass">
+The failure mode is **false-positive amplification**: parallel reviewers each independently flag plausible-but-wrong issues, and with no filter those candidates *accumulate*, so adding reviewers adds noise, not just signal — five agents surface five streams of unverified guesses. The verification pass **re-checks each candidate against actual code behavior to filter out false positives** before anything is posted, so only findings that survive a behavioral check reach the human. It is what makes fan-out a net gain rather than a faster false-positive generator; the surviving findings are then deduplicated and ranked by severity.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
@@ -103,3 +154,4 @@ A team runs five parallel reviewer agents but no verification step, and finds th
 - **Writer/Reviewer** — one session writes, a second independent session reviews, the writer addresses feedback; the test/code split is a variant; the verification subagent is the single-session, isolated-context form.
 - **Fleet + verification pass** — parallel specialists each own one issue class (the answer to attention dilution); a verification step filters false positives, then dedupe + severity ranking. A fleet without verification amplifies false positives.
 - **Convergence rules** — keep the broadcast instruction block short ("a long REVIEW.md dilutes the rules that matter most") and damp re-review ("suppress new nits, post Important findings only") so trivial diffs don't draw endless passes; this is also cost control.
+- **Code Review surfaces** — research preview, **Team & Enterprise only**, not under Zero Data Retention; three trigger modes (once after PR creation / after every push / manual via `@claude review` or one-off `@claude review once`); severity taxonomy **🔴 Important / 🟡 Nit / 🟣 Pre-existing**; the check run is **neutral and never blocks a merge** — gate by reading the severity breakdown in your own CI.
