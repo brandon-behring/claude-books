@@ -19,6 +19,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -35,6 +36,16 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 </YouWillLearn>
 
 _Part IV opens the domain the exam weights at 20% — getting a model to produce what you actually need. The first lever is the cheapest and the most overlooked: the prompt's own precision. Everything later in this Part (few-shot, structured outputs, validation loops) is an escalation from this baseline. The principle here outlasts every model version — newer models make it *more* true, not less — which is why this chapter is a stable principle, not a feature surface._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Two runs of the same prompt return differently-shaped output. Where does the inconsistency actually live?
+2. A more-literal model (Opus 4.7) is given a prompt with one unstated-but-intended requirement. What happens to that requirement?
+3. Which steers more reliably — "don't use markdown lists" or "respond in flowing prose" — and why?
+4. Name the three rungs of the output-control escalation ladder, cheapest first.
+5. Why does a newer, more capable model make "be explicit" *more* important rather than less?
 
 ## Specify the output format; do not leave it to inference
 
@@ -70,6 +81,17 @@ Explicit instruction is the first rung, not the only one. The documented hierarc
 3. **Structured outputs / strict tools** (D4.3) — constrain decoding so a non-conforming shape cannot be emitted at all. Strongest guarantee; highest setup cost.
 </ConceptBox>
 
+<WorkedExample id="d4-01-harden-a-prompt" title="Climbing the ladder on one prompt" expanded>
+A nightly job starts with a vague prompt and hardens it exactly as far as the stakes demand:
+
+- **Rung 0 (vague).** `"Summarize this support ticket."` Output drifts run to run — one line here, three paragraphs there, sentiment sometimes present — and the downstream parser breaks. The variance is *latent in the prompt*: length, fields, and sentiment-handling were never pinned.
+- **Rung 1 (explicit instruction).** `"Return JSON: summary (≤2 sentences), sentiment (one of positive/neutral/negative), action_needed (boolean). If there is no clear action, set action_needed=false."` Now every degree of freedom the parser cares about is fixed. This handles the common case and costs nothing but words.
+- **Rung 2 (few-shot, D4.2).** A batch of *feature-request* tickets keeps getting tagged `negative` because they describe a missing capability. The instruction can't fully pin that judgment, so you add two worked examples showing a feature request labeled `neutral`. The example disambiguates what prose could not.
+- **Rung 3 (structured outputs / strict tool, D4.3).** The pipeline must *never* see a label outside the three — but the model occasionally emits `"mixed"`. You move `sentiment` to an enum-constrained tool / structured output, so a fourth value is **unrepresentable**, not merely discouraged.
+
+The discipline is to **stop at the rung the stakes require**. Most fields never leave Rung 1; only the crash-on-violation field (`sentiment`) earns Rung 3. Climbing further than the risk warrants just buys setup cost and latency you don't need.
+</WorkedExample>
+
 The hands-on craft of writing these prompts — the iteration rhythm, the worked before-and-after examples — is the *Use* book's territory; its prompt-engineering chapter is the use-side companion to this exam-angle treatment (forthcoming in the handbook).
 
 <MarginNote variant="note" label="Note">
@@ -81,10 +103,10 @@ Cross-book pointer is prose-only: the handbook's prompt-engineering chapter is o
 <Exercise id="d4-01-ex-vague-vs-explicit">
 A nightly job asks Claude to "summarize each support ticket." The summaries come back wildly inconsistent — some one line, some three paragraphs, some with a sentiment label and some without — and a downstream parser keeps breaking. What is the most direct fix?
 
-- **A.** Lower the temperature so the model is more deterministic across runs.
-- **B.** Add "be consistent and don't write too much" to the prompt.
-- **C.** Specify the exact output contract: a fixed set of fields, each with a stated type and length, e.g. JSON with `summary` (≤2 sentences), `sentiment` (enum), `action_needed` (boolean).
-- **D.** Switch to a larger model so it infers the intended format more reliably.
+- **A.** Lower the sampling temperature so the model decodes more deterministically and repeats one shape.
+- **B.** Add "be consistent and don't write too much" so the prompt tells it to self-regulate length.
+- **C.** Specify the exact output contract — a fixed set of typed, length-bounded fields the parser can rely on.
+- **D.** Switch to a larger model that infers the intended format more reliably from the same prompt.
 </Exercise>
 
 <Practice id="d4-01-pr-positive-instruction" difficulty="2">
@@ -99,6 +121,14 @@ You need a model to return one of exactly four category labels, and a malformed 
 
 <Solution for="d4-01-ex-vague-vs-explicit">
 **C.** The inconsistency is latent in the prompt: "summarize" leaves length, fields, and sentiment-handling unstated, so the model resolves them differently each run. Specifying the exact contract — fixed fields, each with a type and a length bound — removes those degrees of freedom and is what a downstream parser needs. **A** (temperature) reduces token-level randomness but does nothing about an *underspecified shape*; a deterministic model still has to invent a structure you never gave it. **B** is a negative, vague instruction — "too much" is undefined and "be consistent" names the goal without specifying the target. **D** is the exact assumption modern literal-following models invalidate: a bigger model will not infer a contract you didn't write, and may follow your vague prompt *more* faithfully, not less.
+</Solution>
+
+<Solution for="d4-01-pr-positive-instruction">
+A positive rewrite: **"Respond directly with the answer in flowing prose."** That single instruction covers both prohibitions — "directly" eliminates the preamble, "flowing prose" rules out headers — by naming the target instead of the forbidden regions. It steers more reliably because a prohibition ("don't use headers," "no preamble") shrinks the output space without locating the destination inside the still-vast permitted region, whereas the positive form aims straight at the one shape you meant.
+</Solution>
+
+<Solution for="d4-01-pr-escalation-ladder">
+The three rungs, cheapest first: **(1) explicit instruction** — name the four labels in the prompt and ask the model to return exactly one; **(2) few-shot examples** — demonstrate the labeling on ambiguous inputs; **(3) structured outputs / strict tools** — constrain decoding so only an in-set label can be emitted. Here you should **climb to rung 3**: the premise is that a malformed or out-of-set label *crashes the pipeline*, so you need the shape to be unviolatable, not merely likely-correct. An enum-constrained tool or structured output makes an out-of-set value unrepresentable — the only rung that turns "should be valid" into "cannot be invalid," which is what a crash-on-violation contract demands.
 </Solution>
 
 </ExerciseSolutions>
