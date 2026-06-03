@@ -259,6 +259,14 @@
   tier: T1-official
   tool: claude-code
 
+- id: claude-code-model-config
+  url: https://code.claude.com/docs/en/model-config
+  title: Model configuration
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
 # --- D3.6 (CI/CD Integration) — from the 09-headless-ci cache.
 
 - id: claude-code-cli-reference

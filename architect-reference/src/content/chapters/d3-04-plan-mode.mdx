@@ -10,14 +10,16 @@ last_updated: 2026-06-02
 last_verified: 2026-06-02
 sources:
   - claude-code-permission-modes
+  - claude-code-model-config
   - agent-sdk-permissions
-description: Plan mode restricts Claude to read-only research and a written proposal — no edits — and approving the plan exits the mode into a write mode. Choosing plan versus going direct is a risk-containment decision, not a named-mode toggle; "direct execution" is simply working in a write mode.
+description: Plan mode restricts Claude to read-only research and a written proposal — no edits — and approving the plan exits the mode into a write mode. Choosing plan versus going direct is a risk-containment decision, not a named-mode toggle; "direct execution" is simply working in a write mode. The opusplan alias pairs the mode with a model-per-phase split — Opus plans, Sonnet executes.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -30,10 +32,20 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Explain** what plan mode restricts and how it differs from the write (execution) modes
 - **Recognize** how to enter and exit plan mode — and that approving a plan *ends* it
 - **Evaluate** when to plan first versus go direct, by reversal cost and uncertainty
-- **Apply** that judgment to a concrete change
+- **Apply** the `opusplan` alias to spend the strong model on planning and a fast one on execution
 </YouWillLearn>
 
-_D2.5 enumerated the six permission modes as a tool-gating mechanism. This chapter zooms in on the one an architect chooses on purpose: `plan`. Plan mode is read-only research with a written proposal at the end — and the real exam question is not "what is plan mode" but "when do you plan first versus edit directly." That is a risk-containment decision, and there is no named "direct execution" mode — going direct just means working in a mode that lets edits through._
+_D2.5 enumerated the six permission modes as a tool-gating mechanism. This chapter zooms in on the one an architect chooses on purpose: `plan`. Plan mode is read-only research with a written proposal at the end — and the real exam question is not "what is plan mode" but "when do you plan first versus edit directly." That is a risk-containment decision, and there is no named "direct execution" mode — going direct just means working in a mode that lets edits through. The chapter closes on `opusplan`, the alias that makes the strong-model-plans/fast-model-executes split automatic._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Does plan mode suppress permission prompts? What exactly can Claude do in it, and what can it not?
+2. The instant you approve a plan, what happens to the session's permission mode?
+3. Name three distinct ways to enter plan mode.
+4. What does the `opusplan` alias do — and does its plan phase get the automatic 1M-context upgrade?
+5. A two-line fix in code you know well: plan first or go direct?
 
 ## What plan mode restricts
 
@@ -68,11 +80,29 @@ Because plan mode adds a research-and-review round before any edit, the choice b
 Plan mode converts an *unbounded* reversal cost into a *bounded* one. Go direct on a multi-file rename in an unfamiliar repo and you discover missed call sites as broken edits you now have to walk back. Plan first and the same misunderstanding surfaces in a proposal you reject for free — the mistake is caught before it touches the tree.
 </KeyIdea>
 
+## Model per phase: the `opusplan` alias
+
+Plan mode separates *thinking* from *doing* in time — research first, edits after. That split is exactly where a model-per-phase pays, and Claude Code ships an alias for it. `opusplan` is one of the eight model aliases, and it "uses Opus in plan mode, switches to Sonnet for execution."<Tag kind="official" /><Citation src="claude-code-model-config" /> Spelled out: "The `opusplan` model alias provides an automated hybrid approach: In plan mode — Uses `opus` for complex reasoning and architecture decisions. In execution mode — Automatically switches to `sonnet` for code generation and implementation."<Tag kind="official" /><Citation src="claude-code-model-config" />
+
+Set it like any alias — `/model opusplan` during a session, or `claude --model opusplan` at startup.<Tag kind="official" /><Citation src="claude-code-model-config" /> The reasoning-heavy plan runs on the strong model; the moment execution begins, the fast model takes over. You spend the expensive tokens where the leverage is — on the design — and the cheaper model on the mechanical edits.
+
+<Pitfall title="opusplan's plan phase does NOT get the 1M-context upgrade">
+There is one trap worth memorizing: the automatic 1M-context upgrade applies to the `opus` alias only, **not** to `opusplan` — its Opus plan phase runs with the standard 200K window.<Tag kind="official" /><Citation src="claude-code-model-config" /> So if your *planning* step genuinely needs to hold more than 200K of context at once, `opusplan` is not the alias that gives it to you; reach for `opus[1m]` (or pin a 1M model) for that phase instead.
+</Pitfall>
+
+<WorkedExample id="d3-04-opusplan-cycle" title="One approval, two switches: opusplan through a plan→execute cycle" expanded>
+A developer starts a session for a multi-file refactor with `claude --model opusplan` and presses `Shift+Tab` until the mode reads `plan`. Two independent settings are now in play: the **permission mode** is `plan` (read-only) and the **model** resolves to Opus (the plan-phase half of `opusplan`).
+
+1. **Research phase.** Claude reads files and runs shell exploration — all permitted, none of it edits — and the heavy reasoning runs on **Opus**. It writes a proposed change set.
+2. **The approval.** The developer picks the "accept edits" approve option. *One action flips two switches at once:* the permission mode leaves `plan` for **`acceptEdits`** (edits now auto-approve), and `opusplan` leaves its plan phase, so the model switches to **Sonnet** for execution.
+3. **Execution phase.** Claude applies the edits on **Sonnet** under `acceptEdits` — fast model, mechanical work.
+
+The lesson the exam tests: approval is not a rubber stamp. It simultaneously *ends the read-only guarantee* (D2.5's mode axis) and, under `opusplan`, *hands the work to a different model*. To plan again — and return to Opus — you must re-enter plan mode (`Shift+Tab` or `/plan`).
+</WorkedExample>
+
 ## Where plan mode fits the workflow
 
-Plan mode is the front of the iterative loop — the "explore and plan" phase before "implement and commit" (the rhythm developed in D3.5). It is also why a hybrid like running the strongest model for planning and a faster one for execution is attractive: the expensive reasoning is spent where the leverage is, before edits begin.
-
-The hands-on mechanics — how the approval screen looks, how to drive the loop turn by turn — are the handbook's territory rather than this book's: see the *Use* book, Chapter 3, [*Your First Working Session*](https://github.com/brandon-behring/claude-books/blob/main/handbook/src/content/chapters/ch03-first-session.mdx).
+Plan mode is the front of the iterative loop — the "explore and plan" phase before "implement and commit" (the rhythm developed in D3.5). The hands-on mechanics — how the approval screen looks, how to drive the loop turn by turn — are the handbook's territory rather than this book's: see the *Use* book, Chapter 3, [*Your First Working Session*](https://github.com/brandon-behring/claude-books/blob/main/handbook/src/content/chapters/ch03-first-session.mdx).
 
 <MarginNote variant="note" label="Note">
 Cross-book link is provisional — it points at the chapter source until the handbook is deployed, then repoints to its published URL.
@@ -97,18 +127,35 @@ While in plan mode, which kinds of actions can Claude take, and which can it not
 You are in plan mode, Claude presents a plan, and you approve it by choosing the "accept edits" option. (a) What permission mode is the session in now? (b) What must you do to get back to planning for the next change?
 </Practice>
 
+<Practice id="d3-04-pr-opusplan" difficulty="3">
+You set `claude --model opusplan` and work through a plan-then-execute cycle. (a) Which model runs the planning phase, and which runs execution? (b) Your planning step needs to hold ~400K tokens of context at once — does `opusplan` give you that? If not, what would?
+</Practice>
+
 <ExerciseSolutions>
 
 <Solution for="d3-04-ex-plan-or-direct">
 **B.** The change is unfamiliar, multi-file, and expensive to get wrong — exactly the profile where planning first pays. In plan mode Claude maps the full set of call sites and proposes the complete edit before touching anything, so a missed reference shows up in a proposal you can reject, not as breakage you have to walk back. **A** and **D** both start editing before the scope is known: you discover missed call sites as broken edits (A) or as a long stream of one-at-a-time approvals with no view of the whole (D). **C** removes the safety entirely — and approving plans is the opposite move from skipping permission checks. Plan mode here converts an unbounded reversal cost into a bounded one.
 </Solution>
 
+<Solution for="d3-04-pr-plan-restricts">
+In plan mode Claude **can** read files and run shell commands to explore, and it writes a plan — but it does **not** edit your source. The thing people wrongly assume it suppresses is **permission prompts**: they "still apply the same as default mode," so plan mode is not a quiet, prompt-free sandbox — it is a *no-edit* mode that still gates the actions it does allow. Read-only is the guarantee; silence is not.
+</Solution>
+
+<Solution for="d3-04-pr-exit-mode">
+**(a)** The session is now in **`acceptEdits`** — approving a plan exits plan mode and switches the session to the write mode the chosen approve option names, and Claude starts editing. The read-only guarantee is gone. **(b)** To plan again you must **re-enter plan mode**: cycle back with `Shift+Tab`, or prefix your next prompt with `/plan`. Approval is one-way; getting back to research is a deliberate re-entry, not an undo.
+</Solution>
+
+<Solution for="d3-04-pr-opusplan">
+**(a)** Under `opusplan`, the **planning phase runs on Opus** (complex reasoning and architecture) and **execution runs on Sonnet** (code generation) — the switch is automatic at the plan→execute boundary. **(b)** No — `opusplan` does **not** give you a 1M planning window. The automatic 1M-context upgrade applies to the `opus` alias only, not `opusplan`, whose Opus plan phase runs at the standard 200K. For a ~400K planning context you would use `opus[1m]` (or pin a 1M model) for that phase instead.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
 
-- **Plan mode = read-only research** — Claude reads, explores via shell, and writes a plan, but does **not** edit source; permission prompts still apply the same as default mode.
+- **Plan mode = read-only research** — Claude reads, explores via shell, and writes a plan, but does **not** edit source; permission prompts still apply the same as default mode (it is no-edit, not prompt-free).
 - **"Direct execution" is not a mode** — it is working in a write mode (`default`/`acceptEdits`); plan's contrast is the modes that let edits through.
 - **Enter** — `Shift+Tab` cycle (`default` → `acceptEdits` → `plan`), `/plan [task]`, `--permission-mode plan`, or `defaultMode` in settings.
 - **Exit** — approving a plan **exits** plan mode into the chosen write mode and Claude starts editing; to plan again, cycle back with `Shift+Tab` or prefix `/plan`.
+- **`opusplan`** — alias that runs **Opus in plan mode, Sonnet in execution**; set via `/model opusplan` or `--model opusplan`. Approval flips *both* the permission mode and the model. **Its plan phase runs at 200K — the 1M upgrade is `opus`-only, not `opusplan`.**
 - **The decision** — plan when reversal cost is high or the design space is uncertain (unfamiliar / multi-file / risky); go direct for small diffs in known code. Plan contains misunderstandings *before* edits.
