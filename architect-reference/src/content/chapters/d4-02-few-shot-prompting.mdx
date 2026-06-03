@@ -18,6 +18,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -34,6 +35,16 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 </YouWillLearn>
 
 _D4.1's escalation ladder put examples on the second rung: when a plain instruction can't fully pin a behavior — especially on the messy, ambiguous inputs — a demonstration does what a description cannot. This chapter is that rung. It is an architectural pattern: the 3-5-example construction and its quality criteria are stable across model versions, with the example-tag syntax as the illustration that may shift._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. When does a *demonstration* outperform a written instruction — what kind of case is few-shot's home turf?
+2. What is the documented example-count sweet spot, and what fails below it and above it?
+3. Name the three example-quality criteria. Which one, when neglected, silently corrupts the prompt?
+4. To pin that a missing field resolves to `null` (not `"unknown"`), do you add a rule or an example — and where in the set?
+5. Few-shot and structured outputs (D4.3): competing or complementary? What does each one control?
 
 ## Examples are the most reliable steering mechanism
 
@@ -83,7 +94,34 @@ This is the heart of the cert task area. When an extraction or classification ha
 </examples>
 ```
 
-The middle example *is* the ambiguous case: it teaches that "no order number" resolves to `null` — not an empty string, not `"unknown"`, not `"n/a"`.<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> Few-shot also composes with the next rung of the ladder: with structured outputs (D4.3), "the schema locks the *shape* but examples still teach *content* and *edge-case handling*" — the two are complementary, not redundant.<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> A schema can require `order_id` to be a string-or-null; only an example teaches that *this* kind of input is the null one.
+The middle example *is* the ambiguous case: it teaches that "no order number" resolves to `null` — not an empty string, not `"unknown"`, not `"n/a"`.<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> Few-shot also composes with the next rung of the ladder: with structured outputs (D4.3), the schema locks the *shape* while examples still teach *content* and *edge-case handling* — the two are complementary, not redundant.<Tag kind="official" /><Citation src="anthropic-multishot-prompting" /> A schema can require `order_id` to be a string-or-null; only an example teaches that *this* kind of input is the null one.
+
+<WorkedExample id="d4-02-build-an-example-set" title="Constructing a 3-5 set that targets the edge case" expanded>
+Task: classify a support ticket as one of `bug | feature_request | question | other`. The hard case is a **feature request phrased as a complaint** ("Your export is useless without CSV") — instructions keep mislabeling it `bug`. Build the set deliberately:
+
+```xml
+<examples>
+  <example>  <!-- canonical bug -->
+    <input>Clicking Export throws a 500 error every time.</input>
+    <output>{"category": "bug"}</output>
+  </example>
+  <example>  <!-- the edge case, placed in the middle -->
+    <input>Your export is useless without CSV — fix this.</input>
+    <output>{"category": "feature_request"}</output>
+  </example>
+  <example>  <!-- a question, to vary the class -->
+    <input>Where do I find the export button?</input>
+    <output>{"category": "question"}</output>
+  </example>
+  <example>  <!-- the "other" bucket -->
+    <input>Thanks for the great support last week!</input>
+    <output>{"category": "other"}</output>
+  </example>
+</examples>
+```
+
+Read it against the three criteria. **Relevant**: every input is a real ticket in your actual phrasing, not a toy sentence. **Diverse**: four different categories, and the second example deliberately *breaks* the "angry tone → bug" pattern an instruction-only prompt was learning — that one example is doing the real work. **Structured**: each pair is wrapped in `<example>`, the set in `<examples>`, so the model separates demonstrations from the instruction and the input. Four examples, one per class with the edge case carrying its own slot — squarely in the 3-5 sweet spot. Note what is *not* here: a prose sentence saying "angry feature requests are not bugs." The demonstration replaces that rule, and does it more reliably.
+</WorkedExample>
 
 The use-side craft of building and iterating on an example set lives in the *Use* book's prompt-engineering chapter (forthcoming), alongside D4.1's hands-on companion material.
 
@@ -113,7 +151,15 @@ A colleague uses a single, carefully chosen example and is puzzled that the mode
 <ExerciseSolutions>
 
 <Solution for="d4-02-ex-ambiguous-edge">
-**B.** The ambiguous case — an input with no due date — is exactly what an example should *demonstrate*: place one in the set whose output shows `"due_date": null`, and the model generalizes from that treatment. **A** is the D4.1 instinct (be explicit), and it helps, but a prose rule beside the examples is weaker than a demonstration on the case itself — the docs are explicit that the model "generalizes from the example treatment, not from a separate written rule." **C** adds volume without diversity: ten *clean* invoices never show the missing-date case, so the model still has nothing to copy for it. **D** works mechanically but is a band-aid that hard-codes one symptom ("unknown"); the model may emit "none" or "" next, and you are now maintaining a translation table instead of fixing the prompt. The few-shot fix targets the root cause.
+**B.** The ambiguous case — an input with no due date — is exactly what an example should *demonstrate*: place one in the set whose output shows `"due_date": null`, and the model generalizes from that treatment. **A** is the D4.1 instinct (be explicit), and it helps, but a prose rule beside the examples is weaker than a demonstration on the case itself: the model generalizes from the example *treatment*, not from a separate written rule sitting next to it (the principle established in "Target the ambiguous case" above). **C** adds volume without diversity: ten *clean* invoices never show the missing-date case, so the model still has nothing to copy for it. **D** works mechanically but is a band-aid that hard-codes one symptom ("unknown"); the model may emit "none" or "" next, and you are now maintaining a translation table instead of fixing the prompt. The few-shot fix targets the root cause.
+</Solution>
+
+<Solution for="d4-02-pr-three-criteria">
+The three criteria are **relevant** (mirror your actual use case closely), **diverse** (cover edge cases and vary enough that the model doesn't latch onto an unintended pattern), and **structured** (wrap each example in `<example>` tags, the set in `<examples>`, so the model separates demonstrations from instructions). **Diversity** is the silent corrupter: when three examples happen to share an *incidental* trait — every input ends in a period, every output capitalizes the first field — the model generalizes from whatever is common across the set, so it learns that trait as if it were the rule. The prompt still "looks right," but it has quietly taught the wrong invariant, and the failure only surfaces on inputs that don't share the accidental trait.
+</Solution>
+
+<Solution for="d4-02-pr-count">
+With a single example, the model cannot tell which of the example's traits are *the pattern* and which are *incidental* — quoting the first field is one concrete trait of that one sample, and with nothing to contrast it against, the model copies it as if it were required. This is the documented failure of 1-2 examples: high risk of picking up an incidental pattern instead of the intended one. Raising the count into the **3-5** range fixes it by adding contrast: across several examples that *vary* the incidental traits (some quote nothing, different field orders) while holding the *intended* pattern constant, the first-field-quoting habit no longer appears in every example, so the model stops treating it as the rule. The cure is diversity-via-count, not volume for its own sake.
 </Solution>
 
 </ExerciseSolutions>
