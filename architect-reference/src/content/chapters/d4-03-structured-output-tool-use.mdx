@@ -12,6 +12,7 @@ sources:
   - anthropic-cookbook-structured-json
   - anthropic-strict-tool-use
   - anthropic-structured-outputs
+  - agent-sdk-agent-loop
 description: Forcing a known-shape JSON result has two generations. The classic pattern borrows the tool-call channel as a typed output slot; the modern features (strict tool use and output_config.format) use grammar-constrained decoding to make a non-conforming shape unrepresentable. The JSON-Schema subset, additionalProperties false, and the per-request limits are the surfaces to know.
 ---
 
@@ -19,6 +20,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -31,7 +33,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Apply** the classic tool-use pattern that turns a tool call into a typed output slot
 - **Apply** `strict: true` and `output_config.format` to constrain tool inputs and responses
 - **Recognize** the JSON-Schema subset and the mandatory `additionalProperties: false`
-- **Analyze** the per-request limits, the 24-hour grammar cache, and the refusal failure mode
+- **Analyze** the per-request limits, the 24-hour grammar cache, and the two failure modes (refusal and truncation) constrained decoding cannot prevent
 </YouWillLearn>
 
 _D4.1 ended with a top rung: when a shape must not be violated, make it unrepresentable. This chapter is that rung's machinery. It has two generations — the older tool-use pattern that is still the right tool for open-ended schemas, and the newer grammar-constrained features that eliminate schema-violation retries entirely — and because the substance here is named API fields, schema rules, and numeric limits, it is a feature surface._
@@ -39,6 +41,16 @@ _D4.1 ended with a top rung: when a shape must not be violated, make it unrepres
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: field names (`output_config.format`, `strict: true`), the schema subset, and the 20/24/16 request limits are concrete surfaces that move between releases. The `output_format` parameter has already migrated once. Treat every field and number as a current snapshot and re-verify before relying on it.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. In the classic pattern, which field of the forced tool call holds your data, and what do you do with the tool's "result"?
+2. What does `strict: true` guarantee that the classic pattern alone does not — and through which integration path is it silently dropped?
+3. Which JSON-Schema keyword is mandatory on *every* object node, and why does the constrained decoder require it?
+4. Name the two failure modes constrained decoding cannot prevent, and the `stop_reason` value that signals each.
+5. For open-ended extraction ("I don't know which fields will appear"), do you reach for structured outputs or classic tool use, and why?
 
 ## The classic mechanism: a tool whose input is your output
 
@@ -95,11 +107,30 @@ Both features accept a *subset* of JSON Schema, not the full draft. Objects, arr
 A schema that validates fine in your editor and then 400s at the API almost always has an object node without `additionalProperties: false`. The constrained decoder requires it on *every* object — nested ones included — because an open object has no closed grammar to compile. When a structured-outputs request rejects with a schema error, scan for the object that is missing it before suspecting anything subtler.
 </Pitfall>
 
-## Limits, caching, and the failure mode that still gets through
+## Limits, caching, and the failure modes that still get through
 
-Three operational facts complete the picture. **Caching:** the compiled grammar carries a first-request latency, then is "cached for 24 hours from last use," and the cache "invalidates if you change the JSON schema structure or set of tools. Changing only `name` or `description` fields does NOT invalidate cache."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> **Limits:** a request allows at most 20 strict tools, 24 cumulative optional parameters across strict schemas, and 16 union-typed parameters; beyond that (or an internal grammar-size cap) you get a 400 "Schema is too complex for compilation."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> **The one failure constrained decoding cannot prevent:** a refusal. If Claude refuses, the response is `stop_reason: "refusal"` with a 200 status, you are billed, and the output may not match the schema — so a caller must still check for it.<Tag kind="official" /><Citation src="anthropic-structured-outputs" />
+Three operational facts complete the picture. **Caching:** the compiled grammar carries a first-request latency, then is "cached for 24 hours from last use," and the cache "invalidates if you change the JSON schema structure or set of tools. Changing only `name` or `description` fields does NOT invalidate cache."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> **Limits:** a request allows at most 20 strict tools, 24 cumulative optional parameters across strict schemas, and 16 union-typed parameters; beyond that (or an internal grammar-size cap) you get a 400 "Schema is too complex for compilation."<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> **The failures constrained decoding cannot prevent.** Grammar constraints guarantee every *emitted* token is schema-valid — but not that Claude emits a *complete* result, so two gaps survive and a caller must check `stop_reason` for both. First, a **refusal**: if Claude refuses, the response is `stop_reason: "refusal"` with a 200 status, you are billed, and the output may not match the schema.<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> Second, **truncation**: `max_tokens` is a hard cap on output, and `stop_reason: "max_tokens"` is its output-budget signal.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> If generation hits that cap mid-structure, every token emitted was schema-valid but the object never *closed* — the JSON is cut off, so a parser rejects it just the same. The fix is not a retry on the same budget but a larger `max_tokens` (or a smaller schema); the constrained decoder cannot finish a structure it ran out of room to write.
 
 This is also why the classic cookbook pattern has a permanent niche: open-ended extraction with `additionalProperties: true` — "I don't know which fields will be present" — is something structured outputs *cannot* do, since it requires `additionalProperties: false`. For open-ended schemas, plain tool use stays the right tool.<Tag kind="official" /><Citation src="anthropic-cookbook-structured-json" />
+
+<WorkedExample id="d4-03-defensive-handling" title="Reading a strict extraction without trusting it blindly" expanded>
+You force a strict `print_record` extraction. The grammar guarantees the *shape* — but a naive caller that reads the result directly still crashes on the two failures above. Guard them:
+
+```python
+resp = client.messages.create(
+    model="claude-opus-4-7", max_tokens=1024, tools=[print_record],
+    tool_choice={"type": "tool", "name": "print_record"}, messages=[...])
+
+# strict: true makes each emitted token schema-valid -- not the response complete.
+if resp.stop_reason == "refusal":
+    raise ExtractionRefused()        # 200 status, you were billed, may not match schema
+if resp.stop_reason == "max_tokens":
+    raise OutputTruncated()          # valid tokens, but the object never closed
+record = next(b.input for b in resp.content if b.type == "tool_use")
+```
+
+Trace the reasoning: the grammar buys you *per-token* schema-validity, so you will never see `"3"` where you required `3`. It does **not** buy you a guarantee that a record *arrived*. A `refusal` returns a 200 you paid for with no conforming object; a `max_tokens` stop cuts the JSON off mid-write so `tool_use.input` is absent or malformed. Reading `resp.content` before checking `stop_reason` turns both into a confusing `StopIteration` or parse error three layers downstream. Two cheap branches convert them into legible, actionable failures — and the `max_tokens` branch tells you to raise the cap, not to retry the same doomed request.
+</WorkedExample>
 
 ## Practice
 
@@ -120,10 +151,26 @@ A hand-authored structured-outputs schema returns a 400 even though it is valid 
 Structured outputs is the modern default, yet the older tool-use pattern still has a niche it cannot be replaced in. Name that niche, the exact schema feature that defines it, and why constrained decoding cannot serve it.
 </Practice>
 
+<Practice id="d4-03-pr-truncation" difficulty="3">
+Your strict extraction usually works, but on unusually long inputs the returned JSON is occasionally cut off mid-object and your parser throws — even though the grammar was supposed to guarantee a valid shape. What is actually happening, which `stop_reason` confirms it, and what is the fix? Explain why a plain retry of the identical request is *not* the fix.
+</Practice>
+
 <ExerciseSolutions>
 
 <Solution for="d4-03-ex-pick-the-primitive">
 **A.** A single forced tool plus `strict: true` gives both guarantees you need: the forced `tool_choice` ensures exactly this extraction runs, and `strict` constrains the inputs by grammar so `seats` is a real integer, not `"3"` — exactly the "incompatible types breaking your functions" case strict mode exists to prevent. **B** is the open-ended pattern; `additionalProperties: true` is for when you *don't* know the fields, and it forgoes the strict guarantee — wrong for a fixed, type-critical record. **C** silently drops `strict` through the OpenAI-compatibility layer, so you lose the type guarantee precisely where you needed it. **D** is the unconstrained baseline D4.1 warned about — it can parse fine and still hand you `"3"`, the failure you are trying to design out.
+</Solution>
+
+<Solution for="d4-03-pr-additional-properties">
+The most likely cause is an **object node missing `additionalProperties: false`**, and the one-line fix is to add it to every object in the schema — nested ones included. The decoder requires it because an *open* object (one allowing arbitrary extra keys) has no closed set of valid continuations to compile into a grammar: at each decoding step the model must know exactly which keys are permitted, and `additionalProperties: false` is what closes that set. Without it there is no finite grammar to constrain sampling against, so the API rejects the schema with a 400 rather than allow unconstrained keys. It is the top 400 for hand-authored schemas precisely because standard JSON Schema defaults `additionalProperties` to *true*, so a schema that "validates fine in your editor" still fails compilation here.
+</Solution>
+
+<Solution for="d4-03-pr-open-ended">
+The niche is **open-ended extraction** — "I don't know which fields will be present" — and the schema feature that defines it is **`additionalProperties: true`** (an object that may carry arbitrary, unknown keys). Constrained decoding cannot serve it because it *requires* `additionalProperties: false` on every object: the grammar must enumerate the permitted keys ahead of time, and an object that allows *any* key has no closed grammar to compile. So when the set of fields is genuinely unknown in advance, the classic `print_X` tool-use pattern — which imposes no such closure — remains the right tool; structured outputs is for shapes you can pin down completely.
+</Solution>
+
+<Solution for="d4-03-pr-truncation">
+What is happening is **truncation, not a grammar failure**. `max_tokens` is a hard cap on total output, and the generation ran into it partway through writing the object; the grammar did its job — every token emitted was schema-valid — but it cannot guarantee the structure *finishes* within the budget, so the JSON is cut off before its closing braces and the parser rejects it. The confirming signal is **`stop_reason: "max_tokens"`** (the output-budget value), as opposed to `end_turn`. The fix is to **raise `max_tokens`** (or shrink the schema / split the extraction). A plain retry of the identical request is *not* the fix because it re-runs against the *same* budget and truncates at the same place — you must enlarge the room before the structure can complete.
 </Solution>
 
 </ExerciseSolutions>
@@ -134,4 +181,4 @@ Structured outputs is the modern default, yet the older tool-use pattern still h
 - **`strict: true`** — grammar-constrains tool *inputs* to the schema (no wrong types, no missing required fields); pair with `tool_choice: {type: "any"}` for "one-of-N and valid." Ignored on the OpenAI-compat layer.
 - **`output_config.format`** — grammar-constrains Claude's *response* to a JSON schema; "no retries needed for schema violations." Migrated from the `output_format` param / `structured-outputs-2025-11-13` beta header.
 - **Schema subset** — a subset of Draft 2020-12; `additionalProperties: false` is **mandatory on every object** (top 400 cause); no numeric/length bounds (SDKs strip them to descriptions + post-validate); no external `$ref` or recursion.
-- **Limits + failure modes** — 20 strict tools / 24 optional params / 16 union types per request; grammar cached 24h from last use (invalidated by schema/tool-set change, not name/description); a refusal returns 200, is billed, and may not match the schema — always check `stop_reason`.
+- **Limits + failure modes** — 20 strict tools / 24 optional params / 16 union types per request; grammar cached 24h from last use (invalidated by schema/tool-set change, not name/description); **two failures slip past constrained decoding** — a refusal (`stop_reason: "refusal"`; 200, billed, may not match) and truncation (`stop_reason: "max_tokens"`; JSON cut off mid-object). Always check `stop_reason` for both; raise `max_tokens` for the second rather than retrying.
