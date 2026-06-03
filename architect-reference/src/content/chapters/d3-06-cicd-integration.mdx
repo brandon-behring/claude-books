@@ -19,6 +19,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -32,6 +33,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Distinguish** the three output formats — `text` / `json` / `stream-json` — and when each fits
 - **Apply** `--json-schema` for schema-validated structured output
 - **Recognize** the permission flags that lock down a run with no human to prompt
+- **Explain** how a CI step gates on a run's exit code (0 success / non-zero failure)
 - **Recognize** the GitHub Actions wrapper and its credential model
 </YouWillLearn>
 
@@ -40,6 +42,16 @@ _D2.5 and D3.4 governed permission inside an interactive session. This chapter t
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: CLI flag names, output event types, GitHub Actions input fields, and exit semantics are concrete surfaces that move between releases. Treat every flag and field as a current snapshot and re-verify before relying on it in production CI.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. What does `--bare` skip, and why does omitting it make a headless run non-reproducible?
+2. Which `--output-format` gives you `total_cost_usd` and `session_id` as parseable fields?
+3. With no human at the keyboard, which permission mode is the documented floor for a locked-down CI run, and what does it deny?
+4. What is a CI step actually gating on when it passes or fails a `claude -p` run? Name two conditions that make the run exit non-zero.
+5. In GitHub Actions v1.0, how do you pass `--bare` or `--allowedTools` through to the underlying `claude -p`?
 
 ## The headless invocation
 
@@ -89,6 +101,36 @@ Two more knobs bound a run: `--max-turns N` "limits agentic turns and exits with
 Interactive permission is a *runtime* negotiation; CI permission is a *design-time* contract. With no human to fall back on, an unguarded tool request does not pause for approval — it is denied or it derails the job. So you decide the exact tool surface up front: `dontAsk` for the floor, `--allowedTools` for the precise grants, `--max-turns` / `--max-budget-usd` for the ceiling.
 </KeyIdea>
 
+## Exit codes: what CI actually gates on
+
+Output format decides what a run *prints*; the **exit code** decides whether the pipeline step *passes*. A CI step's pass/fail is the exit status of the process it ran — so a headless `claude -p` that runs the full loop and "exits after responding"<Tag kind="official" /><Citation src="claude-code-headless" /> hands its exit code straight to the runner, and `0` means the step succeeds while non-zero fails it. The docs name concrete non-zero triggers you can rely on: `--max-turns N` "limits agentic turns and exits with error when reached,"<Tag kind="official" /><Citation src="claude-code-cli-reference" /> and an over-cap stdin (10 MB) "returns a clear error and non-zero exit."<Tag kind="official" /><Citation src="claude-code-headless" />
+
+The same mechanism gives you a clean **pre-flight gate**: `claude auth status` "exits 0 if logged in, 1 if not — useful as a CI gate before the agent step."<Tag kind="official" /><Citation src="claude-code-headless" /> Run it first and the job fails fast with a clear cause instead of burning a turn on an unauthenticated agent call.
+
+<Pitfall title="A step that ignores the exit code can pass a failed run">
+If your CI step only captures stdout and never checks the exit status (`$?`), a run that hit `--max-turns` or errored out can still look green — the next step consumes truncated or empty output as if it were a real result. The exit code *is* the success contract in headless mode; let the shell propagate it (don't swallow it with `|| true` or a trailing pipe that masks the status) so a failed agent run fails the pipeline.
+</Pitfall>
+
+<WorkedExample id="d3-06-ci-gate" title="A read-only review gate that fails correctly" expanded>
+Goal: a CI job that lets Claude read the repo and run tests, blocks on nothing (no human), bounds cost, and **fails the pipeline if the run fails**. A shell step:
+
+```bash
+# 1. Pre-flight: fail fast if the runner isn't authenticated.
+claude auth status --text || { echo "Claude not authenticated"; exit 1; }
+
+# 2. The gated run. Exit code propagates to the step.
+claude -p "Review the staged diff for regressions; run the test suite." \
+  --bare \
+  --permission-mode dontAsk \
+  --allowedTools "Read,Bash(git diff *),Bash(npm test)" \
+  --max-turns 12 \
+  --output-format json > result.json
+# No `|| true` — if claude exits non-zero, the step (and the job) fails here.
+```
+
+Trace each guard: `auth status` (step 1) turns a missing credential into an immediate, legible failure — exit 1 — rather than a confusing agent error. `--bare` makes the run a function of its inputs, not the runner's stray config. `dontAsk` + the tight `--allowedTools` fix the permission surface up front, so no tool request can stall waiting for an approval that will never come. `--max-turns 12` is the ceiling: if the agent thrashes past twelve turns it **exits with error**, and because the step does not mask the status, the job goes red. On success the agent exits `0`, `result.json` holds the parseable payload, and a later step can read `total_cost_usd` to log spend. The job's green/red is the agent's exit code — exactly the contract CI needs.
+</WorkedExample>
+
 ## GitHub Actions and the credential model
 
 The managed CI surface wraps all of the above. Claude Code GitHub Actions "is built on the Claude Agent SDK and wraps `claude -p` in a GitHub Action runner. It supports four providers: Anthropic direct API, Amazon Bedrock, Google Vertex AI, Microsoft Foundry — the latter three via OIDC / Workload Identity Federation, no static keys."<Tag kind="official" /><Citation src="claude-code-github-actions" /> The v1.0 interface is deliberately small: "`mode` is auto-detected; use `prompt` for all instructions and `claude_args` for any CLI passthrough"<Tag kind="official" /><Citation src="claude-code-github-actions" /> — so everything from earlier sections (`--bare`, `--output-format`, `--allowedTools`) reaches the runner through `claude_args`.
@@ -116,10 +158,26 @@ A CI script needs to capture the session ID and the total cost of a headless run
 Two engineers run the identical `claude -p "review this diff"` command in two CI pipelines and get noticeably different behavior. Which single flag most likely removes the divergence, and what is the underlying cause it addresses?
 </Practice>
 
+<Practice id="d3-06-pr-exit-code" difficulty="3">
+You want a CI job to **fail** when a headless Claude run does not complete cleanly. (a) What does the job actually gate on to decide pass/fail? (b) Name two conditions the docs say make a run exit non-zero. (c) What common shell mistake would cause a failed run to be reported as green?
+</Practice>
+
 <ExerciseSolutions>
 
 <Solution for="d3-06-ex-locked-down-ci">
 **B.** The job has no human to approve anything, so the permission surface must be fixed up front: `dontAsk` denies anything not pre-approved, `--allowedTools "Read,Bash(npm test)"` grants exactly the read and test-run capability (prefix matching scopes `Bash` to the test command), and `--bare` makes the run reproducible across machines. **A** does the opposite of locking down — `--dangerously-skip-permissions` approves *everything*, including edits and pushes. **C** auto-approves file edits, but the job is supposed to be read-only. **D** is the classic headless trap: in CI there is no one to answer the approval prompt, so a tool that falls through to `default` mode stalls or is denied rather than helpfully pausing. The locked-down combination is `dontAsk` + a tight allowlist + `--bare`.
+</Solution>
+
+<Solution for="d3-06-pr-output-format">
+Use **`--output-format json`** and read the **`session_id`** and **`total_cost_usd`** fields. The `json` form returns a single payload with `result`, `session_id`, and `total_cost_usd` (plus a per-model cost breakdown), so the later step can resume with the captured `session_id` and log spend from `total_cost_usd` — no usage-dashboard round-trip. The default `text` format returns only the final response (nothing parseable), and `stream-json` would make you reassemble the fields from an event stream.
+</Solution>
+
+<Solution for="d3-06-pr-bare">
+The flag is **`--bare`**, and the cause it addresses is **non-reproducible context discovery**. Without `--bare`, `claude -p` auto-discovers and loads whatever the machine has — the repo's CLAUDE.md, a developer's personal `~/.claude` config, locally-configured MCP servers, hooks, skills, plugins, auto memory — so the *same* command becomes a function of the *host* rather than of its inputs, and two runners diverge. `--bare` skips that discovery, making the run reproducible across machines (and it is slated to become the `-p` default).
+</Solution>
+
+<Solution for="d3-06-pr-exit-code">
+**(a)** The job gates on the run's **process exit code**: `claude -p` exits after responding and hands its exit status to the runner — `0` passes the step, non-zero fails it. **(b)** Two documented non-zero conditions: hitting **`--max-turns`** ("exits with error when reached") and an **over-cap stdin** (piped input above the 10 MB limit "returns a clear error and non-zero exit"); `claude auth status` exiting `1` when not logged in is a third, useful as a pre-flight gate. **(c)** Swallowing the status — e.g. ending the command with **`|| true`** or masking it behind a pipe — so the shell reports success even though the agent run failed; let the exit code propagate.
 </Solution>
 
 </ExerciseSolutions>
@@ -130,4 +188,5 @@ Two engineers run the identical `claude -p "review this diff"` command in two CI
 - **Output formats** — `text` (default), `json` (`result`, `session_id`, `total_cost_usd`, per-model cost), `stream-json` (newline-delimited events; `system/init` carries `plugin_errors` to fail CI).
 - **Structured output** — `--output-format json` with `--json-schema` adds a validated `structured_output` field; `--json-schema` is **print-mode only** (as are `--max-turns`, `--max-budget-usd`).
 - **Permission gates** — CI has no human to prompt, so decide the surface up front: `dontAsk` (deny anything not pre-approved) + `--allowedTools` (prefix matching, e.g. `Bash(git diff *)`); `--max-turns` / `--max-budget-usd` cap a run; `bypassPermissions` / `--dangerously-skip-permissions` skips all checks — containers only.
+- **Exit codes are the CI contract** — a step passes/fails on the run's exit status (`0` success, non-zero failure). `--max-turns` reached and over-cap stdin (10 MB) exit non-zero; `claude auth status` exits `0`/`1` as a pre-flight gate. Don't mask the status (`|| true`) — a failed run would report green.
 - **GitHub Actions** — wraps `claude -p`; v1.0 auto-detects mode (`prompt` + `claude_args`); four providers, the non-Anthropic three via OIDC with **no static keys**; supply credentials as secrets, never hardcoded.
