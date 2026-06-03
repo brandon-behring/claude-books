@@ -17,6 +17,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -33,6 +34,16 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 </YouWillLearn>
 
 _D3.4's plan mode is one phase of a larger loop. This chapter is the loop itself — how an architect drives a task from understanding to a committed change, refining as they go. These are disciplines, not features: the explore-plan-implement-commit rhythm, the interview pattern, and test-driven prompting outlast any particular keybinding or tool name, which is why this chapter is a stable principle rather than a feature surface._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Name the four phases of the recommended workflow, in order. When is it safe to skip the plan phase?
+2. In the interview pattern, *who* asks the questions, which tool drives them, and what artifact ends the interview?
+3. Why does a *fresh* session implement the spec rather than the one that ran the interview?
+4. What is described as "the single highest-leverage thing you can do," and what does withholding it cost?
+5. You have corrected Claude three times on the same issue this session. What is the recommended move, and why?
 
 ## The four-phase rhythm
 
@@ -55,6 +66,18 @@ For a large feature with an unclear design space, the most effective opening is 
 </ConceptBox>
 
 The spec file is the bridge between the two sessions: a deliverable you can review *and* the context bootstrap the implementation session reads.
+
+<WorkedExample id="d3-05-interview-walkthrough" title="The interview pattern, end to end" expanded>
+You need a **rate limiter** for an API and the design space is fuzzy. Instead of writing a full spec you do not yet have, you run the interview pattern:
+
+1. **Minimal prompt.** "I need a rate limiter for our API. Interview me with `AskUserQuestion` before writing any code — dig into the hard parts I might not have considered, then write a complete spec to `SPEC.md`."
+2. **Claude interviews you.** It asks what you would not have front-loaded: *Algorithm* — token bucket (allows bursts) or sliding window (smoother)? *Scope* — per-API-key, per-IP, or global? *On exceed* — reject with `429`, or queue and delay? *Storage* — in-process, or Redis so it holds across instances? *Failure mode* — if the limiter's backing store is down, fail open or fail closed?
+3. **You answer**, and the hard tradeoffs surface *before* any code — the fail-open/closed question alone is one most one-shot prompts never raise.
+4. **Artifact.** Claude writes `SPEC.md`: token bucket, per-key, `429` on exceed, Redis-backed, fail-closed. You read and correct it — it is a reviewable deliverable, not buried in chat.
+5. **Fresh session implements.** You `/clear` (or open a new session) and prompt: "Implement the rate limiter per `SPEC.md`; write the tests first." The implementation session starts on clean context whose *only* input is the reviewed spec — none of the interview's question-answer thrash.
+
+Why the split matters: the interview session's context is full of half-formed options and back-and-forth; the implementation session should not inherit that noise. The spec file is the clean hand-off — review gate *and* context bootstrap in one.
+</WorkedExample>
 
 ## Give Claude a way to verify its work
 
@@ -105,6 +128,14 @@ For a bug that has a known reproduction, give the test-driven prompt pattern the
 
 <Solution for="d3-05-ex-interview-vs-direct">
 **B.** A large feature with an unsettled design space is the documented home of the interview pattern: a minimal prompt asks Claude to interview you via `AskUserQuestion`, surfacing edge cases and tradeoffs you have not considered, and the interview ends in a `SPEC.md` that a fresh session then implements from clean context. **A** assumes you already hold a complete spec — but the premise is that you do not, so you would be encoding gaps as requirements. **C** burns turns thrashing and pollutes context with half-formed direction. **D** is the closest miss: plan mode (D3.4) makes Claude explore the *code*, but the interview pattern makes Claude interrogate *you* about intent and tradeoffs — and here the unknowns live in your requirements, not in the codebase. The interview elicits the spec; plan mode would plan against a spec you have not written yet.
+</Solution>
+
+<Solution for="d3-05-pr-four-phase">
+The four phases in order are **Explore → Plan → Implement → Commit** — explore (read-only / plan mode) builds understanding, plan writes a detailed implementation plan, implement switches out of plan mode and verifies against that plan, and commit writes a descriptive message and PR. You may **skip the plan phase only when the diff is one-sentence-describable** — a change small and clear enough that there is nothing for a plan to de-risk.
+</Solution>
+
+<Solution for="d3-05-pr-tdd-variant">
+The pattern is: **"Write a failing test that reproduces the issue, then fix it"** — make Claude first encode the bug as a test that fails, then make that test pass. It outperforms "fix the login bug" for two reasons. First, the failing test is an unambiguous **success criterion**: Claude can iterate against ground truth on its own turns instead of waiting for you to judge each attempt — the highest-leverage move in the loop. Second, the test **persists as a regression contract**: it stays green afterward, so the same bug cannot silently return. "Fix the login bug" gives Claude no way to check itself and leaves nothing behind to prove the fix held.
 </Solution>
 
 </ExerciseSolutions>
