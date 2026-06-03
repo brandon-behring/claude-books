@@ -10,7 +10,6 @@ last_updated: 2026-06-02
 last_verified: 2026-06-02
 description: Not every output earns automatic trust. The architect calibrates which results proceed and which route to a human, using checkable confidence signals and a tiered funnel — cheap auto-checks, then an isolated judge, then a person — so the human sees only the decisions where their judgment changes the outcome.
 sources:
-  - agent-sdk-structured-outputs
   - augment-multi-agent-failure
   - claude-code-best-practices
 ---
@@ -19,6 +18,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -36,6 +36,16 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D4.4 closed the validation loop with the model — detect a semantic error, feed it back, retry. This chapter closes the other loop: when automation is not enough, route to a human. The architect's job is calibration — deciding, per output, whether to trust it, verify it automatically, or escalate it to a person. The routing-and-funnel pattern is durable; the specific fields are illustration, so this is an architectural pattern._
 
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. What makes the decision to auto-accept vs route-to-human an *economic* one rather than a quality slogan?
+2. Why is a model's self-reported "high confidence" not a signal you can route on directly?
+3. What does it mean for a confidence signal to be *calibrated* in the measurement sense, and how would you check it?
+4. Describe the three tiers of the review funnel and what each one escalates.
+5. What two factors set where the human-review threshold falls?
+
 ## Not every output earns automatic trust
 
 The cheapest reliability move is to give the model a way to check itself: "Include tests, screenshots, or expected outputs so Claude can check itself. This is the single highest-leverage thing you can do."<Tag kind="official" /><Citation src="claude-code-best-practices" /> But some judgments cannot be auto-verified — a wrong-but-plausible extraction, a borderline classification, a high-stakes decision with no ground truth to diff against. Those are where a human belongs. Confidence calibration is the discipline of deciding, output by output, which path each one takes.
@@ -46,7 +56,7 @@ Calibration is an economic decision, not a quality slogan. For each output, weig
 
 ## Confidence as a routing signal
 
-To route, you need a signal you can act on — and the reliable signals are *checkable*, not self-reported. The schema hooks from D4.4 double as confidence signals: when a model's `calculated_total` disagrees with the document's `stated_total`, "both demand human review";<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> when a `conflict_detected` flag is true, the record routes to human review;<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> and a structured `confidence` field (high / medium / low) on an extraction gives the caller an explicit value to threshold on.<Tag kind="official" /><Citation src="agent-sdk-structured-outputs" /> Each is a place where the system can say "I am not sure" in a form a router can read.
+To route, you need a signal you can act on — and the reliable signals are *checkable*, not self-reported. The schema hooks from D4.4 double as confidence signals. (These are a *design pattern* this book recommends, not a built-in platform field — you add them to your schema.) When a model's `calculated_total` disagrees with the document's `stated_total`, both demand human review; when a `conflict_detected` flag is true, the record routes to a person; and a structured `confidence` field (high / medium / low) on an extraction gives the caller an explicit value to threshold on. Each is a place where the system can say "I am not sure" in a form a router can read.
 
 <ConceptBox title="Signals that should trigger human review">
 - **Cross-check mismatch** — `calculated_total` ≠ `stated_total`: either the source is bad or a value was fabricated; both need a human.
@@ -58,6 +68,28 @@ To route, you need a signal you can act on — and the reliable signals are *che
 <Pitfall title="Trusting self-reported confidence as ground truth">
 A model's own "high confidence" is a claim, not a measurement — a confidently-wrong output reports high confidence too. Treat self-reported confidence as one input, and calibrate it against *checkable* signals (the cross-checks above) rather than letting it gate the human queue by itself. The signals worth routing on are the ones a caller can independently verify.
 </Pitfall>
+
+## Two senses of "calibration"
+
+The word is doing double duty in this chapter, and the distinction is worth making sharp. There is the *routing* calibration the chapter is built on — which output goes to which tier — and there is *measurement* calibration: whether a confidence value actually tracks accuracy. A model is well-calibrated, in the measurement sense, only if its "90% confident" outputs are right about 90% of the time. Self-reported confidence usually fails this test — models tend to be over-confident, reporting high certainty on answers that are wrong — which is precisely why a raw "high" cannot gate the human queue on its own.
+
+<KeyIdea>
+Two outputs both marked "high confidence" are not equally trustworthy unless the signal is *calibrated*. You have two honest options: route on **checkable** signals instead (a cross-check either matches or it does not — no calibration required), or **empirically calibrate** the threshold — measure, over real labeled data, the accuracy at each stated-confidence level and set the bar where the signal starts reliably predicting correctness. Never assume the model's number is calibrated out of the box, and re-measure when the model, prompt, or input distribution changes.
+</KeyIdea>
+
+<WorkedExample id="d5-05-calibrate-the-signal" title="Calibrating a confidence signal against reality" expanded>
+An extraction pipeline emits a `confidence` field (high / medium / low). Before trusting it to route, you *measure* it on a labeled sample of 1,000 past extractions:
+
+| Stated confidence | Count | Actually correct |
+| --- | --- | --- |
+| high | 700 | 94% |
+| medium | 220 | 71% |
+| low | 80 | 38% |
+
+(Illustrative numbers — the *method* is the point.) Two readings follow. First, the signal is *informative*: accuracy falls monotonically from high to low, so it does carry real information about correctness. Second, it is *not perfectly calibrated*: "high" is 94%, not ~100%, so roughly six in a hundred high-confidence extractions are wrong — and on a high-stakes clinical field that residual is unacceptable. The routing decision now follows from the numbers, not the label: auto-accept `high` only if a ~6% error rate is tolerable for this field; otherwise send even `high` through the isolated judge, and route `medium`/`low` to a human. Had you trusted the word "high" as if it meant "certain," you would have shipped that 6% silently.
+
+The discipline: a confidence signal earns its routing role by *measurement*, not by its name — and you re-measure when the model, the prompt, or the input distribution shifts, because calibration is not permanent.
+</WorkedExample>
 
 ## Independent validation before the human
 
@@ -96,11 +128,19 @@ Describe the tiered review funnel (auto-check → isolated judge → human), sta
 **B.** The design calibrates: checkable signals (`confidence`, `conflict_detected`) select which records are uncertain, an isolated judge clears the merely-plausible ones, and only what the judge cannot resolve reaches a human — so high-stakes errors are caught without reviewing everything. **A** retries with the same model, and a confidently-wrong extraction reproduces on the second run, so agreement is not evidence of correctness. **C** trusts self-reported confidence, which a confidently-wrong output also reports as "high" — the exact trap. **D** is safe but uncalibrated: it spends the most expensive reviewer on every record, most of which need no human, and does not scale.
 </Solution>
 
+<Solution for="d5-05-pr-confidence-signals">
+Three routable signals: a **cross-check mismatch** (`calculated_total` ≠ `stated_total`), a **self-flagged `conflict_detected: true`**, and a **low stated `confidence`** (a failed provenance check — a cited span absent from the source — is a fourth). A model's self-reported "high confidence" is not reliable on its own because it is a **claim, not a measurement**: a confidently-wrong output reports high confidence too, and models tend to be over-confident, so stated confidence often fails to track actual accuracy. The signals worth routing on are the **checkable** ones — a cross-check either matches or it does not, independent of what the model believes — whereas self-reported confidence must first be empirically calibrated against observed accuracy before it can gate anything.
+</Solution>
+
+<Solution for="d5-05-pr-tiered-funnel">
+The funnel is **auto-check → isolated judge → human**. Tier 1 (cheap automated checks) handles the obvious cases — a cross-check mismatch or a thresholded signal — and escalates anything it cannot clear. Tier 2 (an **isolated judge** agent) reviews the merely-plausible cases in a fresh, independent context, resolving what it can and escalating only what it cannot. Tier 3 (the **human**) sees only what survived both. The isolated judge catches errors the cheap auto-checks miss because those errors are **wrong-but-plausible** — they pass the mechanical checks (valid shape, no flagged conflict) yet are semantically wrong, and a fresh-context reviewer with no authorship bias can judge correctness where a regex or equality test cannot. Each tier escalates only what it cannot resolve, so the most expensive reviewer spends attention only on the decisions that truly need human judgment.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
 
 - **Calibrate, don't blanket-trust or blanket-review** — decide per output by weighing the cost of a wrong auto-accept against a human glance; verification is the highest-leverage habit where it is possible.
-- **Route on checkable signals** — cross-check mismatches (`calculated_total` ≠ `stated_total`), self-flagged `conflict_detected`, low `confidence`, and failed provenance are routable signals; self-reported confidence alone is a claim, not a measurement.
+- **Route on checkable signals** — cross-check mismatches (`calculated_total` ≠ `stated_total`), self-flagged `conflict_detected`, low `confidence`, and failed provenance are routable signals; self-reported confidence alone is a claim, not a measurement. **Two senses of calibration**: *routing* (which output to which tier) and *measurement* (does "90% confident" mean 90% correct?). Empirically calibrate a `confidence` field — accuracy per stated level — or prefer checkable signals that need no calibration.
 - **Tiered funnel** — cheap auto-checks → isolated judge (fresh context, no authorship bias) → human; each tier escalates only what it cannot resolve, keeping the human queue small (structured validation loops drove a documented 7× accuracy gain).
 - **Threshold by stakes × uncertainty** — high-stakes + low-confidence routes to a human; human review is the downstream half of human-in-the-loop, escalation (D5.2) the upstream half.
