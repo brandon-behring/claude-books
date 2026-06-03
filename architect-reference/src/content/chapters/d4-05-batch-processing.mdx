@@ -18,6 +18,7 @@ import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouW
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -31,6 +32,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Apply** the `custom_id` contract to match results that return out of order
 - **Recognize** the batch envelope — size limits, single-shot requests, no streaming
 - **Recognize** the billing model and the extended-output beta
+- **Distinguish** a batch-level result type from a per-message `stop_reason` (a `succeeded` result can still be a refusal or a truncation)
 </YouWillLearn>
 
 _The first three chapters of Part IV controlled a single response. This one scales to a hundred thousand of them. A batch is the right tool whenever the work is large and nothing is waiting on the answer — and its surface (the endpoint, the size limits, the `custom_id` rule, the beta header) is exactly the kind of named detail that shifts between releases, so this is a feature-surface chapter._
@@ -38,6 +40,16 @@ _The first three chapters of Part IV controlled a single response. This one scal
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: the `/v1/messages/batches` endpoint, the 100,000 / 256 MB limits, the 24-hour SLA, and the `output-300k-2026-03-24` beta header are concrete surfaces that move between releases. Treat every number and header as a current snapshot and re-verify before relying on it.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. What single factor decides batch versus real-time, and which way does each tolerance point?
+2. Why is `custom_id` mandatory, and what specifically breaks if you rely on result order?
+3. Name the two size limits on a single batch, and which one an HTTP 413 reports.
+4. A batch result comes back `succeeded` — does that mean its answer is usable? What must you still check?
+5. Which result types are *not* billed, and which billed-but-possibly-useless outcome is the trap?
 
 ## The cost-latency trade
 
@@ -68,6 +80,10 @@ A batch is bounded by size and by shape. **Size:** "A Message Batch is limited t
 
 You pay only for what works: a result is `succeeded`, `errored`, `canceled`, or `expired`, and "you are not billed for errored, canceled, or expired requests."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> For unusually long generations there is an opt-in: the `output-300k-2026-03-24` beta header "raises the `max_tokens` cap to 300,000 for batch requests using Claude Opus 4.7, Claude Opus 4.6, or Claude Sonnet 4.6" — batch-only, and a single 300k generation can itself take over an hour, so submit it with the 24-hour window in mind.<Tag kind="official" /><Citation src="anthropic-batch-processing" />
 
+<Pitfall title="A succeeded result is not automatically a usable one">
+The four result types — `succeeded`, `errored`, `canceled`, `expired` — are *batch-level* outcomes: they tell you the request *ran*, not that its answer is good. A `succeeded` result "includes the message result,"<Tag kind="official" /><Citation src="anthropic-batch-processing" /> and that message carries its own `stop_reason`. Two values still bite — a **refusal** (`stop_reason: "refusal"`) returns a 200, is billed, and may not match your schema; a **truncation** (`stop_reason: "max_tokens"`) is incomplete output.<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> Note the cost asymmetry: you are *not* billed for `errored`/`canceled`/`expired`, but a succeeded refusal you **do** pay for. So per-result handling must inspect each succeeded message's `stop_reason`, not stop at the result type.
+</Pitfall>
+
 <ConceptBox title="The batch lifecycle">
 1. **Create** — `POST /v1/messages/batches` with a list of `{custom_id, params}` objects; the response carries `processing_status: "in_progress"` and `expires_at` (24h out).
 2. **Poll** — `GET /v1/messages/batches/{id}` until `processing_status == "ended"`.
@@ -75,6 +91,33 @@ You pay only for what works: a result is `succeeded`, `errored`, `canceled`, or 
 4. **Match** — join each result to its request by `custom_id`.
 5. **Clean up** (optional) — `DELETE` the batch before the 29-day retention window closes.
 </ConceptBox>
+
+<WorkedExample id="d4-05-lifecycle-with-guard" title="The lifecycle, with the check most callers skip" expanded>
+Classifying 80,000 tickets overnight. Two layers of result-checking, not one:
+
+```python
+# 1. Create -- each request a unique custom_id (the only join key).
+batch = client.messages.batches.create(requests=[
+    {"custom_id": f"ticket-{t.id}", "params": {...}} for t in tickets])
+
+# 2. Poll until ended (most < 1h; SLA 24h, then expiry).
+while client.messages.batches.retrieve(batch.id).processing_status != "ended":
+    sleep(60)
+
+# 3. Stream JSONL -- order is NOT guaranteed.
+for r in client.messages.batches.results(batch.id):
+    if r.result.type != "succeeded":
+        handle_failure(r.custom_id, r.result.type)        # errored/canceled/expired -- unbilled
+        continue
+    msg = r.result.message
+    if msg.stop_reason in ("refusal", "max_tokens"):
+        handle_unusable(r.custom_id, msg.stop_reason)      # succeeded but NOT usable -- and billed
+        continue
+    records[r.custom_id] = parse(msg)                       # 4. join by custom_id
+```
+
+The structure is the lesson. The **first** guard is the batch-level result type — `succeeded` versus the three unbilled failures. The **second**, the one most pipelines omit, is the message-level `stop_reason` *inside* a succeeded result: a refusal or a truncation reaches you as `succeeded` yet carries no answer you can use — and you paid for the refusal. Skip it and you silently ingest refused/truncated outputs as if they were classifications. And throughout, `custom_id` is the only correct join key, because the result stream is unordered.
+</WorkedExample>
 
 ## Practice
 
@@ -101,6 +144,14 @@ State the two limits that bound a single Message Batch and which one is reported
 **B.** The job is large, offline, and cost-sensitive with no one waiting — the exact profile batch is built for: 50% off, and 80,000 requests sits within the 100,000-request limit. Matching by `custom_id` after the batch ends is the required pattern because results return unordered. **A** works but forfeits the 50% discount and adds rate-limit and orchestration overhead for latency nobody needs. **C** is impossible — streaming is not supported for batch requests. **D** collapses 80,000 independent classifications into one prompt, which blows past context limits and produces a single entangled response with no per-ticket structure.
 </Solution>
 
+<Solution for="d4-05-pr-custom-id">
+`custom_id` is mandatory because batch results "can be returned in any order" — a batch is a *set*, not a sequence, so there is no positional correspondence between the request list and the result stream to fall back on. The unique `custom_id` is the only thread joining an output back to the input that produced it. If a caller instead assumes submission order, the specific failure is a **silent mis-join**: result *n* is attributed to request *n* when it actually answers some other request, so records carry the wrong data and nothing in the response flags it. That is the most dangerous failure class — one that corrupts data without surfacing an error.
+</Solution>
+
+<Solution for="d4-05-pr-limits">
+The two limits are **100,000 requests** or **256 MB in size**, whichever is reached first; the **256 MB** payload limit is the one an **HTTP 413** reports on creation (the fix is to split the dataset into multiple batches). A Messages API capability that does *not* work inside a batch: **streaming** (explicitly unsupported), or equally a **multi-turn tool loop** — each batched request is single-shot, with no `tool_result` round-trip, because a batch processes each request as one independent user→assistant turn with no follow-up.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
@@ -109,4 +160,5 @@ State the two limits that bound a single Message Batch and which one is reported
 - **`custom_id` contract** — results return in any order; match by the unique `custom_id` (1–64 chars, alphanumeric + `-` + `_`). Never rely on positional order; never reuse an id.
 - **Envelope** — 100,000 requests *or* 256 MB per batch (HTTP 413 over payload); streaming unsupported; each request is single-shot (no multi-turn tool loop). Structured outputs compose (schema-valid at 50% off).
 - **Billing + beta** — billed only for `succeeded`; `errored`/`canceled`/`expired` are free; the `output-300k-2026-03-24` beta raises `max_tokens` to 300,000 on batch for Opus 4.7/4.6 and Sonnet 4.6.
+- **Succeeded ≠ usable** — a `succeeded` result still carries a per-message `stop_reason`; a **refusal** (`"refusal"`, 200, **billed**, may not match schema) or a **truncation** (`"max_tokens"`, incomplete) reaches you as succeeded. Check each succeeded message's `stop_reason`, not just the result type.
 - **Lifecycle** — `POST /v1/messages/batches` → poll until `ended` → stream `results_url` JSONL → match by `custom_id` → optional `DELETE` before the 29-day window.
