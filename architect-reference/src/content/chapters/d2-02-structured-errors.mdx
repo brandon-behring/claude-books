@@ -6,20 +6,21 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [2]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - anthropic-handle-tool-calls
   - mcp-spec-tools
   - anthropic-define-tools
   - writing-tools-for-agents
-description: A tool's failure contract — which channel a failure travels down, what its text says, and whether the schema could have prevented it. Why is_error turns a failure into a recoverable signal, the normative execution-vs-protocol error split, and the difference between steering a retry and preventing the error.
+description: A tool's failure contract — which channel a failure travels down, what its text says, and whether the schema could have prevented it. The two regimes (Messages-API is_error vs MCP isError + JSON-RPC), why is_error turns a failure into a recoverable signal, the normative execution-vs-protocol error split, and the difference between steering a retry and preventing the error.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -29,19 +30,43 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 
 <YouWillLearn prerequisites="Chapter D1.1 (the tool_result round-trip and is_error) and Chapter D2.1 (the tool interface). You know a failed tool call returns a tool_result block; this chapter is what goes inside it.">
+- **Distinguish** the two error regimes — the Claude Messages API (`is_error`) and MCP (`isError` + JSON-RPC) — and not conflate their spellings
 - **Apply** `is_error: true` with actionable content so a failed call becomes recoverable
 - **Distinguish** an execution error (the model self-corrects) from a protocol error (it cannot)
 - **Analyze** the model's documented retry behavior and why error content — not a parameter — steers it
 - **Choose** `strict: true` to prevent the schema errors you would otherwise have to handle
 </YouWillLearn>
 
-_D2.1 designed a tool's happy path; this chapter designs its failure path. When a call goes wrong, the architect decides three things: which channel the failure travels down, what the failure text says, and whether the schema could have prevented it at all. Get them right and a failed call becomes a recoverable signal the model acts on; get them wrong and the agent stalls, guesses, or apologizes. The exam tests the channel split and the difference between steering a retry and preventing the error._
+_D2.1 designed a tool's happy path; this chapter designs its failure path. When a call goes wrong, the architect decides three things: which channel the failure travels down, what the failure text says, and whether the schema could have prevented it at all. But "which channel" depends on **which regime** you are in — and conflating the Claude Messages API with MCP is the most common mistake here, so we separate them first._
 
-## `is_error: true` is the canonical failure signal
+## Do I know this already?
 
-When a tool fails, the host still returns a `tool_result` — but flags it: "`is_error: true` is the canonical signal that a tool call failed. Claude incorporates the error into its next-turn reasoning and may retry."<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> The flag is what turns a failure into a *message to the model* rather than a dead end — a result whose content reads `ConnectionError: the weather service API is not available (HTTP 500)` with `is_error: true` lets the next turn reason about what to do.<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" />
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
 
-The design principle is two lines: set `is_error: true` on the `tool_result` block, and make the `content` text actionable.<Tag kind="official" /><Citation src="writing-tools-for-agents" />
+1. In the Claude Messages API, what field flags a failed tool result — and what is its exact casing?
+2. In MCP, what are the *two* error channels, and which one does a validation failure belong in?
+3. Does the Claude Messages API have a JSON-RPC `-32602` channel for a bad tool call? If not, where does a protocol-level problem surface?
+4. How many times does Claude retry a bad call, and is that a parameter you can set?
+5. Which failures does `strict: true` prevent, and which does it *not*?
+
+## Two regimes, two spellings
+
+"Structured error" means two related-but-distinct things depending on the surface you are on, and the exam (and real code) punish conflating them.
+
+<ConceptBox title="The two error regimes">
+- **Claude Messages API (direct).** A failed tool returns a `tool_result` block with **`is_error: true`** (snake_case) and actionable `content`. There is **one** error signal for tool failures; a *protocol-level* problem (a malformed request, `tool_result` not first in the content array) surfaces as an **HTTP error (e.g. 400)**, not a JSON-RPC channel.<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" />
+- **MCP.** A `tools/call` returns a `CallToolResult` carrying an **`isError`** flag (camelCase, default false). MCP has **two** channels: execution errors ride `isError: true` *inside a successful result*; **protocol** errors (unknown tool, malformed request) ride a **JSON-RPC error response** such as `-32602`.<Tag kind="official" /><Citation src="mcp-spec-tools" />
+</ConceptBox>
+
+The casing is the tell: **`is_error`** is the Claude Messages API; **`isError`** is MCP. The two-channel (`isError` vs JSON-RPC) split below is an **MCP** model — the direct Messages API has only the single `is_error` signal for tool failures.
+
+<KeyIdea>
+The execution-vs-protocol *split* is real but lives in **MCP**. On the Claude Messages API there is one tool-failure signal — `is_error` — and protocol problems are HTTP-level, not a second in-band channel. Keep the spelling consistent with the regime you are describing, and never present the MCP two-channel model as if the direct API also had a JSON-RPC error class.
+</KeyIdea>
+
+## `is_error: true` is the canonical failure signal (Messages API)
+
+On the Claude Messages API, a failed tool still returns a `tool_result` — but flagged. `is_error: true` is the canonical signal that a tool call failed: Claude folds the error into its next-turn reasoning and may retry.<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> The flag is what turns a failure into a *message to the model* rather than a dead end — a result whose `content` reads `ConnectionError: the weather service API is not available (HTTP 500)` with `is_error: true` lets the next turn reason about what to do.<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> The design principle is two lines: set `is_error: true` on the `tool_result` block, and make the `content` text actionable.<Tag kind="official" /><Citation src="writing-tools-for-agents" />
 
 <KeyIdea>
 An error is a message to the model, not a log line for you. Its only job is to let the next turn recover — so it must be both *flagged* (so the model knows the call failed) and *legible* (so the model knows what to do about it).
@@ -55,22 +80,39 @@ The flag says *that* it failed; the content must say *what to do next*. The docu
 A `tool_result` of `"failed"` or a raw stack trace gives the model nothing to act on — it guesses or gives up. Every error string should name what went wrong *and* what to try next: not `"Error: 429"` but `"Rate limit exceeded. Retry after 60 seconds."` That actionable form is the difference between a recovered task and a stalled one.
 </Pitfall>
 
-## Execution errors vs protocol errors: pick the channel
+## Execution vs protocol errors: the MCP channel split
 
-A failure can travel down one of two channels, and the choice is normative, not stylistic. The MCP specification draws the line: `isError: true` *inside a successful result* is for **execution errors the model should self-correct on** — input validation, API failures, business-logic errors — while a **JSON-RPC error response** is for **protocol errors the model cannot fix**, such as an unknown tool or a malformed request.<Tag kind="official" /><Citation src="mcp-spec-tools" />
+Within **MCP**, a failure travels down one of two channels, and the choice is normative, not stylistic. The specification draws the line: `isError: true` *inside a successful result* is for **execution errors the model should self-correct on** — input validation, API failures, business-logic errors — while a **JSON-RPC error response** is for **protocol errors the model cannot fix**, such as an unknown tool or a malformed request.<Tag kind="official" /><Citation src="mcp-spec-tools" />
 
-The most-tested trap lives on this line: a validation failure belongs in the `isError` channel, not in a JSON-RPC `-32602`. The 2025-11-25 spec (per SEP-1303) is explicit that input-validation errors return as `isError: true` content — for example, `Invalid departure date: must be in the future. Current date is 08/08/2025.` — so the model can correct and retry.<Tag kind="official" /><Citation src="mcp-spec-tools" />
+The most-tested trap lives on this line: a validation failure belongs in the `isError` channel, **not** in a JSON-RPC `-32602`. The 2025-11-25 spec (per SEP-1303) is explicit that input-validation errors return as `isError: true` content — for example, `Invalid departure date: must be in the future. Current date is 08/08/2025.` — so the model can correct and retry.<Tag kind="official" /><Citation src="mcp-spec-tools" />
 
-<ConceptBox title="Two channels, two audiences">
+<ConceptBox title="Two channels, two audiences (MCP)">
 The `isError` content is addressed to the **model** — it reads the text and self-corrects. The JSON-RPC error is addressed to the **client/host** — the model cannot usefully recover from it, so routing a recoverable failure there silently denies the model its chance to retry. Route by *who can act on the error*, not by how severe it feels.
 </ConceptBox>
 
+<WorkedExample id="d2-02-channel-choice" title="A past departure date: which channel?" expanded>
+A booking tool receives `departure_date` in the past. Two ways to report it — one right, one wrong:
+
+```jsonc
+// WRONG (MCP) — a JSON-RPC protocol error for a recoverable input problem:
+{ "jsonrpc": "2.0", "id": 7,
+  "error": { "code": -32602, "message": "Invalid params" } }   // model can't read/recover
+
+// RIGHT (MCP) — an execution error in the result, addressed to the model:
+{ "content": [{ "type": "text",
+    "text": "Invalid departure date: must be in the future. Current date is 2026-06-02." }],
+  "isError": true }                                            // model corrects and retries
+```
+
+A past date is an *input-validation / business-logic* failure — exactly what `isError: true` exists for (SEP-1303). Sending it as `-32602` routes a recoverable error to the host, which silently denies the model its retry. On the **Claude Messages API** the same failure is a `tool_result` with **`is_error: true`** and that actionable text — same idea, different spelling, no JSON-RPC channel involved.
+</WorkedExample>
+
 ## Retryability is documented behavior, not a parameter
 
-The model already retries failed calls on its own: "If a tool request is invalid or missing parameters, Claude will retry 2-3 times with corrections before apologizing to the user."<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> That loop is *why* the channel choice and the content quality matter so much — a failure returned as legible `isError` content feeds each retry something to correct against, whereas a protocol error the model cannot read gives it nothing to adjust and burns the budget toward an apology.
+The model already retries failed calls on its own: "If a tool request is invalid or missing parameters, Claude will retry 2-3 times with corrections before apologizing to the user."<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> That loop is *why* the channel choice and the content quality matter so much — a failure returned as legible error content feeds each retry something to correct against, whereas a protocol error the model cannot read gives it nothing to adjust and burns the budget toward an apology.
 
 <MarginNote variant="note" label="Note">
-The 2–3-times retry is documented *default behavior*, not an API knob — there is no retry-count parameter. The only lever over the retry is the quality of the error content the model reads on each attempt. Good error text is how you steer a retry you cannot configure.
+The 2–3-times retry is documented *default behavior*, not an API knob — there is no retry-count parameter. The only lever over the retry is the quality of the error content the model reads on each attempt.
 </MarginNote>
 
 ## Prevent the error: `strict: true`
@@ -78,17 +120,17 @@ The 2–3-times retry is documented *default behavior*, not an API knob — ther
 The cheapest error to handle is the one that never happens. For the largest class of failures — malformed inputs — there is a prevention switch: "To eliminate invalid tool calls entirely, use strict tool use with `strict: true` on your tool definitions. This guarantees that tool inputs will always match your schema exactly, preventing missing parameters and type mismatches."<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /><Citation src="anthropic-define-tools" /> With `strict: true` the schema-violation error class disappears before it can reach your handler.
 
 <Pitfall title="Handling what you could have prevented">
-Writing elaborate validation-error content for a parameter that `strict: true` would have made impossible is wasted effort. Reserve `isError` content for the failures you *cannot* prevent — runtime API errors, business-logic violations, and semantic constraints a JSON Schema can't express (like "the date must be in the future"). Prevent the structural errors; make the rest legible.
+Writing elaborate validation-error content for a parameter that `strict: true` would have made impossible is wasted effort. Reserve error content for the failures you *cannot* prevent — runtime API errors, business-logic violations, and semantic constraints a JSON Schema can't express (like "the date must be in the future"). Prevent the structural errors; make the rest legible.
 </Pitfall>
 
 ## Practice
 
 <Exercise id="d2-02-ex-channel-and-content">
-Your booking tool receives a departure date in the past. A colleague wants to return a JSON-RPC `-32602 Invalid params` error. (a) Which channel is correct, and why? (b) Write the one-sentence error content the tool should return. (c) Would `strict: true` have prevented this particular failure? Explain.
+Your booking tool (exposed over MCP) receives a departure date in the past. A colleague wants to return a JSON-RPC `-32602 Invalid params` error. (a) Which channel is correct, and why? (b) Write the one-sentence error content the tool should return. (c) Would `strict: true` have prevented this particular failure? Explain. (d) If the same tool were called directly over the Claude Messages API instead of MCP, what changes about the *spelling* of the failure flag?
 </Exercise>
 
-<Practice id="d2-02-pr-rewrite" difficulty="2">
-A tool returns `is_error: true` with the content `"Error: 500"`. Rewrite the content so the model can recover, and name the single design principle you applied.
+<Practice id="d2-02-pr-regime" difficulty="2">
+A scenario describes a tool called directly through the Claude Messages API (not MCP) that hits an internal API timeout. A candidate answer says "return a JSON-RPC `-32602` error." Name the two things wrong with that answer.
 </Practice>
 
 <Practice id="d2-02-pr-retry-reasoning" difficulty="3">
@@ -98,15 +140,23 @@ An agent calls a tool with a missing required parameter. In two sentences, descr
 <ExerciseSolutions>
 
 <Solution for="d2-02-ex-channel-and-content">
-**(a) Return `isError: true` content, not a JSON-RPC error.** A past departure date is an input-validation / business-logic failure the model can self-correct, and the MCP spec (per SEP-1303) routes validation errors to the `isError` channel, reserving JSON-RPC errors for protocol problems the model cannot fix. **(b)** Make it actionable, e.g. *"Invalid departure date: must be in the future. Current date is 2026-06-01."* — what went wrong plus the fact the model needs in order to retry. **(c) No.** `strict: true` guarantees the input *matches the schema* (a correctly-typed date string), but "must be in the future" is a *semantic* constraint a JSON Schema type cannot express, so this failure has to be caught at runtime and returned as legible `isError` content. Prevention handles structural errors; this one is not structural.
+**(a) Return `isError: true` content, not a JSON-RPC error.** A past departure date is an input-validation / business-logic failure the model can self-correct, and the MCP spec (SEP-1303) routes validation errors to the `isError` channel, reserving JSON-RPC errors for protocol problems the model cannot fix. **(b)** Make it actionable, e.g. *"Invalid departure date: must be in the future. Current date is 2026-06-02."* **(c) No.** `strict: true` guarantees the input *matches the schema* (a correctly-typed date string), but "must be in the future" is a *semantic* constraint a JSON Schema type cannot express, so this failure must be caught at runtime and returned as legible error content. **(d)** Over the Claude Messages API the flag is **`is_error`** (snake_case) on the `tool_result` block — same meaning, different spelling — and there is no JSON-RPC channel at all (protocol problems would be HTTP 400s).
+</Solution>
+
+<Solution for="d2-02-pr-regime">
+Two things are wrong. **(1) Wrong regime:** the Claude Messages API has no JSON-RPC error channel — JSON-RPC `-32602` is an **MCP** protocol error. On the direct API a tool failure is a `tool_result` with **`is_error: true`**; protocol-level problems are HTTP errors (e.g. 400), not JSON-RPC. **(2) Wrong channel even in MCP:** an internal API timeout is an *execution* error the model could retry against, so even under MCP it belongs in `isError: true` content, not a protocol `-32602`. The candidate conflated the two regimes *and* mis-routed a recoverable error.
+</Solution>
+
+<Solution for="d2-02-pr-retry-reasoning">
+Claude retries the call 2–3 times with corrections before apologizing to the user — that is documented default behavior, not something you configure. Making the error content actionable matters because each retry reads that content to decide its correction; there is no retry-count knob, so the *legibility of the error text* is the only lever you have over whether those 2–3 attempts converge on a fix or burn down to an apology.
 </Solution>
 
 </ExerciseSolutions>
 
 ## Exam essentials
 
-- **`is_error: true` is the canonical failure signal** — it turns a failed `tool_result` into a message the model reasons over and may retry against. Flag it *and* make the content actionable.
-- **Write instructive error text** — "Rate limit exceeded. Retry after 60 seconds." beats `"failed"`; name what went wrong and what to try next.
-- **Two channels, two audiences** — `isError: true` content = execution errors the model self-corrects (validation, API, business logic); a JSON-RPC error = protocol errors it cannot fix (unknown tool, malformed request). Validation errors go in the `isError` channel (SEP-1303), never JSON-RPC `-32602`.
-- **Retry is default behavior, not a parameter** — Claude retries 2–3 times with corrections; there is no retry-count knob, so error-content quality is your only lever over it.
-- **Prevent with `strict: true`** — eliminates schema-violation errors entirely; reserve `isError` content for runtime, business-logic, and semantic failures you cannot prevent.
+- **Two regimes, two spellings:** Claude Messages API uses **`is_error`** (snake_case) on a `tool_result`, with one tool-failure signal (protocol problems are HTTP errors). MCP uses **`isError`** (camelCase) on a `CallToolResult`, plus a separate **JSON-RPC** channel for protocol errors. Don't conflate them.
+- **`is_error`/`isError` is the canonical failure signal** — it turns a failed result into a message the model reasons over and may retry against. Flag it *and* make the content actionable ("Rate limit exceeded. Retry after 60 seconds." beats `"failed"`).
+- **MCP's two channels, two audiences** — `isError: true` content = execution errors the model self-corrects (validation, API, business logic); a JSON-RPC error = protocol errors it cannot fix (unknown tool, malformed request). Validation errors go in the `isError` channel (SEP-1303), never JSON-RPC `-32602`.
+- **Retry is default behavior, not a parameter** — Claude retries 2–3 times with corrections; there is no retry-count knob, so error-content quality is your only lever.
+- **Prevent with `strict: true`** — eliminates schema-violation errors entirely; reserve error content for runtime, business-logic, and semantic failures you cannot prevent.
