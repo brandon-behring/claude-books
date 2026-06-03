@@ -10,13 +10,14 @@ last_updated: 2026-06-02
 last_verified: 2026-06-02
 sources:
   - claude-code-memory
-description: The .claude/rules/ system — a modular, eager-loaded instruction layer parallel to CLAUDE.md, with optional glob path-scoping so a rule loads only when Claude reads matching files. Covers unconditional vs path-scoped rules, the glob format, and the directory and symlink mechanics.
+description: The .claude/rules/ system — a modular, eager-loaded instruction layer parallel to CLAUDE.md, with optional glob path-scoping so a rule loads only when Claude reads matching files. Covers unconditional vs path-scoped rules, user-level vs project rules and their load order, the glob format, and the directory and symlink mechanics.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -29,21 +30,46 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - **Distinguish** `.claude/rules/` from CLAUDE.md — a *parallel* system, not a subsystem
 - **Apply** the `paths` frontmatter to scope a rule to files matching a glob
 - **Explain** when a path-scoped rule actually triggers — on file-read, not at launch or every tool use
-- **Recognize** the directory and symlink mechanics of the rules system
+- **Distinguish** user-level (`~/.claude/rules/`) from project rules, and the load order between them
 </YouWillLearn>
 
-_D3.1 covered the always-on CLAUDE.md; D3.2 covered the lazy, invocable skill. Rules are the third shape of the instruction layer: modular markdown files that load eagerly like CLAUDE.md, but can be **glob-scoped** so a rule only enters context when Claude touches the files it governs. The architect's job here is to know that rules are a separate, equal-priority system — and to use path-scoping to keep file-specific guidance out of unrelated work._
+_D3.1 covered the always-on CLAUDE.md; D3.2 covered the lazy, invocable skill. Rules are the third shape of the instruction layer: modular markdown files that load eagerly like CLAUDE.md, but can be **glob-scoped** so a rule only enters context when Claude touches the files it governs. The architect's job here is to know that rules are a separate, equal-priority system, that user and project rules have a load order, and to use path-scoping to keep file-specific guidance out of unrelated work._
 
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: the `.claude/rules/` path, the `paths` frontmatter field, and the glob syntax are concrete surfaces that move between releases. Treat them as a current snapshot and re-verify before relying on them.
 </MarginNote>
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Is `.claude/rules/` a subsystem of CLAUDE.md, or a parallel one? At what priority do un-scoped rules load?
+2. When does a `paths`-scoped rule actually enter context?
+3. Where do *user-level* rules live, and do they win over project rules or lose to them?
+4. Write a `paths` glob for every `.ts` and `.tsx` file in the repo.
+5. When should a standing instruction be a `paths`-scoped rule rather than a line in CLAUDE.md?
 
 ## A system parallel to CLAUDE.md
 
 `.claude/rules/*.md` is a modular rules system, loaded into context every session, with recursive discovery across subdirectories.<Tag kind="official" /><Citation src="claude-code-memory" /> The relationship to CLAUDE.md is the fact to fix first: "Rules without `paths` frontmatter are loaded at launch with the same priority as `.claude/CLAUDE.md`."<Tag kind="official" /><Citation src="claude-code-memory" /> A rule is not nested under CLAUDE.md or overridden by it — the two are *parallel* instruction sources discovered separately and loaded at equal priority.
 
 <KeyIdea>
-Rules sit beside CLAUDE.md, not under it. D3.1's concatenation-not-precedence applies here too: an unconditional rule and your `.claude/CLAUDE.md` both land in context at the same priority. The reason to reach for a rule instead of more CLAUDE.md lines is *modularity and scoping*, not precedence.
+Rules sit beside CLAUDE.md, not under it. An unconditional rule and your `.claude/CLAUDE.md` both land in context at the same priority. The reason to reach for a rule instead of more CLAUDE.md lines is *modularity and scoping* — and, as the next section shows, rule **scopes** carry a load order just as CLAUDE.md scopes do.
+</KeyIdea>
+
+## User-level vs project rules — there is a load order
+
+The "no precedence" story needs one refinement the exam can probe: rules come in **scopes**, and the scopes load in order. **User-level rules live in `~/.claude/rules/` and apply to every project on your machine** — use them for preferences that aren't project-specific (your personal style, your workflows).<Tag kind="official" /><Citation src="claude-code-memory" /> Project rules live in the repo's `.claude/rules/`. And the order between them is documented: **"user-level rules are loaded before project rules, giving project rules higher priority."**<Tag kind="official" /><Citation src="claude-code-memory" />
+
+That is the same recency model as the CLAUDE.md hierarchy (D3.1): files concatenate, but the more-specific scope is read *last* and so effectively dominates when two instructions tension. So "concatenate, not override" is true *within* a scope; *across* scopes there is a load order — **user → project, project higher** — exactly mirroring CLAUDE.md's broad-to-specific assembly.
+
+<ConceptBox title="Two rule scopes, one order">
+- **User-level** — `~/.claude/rules/*.md`. Applies to *every* project; for machine-wide personal preferences. Loaded **first** (lower priority).
+- **Project** — `.claude/rules/*.md` in the repo. Shared with the team; for this project. Loaded **after** user rules → **higher priority**.
+</ConceptBox>
+
+<KeyIdea>
+Rules *concatenate*, but their scopes have an order: **user-level loads before project, so project rules win**. It is the CLAUDE.md model again — assemble broad-to-specific, most-specific read last. A personal `~/.claude/rules/` preference is a default a project rule can override by being read after it.
 </KeyIdea>
 
 ## Path-scoping with the `paths` frontmatter
@@ -74,6 +100,18 @@ The glob format is the same one skills use for their `paths` field:<Tag kind="of
 Unconditional rules (no `paths`) load at session start; path-scoped rules do **not**. They activate when Claude first reads a matching file — so a rule scoped to `src/api/**` has no effect during work that never touches `src/api/`. If a rule must always apply, leave `paths` off; if it should bind only to certain files, scope it and accept that it is silent until one of those files is read.
 </Pitfall>
 
+<WorkedExample id="d3-03-rules-in-context" title="What's in context, and when" expanded>
+A developer has, across two scopes:
+
+```
+~/.claude/rules/preferences.md         # user-level, no paths  → personal default
+.claude/rules/code-style.md            # project, no paths     → always on, beats user default
+.claude/rules/backend/api.md           # project, paths: src/api/**/*.ts
+```
+
+At **session start**, in context: `preferences.md` (loaded first) and `code-style.md` (loaded after → higher priority). `api.md` is **not** loaded — it is path-scoped. If `preferences.md` says "prefer 4-space indent" and `code-style.md` says "2-space," the project rule was read last, so it dominates. The moment Claude **reads `src/api/orders.ts`**, `api.md` activates and "all API endpoints must include input validation" enters context — and only then. Work that never touches `src/api/` never pays for that rule. Two levers at once: *scope order* (user → project) decides who wins; *path-scoping* decides who is even present.
+</WorkedExample>
+
 ## Layout and symlinks
 
 Rules can mix unconditional and path-scoped files in one tree, and discovery recurses into subdirectories:
@@ -97,7 +135,7 @@ The three instruction shapes now in view divide cleanly by *when* they load and 
 
 <ConceptBox title="Three instruction shapes">
 - **CLAUDE.md** (D3.1) — always-on context, concatenated across scopes. For broadly-applicable rules you can't infer from code.
-- **`.claude/rules/`** (this chapter) — modular instruction files at the same priority; optionally `paths`-scoped so file-specific guidance loads only when relevant.
+- **`.claude/rules/`** (this chapter) — modular instruction files at the same priority; optionally `paths`-scoped so file-specific guidance loads only when relevant; user vs project scopes with project winning.
 - **Skills** (D3.2) — lazy capabilities; only a description until invoked. For invocable workflows, not standing rules.
 </ConceptBox>
 
@@ -118,8 +156,8 @@ You have a one-line standard — "all API endpoints must validate their input" �
 Write the `paths` frontmatter value that scopes a rule to every TypeScript and TSX file anywhere in the repository, using a single pattern.
 </Practice>
 
-<Practice id="d3-03-pr-rules-vs-claudemd" difficulty="3">
-A teammate put a 40-line, framework-specific style guide in `CLAUDE.md` and is annoyed that it loads even when Claude edits unrelated backend files. Explain, in terms of the rules system, the change that fixes this — and why simply moving the text into an *unconditional* `.claude/rules/` file would not.
+<Practice id="d3-03-pr-user-vs-project" difficulty="3">
+You keep `~/.claude/rules/preferences.md` ("prefer 4-space indent") on your machine, and a teammate's repo ships `.claude/rules/code-style.md` ("2-space indent"). When you work in that repo, which indentation does Claude favor, and why — in terms of where each rule lives and the order they load?
 </Practice>
 
 <ExerciseSolutions>
@@ -128,12 +166,20 @@ A teammate put a 40-line, framework-specific style guide in `CLAUDE.md` and is a
 **C.** A path-scoped rule is exactly this case: with `paths: ["src/api/**/*.ts"]` the standard loads only when Claude reads a matching API file, and stays out of context otherwise. **A** and **B** both load the line *unconditionally* — `CLAUDE.md` and an un-scoped rule sit in context at the same priority every session, which is the clutter you wanted to avoid. **D** misuses a skill: skills are invocable *capabilities/workflows*, not standing rules that should bind automatically while editing a file. The lever that matters is `paths`, and only a rule (or a skill) offers it — so the rule is the right shape for a standing, file-scoped instruction.
 </Solution>
 
+<Solution for="d3-03-pr-glob">
+**`src/**/*.{ts,tsx}`** — or, to cover the whole repo regardless of directory, **`**/*.{ts,tsx}`**. A single `paths` entry with brace expansion `{ts,tsx}` matches both extensions; `**` matches any directory depth. (You can also list two patterns, but the brace form does it in one.)
+</Solution>
+
+<Solution for="d3-03-pr-user-vs-project">
+Claude favors **2-space indent — the project rule wins.** Your `preferences.md` is a **user-level** rule (`~/.claude/rules/`, applies to every project); the repo's `code-style.md` is a **project** rule. The documented order is that **user-level rules load *before* project rules, giving project rules higher priority** — so when both are in context and they tension, the project rule (read last) dominates. Your personal preference acts as a default that any project can override for its own repo.
+</Solution>
+
 </ExerciseSolutions>
 
 ## Exam essentials
 
 - **Parallel to CLAUDE.md** — `.claude/rules/*.md` loads every session with recursive subdir discovery; rules without `paths` load unconditionally at the **same priority as `.claude/CLAUDE.md`** (not a subsystem of it).
-- **Path-scoping** — a `paths` glob makes a rule trigger only when Claude reads matching files, **not at launch and not on every tool use**.
-- **Glob format** — same as skill `paths`: `**/*.ts`, `src/**/*`, brace expansion `{ts,tsx}`.
+- **Scopes have a load order** — **user-level (`~/.claude/rules/`, all projects) loads before project (`.claude/rules/`), giving project rules higher priority.** Rules concatenate, but the more-specific scope is read last and wins (the CLAUDE.md model).
+- **Path-scoping** — a `paths` glob makes a rule trigger only when Claude reads matching files, **not at launch and not on every tool use**. Glob format same as skill `paths` (`**/*.ts`, `src/**/*`, `{ts,tsx}`).
 - **Mechanics** — unconditional and path-scoped rules can mix in one tree; symlinks work, with circular symlinks detected gracefully.
-- **Choosing the shape** — CLAUDE.md (always-on), rules (modular, optionally glob-gated), skills (lazy capability). Reach for a `paths`-scoped rule for guidance that is real but only relevant to part of the tree.
+- **Choosing the shape** — CLAUDE.md (always-on), rules (modular, optionally glob-gated, user/project order), skills (lazy capability). Reach for a `paths`-scoped rule for guidance that is real but only relevant to part of the tree.

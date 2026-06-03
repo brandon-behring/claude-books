@@ -3,7 +3,7 @@ source_url: https://code.claude.com/docs/en/memory
 canonical_url: https://code.claude.com/docs/en/memory
 source_title: How Claude remembers your project
 fetched_at: 2026-05-22
-last_verified_at: 2026-05-22
+last_verified_at: 2026-06-02
 topic: claude-code-internals
 tier: T1-official
 cert_domains: [3]
@@ -56,6 +56,12 @@ The canonical doc on persistent context for Claude Code: hand-written CLAUDE.md 
 > — How Claude remembers your project, Organize rules with `.claude/rules/` / Path-specific rules
 >
 > Anchor: `Path-specific rules + Rules without paths frontmatter are loaded at launch`
+
+> "Personal rules in `~/.claude/rules/` apply to every project on your machine. Use them for preferences that aren't project-specific. ... User-level rules are loaded before project rules, giving project rules higher priority."
+>
+> — How Claude remembers your project, "User-level rules" (re-verified 2026-06-02 against the live page; this section was added since the 2026-05-22 capture)
+>
+> Anchor: `User-level rules + loaded before project rules, giving project rules higher priority`
 
 ## Path-specific rules (`.claude/rules/<name>.md` with YAML glob)
 
