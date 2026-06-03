@@ -6,20 +6,21 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [2]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-01
-last_verified: 2026-06-01
+last_updated: 2026-06-02
+last_verified: 2026-06-02
 sources:
   - anthropic-define-tools
   - writing-tools-for-agents
   - mcp-spec-tools
   - agent-sdk-mcp
-description: A tool's caller-facing contract — description, operation boundary, name, and response shape — is what a non-deterministic model reads to select and use it. Why the description is the highest-leverage surface, when to consolidate, how to namespace, and the object schema every interface stands on.
+description: A tool's caller-facing contract — description, input examples, operation boundary, name, and response shape — is what a non-deterministic model reads to select and use it. Why the description is the highest-leverage surface, how input_examples show correct usage, when to consolidate, how to namespace, and the object schemas (input and output) every interface stands on.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
@@ -30,12 +31,23 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 <YouWillLearn prerequisites="Chapter D1.1 (the agent loop) — you know a tool is name + description + input schema, called via the tool_use round-trip. No tool-authoring experience assumed.">
 - **Explain** why a tool's description is the highest-leverage factor in its performance
+- **Add** `input_examples` to demonstrate correct usage, and state their one hard constraint
 - **Apply** consolidation and service-namespacing to a set of overlapping or service-spanning tools
 - **Evaluate** a tool response for high-signal content and a tool name against the documented constraints
-- **Identify** the object input schema that is the structural floor of every tool interface
+- **Identify** the object input schema — and the optional output schema — that every tool interface stands on
 </YouWillLearn>
 
-_Part I built the agent and its orchestration; Part II turns to the **tools** that agent reaches for. A tool is a contract between a deterministic system and a non-deterministic caller — and the architect's leverage is not the implementation behind it but the four surfaces the model actually reads: the description, the operation boundary, the name, and the response. Get those right and a capable model selects the tool correctly; get them wrong and no amount of model quality rescues it._
+_Part I built the agent and its orchestration; Part II turns to the **tools** that agent reaches for. A tool is a contract between a deterministic system and a non-deterministic caller — and the architect's leverage is not the implementation behind it but the surfaces the model actually reads: the description, the input examples, the operation boundary, the name, and the response. Get those right and a capable model selects the tool correctly; get them wrong and no amount of model quality rescues it._
+
+## Do I know this already?
+
+Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
+
+1. Which single field on a tool definition moves its performance the most, and what is the documented length floor?
+2. What does `input_examples` do, and what is the one hard rule every example must satisfy?
+3. You have `create_pr`, `review_pr`, and `merge_pr`. What is the documented redesign, and why?
+4. Give the namespaced names for a GitHub search and a Jira search, and the `mcp__` form an MCP tool surfaces as.
+5. What is structurally required of every tool's input schema — and what optional schema governs its output?
 
 ## The description is the highest-leverage surface
 
@@ -47,9 +59,41 @@ The gap is concrete. A `get_stock_price` described as *"Retrieves the current st
 For the agent, the description *is* the API. The model never reads your implementation; it chooses tools by their descriptions alone — so the description is where an architect spends the first and largest share of design effort.
 </KeyIdea>
 
+## Show correct usage with input_examples
+
+The description *tells* the model how to use a tool; `input_examples` *show* it. This optional field carries an array of example argument objects that demonstrate correct calls — the documented "Tool Use Examples" feature.<Tag kind="official" /><Citation src="anthropic-define-tools" /> A weather tool can ship three: a full call, a call with a different unit, and a call that omits the optional field — teaching the model the shape by demonstration rather than prose.
+
+The one hard rule: **each example must validate against the tool's `input_schema`, or the request returns a 400.**<Tag kind="official" /><Citation src="anthropic-define-tools" /> Two more facts for the exam: `input_examples` are for client (user-defined) tools, **not** server-side tools, and they cost roughly 20–50 tokens for simple examples, 100–200 for complex nested ones — a context cost you pay deliberately where ambiguity is high.<Tag kind="official" /><Citation src="anthropic-define-tools" />
+
+<WorkedExample id="d2-01-input-examples" title="A description plus input_examples" expanded>
+A `get_weather` tool, with the two model-facing surfaces working together:
+
+```json
+{
+  "name": "get_weather",
+  "description": "Get the current weather for a location. Use when the user asks about present conditions; not for forecasts. `unit` is optional and defaults to celsius.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "location": { "type": "string" },
+      "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }
+    },
+    "required": ["location"]
+  },
+  "input_examples": [
+    { "location": "San Francisco, CA", "unit": "fahrenheit" },
+    { "location": "Tokyo, Japan", "unit": "celsius" },
+    { "location": "New York, NY" }
+  ]
+}
+```
+
+The third example deliberately omits `unit` to show it is optional. Every example validates against `input_schema` — if you typo `"unit": "kelvin"`, the example fails the enum and the whole request 400s, so the examples double as a self-check on your schema. The description draws the boundary ("not for forecasts"); the examples remove any doubt about argument shape.
+</WorkedExample>
+
 ## Consolidate operations to reduce selection ambiguity
 
-The second surface is the operation boundary — how much each tool does. The documented default is to consolidate: "Consolidate related operations into fewer tools. Rather than creating a separate tool for every action (create_pr, review_pr, merge_pr), group them into a single tool with an action parameter. Fewer, more capable tools reduce selection ambiguity."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Every extra near-equivalent tool is one more line the model can pick wrong.
+The next surface is the operation boundary — how much each tool does. The documented default is to consolidate: "Consolidate related operations into fewer tools. Rather than creating a separate tool for every action (create_pr, review_pr, merge_pr), group them into a single tool with an action parameter. Fewer, more capable tools reduce selection ambiguity."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Every extra near-equivalent tool is one more line the model can pick wrong.
 
 The deeper principle is to design for the agent's affordances, not mirror your API's endpoints: rather than make the model chain `list_users` + `list_events` + `create_event`, give it one `schedule_event`; rather than `get_customer_by_id` + `list_transactions` + `list_notes`, give it `get_customer_context`.<Tag kind="official" /><Citation src="writing-tools-for-agents" /> A tool that returns exactly the workflow the agent needs beats three tools it must orchestrate.
 
@@ -69,12 +113,12 @@ Consistent prefixes pay off later: the wildcard scoping of D2.3 (`mcp__github__*
 
 ## Return only high-signal information
 
-The response is the half of the contract authors forget. The model reads every token a tool returns, so a tool should "return only high-signal information… semantic, stable identifiers (e.g., slugs or UUIDs) rather than opaque internal references, and include only the fields Claude needs to reason about its next step."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Bloated responses waste the context window and bury the fields that matter.
+The response is the half of the contract authors forget. The model reads every token a tool returns, so a tool should "return only high-signal information… semantic, stable identifiers (e.g., slugs or UUIDs) rather than opaque internal references, and include only the fields Claude needs to reason about its next step."<Tag kind="official" /><Citation src="anthropic-define-tools" /> Bloated responses waste the context window and bury the fields that matter. The shape of the response also shapes the *next* call: a semantic identifier the model can pass straight into the following tool keeps a multi-step task cheap; an opaque internal handle forces a re-lookup.<Tag kind="official" /><Citation src="writing-tools-for-agents" />
 
-The shape of the response also shapes the *next* call. A semantic identifier the model can pass straight into the following tool keeps a multi-step task cheap; an opaque internal handle forces a re-lookup. High-signal responses are what make tool chaining work.<Tag kind="official" /><Citation src="writing-tools-for-agents" />
+When the response should be *machine-shaped*, MCP lets a tool declare an optional **`outputSchema`** — and when it does, the server **MUST** return `structuredContent` conforming to that schema (mirroring it in a text block for compatibility).<Tag kind="official" /><Citation src="mcp-spec-tools" /> That is the output-side analogue of the required input schema; the structured-output machinery that drives it is Domain 4's subject (D4.3).
 
 <ConceptBox title="The response is half the contract">
-The input schema shapes the call *in*; the response shapes the call *out* — and the call after it. An interface designed only at the input boundary is half-specified. Treat the response fields as deliberately as the parameters.
+The input schema shapes the call *in*; the response (and an optional `outputSchema`) shapes the call *out* — and the call after it. An interface designed only at the input boundary is half-specified. Treat the response fields as deliberately as the parameters.
 </ConceptBox>
 
 ## The structural floor: an object input schema
@@ -82,7 +126,7 @@ The input schema shapes the call *in*; the response shapes the call *out* — an
 Beneath the design judgments sits a requirement no interface can skip. Every tool's input schema is a JSON Schema **object**: in the Claude API a tool definition's three required fields are `name`, `description`, and an `input_schema` object;<Tag kind="official" /><Citation src="anthropic-define-tools" /> in MCP the `inputSchema` is required and **must** be a valid JSON Schema object, not null.<Tag kind="official" /><Citation src="mcp-spec-tools" /> A tool that takes no arguments still declares an empty object schema — the object is the floor every interface stands on.
 
 <MarginNote variant="note" label="Note">
-A related field, `strict: true`, makes the model's inputs conform to that schema exactly — but it belongs to the *error* contract (preventing malformed calls), which is D2.2's subject. Here it is enough that the schema is structurally an object.
+A related field, `strict: true`, makes the model's inputs conform to that schema exactly — but it belongs to the *error* contract (preventing malformed calls), which is D2.2's and D2.3's subject. Here it is enough that the schema is structurally an object.
 </MarginNote>
 
 ## Practice
@@ -91,8 +135,8 @@ A related field, `strict: true`, makes the model's inputs conform to that schema
 A teammate ships three tools — `get_customer_by_id`, `list_customer_transactions`, and `list_customer_notes` — and reports that the agent often calls only the first and then stalls. You may redesign the interface. Propose a single consolidated tool (give its name, a one-sentence description, and the boundary it draws), and name the two interface principles your redesign applies.
 </Exercise>
 
-<Practice id="d2-01-pr-namespace" difficulty="2">
-You are adding a `search` capability to both a GitHub integration and a Jira integration in the same agent. Give both tool names following the documented convention, and state in one sentence why a bare `search` would become a problem as the tool library grows.
+<Practice id="d2-01-pr-input-examples" difficulty="2">
+You add three `input_examples` to a tool and the API rejects the whole request with a 400. Nothing is wrong with your description or your code. What is the most likely cause, and which field do the examples have to agree with?
 </Practice>
 
 <Practice id="d2-01-pr-description-audit" difficulty="3">
@@ -102,15 +146,24 @@ You inherit a tool whose entire description reads "Gets data for a record." List
 <ExerciseSolutions>
 
 <Solution for="d2-01-ex-consolidate-vs-split">
-**Consolidate the three into one `get_customer_context` tool** (namespace it — e.g. `crm_get_customer_context` — if the agent spans services). Its description should state what it returns and when to use it: *"Returns a customer's profile, recent transactions, and notes for a given customer ID; use it whenever you need context about a customer before acting."* The redesign applies **consolidation** (fewer, more capable tools reduce selection ambiguity) and **design-for-affordances** (one call returns the context the agent needs instead of three CRUD calls it must chain). The agent stalled because three thin tools forced multi-step chaining that the descriptions never made obvious; a single high-signal response also lets any follow-up call reuse the returned identifiers cheaply.
+**Consolidate the three into one `get_customer_context` tool** (namespace it — e.g. `crm_get_customer_context` — if the agent spans services). Its description should state what it returns and when to use it: *"Returns a customer's profile, recent transactions, and notes for a given customer ID; use it whenever you need context about a customer before acting."* The redesign applies **consolidation** (fewer, more capable tools reduce selection ambiguity) and **design-for-affordances** (one call returns the context the agent needs instead of three CRUD calls it must chain). The agent stalled because three thin tools forced multi-step chaining the descriptions never made obvious; a single high-signal response also lets any follow-up call reuse the returned identifiers cheaply.
+</Solution>
+
+<Solution for="d2-01-pr-input-examples">
+The most likely cause is that **one of the examples does not validate against the tool's `input_schema`** — an invalid `input_examples` entry returns a 400. Every example must conform to the same `input_schema` the real calls do (right types, required fields present, enum values legal); a single bad example (a typo'd enum, a missing required field) fails the whole request. The examples have to agree with **`input_schema`** — which is also why they double as a check on the schema itself.
+</Solution>
+
+<Solution for="d2-01-pr-description-audit">
+A good description must add, at minimum: (1) **what the tool does** concretely (not "gets data" but which data, in what form); (2) **when to use it and when not to** — the boundary that prevents misrouting; (3) **what each parameter means** (and what the response returns). Aim for 3–4 sentences. The audience is the **model**, which selects tools by description alone and never reads the implementation — so an opaque description is a performance bug the model cannot route around, making the description the single highest-leverage fix ("by far the most important factor in tool performance"). Adding `input_examples` compounds the gain by showing correct argument shape.
 </Solution>
 
 </ExerciseSolutions>
 
 ## Exam essentials
 
-- **The description is the highest-leverage surface** — "by far the most important factor in tool performance." Say what the tool does, when (and when not) to use it, and what each parameter means; aim for 3–4 sentences minimum.
+- **The description is the highest-leverage surface** — "by far the most important factor in tool performance." Say what the tool does, when (and when not) to use it, and what each parameter means; 3–4 sentences minimum.
+- **`input_examples` show correct usage** — an array of example argument objects; **each must validate against `input_schema`** (invalid → 400). Client tools only, not server tools; ~20–50 / ~100–200 tokens.
 - **Consolidate to reduce selection ambiguity** — fewer, more capable tools (an `action` parameter over `create_pr`/`review_pr`/`merge_pr`); design for the agent's affordances, not your API's endpoints.
 - **Namespace names by service** — `github_list_prs`, not a bare `search`. API names match `^[a-zA-Z0-9_-]{1,64}$`; MCP names are 1–128 ASCII chars and surface as `mcp__server__tool`.
-- **Return only high-signal information** — semantic, stable identifiers and only the fields the model needs; the response shapes the next call.
-- **The input schema must be an object** — the structural floor of every tool; `strict: true` (D2.2) then makes inputs conform to it.
+- **Return only high-signal information** — semantic, stable identifiers and only the fields the model needs. MCP's optional **`outputSchema`** governs the machine-shaped output (server must then return conforming `structuredContent`).
+- **The input schema must be an object** — the structural floor of every tool; `strict: true` (D2.2/D2.3) then makes inputs conform to it.
