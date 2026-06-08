@@ -8,7 +8,7 @@ A multi-book series + shared glossary. Each book covers Claude from a different 
 - **field-guide/** — what teams actually *did* (audit of 67 production repos; the **Observe** book)
 - **glossary/** — shared terminology, deep-linked by all books
 
-Current project roadmap lives at `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md`.
+Current project roadmap + status lives at [`docs/ROADMAP.md`](./docs/ROADMAP.md) (canonical).
 
 ## Source repos (drafts, not truth)
 
