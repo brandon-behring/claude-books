@@ -1,8 +1,8 @@
 # Content map — research → book (v1)
 
-Which topics (and eventually which *atoms*) back which planned chapters/sections, across the three books. Cert domains are the **floor** (see [`docs/cert-coverage.md`](../cert-coverage.md)); this is the fuller picture.
+Which topics (and eventually which *atoms*) back which planned chapters/sections. (Column headers below predate the re-architecture; current book model in [`BOOK-MAP.md`](../BOOK-MAP.md).) Cert domains are the **floor** (see [`docs/cert-coverage.md`](../cert-coverage.md)); this is the fuller picture.
 
-> **Living + versioned, topic-grain today.** No dossiers exist yet, so there are no atoms to map. As dossiers land, each topic's verified **atoms** map to specific chapter/section units and the grain refines. The pilot (`context assembly`) builds the **first atom-grain slice** and proves the "atoms compose into chapter units" gate. Expect churn.
+> **Living + versioned, topic-grain today.** 23 strict-live dossiers now exist (Waves 1–7, all D1–D5); their atoms already compose into chapter units. As dossiers land, each topic's verified **atoms** map to specific chapter/section units and the grain refines. The pilot (`context assembly`) builds the **first atom-grain slice** and proves the "atoms compose into chapter units" gate. Expect churn.
 
 **Legend:** ✍️ shipped · 🎯 planned/outlined · 🌱 candidate · — n/a
 

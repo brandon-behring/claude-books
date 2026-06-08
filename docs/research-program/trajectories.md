@@ -1,6 +1,6 @@
 # Topic trajectories — momentum dashboard (v1)
 
-One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how each topic is moving so depth follows the field and nothing silently rots.
+One row per topic in [`taxonomy.graph.json`](./taxonomy.graph.json). Tracks how each topic is moving so depth follows the field and nothing silently rots. _Last updated: 2026-06-08 (Waves 1–7 complete)._
 
 > **Momentum = a hand-applied quality rubric (resolved 2026-05-26 — see [`decisions.md`](./decisions.md) D3).** Velocity (arXiv/blog/spec/GitHub dated-artifact rate) is a flash-in-the-pan *detector*, never a score on its own; weight it by **source-tier × sustained-vs-spike × convergence-count**. Demo-ware ≠ adoption (count real config/co-author traces, not stars — stars are corrupted in this niche). Keep a **revival** path. Momentum is a **staleness + field-movement radar**, *not* the depth-gate — **depth stays editorial** (importance + mastery-gap + book-need); letting "heating" auto-drive depth would chase fads. The reads below are **hand reads** under this rubric. *All* automation is deferred to a real trigger (~10–15+ topics); no momentum engine yet.
 

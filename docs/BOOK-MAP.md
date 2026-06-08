@@ -1,45 +1,86 @@
-# Book map — the five scopes
+# Book map — the model
 
 > The single answer to "what is each book, and what goes where." Companion to
-> [`REPO-MAP.md`](./REPO-MAP.md) (git/branch topology). Last updated: **2026-06-01**.
+> [`REPO-MAP.md`](./REPO-MAP.md) (git/branch topology) and [`ROADMAP.md`](./ROADMAP.md) (forward
+> plan + status). Last updated: **2026-06-08**.
 
-`claude-books` is a multi-book Astro/MDX workspace. Each book is a distinct **scope** with a
-one-word **lens** — the question it answers. All consume `@brandon_m_behring/book-scaffold-astro`.
+`claude-books` is a multi-book Astro/MDX workspace: **3 public books + a shared glossary layer**.
+Each book is a distinct **scope** with a one-word **lens** — the question it answers. All consume
+`@brandon_m_behring/book-scaffold-astro`.
 
 | Book | Slug | Lens | Question it answers | Cert relation | Status |
 |---|---|---|---|---|---|
-| Handbook | `handbook/` | **Use** | How do I use Claude effectively, day to day? | use-side; D3 primary owner | v1.0 prose (5 ch) + outline |
-| The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I design to (and pass) the CCA-F domains D1–D5? | **is** the cert map | slot + D1–D5 outline only |
-| Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer the environment + context around an agent? | reference-altitude (📘) depth for D1/D3/D5 | 11 ch (Environment & Context) |
-| Field-Guide | `field-guide/` | **Observe** | What did teams actually do? (67-repo production audit) | empirical evidence | planned (LaTeX port) |
-| Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | planned |
+| Handbook | `handbook/` | **Use** | How do I use Claude Code effectively, day to day? | use-side; D3 primary owner | Part I prose (4 ch, ch01–04); ch05–16 outline |
+| The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I design to (and pass) the CCA-F domains D1–D5? | **is** the cert map | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
+| Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
+| Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | infra layer (not started) — **not a read-through book** |
 
-## Use vs Cert vs Design — the easy-to-confuse trio
+## Handbook = Use
 
-The 2026-06-01 reorg **un-fused two identities** that had merged inside `architect-reference`:
+Claude Code in **daily practice** — sessions, CLAUDE.md, workflows, config, productivity. How-to
+altitude, scoped to the CLI/agent tool (not the API or claude.ai). The rewrite of the
+`claude-best-practices` draft (16 ch).
 
-- **Architect's Reference = Cert.** Exam-prep altitude. Maps 1:1 to Anthropic's *Claude
-  Certified Architect — Foundations* five domains. Owns the cert spine; points outward to the
-  Design book for depth. (Mostly to-be-built; see its `OUTLINE.md`.)
-- **Agentic Systems Design = Design.** Reference altitude. The deep discipline of engineering
-  the **environment** an agent acts in and the **context** it reasons over. Self-contained; the
-  eventual one-day repo extraction (see [`SPLIT.md`](../agentic-systems-design/SPLIT.md)).
-- **Handbook = Use.** How-to altitude. Using Claude Code in daily practice.
+## Architect's Reference = Cert
 
-## Dependency direction
+Exam-prep altitude. Maps 1:1 to Anthropic's *Claude Certified Architect — Foundations* five domains.
+A **self-contained study guide** (Round-2, 2026-06-02): a reader passes the cert using **only** this
+book. It may **duplicate** Design material freely — being self-contained is the point — and links to
+Design via optional "go deeper" breadcrumbs.
+
+## Agentic Systems Design = Design (multi-volume)
+
+Reference altitude. The broad discipline of designing agentic systems, delivered **foundation-first
+across volumes**:
+
+- **Vol 1 — Environment & Context** *(drafted, 11 ch)* — the agent's world (repo / CLAUDE.md /
+  skills / guardrails / cross-domain) + what it reasons over (context-rot / assembly / memory),
+  opened by the harness frame.
+- **Vol 2 — Tools & Orchestration** — tool/MCP design, tool minimization, sub-agents, multi-agent,
+  build-vs-buy a harness.
+- **Vol 3 — Evaluation & Operations** — evals/validation, observability, cost, oversight/HITL, security.
+- **+ a problem-first applied volume** — re-traverses the material through real problems (reviews +
+  breadcrumbs back to Vols 1–3). This carries the **public** "what teams actually did" mission (the
+  retired Field-Guide's role).
+
+**Design v1.0 = Vols 1–3** (the foundation set); the applied volume is v2.0. The 23 strict-live
+dossiers back the volumes (Vol 2 ← tool / MCP / sub-agent / multi-agent / build-vs-buy; Vol 3 ← eval
++ ops). Still meant for an eventual clean repo extraction (see
+[`SPLIT.md`](../agentic-systems-design/SPLIT.md)) — the breadcrumb convention keeps that possible
+(outbound breadcrumbs are non-load-bearing).
+
+## Glossary = shared infrastructure
+
+Not a read-through book: a **deep-linkable term layer** — canonical one-paragraph definitions +
+breadcrumb XRefs to where each term is covered in depth. Harvested from the dossiers' `agent_index/`
+glossary sections + the books. Serves the whole series.
+
+## Retired from the public lineup — Field-Guide (Observe)
+
+The "what teams actually did" 67-repo audit is **no longer a standalone public book**. Its public
+mission folds into Design's problem-first applied volume. A **private self-audit** of your own work
+remains a tentative *personal* artifact, outside the public series.
+
+## Cross-reference convention
+
+Refines the earlier "Design points outward only / zero inbound XRefs" rule:
+
+- **Duplication is acceptable** — the Cert guide especially must stand fully alone.
+- **Every explanation is complete where it sits** — never "see the other book for the real version."
+- **Cross-refs are bidirectional breadcrumbs** — pointers to parallel coverage, so updating a topic
+  surfaces every place it lives. Neither direction is load-bearing (each explanation is complete in
+  place), which keeps Design cleanly extractable. XRefs resolve via `src/data/labels.json`
+  (`<XRef id="...">`).
 
 ```
-Architect's Reference (Cert) ──XRef──▶ Agentic Systems Design (Design)
+Architect's Reference (Cert) ──breadcrumb──▶ Agentic Systems Design (Design)
+                            ◀──breadcrumb───
 ```
-
-The Design book points **outward only** (zero inbound XRefs) — that is what keeps it a clean
-one-day extraction. The Cert book references the Design book where a domain needs design depth;
-never the reverse.
 
 ## Cert ownership at a glance (matrix: [`docs/cert-coverage.md`](./cert-coverage.md))
 
-- **D1 Orchestration (27%)** — Architect's Ref builds; XRef Design ch01/ch03/ch07.
-- **D2 Tools & MCP (18%)** — Architect's Ref builds.
-- **D3 Claude Code Config (20%)** — Handbook (use) + Architect's Ref (design); XRef Design ch04/ch05.
+- **D1 Orchestration (27%)** — Architect's Ref builds; breadcrumb Design Vol 1 (harness frame) + Vol 2 (orchestration).
+- **D2 Tools & MCP (18%)** — Architect's Ref builds; breadcrumb Design Vol 2.
+- **D3 Claude Code Config (20%)** — Handbook (use) + Architect's Ref (design); breadcrumb Design Vol 1.
 - **D4 Prompt & Structured Output (20%)** — Handbook (basics) + Architect's Ref (tool_use / schemas).
-- **D5 Context & Reliability (15%)** — mostly Design ch08/ch09/ch10/ch06; Architect's Ref fills gaps.
+- **D5 Context & Reliability (15%)** — mostly Design Vol 1 (context) + Vol 3 (ops); Architect's Ref fills gaps.

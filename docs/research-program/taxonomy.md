@@ -7,7 +7,7 @@ The narrative companion to [`taxonomy.graph.json`](./taxonomy.graph.json) (the s
 ## How to read it
 
 - **Axis = topic/capability.** Cert domains + book targets ride along in node `data` as *lenses*; they are not the spine.
-- **Two bands** (`data.frontier`): **active** = the harness-core + operations region we research first; **positioned** = mapped now (full three-books scope) but not yet active.
+- **Two bands** (`data.frontier`): **active** = the harness-core + operations region we research first; **positioned** = mapped now (full series scope) but not yet active.
 - **`kb_status`** — `ingested` (full color) = has research (existing cache or a dossier); `not_ingested` (greyed/dashed) = stub, not yet researched. The greyed *active* nodes are the gap this program fills first.
 - **`tier`** — `strict-live` (a `~/Claude/` dossier) · `cache` (the lighter 167-note cache) · `stub`. Endgame: unify under strict-live.
 - **`priority`** — `PILOT` · `near-term` · `deferred` / `deferred-low` · `cached` / `shipped`.
@@ -35,7 +35,7 @@ The narrative companion to [`taxonomy.graph.json`](./taxonomy.graph.json) (the s
 ## What changed from v0
 
 - **+ Production Operations** cluster (the missing "run it in prod" layer): observability, cost, security, HITL, sandboxes.
-- **+ Handbook Foundations, + Field Patterns & Adoption, + Claude Platform & API** — so the map covers the *full three-books scope*, not just the design space.
+- **+ Handbook Foundations, + Field Patterns & Adoption, + Claude Platform & API** — so the map covers the *full series scope*, not just the design space.
 - **Dropped `Academy courses` as a node** — it's a *source*, not a topic (belongs in seeds/bib).
 - **Added gap nodes** the source-doc/cert/book triangulation surfaced: agent loop, build-vs-buy harness, skills & progressive disclosure, + the whole ops layer.
 - **`ctx-assembly` kept as one node** — its ~6 sub-topics are the dossier's sub-areas, promoted to sibling nodes *after* the pilot.

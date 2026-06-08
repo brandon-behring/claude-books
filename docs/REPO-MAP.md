@@ -1,7 +1,7 @@
 # Repo map — where everything lives, and why
 
 > Git/branch topology for `claude-books`. For **what each book is**, see
-> [`BOOK-MAP.md`](./BOOK-MAP.md). Last verified: **2026-06-01**.
+> [`BOOK-MAP.md`](./BOOK-MAP.md) and [`ROADMAP.md`](./ROADMAP.md). Last verified: **2026-06-08**.
 
 ## TL;DR
 
@@ -24,11 +24,15 @@ either anytime: `git switch -c <name> archive/<name>`.
 
 ## What's on the trunk
 
-- `handbook/` — the *Use* book (v1.0 prose, 5 ch).
-- `architect-reference/` — the *Cert* book (D1–D5 slot + outline; see [`BOOK-MAP.md`](./BOOK-MAP.md)).
-- `agentic-systems-design/` — the *Design* book (Environment & Context, 11 ch).
+- `handbook/` — the *Use* book (Part I prose, 4 ch; ch05–16 pending).
+- `architect-reference/` — the *Cert* book (30 ch authored, Round-2 study-guide COMPLETE; status authority [`cert-coverage.md`](./cert-coverage.md)).
+- `agentic-systems-design/` — the *Design* book, **multi-volume** (Vol 1 Environment & Context, 11 ch drafted; Vols 2–3 + applied pending — see [`BOOK-MAP.md`](./BOOK-MAP.md)).
 - `docs/research-program/` — strict-live research bridge (taxonomy / content-map / decisions).
-- `docs/research/` — legacy in-repo note cache (~171 notes).
+- `docs/research/` — legacy in-repo note cache (~184 notes).
+
+**Not on the trunk (by design):** `field-guide/` is retired from the public lineup (mission folded
+into Design's problem-first applied volume; a private self-audit may use its LaTeX source);
+`glossary/` is a shared deep-link infra layer (stood up on a real XRef trigger), not a read-through book.
 
 ## Where the non-repo pieces live
 
@@ -40,8 +44,9 @@ Paths below are for the **Linux clone**; a Mac clone differs.
   `.md` seeds → gitignored `docs/research-program/launchpad/`; the external Manning bundle →
   `~/Claude/claude-books-research-inputs/`.
 - **Referenced by `CLAUDE.md` but NOT on this Linux box:** the LaTeX drafts
-  `~/claude-best-practices` (handbook) and `~/claude-code-field-guide` (field-guide). The
-  **Field-Guide LaTeX source lives on another machine** — factor that in before authoring it here.
+  `~/claude-best-practices` (handbook) and `~/claude-code-field-guide` (the retired Field-Guide). The
+  **Field-Guide LaTeX source lives on another machine** — it now feeds only the optional *private*
+  self-audit (its public mission folded into Design), not a public book.
 
 ## How to work in it
 

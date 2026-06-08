@@ -1,23 +1,27 @@
 # Research program — the living knowledge backbone for claude-books
 
-This directory is the **content backbone** for the three-book series: a *living* topic graph
+This directory is the **content backbone** for the book series: a *living* topic graph
 that grows into an explorable **knowledge graph** of everything relevant to the books, kept
 current over time. It is the in-repo, version-controlled spine; the heavy verified research
 lives **externally** as strict-live dossiers in `~/Claude/` and bridges in (see below).
 
 > **Status: v1 (2026-05-26).** Big-picture map produced by the Phase-1 "thinking pass" + an
-> eyeball-pass revision: full three-books scope, **14 clusters** in two bands (active frontier
+> eyeball-pass revision: full series scope, **14 clusters** in two bands (active frontier
 > vs positioned), 44 topic nodes. The harness / environment / context-assembly region + a new
 > **Production Operations** cluster are the active frontier; most nodes are honest **stubs** so
 > coverage gaps stay visible. Clusters are still **provisional** — the pilot + the emergent KG
 > reveal the true sub-areas.
+
+> **Update (2026-05-27): research COMPLETE.** Waves 1–7 built **23 strict-live dossiers** across all
+> D1–D5 — the active-frontier stubs are now flipped to strict-live. Current book model:
+> [`BOOK-MAP.md`](../BOOK-MAP.md).
 
 ## Why this exists
 
 - **Mastery first.** The point is deep, durable understanding of a fast-moving field (with the
   Architect's Reference as the eventual primary consumer). Comprehensive coverage + citation
   rigor are the quality bar.
-- **One backbone for all three books.** Cert domains are a *derived floor* (the minimum that
+- **One backbone for the whole series.** Cert domains are a *derived floor* (the minimum that
   must be covered), not the organizing spine — the topic graph is bigger than the cert.
 - **Trajectory-aware.** Topics heat up, cool, dead-end, or revive. The program tracks each
   topic's momentum so nothing silently rots and depth follows where the field is moving.
@@ -83,4 +87,4 @@ hand-applied quality rubric; machinery deferred), D4 synthesis↔audit (pure ato
 (Wave 1 = context-rot + repo-design + claudemd). **Still deferred:** the KG-viewer's home
 (→ viz phase) and the harness-vocabulary stance (→ Vol-2).
 
-> Full plan: `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md` (active execution plan).
+> Canonical roadmap: [`docs/ROADMAP.md`](../ROADMAP.md) (the buzzing-eclipse plan is superseded).

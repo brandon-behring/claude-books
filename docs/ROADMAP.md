@@ -1,47 +1,92 @@
 # claude-books — project roadmap
 
-> Canonical forward plan + current state. Companions: [`BOOK-MAP.md`](./BOOK-MAP.md) (book
-> scopes), [`REPO-MAP.md`](./REPO-MAP.md) (git topology), [`cert-coverage.md`](./cert-coverage.md)
-> (cert matrix). Last updated 2026-06-08.
+> Canonical forward plan + current state. **What each companion owns:** [`BOOK-MAP.md`](./BOOK-MAP.md)
+> = the book model & scopes · [`REPO-MAP.md`](./REPO-MAP.md) = git topology · [`cert-coverage.md`](./cert-coverage.md)
+> = cert-book status (authority) · [`scaffold-gaps.md`](./scaffold-gaps.md) = scaffold epics ·
+> [`research-program/`](./research-program/) = the strict-live dossiers. Last updated 2026-06-08.
 
-## Current state (verified 2026-06-08)
+## The series (model + status)
 
-Five books on a single content-bearing trunk (`main`):
+**Public = 3 books + a shared glossary layer** (single content-bearing trunk `main`):
 
-| Book | Lens | Status |
+| Book | Lens | Identity | Status |
+|---|---|---|---|
+| `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | Part I shipped (4/16 ch prose); ch05–16 port pending |
+| `architect-reference/` | Cert | Self-contained CCA-F D1–D5 study guide | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
+| `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
+| `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | not started |
+
+**Agentic Systems Design — the volumes** (foundation-first):
+Vol 1 **Environment & Context** *(drafted)* → Vol 2 **Tools & Orchestration** → Vol 3 **Evaluation &
+Operations** → **+ a problem-first applied volume** (re-traverses the material through real problems;
+reviews + breadcrumbs back to Vols 1–3). **Design v1.0 = Vols 1–3**; the applied volume is v2.0.
+
+**Repositioned:** the old **Field-Guide** (Observe) leaves the public lineup — its "what teams did"
+mission becomes Design's problem-first applied volume. A **private self-audit** of your own work stays
+a tentative personal artifact, outside the public series.
+
+Research backbone: 23 strict-live dossiers (external `~/Claude/`), all D1–D5, Waves 1–7 done — they
+back the Design volumes (Vol 2 ← tool / MCP / sub-agent / multi-agent / build-vs-buy dossiers; Vol 3 ←
+eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.3.0` (upstream latest `4.18.0`).
+
+### Conventions
+- **Duplication is fine** — the Cert guide especially must stand fully alone.
+- **Every explanation is complete where it sits** — never "see the other book for the real version."
+- **Cross-refs are bidirectional breadcrumbs** — so updating a topic surfaces every place it's covered.
+
+## Shipped
+- **Research program complete** — 23 strict-live dossiers, Waves 1–7, all D1–D5 (2026-05-27).
+- **Books un-fused → single trunk** — `architect-reference` split into Cert + Design (2026-06-01).
+- **Cert book** — 30 ch + Round-2 self-contained study-guide conversion (2026-06-02).
+- **Design Vol 1** — Environment & Context first full draft, 11 ch (2026-05-30).
+- **Handbook Part I** — ch01–04 prose (2026-05-25).
+- **Model re-architecture + doc-set reconcile** — 5 books → 3 + glossary; this roadmap (2026-06-08).
+
+## v1.0 targets (what "done" means; ordering provisional)
+
+| Book | v1.0 = | Gated on |
 |---|---|---|
-| `handbook/` | Use | Part I shipped (ch01–04 prose); ch05–16 port pending |
-| `architect-reference/` | Cert | 30 ch authored, Round-2 study-guide COMPLETE (audit fixes folded) |
-| `agentic-systems-design/` | Design | 11 ch drafted (first full draft); cross-book XRefs not wired |
-| `field-guide/` | Observe | not started (LaTeX port planned) |
-| `glossary/` | Vocabulary | not started (shared terms planned) |
+| Handbook | all 16 ch ported LaTeX→MDX (Parts I–IV); labels/XRefs resolve | authoring time |
+| Cert | 30 ch (done) + study apparatus wired + factual-accuracy audit pass | scaffold #110–#116 (upstream) |
+| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); applied vol = v2.0 | authoring; XRef anchors (#96) |
+| Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links | scaffold glossary support / first XRef need |
 
-Research backbone: 23 strict-live dossiers (external `~/Claude/`), all D1–D5, Waves 1–7 done.
-Scaffold: consumes `book-scaffold-astro ^4.3.0`; upstream latest `4.18.0`. Cert study apparatus =
-scaffold epic #122 — only objective-map (#117) shipped; #110–#116 open.
+## Next (provisional — sequenced on a real trigger)
+- **Finish drafted:** Cert apparatus (once scaffold #110–#116 ship) + audit pass; Design Vol 1 polish.
+- **Extend:** Design Vol 2 (Tools & Orchestration) + Vol 3 (Evaluation & Operations) from the dossiers;
+  Handbook Parts II–IV port.
+- **Infra:** stand up the Glossary deep-link layer; figures pipeline; dossier freshness re-verify.
 
-### Known debt (tracked, not yet addressed)
-- **CI:** `research-lint` red — 26 legacy `docs/research/` cache notes fail structural lint
-  (15 in `04-agent-sdk/`, likely a WIP batch). `astro-build` + `content-validate` green.
-- **Stale docs:** `content-map.md` ("three books / no dossiers"); `BOOK-MAP`/`REPO-MAP` cert
-  status lines ("outline only").
-- **Scaffold drift:** pinned `4.3` vs latest `4.18` (bump is a deliberate, separate call).
+## Known debt (tracked, with triggers)
+- **research-lint red** — 26 of 184 notes fail (15 in `04-agent-sdk/`); it's `cert_task_areas`
+  **phrasing drift** (short labels failing the ≥15-char fuzzy match), only 3 structural. Mechanical.
+  *Trigger:* align phrasings (or relax the matcher) next time the `docs/research/` cache is touched /
+  before it migrates to strict-live. `astro-build` + `content-validate` green.
+- **Scaffold drift** — pinned `^4.3.0` vs upstream `4.18.0`. *Trigger:* with/just before wiring the
+  cert apparatus (#110–#116).
+- **`cert-coverage.md` predates the re-architecture** — its matrix still has a Field-Guide column
+  (now moot); a Design column would fit. *Trigger:* next cert-coverage pass.
+- **`research-program/content-map.md` topic→book map predates multi-volume Design** — rows still map
+  to the old book set. *Trigger:* when authoring a Design volume needs the precise atom→section map.
 
-## Phases
-
-**A — Stabilize (ACTIVE, 2026-06-08):** foundation trustworthy — this roadmap as source of truth,
-memory reconciled, git synced to trunk. The debt above is logged but deferred within A.
-
-**B/C/D — provisional, ordering decided after A lands:**
-- **Finish drafted books → v1.0:** Cert (audit-fix pass + apparatus once scaffold #110–#116 ship)
-  + Design (revision pass + wire cross-book XRefs, #96).
-- **Breadth:** Handbook Parts II–IV port; stand up Field-Guide + Glossary.
-- **Infra/polish:** figures pipeline, glossary infra, dossier freshness re-verify (MCP RC, ops_cost).
+## Authority map (who owns which truth — prevents re-drift)
+- **ROADMAP** = forward plan + current snapshot + decisions log.
+- **BOOK-MAP** = the book model, scopes, lenses, XRef convention.
+- **REPO-MAP** = git topology + where things live.
+- **cert-coverage** = cert-book status (authority) + the D1–D5 task matrix.
+- **scaffold-gaps** = scaffold epic / issue status.
+- **research-program/** = the strict-live dossiers + their topic graph.
 
 ## Decisions log
 - Single content-bearing trunk (`main`); feature branches retired to `archive/*` tags (2026-06-01).
-- Five books, un-fused 2026-06-01: Cert (`architect-reference`) + Design (`agentic-systems-design`)
-  are siblings; Cert XRefs → Design, never the reverse.
-- Research program complete (Waves 1–7); dossiers external, bridge via `docs/research-program/`.
+- Un-fused 2026-06-01: Cert (`architect-reference`) + Design (`agentic-systems-design`) are siblings.
+- **Re-architected 2026-06-08: public = 3 books + glossary layer** (down from 5). Field-Guide leaves
+  the public lineup (→ Design's problem-first applied volume; private self-audit personal).
+- **Design is the broad book, multi-volume** (Env&Context → Tools&Orchestration → Eval&Ops + applied);
+  **Design v1.0 = Vols 1–3.**
+- **Glossary = shared infrastructure**, not a read-through book.
+- **XRef convention:** duplication OK (Cert stands alone); complete-in-place explanations;
+  bidirectional breadcrumbs. (Refines the old "Design points outward only" rule.)
 - Cert book genre = self-contained study guide (Round-2, 2026-06-02).
-- Forward arc (B/C/D) ordering left provisional — decided after stabilize.
+- Research program complete (Waves 1–7); dossiers external, bridge via `docs/research-program/`.
+- Forward arc: per-book v1.0 criteria defined; **ordering left provisional** (2026-06-08).
