@@ -315,6 +315,11 @@ The companion-test + capstone-test workflows don't apply (no companion package, 
 
 ## 13. Hub + sibling-repos architecture for multi-volume
 
+> **RESOLVED (2026-06-08).** Single-repo workspace is final — all three books shipped in this one repo,
+> so Path A won by default. Path B (hub + sibling repos) is **not adopted**. Per-book extraction stays
+> available on a real trigger, documented in each book's `SPLIT.md` (currently
+> `agentic-systems-design/SPLIT.md`). The analysis below is preserved as the original 2026-05-24 recon.
+
 **What guides decided**: hub at `~/guides/` owns: landing page + `/methodology` + `/about` + design docs + shared styles (`shared/styles/guides-family.ts`) + pedagogy dossiers (cross-cutting). Per-guide content lives in **sibling repos** (`~/guides-experimentation/` for the pilot; future guides like `~/guides-prompt-injection/` follow the same shape). Each sibling: own `wrangler.toml` (Pages), own CLAUDE.md, own AUTHORS.md, own `content.config.ts` (extends scaffold), own `.github/workflows/`, own bibliography. Deploys to a subroute (`/experimentation/`, `/prompt-injection/`). Both hub + siblings depend on `@brandon_m_behring/book-scaffold-astro` + the shared `guidesFamilyStyle` (currently duplicated inline at the sibling; to extract to npm package when 2nd guide arrives).
 
 **Why**: independent release cadence per guide (each guide ships when its content + companion + capstone are ready, not gated by sibling progress). Per-guide companion Python packages cleanly isolated. Sibling repo authors don't see each other's WIP. ADR + design archaeology per guide. Stable URLs per guide subroute.
@@ -402,3 +407,32 @@ This memo is the input. Per-category adoption decisions stay with the user.
 - Memo written 2026-05-24; one pass, ~5000 words.
 - Plan file: `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md` § "Active execution plan: deep guides-repo comparative recon" (approved 2026-05-24).
 - Roadmap note added in plan file's Phase 2 entry (hub+sibling architecture flag).
+
+---
+
+## 2026-06-08 recon refresh
+
+A re-audit (2026-06-08) against the current repo + the wider `~/*guide*` fleet:
+
+**The 13-category memo is essentially spent.** Since 2026-05-24 claude-books has adopted the P0–P3
+recommendations: §1 license split (`LICENSE-SCRIPTS`), §2 `AUTHORS.md`, §3 `CONTRIBUTING.md`, §4
+`handbook/docs/style-guide.md`, §9 `docs/design/` dated chain, §10 `docs/plans/done/` friction logs,
+§11 `docs/plans/active/` session handoffs, §12 `.github/workflows/` (astro-build + content-validate +
+research-lint). §13 (hub+sibling) is **resolved** above (single-repo final). The only unadopted items —
+§5 Zod pedagogical lint, §6 PFL framing, §7 multi-paradigm lint — are the ones the memo itself defers
+until real chapter prose exists; they stay deferred.
+
+**New ideas surfaced (from `guides-manning`, a 60+ guide fleet that postdates the memo) — logged, not
+adopted.** Most are **fleet-scale machinery**, premature for a single-trunk 3-book repo; recorded here
+with adoption triggers (anti-over-engineering — machinery on a real trigger):
+
+| Idea (where) | Trigger to revisit |
+|---|---|
+| Fleet QA + health dashboards (`scripts/fleet/`, `guide_qa.yaml`, Bronze-gate CI) | A 2nd+ volume in active authoring, or per-chapter health worth tracking |
+| Universal standards tree + per-family overlays (`tooling/standards/00_universal/` + overlays) | When ≥2 books need shared-but-overridable conventions |
+| Symlink Makefile inheritance across books | ≥2 books with real shared QA targets |
+| Pre-commit validation hook (cross-ref / dead-anchor / build) | When rapid drafting starts shipping regressions to `main` |
+| `.claude/` skills + commands (validate-chapter, new-chapter scaffolder) | Cheap — revisit on real authoring friction |
+| "Agent navigation" index (canonical where-do-I-find-X table) | Cheap — partly covered by ROADMAP's Authority map; revisit if fragmentation bites |
+
+Already present in claude-books (no action): pagefind search; the CI workflows; license split; `AUTHORS.md`.
