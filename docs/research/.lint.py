@@ -147,11 +147,22 @@ def lint_file(path: Path) -> list[str]:
 
     canonical_norm = {_norm(a) for a in CANONICAL_TASK_AREAS}
 
+    def _strip_parens(s: str) -> str:
+        return re.sub(r"\s*\([^)]*\)", "", s)
+
+    canonical_base = {_norm(_strip_parens(a)) for a in CANONICAL_TASK_AREAS}
+
     def _matches_canonical(value: str) -> bool:
-        """A note's value matches if its normalized form is contained in
-        any canonical normalized form, or vice versa (≥15-char substring)."""
+        """A note's value matches if its normalized form equals a canonical
+        (optionally minus its parenthetical detail), or — for long values —
+        is a substring of a canonical or vice versa (≥15-char guard)."""
         v = _norm(value)
         if v in canonical_norm:
+            return True
+        # Short-form / variant-parenthetical: compare base phrases with the
+        # parenthetical detail stripped from both sides. Exact base match, so
+        # "Agentic loops" matches its canonical but trivial junk like "tool" still fails.
+        if _norm(_strip_parens(value)) in canonical_base:
             return True
         # Permissive substring match in either direction (avoid trivial 1-2 word collisions)
         if len(v) < 15:

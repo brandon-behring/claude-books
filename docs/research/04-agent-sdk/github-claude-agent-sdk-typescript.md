@@ -33,7 +33,11 @@ The TypeScript Agent SDK package. Newer than the Python sibling (created Sept 20
 
 ## Version-jump anomaly
 
-The TS SDK jumped from `0.2.x` directly to `0.3.142` — there is no `0.3.0` through `0.3.141`. This is documented on [[docs-typescript-v2-preview-removed]]: "The package version jumped from 0.2.x directly to 0.3.142, so the removal version above and the install pin below describe the same boundary." 
+The TS SDK jumped from `0.2.x` directly to `0.3.142` — there is no `0.3.0` through `0.3.141`. This is documented on [[docs-typescript-v2-preview-removed]]:
+
+> "The package version jumped from 0.2.x directly to 0.3.142, so the removal version above and the install pin below describe the same boundary."
+>
+> Anchor: `docs-typescript-v2-preview-removed + The package version jumped from 0.2.x directly to 0.3.142` 
 
 - **To install the last V2-compatible release** (still has `unstable_v2_*` exports): `npm install @anthropic-ai/claude-agent-sdk@0.2`
 - **v0.3.142+** drops the V2 session API.

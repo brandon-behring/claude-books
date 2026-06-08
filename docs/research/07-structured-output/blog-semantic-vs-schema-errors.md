@@ -18,6 +18,12 @@ superseded_by: []
 
 Synthesis note. **Schema errors** are eliminated by Anthropic's constrained-decoding implementation of structured outputs ([[docs-structured-outputs]], [[docs-strict-tool-use]]); the Agent SDK handles the residual ones via retry ([[docs-agent-sdk-structured-outputs]]). The next layer up — **semantic errors**, where the JSON is shape-valid but the *data* is wrong — is the cert's "Validation, retry, feedback loops" task area and the v0.1 cert PDF's heavy emphasis area. This note synthesizes the patterns supported by the docs.
 
+## Key takeaways
+
+- **Structured outputs eliminate syntax + schema errors** (parse / type / required / enum) via constrained decoding; **semantic errors** — valid JSON but wrong data — are NOT caught by the API and are the cert's emphasis area.
+- **Schema-design patterns encode semantic-validation hooks**: `detected_pattern`, `calculated_total` vs `stated_total`, `conflict_detected`, nullable + "other"+detail, and provenance (`span_quote`) — each lets the caller cross-check or lets the model refuse to confabulate without breaking the schema.
+- **The validation-retry-feedback macro-pattern layers them**: the API enforces the schema (layer 1), application code runs the semantic checks (layer 2), and a feedback loop re-prompts with the specific errors (layer 3) — skipping any layer surfaces a different failure mode.
+
 ## The error taxonomy
 
 | Error class | What | Caught by | Mitigation |
