@@ -1,6 +1,6 @@
 {
   "name": "handbook",
-  "description": "A book scaffolded with @brandon_m_behring/create-book (tools profile).",
+  "description": "The Claude Code Handbook — how to use Claude Code effectively day to day. The practitioner (Use) volume of the claude-books series.",
   "version": "0.1.0",
   "type": "module",
   "private": true,

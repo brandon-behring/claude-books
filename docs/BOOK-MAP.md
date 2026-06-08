@@ -8,9 +8,13 @@
 Each book is a distinct **scope** with a one-word **lens** — the question it answers. All consume
 `@brandon_m_behring/book-scaffold-astro`.
 
+> **Single source.** This file is the canonical statement of the book model. Other meta-docs
+> (`CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, …) carry a one-line identity + a pointer here — they
+> do **not** restate the full lineup, so the model can't drift out of sync.
+
 | Book | Slug | Lens | Question it answers | Cert relation | Status |
 |---|---|---|---|---|---|
-| Handbook | `handbook/` | **Use** | How do I use Claude Code effectively, day to day? | use-side; D3 primary owner | Part I prose (4 ch, ch01–04); ch05–16 outline |
+| Handbook | `handbook/` | **Use** | How do I use Claude Code effectively, day to day? | use-side; D3 primary owner | Part I prose (4 ch, ch01–04); ch05–15 outline |
 | The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I design to (and pass) the CCA-F domains D1–D5? | **is** the cert map | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
 | Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
 | Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | infra layer (not started) — **not a read-through book** |

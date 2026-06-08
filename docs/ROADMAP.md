@@ -11,7 +11,7 @@
 
 | Book | Lens | Identity | Status |
 |---|---|---|---|
-| `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | Part I shipped (4/16 ch prose); ch05–16 port pending |
+| `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | Part I shipped (4/15 ch prose); ch05–15 port pending |
 | `architect-reference/` | Cert | Self-contained CCA-F D1–D5 study guide | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
 | `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
 | `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | not started |
@@ -47,7 +47,7 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 
 | Book | v1.0 = | Gated on |
 |---|---|---|
-| Handbook | all 16 ch ported LaTeX→MDX (Parts I–IV); labels/XRefs resolve | authoring time |
+| Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve | authoring time |
 | Cert | 30 ch (done) + study apparatus wired + factual-accuracy audit pass | scaffold #110/#113/#115/#116 (spine #112/#114/#117 shipped v4.17) |
 | Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
 | Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links | scaffold #115 glossary (still open) |
@@ -87,3 +87,5 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 - Cert book genre = self-contained study guide (Round-2, 2026-06-02).
 - Research program complete (Waves 1–7); dossiers external, bridge via `docs/research-program/`.
 - Forward arc: per-book v1.0 criteria defined; **ordering left provisional** (2026-06-08).
+- **Hub+sibling repo split considered and declined (2026-06-08):** single-repo workspace is final; per-book extraction stays available on a real trigger (see each book's `SPLIT.md`).
+- **Meta-doc model de-duplicated (2026-06-08):** `docs/BOOK-MAP.md` is the single full statement of the book model; other meta-docs carry a one-line identity + a pointer, not a restatement (drift-proofing).

@@ -2,18 +2,17 @@
 
 A multi-book series + shared glossary. Each book covers Claude from a different angle (canonical scopes: [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md)):
 
-- **handbook/** — how to *use* Claude effectively (the **Use** book)
-- **architect-reference/** — the **Cert** book: cert-aligned to *Claude Certified Architect — Foundations* (D1–D5)
-- **agentic-systems-design/** — the **Design** book: engineering the *environment* + *context* around an agent (env+context, 11 ch)
-- **field-guide/** — what teams actually *did* (audit of 67 production repos; the **Observe** book)
-- **glossary/** — shared terminology, deep-linked by all books
+- **handbook/** — the **Use** book: how to *use* Claude Code effectively, day to day
+- **architect-reference/** — the **Cert** book: self-contained study guide, cert-aligned to *Claude Certified Architect — Foundations* (D1–D5)
+- **agentic-systems-design/** — the **Design** book: the broad, **multi-volume** book on engineering agentic systems (Vol 1 Environment & Context drafted)
+- **glossary/** — shared term layer (planned infra; not a read-through book)
 
 Current project roadmap + status lives at [`docs/ROADMAP.md`](./docs/ROADMAP.md) (canonical).
 
 ## Source repos (drafts, not truth)
 
 - `~/claude-best-practices/` — handbook draft. v2.9 LaTeX. 16 chapters in `chapters/`. Archived on GitHub once handbook v1.0 ships.
-- `~/claude-code-field-guide/` — field-guide draft. 12 chapters + 3 appendices. Archived on GitHub once field-guide v1.0 ships.
+- `~/claude-code-field-guide/` — field-guide draft (**retired** from the public lineup). Its "what teams did" mission now feeds Design's problem-first applied volume; the draft is archived on GitHub.
 - Don't use pandoc. Manual rewrite is the convention.
 
 ## Scaffold
@@ -35,7 +34,7 @@ Books consume `@brandon_m_behring/book-scaffold-astro` (sibling repo at `~/book-
 **Other editorial rules**:
 - All Anthropic-attributed claims include a source URL (cite via `<Tag kind="official">` or footnote)
 - Concrete but generic examples — no personal project names or identifying details in main text
-- Field-guide may keep specific repo names for the audit subjects but anonymize unrelated mentions
+- The applied/field-cases material (Design's problem-first volume) may keep specific repo names for audit subjects but anonymizes unrelated mentions
 - Cross-references use `<XRef id="...">` (resolves via `src/data/labels.json` built by `npm run build:labels`)
 
 ## Cert alignment

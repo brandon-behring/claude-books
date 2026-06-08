@@ -1,8 +1,8 @@
 # handbook — AI authoring guide
 
-This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, currently v4.2.0; v4 BREAKING `defineStyle` API in use — `astro.config.mjs` passes `styles: [toolsStyle]`). It's the practitioner volume of the three-book series — the "how to *use* Claude effectively" angle.
+This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, currently v4.18.0; v4 BREAKING `defineStyle` API in use — `astro.config.mjs` passes `styles: [toolsStyle]`). It's the practitioner **Use** volume of the claude-books series — the "how to *use* Claude effectively" angle.
 
-**Status**: v1.0 outline complete — see [`OUTLINE.md`](./OUTLINE.md) for the 15-chapter structure, source→target mapping, and per-chapter trim decisions. Chapter rewrites have not yet started. The existing `src/content/chapters/ch01-principles.mdx` is a Phase 0 smoke test and will be rewritten when Phase 1 Step 2 begins.
+**Status**: Part I prose complete (ch01–04 shipped); Parts II–IV port pending — see [`OUTLINE.md`](./OUTLINE.md) for the 15-chapter structure, source→target mapping, and per-chapter trim decisions.
 
 **Where things live**:
 
@@ -14,7 +14,7 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 - Cross-references: ids on labeled components → `src/data/labels.json` via `npm run build:labels`
 - Outline + per-chapter rationale: [`OUTLINE.md`](./OUTLINE.md)
 
-**Workspace-level conventions** (apply across handbook + future Architect's Reference + Field-Guide volumes):
+**Workspace-level conventions** (apply across handbook + architect-reference + agentic-systems-design):
 
 - [`../AUTHORS.md`](../AUTHORS.md) — AI-collaboration scope + out-of-scope HITL disciplines
 - [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — PR routing + issue routing + upstream-label policy + round-closeout discipline
@@ -22,7 +22,7 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 
 **Design docs** (in-repo, date-prefixed superseded chain — per `docs/guides-recon.md` §9):
 
-- [`../docs/design/2026-05-22_initial-bootstrap.md`](../docs/design/2026-05-22_initial-bootstrap.md) — project roadmap (three volumes, decisions, cert ecosystem, Phase 0 → 5+, cross-cutting concerns)
+- [`../docs/design/2026-05-22_initial-bootstrap.md`](../docs/design/2026-05-22_initial-bootstrap.md) — initial bootstrap (the three-volume-era scoping, decisions, cert ecosystem, Phase 0 → 5+, cross-cutting concerns)
 - [`../docs/design/2026-05-23_visual-pedagogy.md`](../docs/design/2026-05-23_visual-pedagogy.md) — theoretical rationale for PEDAGOGY decisions (Bruner / Bjork / Mayer / Sweller / Miller-Cowan; companion to [`PEDAGOGY.md`](./PEDAGOGY.md) which holds the decisions + author-facing rules)
 - [`../docs/guides-recon.md`](../docs/guides-recon.md) — 13-category comparative analysis of `~/guides/` patterns; drives ongoing adoption rounds
 

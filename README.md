@@ -1,42 +1,28 @@
 # claude-books
 
-The Astro/MDX home for a multi-book **Claude reference** — Use / Cert / Design / Observe — plus a shared glossary. All members consume [`@brandon_m_behring/book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro). See [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md) for the canonical scopes.
+The Astro/MDX home for a multi-book **Claude reference** — **Use / Cert / Design** — plus a shared glossary layer. All members consume [`@brandon_m_behring/book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro).
 
-## Workspace members
+**The books** — canonical scopes in [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md); status + roadmap in [`docs/ROADMAP.md`](./docs/ROADMAP.md):
 
-| Member | Lens | Source | Status |
-|---|---|---|---|
-| [`handbook/`](./handbook/) | **Use** | rewrite of [`claude-best-practices`](https://github.com/brandon-behring/claude-best-practices) (LaTeX, v2.9 sunset) | v1.0 prose (5 ch) |
-| [`architect-reference/`](./architect-reference/) | **Cert** | from scratch, cert-aligned (CCA-F D1–D5) | slot + D1–D5 outline |
-| [`agentic-systems-design/`](./agentic-systems-design/) | **Design** | from strict-live research dossiers | 11 ch (Environment & Context) |
-| `field-guide/` *(planned)* | **Observe** | rewrite of [`claude-code-field-guide`](https://github.com/brandon-behring/claude-code-field-guide) | Phase 4 |
-| `glossary/` *(planned)* | **Vocab** | shared terminology, deep-linked by all books | Phase 0.7 |
+- **Handbook** (`handbook/`) — **Use**: how to use Claude Code effectively, day to day.
+- **The Claude Architect's Reference** (`architect-reference/`) — **Cert**: a self-contained study guide mapped 1:1 to Anthropic's *Claude Certified Architect — Foundations* (domains D1–D5).
+- **Agentic Systems Design** (`agentic-systems-design/`) — **Design**: the broad, multi-volume discipline of engineering agentic systems (environment, context, tools, orchestration, evaluation, operations).
+- **Glossary** (`glossary/`) — a shared, deep-linkable term layer (planned infrastructure, not a read-through book).
 
-## What this is
-
-The books, each from a different angle on Claude Code and the surrounding agent stack:
-
-- **Handbook** — *how to use Claude effectively.* The practitioner's guide. (**Use**)
-- **The Claude Architect's Reference** — *the cert-aligned volume.* Maps 1:1 to Anthropic's Claude Certified Architect — Foundations domains (D1–D5); points into Agentic Systems Design for design depth. (**Cert**)
-- **Agentic Systems Design** — *engineering the environment + context around an agent.* The design discipline — formerly the env+context volume inside Architect's Reference. (**Design**)
-- **Field-Guide** — *what teams actually did.* An empirical audit of 67 production Claude Code repos. (**Observe**)
-
-All three are **free, CC BY 4.0** living documents (semver per book, per-chapter `last_updated`, RSS, changelog, "Edit this page" → PR).
+All books are **free, CC BY 4.0** living documents — per-book semver, per-chapter `last_updated`, RSS, changelog, "Edit this page" → PR.
 
 ## Background
 
-This repo replaces two LaTeX books (`claude-best-practices` v2.9 and `claude-code-field-guide`) and adds a third volume that emerged from analyzing the *Claude Certified Architect — Foundations* taxonomy. The LaTeX repos are drafts, not sources of truth — each is archived on GitHub when its successor ships v1.0.
+The series grew out of two LaTeX drafts — `claude-best-practices` (→ Handbook) and `claude-code-field-guide` (retired from the public lineup; its "what teams did" mission now folds into Design's problem-first applied volume) — plus the cert-aligned and design books that emerged from the *Claude Certified Architect — Foundations* taxonomy and the environment+context split. The LaTeX repos are drafts, not sources of truth — each is archived on GitHub once its successor ships.
 
-The current project roadmap and phase plan lives in `~/.claude/plans/`. Scaffold gaps surfaced while authoring are logged in [`docs/scaffold-gaps.md`](./docs/scaffold-gaps.md) and filed as upstream issues. Cert/Academy changes are tracked weekly in [`docs/cert-tracking.md`](./docs/cert-tracking.md) via a scheduled agent.
+Scaffold gaps surfaced while authoring are logged in [`docs/scaffold-gaps.md`](./docs/scaffold-gaps.md) and filed as upstream issues. Cert/Academy changes are tracked weekly in [`docs/cert-tracking.md`](./docs/cert-tracking.md) via a scheduled agent.
 
 ## Develop
 
 ```bash
 npm install                    # at repo root
-cd handbook && npm run dev     # localhost:4321
+cd handbook && npm run dev     # localhost:4321  (or: npm -w agentic-systems-design run dev)
 ```
-
-(Other workspace members come online in later phases.)
 
 ## License
 

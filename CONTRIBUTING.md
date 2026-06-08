@@ -1,6 +1,6 @@
 # Contributing
 
-`claude-books` is a three-volume practitioner reference for Claude Code + Anthropic stack development. v1.0 currently covers Volume 1 (handbook); Volumes 2 (Architect's Reference) + 3 (Field-Guide) bootstrap later.
+`claude-books` is a multi-book practitioner reference for Claude Code + the Anthropic stack — see [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md) for the book model and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for status.
 
 ## Where to send PRs
 
@@ -8,7 +8,7 @@
 |---|---|
 | Handbook content (chapter MDX, PoC artifacts, figures, OUTLINE / PEDAGOGY / COMPARISON / NOTES) | This repo (`claude-books`) |
 | Workspace-level docs (research cache, design docs, friction logs, recon memos) | This repo (`claude-books`) |
-| Future Architect's Reference / Field-Guide content | This repo (until/if hub+sibling architecture adopted per Phase 2 Step 3 decision — see `docs/guides-recon.md` § 13) |
+| Architect's Reference / Agentic Systems Design content | This repo (single-repo workspace; per-book extraction stays available on a real trigger per each book's `SPLIT.md`) |
 | Scaffold bugs / enhancements / component requests | [`book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro) with label `consumer:claude-books` |
 | Research toolkit (lint methodology, validator improvements, skill updates) | [`research_toolkit`](https://github.com/brandon-behring/research_toolkit) |
 
