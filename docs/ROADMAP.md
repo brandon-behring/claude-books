@@ -27,7 +27,7 @@ a tentative personal artifact, outside the public series.
 
 Research backbone: 23 strict-live dossiers (external `~/Claude/`), all D1–D5, Waves 1–7 done — they
 back the Design volumes (Vol 2 ← tool / MCP / sub-agent / multi-agent / build-vs-buy dossiers; Vol 3 ←
-eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.3.0` (upstream latest `4.18.0`).
+eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 
 ### Conventions
 - **Duplication is fine** — the Cert guide especially must stand fully alone.
@@ -41,15 +41,16 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.3.0` (upstream 
 - **Design Vol 1** — Environment & Context first full draft, 11 ch (2026-05-30).
 - **Handbook Part I** — ch01–04 prose (2026-05-25).
 - **Model re-architecture + doc-set reconcile** — 5 books → 3 + glossary; this roadmap (2026-06-08).
+- **Deferred-debt batch** — research-lint green (matcher fix) + scaffold → 4.18 (#96 cross-book XRef + apparatus spine) + cert-coverage Design column (2026-06-08).
 
 ## v1.0 targets (what "done" means; ordering provisional)
 
 | Book | v1.0 = | Gated on |
 |---|---|---|
 | Handbook | all 16 ch ported LaTeX→MDX (Parts I–IV); labels/XRefs resolve | authoring time |
-| Cert | 30 ch (done) + study apparatus wired + factual-accuracy audit pass | scaffold #110–#116 (upstream) |
-| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); applied vol = v2.0 | authoring; XRef anchors (#96) |
-| Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links | scaffold glossary support / first XRef need |
+| Cert | 30 ch (done) + study apparatus wired + factual-accuracy audit pass | scaffold #110/#113/#115/#116 (spine #112/#114/#117 shipped v4.17) |
+| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
+| Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links | scaffold #115 glossary (still open) |
 
 ## Next (provisional — sequenced on a real trigger)
 - **Finish drafted:** Cert apparatus (once scaffold #110–#116 ship) + audit pass; Design Vol 1 polish.
@@ -58,14 +59,10 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.3.0` (upstream 
 - **Infra:** stand up the Glossary deep-link layer; figures pipeline; dossier freshness re-verify.
 
 ## Known debt (tracked, with triggers)
-- **research-lint red** — 26 of 184 notes fail (15 in `04-agent-sdk/`); it's `cert_task_areas`
-  **phrasing drift** (short labels failing the ≥15-char fuzzy match), only 3 structural. Mechanical.
-  *Trigger:* align phrasings (or relax the matcher) next time the `docs/research/` cache is touched /
-  before it migrates to strict-live. `astro-build` + `content-validate` green.
-- **Scaffold drift** — pinned `^4.3.0` vs upstream `4.18.0`. *Trigger:* with/just before wiring the
-  cert apparatus (#110–#116).
-- **`cert-coverage.md` predates the re-architecture** — its matrix still has a Field-Guide column
-  (now moot); a Design column would fit. *Trigger:* next cert-coverage pass.
+- **Cert apparatus — partially unblocked.** The static spine shipped in scaffold 4.18 (#112
+  practice-exam, #114 `<Rationale>`, #117 objective-map); cert v1.0 still gated on **#110**
+  (diagnostic), **#113** (assessment), **#115** (glossary), **#116** (flashcards). *Trigger:* author
+  the objective-map/practice-exam now; wire the rest as the issues ship.
 - **`research-program/content-map.md` topic→book map predates multi-volume Design** — rows still map
   to the old book set. *Trigger:* when authoring a Design volume needs the precise atom→section map.
 

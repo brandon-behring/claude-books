@@ -7,21 +7,21 @@ Each cert domain × task area × which book/chapter covers it. Used during each 
 - 🟡 outlined
 - 🟢 in rewrite
 - ⬜ not yet covered
-- 📘 reference-altitude (now the *Agentic Systems Design* book) — design/architecture treatment, not exam-prep framing
+- 📘 reference-altitude — the *Agentic Systems Design* book (its own column below); design/architecture treatment, not exam-prep framing
 
 The books target the publicly-known taxonomy. The confidential v0.1 PDF is internal research aid only; this matrix references the public 5-domain structure.
 
-> **2026-06-01 reorg note.** The 11-ch *Environment & Context* volume is now its own book, **Agentic Systems Design** (formerly inside `architect-reference`). In this matrix: the **`Architect's Ref` column = the cert-aligned book** (D1–D5, mostly `⬜` — to build); the **`📘` cells = reference-altitude coverage that now lives in *Agentic Systems Design*** (ch4/ch5 instruction-layer + skills for D3; rot/assembly/memory/guardrails for D5; the *Agent = Model + Harness* frame behind D1). A dedicated "Agentic Design" column is deferred until the cert chapters are authored. See [`BOOK-MAP.md`](./BOOK-MAP.md).
+> **2026-06-01 reorg note.** The 11-ch *Environment & Context* volume is now its own book, **Agentic Systems Design** (formerly inside `architect-reference`). In this matrix: the **`Architect's Ref` column = the cert-aligned book** (D1–D5, now authored — `🟢`); the **`📘` cells = reference-altitude coverage in *Agentic Systems Design*** (ch4/ch5 instruction-layer + skills for D3; rot/assembly/memory/guardrails for D5; the *Agent = Model + Harness* frame behind D1). The cert chapters are now authored (30 ch), so **Agentic Design is its own column** below; its `📘` cells point into Vol 1 (Environment & Context) of the multi-volume Design book. See [`BOOK-MAP.md`](./BOOK-MAP.md).
 
-**Agentic Systems Design — Environment & Context (11 ch, shipped 2026-05-30):** environment engineering (E1–E5) + context (rot / assembly / memory) at reference altitude. The cert-aligned Architect's Reference XRefs into it where D1/D3/D5 need design depth.
+**Agentic Systems Design — Vol 1 Environment & Context (11 ch, shipped 2026-05-30):** environment engineering (E1–E5) + context (rot / assembly / memory) at reference altitude. The cert-aligned Architect's Reference XRefs into it where D1/D3/D5 need design depth.
 
 > **2026-06-02 Round-2 note.** After an independent audit ([`docs/audits/2026-06-02_*-independent-review.md`](./audits/2026-06-02_architect-reference-cert-book-independent-review.md), conditional pass; cert-depth the binding weakness), the cert book's genre was revised **up** to a **self-contained study guide** — teach-from-scratch prose + per-chapter "Do I Know This Already?" diagnostics + expanded worked examples (see `architect-reference/OUTLINE.md`). **Rollout COMPLETE 2026-06-02 — all 30 chapters (D1.1–D5.6)** converted (Domain 1 pilot, then D2–D5 via `/loop`); coverage status is unchanged (all task areas remain 🟢 — this was a depth/genre change, not new coverage). Two hand-verified factual errors were fixed in passing (D5.3 "~7-week concurrency" → union window; D5.6 training-cutoff direction). Every chapter builds clean and passes the 11-check linter; committed, not pushed.
 
 ## Domain 1 — Agentic Architecture & Orchestration (27%)
 
-Primary owner: **architect-reference**. Cross-references: handbook ch on agents/parallel work (use-side only); field-guide observations on multi-agent setups.
+Primary owner: **architect-reference**. Cross-references: handbook ch on agents/parallel work (use-side only); Design's applied volume (field cases) on multi-agent setups.
 
-| Task area | Handbook | Architect's Ref | Field-Guide |
+| Task area | Handbook | Architect's Ref | Agentic Design |
 |---|---|---|---|
 | Agentic loops (`stop_reason`, tool result handling) | ⬜ | 🟢 D1.1 (primary, authored 2026-06-01) | ⬜ |
 | Coordinator-subagent patterns (hub-and-spoke, isolated context) | 🟡 ch10 (use-side) | 🟢 D1.2 (authored 2026-06-01) | ⬜ |
@@ -33,9 +33,9 @@ Primary owner: **architect-reference**. Cross-references: handbook ch on agents/
 
 ## Domain 2 — Tool Design & MCP Integration (18%)
 
-Primary owner: **architect-reference**. Cross-references: handbook on built-in tools usage + extension consumption; field-guide on observed MCP setups.
+Primary owner: **architect-reference**. Cross-references: handbook on built-in tools usage + extension consumption; Design's applied volume (field cases) on observed MCP setups.
 
-| Task area | Handbook | Architect's Ref | Field-Guide |
+| Task area | Handbook | Architect's Ref | Agentic Design |
 |---|---|---|---|
 | Effective tool interfaces (descriptions, boundaries, naming) | ⬜ | 🟢 D2.1 (authored 2026-06-01) | ⬜ |
 | Structured error responses (`isError`, `errorCategory`, retryability) | ⬜ | 🟢 D2.2 (authored 2026-06-01) | ⬜ |
@@ -45,12 +45,12 @@ Primary owner: **architect-reference**. Cross-references: handbook on built-in t
 
 ## Domain 3 — Claude Code Configuration & Workflows (20%)
 
-Primary owner: **handbook**. Cross-references: field-guide observations on CLAUDE.md at scale.
+Primary owner: **handbook**. Cross-references: Design's applied volume (field cases) on CLAUDE.md at scale.
 
-| Task area | Handbook | Architect's Ref | Field-Guide |
+| Task area | Handbook | Architect's Ref | Agentic Design |
 |---|---|---|---|
-| CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | 🟢 D3.1 (authored 2026-06-01) · 📘 ch4 (instruction layer) | ⬜ |
-| Custom slash commands + skills (`.claude/commands/`, `.claude/skills/`) | 🟡 ch8 | 🟢 D3.2 (authored 2026-06-02) · 📘 ch5 (skills) | ⬜ |
+| CLAUDE.md hierarchy (user / project / directory; `@import`) | 🟡 ch2, ch9 | 🟢 D3.1 (authored 2026-06-01) | 📘 Vol 1 ch4 (instruction layer) |
+| Custom slash commands + skills (`.claude/commands/`, `.claude/skills/`) | 🟡 ch8 | 🟢 D3.2 (authored 2026-06-02) | 📘 Vol 1 ch5 (skills) |
 | `.claude/rules/` with YAML glob path-scoping | 🟡 ch9 | 🟢 D3.3 (authored 2026-06-02) | ⬜ |
 | Plan mode vs direct execution | 🟡 ch3 | 🟢 D3.4 (authored 2026-06-02) | ⬜ |
 | Iterative refinement (concrete examples, test-driven, interview pattern) | 🟡 ch6, ch7 | 🟢 D3.5 (authored 2026-06-02) | ⬜ |
@@ -60,7 +60,7 @@ Primary owner: **handbook**. Cross-references: field-guide observations on CLAUD
 
 Split: prompting basics belong to **handbook**; tool_use + JSON schemas + batch processing + multi-pass review belong to **architect-reference**.
 
-| Task area | Handbook | Architect's Ref | Field-Guide |
+| Task area | Handbook | Architect's Ref | Agentic Design |
 |---|---|---|---|
 | Explicit criteria over vague instructions | 🟡 ch4 | 🟢 D4.1 (authored 2026-06-02) | ⬜ |
 | Few-shot prompting (targeting ambiguous cases, format consistency) | 🟡 ch4, App B | 🟢 D4.2 (authored 2026-06-02) | ⬜ |
@@ -71,14 +71,14 @@ Split: prompting basics belong to **handbook**; tool_use + JSON schemas + batch 
 
 ## Domain 5 — Context Management & Reliability (15%)
 
-Cross-cutting; shared across all three books.
+Cross-cutting; shared across the books.
 
-| Task area | Handbook | Architect's Ref | Field-Guide |
+| Task area | Handbook | Architect's Ref | Agentic Design |
 |---|---|---|---|
-| Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | 🟢 D5.1 (authored 2026-06-02) · 📘 ch8 (rot), ch9 (assembly) | ⬜ |
+| Long-conversation context (progressive summarization risks, lost-in-the-middle) | 🟡 ch5, App A | 🟢 D5.1 (authored 2026-06-02) | 📘 Vol 1 ch8 (rot), ch9 (assembly) |
 | Escalation / ambiguity resolution patterns | 🟡 ch13 | 🟢 D5.2 (authored 2026-06-02) | ⬜ |
 | Error propagation across multi-agent systems (structured error context) | ⬜ | 🟢 D5.3 (authored 2026-06-02) | ⬜ |
-| Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 🟢 D5.4 (authored 2026-06-02) · 📘 ch7 (at scale), ch9 (compaction) | ⬜ |
+| Large-codebase context (scratchpads, subagent delegation, `/compact`) | 🟡 ch5, ch10 | 🟢 D5.4 (authored 2026-06-02) | 📘 Vol 1 ch7 (at scale), ch9 (compaction) |
 | Human review workflows + confidence calibration | ⬜ | 🟢 D5.5 (authored 2026-06-02) | ⬜ |
 | Information provenance (claim-source mappings, temporal data) | 🟡 ch6 (ADRs) | 🟢 D5.6 (authored 2026-06-02) | ⬜ |
 
