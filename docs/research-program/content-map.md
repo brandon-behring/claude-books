@@ -1,6 +1,6 @@
 # Content map — research → book (v1)
 
-Which topics (and eventually which *atoms*) back which planned chapters/sections. (Column headers below predate the re-architecture; current book model in [`BOOK-MAP.md`](../BOOK-MAP.md).) Cert domains are the **floor** (see [`docs/cert-coverage.md`](../cert-coverage.md)); this is the fuller picture.
+Which topics (and eventually which *atoms*) back which planned chapters/sections. **Re-centered 2026-06-08 on the Agentic Systems Design volumes** (the unwritten books); the cert book is authored, so its map lives in [`cert-coverage.md`](../cert-coverage.md), and the book model in [`BOOK-MAP.md`](../BOOK-MAP.md). Cert domains are the **floor**; this is the fuller picture.
 
 > **Living + versioned, topic-grain today.** 23 strict-live dossiers now exist (Waves 1–7, all D1–D5); their atoms already compose into chapter units. As dossiers land, each topic's verified **atoms** map to specific chapter/section units and the grain refines. The pilot (`context assembly`) builds the **first atom-grain slice** and proves the "atoms compose into chapter units" gate. Expect churn.
 
@@ -8,60 +8,61 @@ Which topics (and eventually which *atoms*) back which planned chapters/sections
 
 ## ★ Active frontier
 
-| Topic | Cert | Handbook | Architect's Reference | Field-Guide |
-|---|---|---|---|---|
-| Repo & doc design for agents | D1,D3 | 🎯 Ch2 area | 🎯 environment-engineering ch | 🌱 repo-hygiene |
-| CLAUDE.md/AGENTS.md discipline | D3 | ✍️ Ch2 *(convergence)* | 🎯 env-eng / config | 🌱 at-scale findings |
-| Guardrails & reversibility | D3,D5 | 🌱 Ch8/antipatterns | 🎯 safety/permissions | 🌱 incident-driven |
-| Cross-domain / large-repo structure | D1,D3 | — | 🎯 large-codebase ch | 🌱 monorepo |
-| Failure breadcrumbs | D3,D5 | 🌱 working-practices | 🎯 harness-improvement loop | 🌱 |
-| Skills & progressive disclosure | D3 | 🎯 Ch8 | 🎯 config/skills ch | 🌱 |
-| **Context assembly** (pilot) | D5 | 🎯 Ch5 depth | 🎯 context-assembly / SDK loader | — |
-| Context rot / long-context limits | D5 | 🌱 Ch5 caveat | 🎯 context-management ch | — |
-| Context as currency | D5 | ✍️ Ch5 | 🌱 | — |
-| Memory anti-patterns | D5 | 🌱 Ch5 Pitfall | 🎯 memory-architecture ch | 🌱 |
-| Documentation-vs-memory boundary | D3,D5 | 🌱 | 🎯 memory ch | — |
-| Claude Code memory & sessions | D3 | ✍️/🎯 Ch5 | 🌱 | — |
-| Tool minimization | D2 | 🌱 Ch8 | 🎯 tool-design ch | 🌱 tool-count findings |
-| MCP design & security | D2 | 🌱 Ch8 | 🎯 MCP-design ch | 🌱 MCP audits |
-| Advanced tool use | D2 | 🌱 | 🎯 tool-use ch | — |
-| MCP spec + ecosystem | D2 | — | 🎯 MCP ch | 🌱 |
-| Agent loop / agentic architecture | D1 | ✍️ Ch1 | 🎯 architecture ch | — |
-| Harness frame & vocabulary | D1 | 🌱 Ch1 framing (bridge) | 🎯 opening ch | 🌱 |
-| Build-vs-buy a custom harness | D1 | — | 🎯 architecture / decision ch | 🌱 |
-| Sub-agents (context isolation) | D1 | 🎯 Ch10 | 🎯 orchestration ch | 🌱 reviewer-subagent |
-| Multi-agent patterns | D1,D5 | 🌱 Ch10 | 🎯 multi-agent ch | 🌱 multi-agent pilots |
-| Claude Agent SDK | D1,D2 | — | 🎯 SDK chapters | — |
-| Eval harnesses | D4,D5 | 🌱 Ch7 | 🎯 evaluation ch | 🌱 eval-discipline |
-| Eval tooling landscape | D4 | — | 🎯 eval-tooling | 🌱 |
-| Benchmarks | D4 | — | 🌱 | 🌱 benchmark realities |
-| Validation architecture (6-layer) | D4,D5 | ✍️ Ch7 | 🌱 | — |
-| Observability / tracing / attribution | D5 | 🌱 | 🎯 operations ch | 🎯 observability patterns |
-| Cost / token economics | D5 | 🌱 Ch5 | 🎯 cost ch | 🎯 cost findings |
-| Security / prompt-injection / supply-chain | D5 | 🌱 antipatterns | 🎯 security ch | 🎯 incident patterns |
-| Human-in-the-loop / oversight | D5 | 🌱 | 🎯 oversight ch | 🌱 |
-| Sandboxes (self-hosted, tunnels) | D3,D5 | — | 🎯 deployment/safety ch | 🌱 |
+| Topic | Cert-domain (floor) | Handbook | Agentic Systems Design (Vol · applied) |
+|---|---|---|---|
+| Repo & doc design for agents | D1,D3 | 🎯 Ch2 area | 🎯 V1 environment-engineering · applied 🌱 repo-hygiene |
+| CLAUDE.md/AGENTS.md discipline | D3 | ✍️ Ch2 *(convergence)* | 🎯 V1 env-eng / config · applied 🌱 at-scale findings |
+| Guardrails & reversibility | D3,D5 | 🌱 Ch8/antipatterns | 🎯 V1 guardrails/permissions · applied 🌱 incident-driven |
+| Cross-domain / large-repo structure | D1,D3 | — | 🎯 V1 environment-at-scale · applied 🌱 monorepo |
+| Failure breadcrumbs | D3,D5 | 🌱 working-practices | 🎯 V2 harness-improvement loop |
+| Skills & progressive disclosure | D3 | 🎯 Ch8 | 🎯 V1 skills |
+| **Context assembly** (pilot) | D5 | 🎯 Ch5 depth | 🎯 V1 context-assembly / SDK loader |
+| Context rot / long-context limits | D5 | 🌱 Ch5 caveat | 🎯 V1 context-rot |
+| Context as currency | D5 | ✍️ Ch5 | 🌱 V1 |
+| Memory anti-patterns | D5 | 🌱 Ch5 Pitfall | 🎯 V1 memory-architecture |
+| Documentation-vs-memory boundary | D3,D5 | 🌱 | 🎯 V1 memory (doc-vs-memory) |
+| Claude Code memory & sessions | D3 | ✍️/🎯 Ch5 | 🌱 V1 |
+| Tool minimization | D2 | 🌱 Ch8 | 🎯 V2 tool-design · applied 🌱 tool-count findings |
+| MCP design & security | D2 | 🌱 Ch8 | 🎯 V2 MCP-design · applied 🌱 MCP audits |
+| Advanced tool use | D2 | 🌱 | 🎯 V2 tool-use |
+| MCP spec + ecosystem | D2 | — | 🎯 V2 MCP |
+| Agent loop / agentic architecture | D1 | ✍️ Ch1 | 🎯 V2 architecture |
+| Harness frame & vocabulary | D1 | 🌱 Ch1 framing (bridge) | 🎯 V1 opening ch (harness frame) |
+| Build-vs-buy a custom harness | D1 | — | 🎯 V2 architecture / decision |
+| Sub-agents (context isolation) | D1 | 🎯 Ch10 | 🎯 V2 orchestration · applied 🌱 reviewer-subagent |
+| Multi-agent patterns | D1,D5 | 🌱 Ch10 | 🎯 V2 multi-agent · applied 🌱 multi-agent pilots |
+| Claude Agent SDK | D1,D2 | — | 🎯 V2 SDK chapters |
+| Eval harnesses | D4,D5 | 🌱 Ch7 | 🎯 V3 evaluation · applied 🌱 eval-discipline |
+| Eval tooling landscape | D4 | — | 🎯 V3 eval-tooling |
+| Benchmarks | D4 | — | 🌱 V3 · applied 🌱 benchmark realities |
+| Validation architecture (6-layer) | D4,D5 | ✍️ Ch7 | 🌱 V3 validation |
+| Observability / tracing / attribution | D5 | 🌱 | 🎯 V3 operations · applied 🎯 observability patterns |
+| Cost / token economics | D5 | 🌱 Ch5 | 🎯 V3 cost · applied 🎯 cost findings |
+| Security / prompt-injection / supply-chain | D5 | 🌱 antipatterns | 🎯 V3 security · applied 🎯 incident patterns |
+| Human-in-the-loop / oversight | D5 | 🌱 | 🎯 V3 oversight |
+| Sandboxes (self-hosted, tunnels) | D3,D5 | — | 🎯 V3 deployment/safety |
 
 ## · Positioned
 
-| Topic | Cert | Handbook | Architect's Reference | Field-Guide |
-|---|---|---|---|---|
-| Prompt engineering | D4 | 🎯 Ch3/4 | 🎯 prompting ch | — |
-| Structured output | D4 | 🌱 | 🎯 structured-output ch | — |
-| Claude Code internals | D3 | ✍️/🎯 Ch8 | 🌱 | 🌱 config-at-scale |
-| Headless / CI / automation | D3 | 🌱 | 🎯 CI/automation ch | 🌱 CI auto-fix |
-| Claude Platform & API surfaces | D2,D4 | — | 🎯 API chapters | — |
-| Claude Code incidents & postmortems | D5 | 🌱 antipatterns | 🌱 reliability | 🎯 failure case studies |
-| Governance & compliance | D5 | — | 🌱 | 🎯 compliance ch |
-| Mental model / what Claude Code is | D1,D4 | ✍️ Ch1 | 🌱 (bridge) | — |
-| Getting started / first session / productivity | D3,D4 | ✍️ Ch3–4 | — | — |
-| Team adoption & scaling patterns | D3 | 🌱 | 🌱 | 🎯 audit chapters |
-| Public case studies (Replit/Vercel/Copilot) | D5 | 🌱 | 🌱 contrast examples | 🎯 contrast genre |
-| Market & ecosystem | — | — | — | 🌱 landscape (low) |
-| Pedagogy & authoring | — | meta | meta | meta |
+| Topic | Cert-domain (floor) | Handbook | Agentic Systems Design (Vol · applied) |
+|---|---|---|---|
+| Prompt engineering | D4 | 🎯 Ch3/4 | — *(cert-owned; see cert-coverage)* |
+| Structured output | D4 | 🌱 | — *(cert-owned)* |
+| Claude Code internals | D3 | ✍️/🎯 Ch8 | applied 🌱 config-at-scale |
+| Headless / CI / automation | D3 | 🌱 | applied 🌱 CI auto-fix |
+| Claude Platform & API surfaces | D2,D4 | — | — *(cert-owned; API chapters)* |
+| Claude Code incidents & postmortems | D5 | 🌱 antipatterns | 🌱 V3 reliability · applied 🎯 failure case studies |
+| Governance & compliance | D5 | — | applied 🎯 compliance |
+| Mental model / what Claude Code is | D1,D4 | ✍️ Ch1 | 🌱 V1 bridge (harness frame) |
+| Getting started / first session / productivity | D3,D4 | ✍️ Ch3–4 | — |
+| Team adoption & scaling patterns | D3 | 🌱 | applied 🎯 audit chapters |
+| Public case studies (Replit/Vercel/Copilot) | D5 | 🌱 | applied 🎯 contrast genre |
+| Market & ecosystem | — | — | applied 🌱 landscape (low) |
+| Pedagogy & authoring | — | meta | meta |
 
 ## Notes
 
+- **Re-architecture note (2026-06-08):** the tables above are re-centered on the **Agentic Systems Design** volumes (V1 Environment & Context · V2 Tools & Orchestration · V3 Evaluation & Operations · applied volume), and the standalone cert column was dropped (the authored cert book's map is [`cert-coverage.md`](../cert-coverage.md)). The dated **Wave-log below is preserved as history** — read its "→ Architect's-Reference [env-eng / MCP / orchestration / eval / ops] ch" labels as **Agentic Systems Design** (those chapters split out of the cert book on 2026-06-01).
 - Chapter targets are **indicative** — the Architect's Reference outline is greenfield; the field-guide's 67-repo audit is its own evidence class (the public case studies are a *contrast* genre, not part of the audit). **Exception — COMMITTED (2026-05-29):** the 8 Environment & Context rows are now committed in [`architect-reference/OUTLINE.md`](../../architect-reference/OUTLINE.md), no longer merely indicative — `repo_design`→E1 · `claudemd_discipline`→E2 · `env_skills`→E3 · `guardrails`→E4 · `cross_domain`→E5 · `context_rot`→C1 · `context_assembly`→C2 · `memory`→C3 (one unified Part; hybrid form; foundation-first, problem-first-within-context arc).
 - Highest-value near-term tie-in: the **CLAUDE.md 60-line convergence** ↔ shipped Ch2 — now **researched + measured** (Wave 1 `claudemd_discipline`): `syn_claudemd_discipline_03` shows official guidance + practitioner heuristic + a controlled study (the ETH AGENTS.md result) all converge, a ready `<Tag kind="convergence">` enrichment.
 - The shipped handbook topics (Ch1 mental model, Ch5 context, Ch7 validation) are mapped so the graph reflects existing coverage, even though they came via the lighter cache, not strict-live (yet).

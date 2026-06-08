@@ -6,6 +6,11 @@ The pedagogical model for the `claude-books` handbook. This doc formalizes what'
 
 This doc is a reference for future contributors. Read once; refer when applying the model.
 
+> **Revision — 2026-06-08 (series-model update).** The public lineup is now **3 books** — Handbook /
+> Architect's Reference / **Agentic Systems Design** — + a glossary infra layer. The former
+> **Field-Guide** is retired; the references below are updated (Field-Guide → Agentic Systems Design,
+> whose applied volume inherits the how-to / field-cases register). Decisions are unchanged.
+
 ---
 
 ## Inventory: what already exists
@@ -88,7 +93,7 @@ Eight principles synthesized from the visual-pedagogy research sprint (`docs/res
 
 *Sources*: [[book-wurman-information-anxiety]] (LATCH: Location, Alphabet, Time, Category, Hierarchy), [[nng-ia-vs-navigation]] (IA before navigation), [[framework-diataxis]] (Category-based taxonomy as one disciplined choice).
 
-**Applied as**: claude-books uses **Category at the volume level** (Handbook / Architect's Ref / Field-Guide), **Category at the Part level** (Foundations / Practice / Scaling / Team), **Hierarchy within Parts** (chapter sequence), **Time on per-chapter `last_updated` metadata**. Multi-axis access is fine; mixing all five at the *same* level is the failure mode.
+**Applied as**: claude-books uses **Category at the volume level** (Handbook / Architect's Ref / Agentic Systems Design), **Category at the Part level** (Foundations / Practice / Scaling / Team), **Hierarchy within Parts** (chapter sequence), **Time on per-chapter `last_updated` metadata**. Multi-axis access is fine; mixing all five at the *same* level is the failure mode.
 
 ### 5. Pattern recognition over per-instance learning (small multiples)
 
@@ -112,7 +117,7 @@ Eight principles synthesized from the visual-pedagogy research sprint (`docs/res
 
 *Sources*: [[framework-diataxis]] (four reader modes), [[site-react-dev]] (Learn vs Reference as cleanest reduction), [[site-cloudflare-docs]] (explicit content-type pill badges per page), [[nng-ia-vs-navigation]] (IA serves reader state).
 
-**Applied as**: a single chapter dominates in one mode — **Handbook chapters = tutorial + explanation**; **Architect's Reference recipes = reference + explanation**; **Field-Guide chapters = how-to + explanation**. Cross-link to other modes; don't inline. Reader knows which mode they're in by the chapter's structure, not by reading a badge.
+**Applied as**: a single chapter dominates in one mode — **Handbook chapters = tutorial + explanation**; **Architect's Reference recipes = reference + explanation**; **Agentic Systems Design = reference + explanation (its applied volume = how-to)**. Cross-link to other modes; don't inline. Reader knows which mode they're in by the chapter's structure, not by reading a badge.
 
 ---
 
@@ -124,12 +129,12 @@ The user's stated concern: *"Otherwise it is a mash up of every style which is n
 
 *Sources*: [[site-vercel-docs]] (`/docs/` vs `/kb/`), [[site-linear-docs]] + [[site-linear-method]] (separate domains entirely), [[site-react-dev]] (two-mode Learn/Reference toggle).
 
-The three volumes (Handbook / Architect's Reference / Field-Guide) live at separate URL roots. Each has its own visual chrome: typography, accent color, navigation rail behavior. A reader who lands on a Handbook chapter knows immediately, by visual register, that they're in tutorial mode — without needing to read a badge.
+The three books (Handbook / Architect's Reference / Agentic Systems Design) live at separate URL roots. Each has its own visual chrome: typography, accent color, navigation rail behavior. A reader who lands on a Handbook chapter knows immediately, by visual register, that they're in tutorial mode — without needing to read a badge.
 
 **Specific**:
 - Handbook → narrative typography (slightly larger body, wider line-height, serif-leaning option for prose sections)
 - Architect's Reference → reference typography (denser, monospace-friendly code-prose mix, table-heavy)
-- Field-Guide → research-report typography (compact, callout-dense, citation-heavy)
+- Agentic Systems Design → reference + design typography (diagram-rich, pattern-catalog shape)
 
 ### Chapter-level separation: template by content type
 
@@ -137,7 +142,7 @@ The three volumes (Handbook / Architect's Reference / Field-Guide) live at separ
 
 Within a volume, **template = content type signal**:
 - **Tutorial chapter** (Handbook main chapters) → executive summary → mechanism → worked example → principles → spiral references → exercise
-- **How-to guide** (supplements, Field-Guide chapters) → problem statement → prerequisites → numbered steps → expected outcome → see-also
+- **How-to guide** (supplements, Design's applied-volume chapters) → problem statement → prerequisites → numbered steps → expected outcome → see-also
 - **Reference recipe** (Architect's Reference) → Sketch → When-to-use → Mechanics → Example → Things-to-Remember
 - **Reference appendix** (handbook appendices) → topic → entries with consistent shape per entry (e.g., one row per hook event)
 - **Cheat sheet** (if adopted) → tables + matrices + command snippets; minimal prose
@@ -317,7 +322,7 @@ Backed by 9 tech-comparison notes at [[../docs/research/11-pedagogy/05-figures-d
 
 Pick by use case, not by author preference. Per-figure decisions go through the tree at the end of this section.
 
-| Tier | Tech | Best for | Est. count (across 3 volumes) |
+| Tier | Tech | Best for | Est. count (across 3 books) |
 |---|---|---|---|
 | 1 (default) | **Mermaid** | Flowcharts, sequence diagrams, state machines, simple ER, decision trees | 30–50 figures |
 | 2 (inherited) | **TikZ → SVG pipeline** | Diagrams already authored in the LaTeX source repo (agent loop, L1–L5 pyramid, context-budget charts, configuration hierarchy) — also the format we hand-author new figures in. In place 2026-05-24: `figures/agent-loop/`, `figures/context-budget/`, `figures/collaboration-flowchart/`, `figures/collaboration-quadrant/`, `figures/validation-pyramid/`, `figures/extension-decision/` (10 SVGs total across tutorial + compact-cheat-sheet variants) | 8–15 figures |
@@ -326,9 +331,9 @@ Pick by use case, not by author preference. Per-figure decisions go through the 
 
 **Deferred to v1.5+ or rejected for v1.0**:
 - **D2** ([[tech-d2]]) — defer unless Mermaid's layout proves insufficient
-- **Excalidraw** ([[tech-excalidraw]]) — possibly for Volume 3 (Field-Guide) where the hand-drawn register fits the empirical voice
+- **Excalidraw** ([[tech-excalidraw]]) — possibly for Design's applied volume where the hand-drawn register fits the empirical voice
 - **Graphviz / DOT** ([[tech-graphviz-dot]]) — do not adopt; Mermaid covers the same use cases with better author UX + built-in accessibility
-- **PlantUML** ([[tech-plantuml]]) — do not adopt for v1.0; revisit only if Volume 2 (Architect's Reference) needs C4 architecture diagrams Mermaid can't render acceptably
+- **PlantUML** ([[tech-plantuml]]) — do not adopt for v1.0; revisit only if Agentic Systems Design needs C4 architecture diagrams Mermaid can't render acceptably
 - **D3.js + React Flow** ([[tech-interactive-d3-reactflow]]) — defer all runtime/interactive rendering to v1.5+. v1.0 ships static
 - **KaTeX** (for math) — implicit: adopt for any token-economics / sampling / cost-formula notation. Build-time, accessible by default. Filed as a follow-up if MDX integration friction surfaces
 
@@ -376,8 +381,8 @@ For inline + display math (token-economics, sampling, cost formulas), adopt **Ka
 
 - **Mermaid plugin choice**: `remark-mermaidjs` (Puppeteer-based, mature) vs `@theguild/remark-mermaid` (newer, lighter). Needs a small PoC before settling.
 - ~~**TikZ pipeline ownership**: does `book-scaffold-astro` own the LaTeX → SVG conversion, or does the LaTeX source repo build its own SVG artifacts that `handbook/` consumes?~~ **RESOLVED 2026-05-23 in scaffold [v4.2.0](https://github.com/brandon-behring/book-scaffold-astro/releases/tag/v4.2.0)**: `book-scaffold build-figures` now auto-compiles TikZ `\documentclass{standalone}` `.tex` sources via `pdflatex` → `pdf2svg` pipeline. Source `.tex` lives in `figures/<topic>/`; output `.svg` in `public/figures/<topic>/`. Recipe at `package/recipes/16-tikz-figures.md`. Consumers without TeX Live get a clear ERROR + skip; pre-built `.pdf` files still convert normally.
-- **CSS-variable injection step**: a regex-replace pass that rewrites Mermaid's emitted `fill="#xxx"` → `fill="var(--diagram-x, #xxx)"`. Build once in the scaffold; reuse across volumes.
-- **C4 architecture diagrams** (Volume 2): Mermaid added C4 in v9.4 but quality is uneven. C4-PlantUML is the best-in-class option. Defer decision until Volume 2 outlines exist.
+- **CSS-variable injection step**: a regex-replace pass that rewrites Mermaid's emitted `fill="#xxx"` → `fill="var(--diagram-x, #xxx)"`. Build once in the scaffold; reuse across books.
+- **C4 architecture diagrams** (Agentic Systems Design): Mermaid added C4 in v9.4 but quality is uneven. C4-PlantUML is the best-in-class option. Defer decision until the Tools & Orchestration volume outlines exist.
 - **Interactive figure scaffold** (v1.5+): when scoped, design `<InteractiveFigure>` to enforce keyboard nav + `aria-live` + no-JS fallback as a structural constraint, not per-figure manual responsibility.
 
 ---
@@ -421,7 +426,7 @@ State of each pedagogical choice as of 2026-05-23. **OPEN** = still exploring; *
 | 3 | Adopt four-persona reader routing | **DECIDED** (predates this doc) | Add explicit MDX-rendered router on landing page (Phase 0.7 scaffold work) |
 | 4 | Adopt source-tag attribution (`official/practitioner/convergence`) | **DECIDED** (predates this doc) | Continue |
 | 5 | Adopt 8-category margin-note system | **DECIDED** (predates this doc) | Continue; consider Vocab as `<TermDef>` link once glossary lands |
-| 6 | Adopt Diátaxis content-type quadrant explicitly | **DECIDED** (2026-05-23) — adopt, but volume names lead | Diátaxis vocabulary in PEDAGOGY.md + research notes; reader-facing nomenclature uses volume names (Handbook / Architect's Ref / Field-Guide) rather than "tutorial/reference/how-to" labels. Volumes inherently map: Handbook=tutorial+explanation, Architect's Ref=reference+explanation, Field-Guide=how-to+explanation |
+| 6 | Adopt Diátaxis content-type quadrant explicitly | **DECIDED** (2026-05-23) — adopt, but volume names lead | Diátaxis vocabulary in PEDAGOGY.md + research notes; reader-facing nomenclature uses book names (Handbook / Architect's Ref / Agentic Systems Design) rather than "tutorial/reference/how-to" labels. Books inherently map: Handbook=tutorial+explanation, Architect's Ref=reference+explanation, Agentic Systems Design=reference+explanation (applied volume=how-to) |
 | 7 | Final supplement format(s) | **DECIDED** (2026-05-25) — 5 per chapter (Option B per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | v1.0 ships **tutorial + TL;DR + 1 how-to + 1 cheat-sheet per chapter** + **1 part-summary per Part** (4 Parts). Total: 60 chapter-supplements + 4 part-summaries = 64 artifacts across 15 chapters / 4 parts. Part-summary's L-progression framing earns its slot despite Round-2's structural-similarity concern; reader-journey wayfinding is the distinct value. Full options + tradeoffs in the decision memo |
 | 8 | `<WorkedExample>` collapsible component | **DECIDED + SHIPPED + ADOPTED** (scaffold v4.1.0 2026-05-23; adopted in Ch 1 + Ch 5-8 tutorial PoCs 2026-05-24) | Available at `@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro` with `#worked-example-{id}` anchor pattern. Adopted IDs so far: `agent-loop-walkthrough` (Ch 1), `context-fill-example` (Ch 5), `sycophancy-interview` (Ch 6), `median-bug` (Ch 7), `security-review-composition` (Ch 8) |
 | 9 | Sub-chapter prerequisite tagging (e.g., section-level maturity) | **DEFERRED to v1.1** | Adds complexity; top-level chapter maturity tag sufficient for v1.0 |
@@ -431,9 +436,9 @@ State of each pedagogical choice as of 2026-05-23. **OPEN** = still exploring; *
 | 13 | Framework citation strategy (cite Bruner/Bjork/Mayer explicitly vs not) | **DECIDED** (this doc) | Cite explicitly in interleaving rationale; references in `docs/research/11-pedagogy/03-multimedia-learning/` |
 | 14 | Rich callout vocabulary (`<Pitfall>` etc.) vs generic info/warn | **DECIDED + SHIPPED + ADOPTED** (scaffold v4.1.0 2026-05-23; adopted across Ch 1 + Ch 5-8 tutorial PoCs 2026-05-24) | `<Pitfall>` / `<WorkedExample>` / `<YouWillLearn>` pedagogy family present in 5 of 5 chapter tutorials. Pitfall count by chapter: Ch 1 = 3, Ch 5 = 4, Ch 6 = 3, Ch 7 = 5, Ch 8 = 2 (new). YouWillLearn opens every tutorial with the appropriate prerequisites prop |
 | 15 | Retrieval prompts at chapter end (vs summary recap) | **DECIDED** (2026-05-23) — retrieval prompts | 2-4 "close the book and answer" prompts before any recap ([[theory-bjork-desirable-difficulties]]) |
-| 16 | War-story sidebars in chapters | **DEFERRED to Ch 2 prose round** (2026-05-25 — Option B per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | Status quo preserved. Per [[book-skiena-algorithm-design]]; 1 per chapter when a named anecdote exists. Decision revisits at end of Ch 1 + Ch 2 prose drafting — does chapter authoring surface usable Anthropic-stack anecdotes (postmortems, engineer war stories, published practitioner experiences)? If yes → Option A `<WarStory>` scaffold work; if no → Option C (move to Field-Guide only) |
+| 16 | War-story sidebars in chapters | **DEFERRED to Ch 2 prose round** (2026-05-25 — Option B per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | Status quo preserved. Per [[book-skiena-algorithm-design]]; 1 per chapter when a named anecdote exists. Decision revisits at end of Ch 1 + Ch 2 prose drafting — does chapter authoring surface usable Anthropic-stack anecdotes (postmortems, engineer war stories, published practitioner experiences)? If yes → Option A `<WarStory>` scaffold work; if no → Option C (move to Design's applied volume only) |
 | 17 | Volume-level chrome differentiation (typography / accent color per volume) | **DECIDED** (2026-05-23) — yes | See "Volume-level separation". Visual register signals reader-mode without needing labels |
-| 18 | Numbered Tips à la Pragmatic Programmer | **DECIDED** (2026-05-25) — adopt; ~50 Tips across volumes (Option A per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | Pull-quotable + callback-able single-sentence rules; cross-volume numbering (~25 Handbook + ~15 Architect's Ref + ~10 Field-Guide). Renders via `<Tip n="14" title="Care About Your Craft">...</Tip>` component (needs scaffold work — file upstream as `consumer:claude-books` issue per durable policy). Pull-out tip card at end of each volume + accumulating index across volumes. Editorial-coordination cost (cross-volume registry) is real; accept it for the pedagogical signal Tips carry. Per [[book-pragmatic-programmer]] precedent |
+| 18 | Numbered Tips à la Pragmatic Programmer | **DECIDED** (2026-05-25) — adopt; ~50 Tips across books (Option A per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | Pull-quotable + callback-able single-sentence rules; cross-book numbering (~25 Handbook + ~15 Architect's Ref + ~10 Agentic Systems Design). Renders via `<Tip n="14" title="Care About Your Craft">...</Tip>` component (needs scaffold work — file upstream as `consumer:claude-books` issue per durable policy). Pull-out tip card at end of each volume + accumulating index across volumes. Editorial-coordination cost (cross-volume registry) is real; accept it for the pedagogical signal Tips carry. Per [[book-pragmatic-programmer]] precedent |
 | 19 | Two-tier exercise model (inline + end-of-chapter) | **DECIDED** (2026-05-25) — adopt two-tier (Option A per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | Inline `<Exercise id="...">` at the point a concept is introduced (solution in `<details>` collapse at chapter end) + end-of-chapter `<Practice id="..." difficulty="1-4">` problem sets (no solutions in main text). Both need scaffold work — file upstream as `consumer:claude-books` issues per durable policy. Per [[book-csapp-bryant]] CS:APP precedent: inline Practice Problems for active reading + end-of-chapter Homework Problems with difficulty rating. ~3 inline + 2-3 end-of-chapter per chapter (~3 hrs authoring per chapter). `<TryThis>` remains available as a lighter alternative |
 | 20 | `llms.txt` + "for agents" pivot page per volume | **DECIDED** (2026-05-23) — yes | Becoming table-stakes per [[site-resend-docs]] + [[site-vercel-docs]]. Implementation in Phase 1.5 (deploy) per existing roadmap |
 | 21 | Four-tier figure stack (Mermaid / TikZ-inherited / authored SVG / ASCII) | **DECIDED** (2026-05-23) · **REVISED** (2026-05-29) | See "Figures + diagrams" section. Backed by 9 tech-comparison notes in `docs/research/11-pedagogy/05-figures-diagrams/`. Per-figure decision tree locked. **Revision 2026-05-29:** default authoring tool = TikZ→SVG (not Mermaid); Mermaid optional — see the §Figures revision note. |
