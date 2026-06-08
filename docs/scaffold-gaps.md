@@ -41,3 +41,18 @@ Empty log is fine — the file exists from Phase 0 to frame the dogfooding pract
 | 2 (cert study-guide) | architect-reference (Round 2 genre) | **Searchable glossary / key-terms.** Sybex searchable key-terms glossary; the series has a shared `glossary/` but no in-book component. | No glossary component (only the academic BibTeX path / the YAML source manifest). | A `<Glossary>` collection + `/glossary` route + inline `<Term>` linking. | ✅ [#115](https://github.com/brandon-behring/book-scaffold-astro/issues/115) (2026-06-02); rollout. |
 | 2 (cert study-guide) | architect-reference (Round 2 genre) | **Flashcards / spaced-recall.** Sybex electronic flashcards for spaced recall (appendix/online, not inline, per the Bjork cheat-sheet caution). | No card component or spaced-recall surface. | A flashcards collection (front/back) + `/flashcards` route, generated from key-terms/objectives. | ✅ [#116](https://github.com/brandon-behring/book-scaffold-astro/issues/116) (2026-06-02); rollout. |
 | 2 (cert study-guide) | architect-reference (Round 2 genre) | **Objective-map front-matter.** Sybex/CompTIA objective→chapter coverage table as front matter — the reader-facing twin of `docs/cert-coverage.md`. | No objective-map component. | An `<ObjectiveMap>` front-matter component rendering task-area → chapter (could read a coverage data file). | ✅ [#117](https://github.com/brandon-behring/book-scaffold-astro/issues/117) (2026-06-02); rollout (≈ render `cert-coverage.md`). |
+
+## Now consumed (after the 4.3 → 4.18 bump — 2026-06-08)
+
+Bumping `book-scaffold-astro` to `^4.18.0` makes these filed gaps **available in-repo**:
+
+- **#85** (`/references` from `manifest.yaml`) — shipped **v4.10.0**.
+- **#86** (`/convergence` empty-state) — shipped **v4.14.0**.
+- **#96** (cross-book `<XRef>`: `<BookLink>` + `siblingBooks` registry) — shipped **v4.16.0**.
+  *Unblocks the bidirectional breadcrumb-XRef convention + the Design book's v1.0 XRef gate.*
+
+Cert study-apparatus epic **#122** — **partial**: the static spine shipped (**v4.17.0**) — **#112**
+(pooled practice-exam / question bank), **#114** (`<Rationale>` answer-rationale), **#117**
+(`<ObjectiveMap>`). **Still open**, so cert v1.0 stays gated: **#110** (`<Diagnostic>` / DIKTA),
+**#111** (`<PartReview>`), **#113** (`<AssessmentTest>`), **#115** (`<Glossary>` / `<Term>`),
+**#116** (flashcards).
