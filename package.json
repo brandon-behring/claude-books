@@ -2,7 +2,7 @@
   "name": "claude-books",
   "version": "0.0.1",
   "private": true,
-  "description": "Claude Code book ecosystem on book-scaffold-astro. Workspaces: handbook (Use), architect-reference (Cert · CCA-F D1–D5), agentic-systems-design (Design); field-guide + glossary planned. See docs/BOOK-MAP.md.",
+  "description": "Claude Code book ecosystem on book-scaffold-astro. Workspaces: handbook (Use), architect-reference (Cert · CCA-F D1–D5), agentic-systems-design (Design); glossary planned (field-guide retired). See docs/BOOK-MAP.md.",
   "workspaces": [
     "handbook",
     "agentic-systems-design",

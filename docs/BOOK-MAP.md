@@ -8,9 +8,9 @@
 Each book is a distinct **scope** with a one-word **lens** — the question it answers. All consume
 `@brandon_m_behring/book-scaffold-astro`.
 
-> **Single source.** This file is the canonical statement of the book model. Other meta-docs
-> (`CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, …) carry a one-line identity + a pointer here — they
-> do **not** restate the full lineup, so the model can't drift out of sync.
+> **Single source.** This file is the canonical, *full* statement of the book model — scopes, status,
+> volumes, and the cross-ref convention. Other meta-docs (`CLAUDE.md`, `README.md`, `CONTRIBUTING.md`, …)
+> carry only a short identity blurb + a pointer here, so the authoritative detail lives in one place.
 
 | Book | Slug | Lens | Question it answers | Cert relation | Status |
 |---|---|---|---|---|---|

@@ -8,7 +8,7 @@
 |---|---|
 | Handbook content (chapter MDX, PoC artifacts, figures, OUTLINE / PEDAGOGY / COMPARISON / NOTES) | This repo (`claude-books`) |
 | Workspace-level docs (research cache, design docs, friction logs, recon memos) | This repo (`claude-books`) |
-| Architect's Reference / Agentic Systems Design content | This repo (single-repo workspace; per-book extraction stays available on a real trigger per each book's `SPLIT.md`) |
+| Architect's Reference / Agentic Systems Design content | This repo (single-repo workspace; per-book extraction stays available on a real trigger — see `agentic-systems-design/SPLIT.md`) |
 | Scaffold bugs / enhancements / component requests | [`book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro) with label `consumer:claude-books` |
 | Research toolkit (lint methodology, validator improvements, skill updates) | [`research_toolkit`](https://github.com/brandon-behring/research_toolkit) |
 

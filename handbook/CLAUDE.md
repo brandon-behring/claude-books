@@ -26,7 +26,7 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 - [`../docs/design/2026-05-23_visual-pedagogy.md`](../docs/design/2026-05-23_visual-pedagogy.md) — theoretical rationale for PEDAGOGY decisions (Bruner / Bjork / Mayer / Sweller / Miller-Cowan; companion to [`PEDAGOGY.md`](./PEDAGOGY.md) which holds the decisions + author-facing rules)
 - [`../docs/guides-recon.md`](../docs/guides-recon.md) — 13-category comparative analysis of `~/guides/` patterns; drives ongoing adoption rounds
 
-**Style guide** (planned next commit in current round): [`./docs/style-guide.md`](./docs/style-guide.md) — author-facing rules derived from PEDAGOGY decisions + LaTeX-era lint rules.
+**Style guide**: [`./docs/style-guide.md`](./docs/style-guide.md) — author-facing rules derived from PEDAGOGY decisions + LaTeX-era lint rules.
 
 ## Frontmatter conventions (per `OUTLINE.md`)
 

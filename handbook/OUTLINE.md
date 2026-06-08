@@ -1,6 +1,6 @@
 # Handbook — v3.0 outline
 
-The handbook's lens: **how to *use* Claude effectively day-to-day.** Architectural design (Agent SDK loop internals, MCP server design, multi-agent pipeline architecture, structured-output JSON schema design) is **not** in this book — it lives in the Architect's Reference (companion book). Cross-references go via `<XRef book="architect-reference" id="..."/>`.
+The handbook's lens: **how to *use* Claude effectively day-to-day.** Architectural design (Agent SDK loop internals, MCP server design, multi-agent pipeline architecture, structured-output JSON schema design) is **not** in this book — it lives in the Architect's Reference (companion book). Cross-references to it use plain prose links (cross-book `<XRef>` can't resolve across the separate Astro apps).
 
 **Cert-domain primary ownership** (handbook is primary for Domain 3; cross-cuts into 4 + 5):
 - D3 — Claude Code Configuration & Workflows (20%) ← primary
@@ -204,7 +204,7 @@ These topics surface naturally during handbook chapters but live in sibling book
 - **Structured output design** (JSON schema design for `tool_use`, validation-retry loops, batch processing architectures) → Architect's Reference
 - **Empirical observations** ("what 67 teams actually did with CLAUDE.md at scale," scaling patterns observed, hygiene findings) → Agentic Systems Design's problem-first applied volume
 
-Each handbook chapter that touches these will link out via `<XRef book="architect-reference" id="..."/>` or plain hyperlink (until cross-book XRef resolution is built — Phase 4+ hub feature).
+Each handbook chapter that touches these links out via a plain prose breadcrumb — cross-book `<XRef>` can't resolve across the separate Astro apps, and the single-repo + per-book-extraction model keeps cross-book links non-load-bearing.
 
 ---
 
