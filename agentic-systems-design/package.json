@@ -1,6 +1,6 @@
 {
   "name": "agentic-systems-design",
-  "description": "Agentic Systems Design — Environment & Context Engineering. Engineering the environment an agent acts in and the context it reasons over. Volume of the claude-books series, authored from strict-live research dossiers.",
+  "description": "Agentic Systems Design — Volume 1: Environment & Context Engineering. Engineering the environment an agent acts in and the context it reasons over. Volume 1 of the claude-books Agentic Systems Design series, authored from strict-live research dossiers.",
   "version": "0.1.0",
   "type": "module",
   "private": true,

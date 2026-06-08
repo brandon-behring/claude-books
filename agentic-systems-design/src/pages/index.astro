@@ -5,16 +5,25 @@ import { getCollection } from 'astro:content';
 const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
 chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
 ---
-<Base title="Agentic Systems Design: Environment & Context Engineering" description="A standalone volume on engineering the two layers around the model — the environment an agent acts in, and the context it reasons over. Authored from strict-live research.">
+<Base title="Agentic Systems Design — Volume 1: Environment & Context Engineering" description="Volume 1 of the Agentic Systems Design series: engineering the two layers around the model — the environment an agent acts in, and the context it reasons over. Authored from strict-live research.">
   <article class="prose">
     <h1>Agentic Systems Design</h1>
-    <p class="subtitle"><em>Environment &amp; Context Engineering</em></p>
+    <p class="subtitle"><em>Volume 1 · Environment &amp; Context Engineering</em></p>
 
     <p>This volume is about the discipline that turns a model into an agent: engineering the <strong>environment</strong> it acts in and the <strong>context</strong> it reasons over. It is self-contained — it assumes a capable model and a harness, and develops the two layers around them.</p>
 
     <h2>Scope</h2>
-    <p><strong>Covered here:</strong> the environment (repo &amp; doc design, the instruction layer, skills, guardrails, working at scale) and the context (why windows degrade, how to assemble them, how to persist them across sessions).</p>
-    <p><strong>Adjacent — planned companion volumes, not yet available:</strong> Orchestration &amp; Multi-Agent (build-vs-buy, sub-agents), Tools &amp; MCP, Evaluation &amp; Operations, and Prompting. This book points outward to them where its scope ends; it does not depend on them.</p>
+    <p><strong>Covered here (Volume 1):</strong> the environment (repo &amp; doc design, the instruction layer, skills, guardrails, working at scale) and the context (why windows degrade, how to assemble them, how to persist them across sessions).</p>
+    <p><strong>Adjacent — planned companion volumes, not yet available:</strong> <strong>Volume 2 — Tools &amp; Orchestration</strong> (tool &amp; MCP design, tool minimization, sub-agents, multi-agent, build-vs-buy a harness) and <strong>Volume 3 — Evaluation &amp; Operations</strong> (evals / validation, observability, cost, oversight / HITL, security). This book points outward to them where its scope ends; it does not depend on them. (Prompting is covered in the <em>Handbook</em> and the <em>Architect's Reference</em>, not a Design volume.)</p>
+
+    <h2>Where this sits in the series</h2>
+    <p><em>Agentic Systems Design</em> is delivered foundation-first across volumes:</p>
+    <ol>
+      <li><strong>Volume 1 — Environment &amp; Context</strong> &nbsp;←&nbsp; <em>you are here</em></li>
+      <li><strong>Volume 2 — Tools &amp; Orchestration</strong> <small>(planned)</small></li>
+      <li><strong>Volume 3 — Evaluation &amp; Operations</strong> <small>(planned)</small></li>
+    </ol>
+    <p>A later problem-first applied volume re-traverses the material through real problems.</p>
 
     <h2>Chapters</h2>
     <ul>

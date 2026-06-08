@@ -6,6 +6,7 @@
 import { defineBookConfig, toolsStyle } from '@brandon_m_behring/book-scaffold-astro';
 
 export default await defineBookConfig({
+  title: 'Agentic Systems Design — Volume 1: Environment & Context Engineering',
   styles: [toolsStyle],
   site: 'https://example.invalid',
   // routes: { tips: true } — DEFERRED (same scaffold gap as the handbook: the

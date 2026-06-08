@@ -1,4 +1,4 @@
-# Agentic Systems Design — Environment & Context Engineering (outline v0)
+# Agentic Systems Design — Volume 1: Environment & Context Engineering (outline v0)
 
 > **Note (2026-06-01 reorg):** this is the standalone *Agentic Systems Design* book (formerly the env+context volume inside `architect-reference`). The cert-aligned `architect-reference` is now a sibling book that XRefs into this one. See `docs/BOOK-MAP.md` and `SPLIT.md`.
 
