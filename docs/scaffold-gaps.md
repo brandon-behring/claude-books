@@ -51,8 +51,27 @@ Bumping `book-scaffold-astro` to `^4.18.0` makes these filed gaps **available in
 - **#96** (cross-book `<XRef>`: `<BookLink>` + `siblingBooks` registry) — shipped **v4.16.0**.
   *Unblocks the bidirectional breadcrumb-XRef convention + the Design book's v1.0 XRef gate.*
 
-Cert study-apparatus epic **#122** — **partial**: the static spine shipped (**v4.17.0**) — **#112**
-(pooled practice-exam / question bank), **#114** (`<Rationale>` answer-rationale), **#117**
-(`<ObjectiveMap>`). **Still open**, so cert v1.0 stays gated: **#110** (`<Diagnostic>` / DIKTA),
-**#111** (`<PartReview>`), **#113** (`<AssessmentTest>`), **#115** (`<Glossary>` / `<Term>`),
-**#116** (flashcards).
+Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier components still open.** Verified
+2026-06-09 by grepping the installed package + `git show ce3c0ac`:
+
+- **Shipped + installed in 4.18.0 (consumable now):** **#127** [MERGED] = scaffold **v4.17.0** delivered
+  the static spine — `components/ObjectiveMap.astro` (**#117** CLOSED), `components/Rationale.astro`,
+  `pages/practice-exam.astro`, the `questions` content-collection schema (`src/schemas.ts`) +
+  `src/lib/questions.ts` / `questions-derive.ts` / `exam-domains.ts`, with tests + visual snapshots.
+  The cert book has these **available but not yet wired** (no `questions/` collection, no `examDomains`
+  in its `astro.config`, no `ObjectiveMap`/`Rationale` imports).
+- **Still OPEN (genuine remaining upstream work):** **#112** (fuller pooled question-bank *engine*,
+  beyond the static spine), **#114** (rationale back-*appendix*, beyond the bare `<Rationale>`
+  component), **#110** (`<Diagnostic>`), **#111** (`<PartReview>`), **#113** (`<AssessmentTest>`),
+  **#115** (`<Glossary>`), **#116** (flashcards); epic **#122** open.
+- **Dead branch:** `feat/tier3-inc1-questions-spine` is a pre-squash leftover (its work merged as
+  `ce3c0ac`); safe to delete. `main` is at **v4.18.0** (tags v4.14.3–v4.18.0 merged).
+
+> **Record-correction note (2026-06-09):** an earlier same-day edit flipped this to "apparatus NOT
+> shipped / none in 4.18" — a **verification error** (it even contradicted `architect-reference/CLAUDE.md`,
+> which correctly says the static spine ships). Lesson: before "correcting" a record, grep the installed
+> package + check sibling docs for agreement. The #85/#86/#96 rows were never in doubt.
+
+**Unblocked next step:** the cert apparatus can be **authored now** against 4.18.0 — wire `<ObjectiveMap>`
+front-matter, build the `questions` collection + `/practice-exam`, apply `<Rationale>`. The heavier
+components (#110/#111/#113/#115/#116) remain genuine upstream scaffold work.
