@@ -185,3 +185,18 @@ candidates:
     label: "Prompt-eng doc-consolidation recheck (per-technique guides → one 'Prompting best practices' page)"
     seed: "prompt_engineering Wave 7: Anthropic consolidated the per-technique prompting guides into a single 'Prompting best practices' page; the dossier anchors the current consolidated page + flagged the redirect churn (302→308 for multishot/chain-prompts, a soft-404 on an old per-technique URL)."
     note: "SPEC-IN-TRANSITION (doc layer): the prompting docs are mid-reorganization — old per-technique URLs now redirect (308) or soft-404 to the consolidated page. The anchored excerpts are verbatim to the current consolidated page. RECHECK on the next docs reshuffle — if the consolidated page splits again or URLs move, re-anchor (D4 — mint new atoms, tombstone via superseded_by). Same dual-layer freshness discipline as the MCP/OTel spec-in-transition items."
+
+  # --- surfaced by the cert factual-accuracy audit (2026-06-08) ---
+  # The CERT CURRICULUM is itself a tracked source here: its volatile claims (chapter
+  # `volatility: feature-surface` + cited to anthropic-models-overview etc.) name the subjects
+  # that warrant live dossiers. See docs/design/2026-06-08_curriculum-live-dossier-loop.md.
+  - id: model-lineup-flagship-cutover
+    parent: agent-capabilities
+    label: "Current-flagship model cutover (IDs, context windows, cutoffs, effort levels, eligible-model lists per release)"
+    seed: "cert factual-accuracy audit 2026-06-08: Opus 4.7→4.8 (shipped 2026-05-28) drifted model-pinned facts in architect-reference D4.1/D4.3/D4.5/D5.1/D5.6. The live models-overview is the single source; the chapters' `last_verified` + cert-audit Check 12 are the freshness clock."
+    note: "FAST-MOVING (per-release): each new flagship re-drifts current-flagship claims, context-window/cutoff/pricing facts, effort-level tables, and the structured-outputs/batch eligible-model lists. On each model release: re-run the targeted audit (the 10 feature-surface chapters + a model-version grep sweep), refresh, bump last_verified. 'Mythos Preview' (Project Glasswing, invite-only research preview) is intentionally NOT in the book — preview/volatile."
+  - id: cert-volatile-surface-living
+    parent: cc-internals
+    label: "Cert book volatile surface — now live-maintained (the 10 feature-surface chapters)"
+    seed: "cert audit 2026-06-08: D1.5/D2.3/D2.4/D2.5/D3.2/D3.3/D3.6/D4.3/D4.5/D5.6 carry the named API/CLI/MCP/skill surfaces that drift fastest; each maps to an existing strict-live dossier (mcp_design, structured_output, env_skills, …) as the single source."
+    note: "LIVING: re-confirm these chapters against live docs on the cadence in the loop design-doc. Freshness is computed from chapter `last_verified` (cert-audit Check 12), not a parallel ledger — single source. Backed dossiers already carry stale_after; this entry marks the curriculum→dossier mapping as maintained, not one-shot."

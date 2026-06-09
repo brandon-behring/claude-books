@@ -38,6 +38,10 @@ const APPROVED_LABELS = ['Official', 'Tip', 'Warning', 'Cost', 'Enterprise', 'Te
 // The 25-word cap was retired (guidance only, never wired). This is a soft smell-test
 // threshold: a margin note this long is likely displaced body text, per the new guideline.
 const MARGIN_ADVISORY_WORDS = 60;
+// Check 12 — freshness clock: re-verify a chapter when its `last_verified` exceeds these
+// volatility-keyed day limits. The single source of a fact's volatility is the chapter
+// frontmatter (`volatility` + `last_verified`) — no parallel per-source field to drift.
+const STALE_AFTER_DAYS = { 'feature-surface': 45, 'architectural-pattern': 120, 'stable-principle': 180 };
 // Verbatim markers of the confidential instructor PDF; none may appear in published prose.
 const PDF_SIGNATURES = [/instructor[_-]/i, /Claude\+Certified\+Architect/i, /Need to Know/i, /confidential/i];
 
@@ -345,6 +349,28 @@ function checkOutwardLinks(chapters) {
   return { id: 11, title: 'Outward-link integrity', findings: out };
 }
 
+// ── Check 12: chapter freshness — last_verified age vs volatility ─────────────
+// Intentionally time-relative (unlike the deterministic checks above): a freshness
+// tripwire that WARNs once a chapter outruns its volatility budget. Drives the
+// curriculum→live-dossier loop (see docs/design/2026-06-08_curriculum-live-dossier-loop.md).
+function checkFreshness(chapters) {
+  const out = [];
+  const now = new Date();
+  for (const ch of chapters) {
+    const v = ch.data?.volatility;
+    const lv = ch.data?.last_verified;
+    if (!v || lv === undefined) continue;
+    const verified = lv instanceof Date ? lv : new Date(`${String(lv)}T00:00:00Z`);
+    if (Number.isNaN(verified.getTime())) continue;
+    const ageDays = Math.floor((now - verified) / 86_400_000);
+    const limit = STALE_AFTER_DAYS[v] ?? 180;
+    if (ageDays > limit)
+      out.push(finding('WARN', ch.name,
+        `last_verified ${String(lv).slice(0, 10)} is ${ageDays}d old (> ${limit}d for ${v}) — re-verify volatile facts against live docs`));
+  }
+  return { id: 12, title: 'Chapter freshness (last_verified vs volatility)', findings: out };
+}
+
 /** Render the full markdown report from all check results. */
 function renderReport(results, meta) {
   const L = [];
@@ -392,6 +418,7 @@ function main() {
     checkStructure(chapters),
     checkPhantomGuards(chapters),
     checkOutwardLinks(chapters),
+    checkFreshness(chapters),
   ];
 
   const meta = { chapters: chapters.length, manifestKeys: manifest.entries.length, cacheUrls: cache.urls.size };
