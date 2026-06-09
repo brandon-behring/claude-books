@@ -37,9 +37,13 @@ the 2026-06-08 doc-reconcile fixed with a single source (`BOOK-MAP`). So **no ne
   `mcp-rc-2026-07-28` source's `last_reconfirmed`) is labeled distinct from a strict-live SHA-cache
   capture.
 - **Fresh ≠ correct.** `last_verified` + the deterministic linter prove *staleness* and *structure*,
-  not *factual correctness*. The 2026-06-08 run shipped a fresh chapter (linter green) that still
-  carried a wrong MCP-RC status claim; only an **independent adversarial review** caught it. So a
-  re-run's correctness gate is that review (§3), not the date bump.
+  not *factual correctness*. The 2026-06-08 run shipped a fresh chapter (linter green) carrying a wrong
+  MCP-RC status claim; only an independent skeptic caught it. The correctness gate is **factored
+  chain-of-verification (CoVe)** — each verifier *blind to the edit*, given only `{claim + cited source
+  URL}` (the toolkit's `/dossier-audit` Phase 3; the blindness is what prevents post-rationalization,
+  Dhuliawala et al. 2309.11495). A *non*-factored verifier that reads the chapter first can rationalize
+  it — this session's per-chapter fan-out did; only the decoupled diff-reviewer caught the error. So the
+  gate must be **factored**, and is recorded by `last_reviewed` (§3), not the date bump.
 
 ## 3. The minimal foundation (shipped 2026-06-08)
 1. **cert-audit Check 12** — WARNs when a chapter's `last_verified` outruns a volatility budget
@@ -51,13 +55,17 @@ the 2026-06-08 doc-reconcile fixed with a single source (`BOOK-MAP`). So **no ne
    subjects (prefill-deprecation, MCP-RC, OTel, pricing-recheck) with recheck triggers.
 3. **The audit itself = run #1** — the 2026-06-08 factual-accuracy pass refreshed the volatile facts
    (Opus 4.7→4.8 + count/citation drift; see `docs/audits/2026-06-08_*`) and set the first deadlines.
+4. **The correctness gate is machine-visible** — a `last_reviewed` chapter field + cert-audit **Check
+   13** that WARNs when `last_verified` outruns it ("fresh but unreviewed for correctness"). Check 12 =
+   *staleness*; Check 13 = *correctness-currency*. `last_reviewed` records a **factored-CoVe** pass.
 
 **Re-run recipe (per model release or quarterly):** baseline `cert-audit.mjs` → fan out per
 feature-surface chapter, verifying each volatile claim against its live cited source → model-version
-grep sweep → refresh → **an independent adversarial-correctness review over the diff** → *only then*
-bump `last_verified` → re-run the linter. (`last_verified` means **re-verified AND adversarially
-checked**, not "re-fetched" — see §2's *fresh ≠ correct*; the review is the gate the deterministic
-linter cannot be.) This *is* the loop's heartbeat, runnable by hand or by an agent.
+grep sweep → refresh + bump `last_verified` → **a factored CoVe pass over the changed facts** —
+decoupled skeptics each *blind to the edit*, given only `{claim + cited source URL}`, reusing the
+toolkit's `/dossier-audit` Phase 3 (do **not** reinvent a vaguer "review") → *only then* bump
+`last_reviewed` → re-run the linter (Check 13 flags any `last_verified` that outran `last_reviewed`).
+This *is* the loop's heartbeat, runnable by hand or by an agent.
 
 ## 4. Deferred automation (on real triggers)
 - **Scheduled freshness agent.** Revive the **dormant** weekly `/schedule` cert-tracking agent (its

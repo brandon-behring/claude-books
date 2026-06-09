@@ -31,7 +31,7 @@ const RESEARCH_DIRS = ['docs/research', 'docs/research-program'].map((d) => path
 
 const REQUIRED_FRONTMATTER = [
   'title', 'part', 'chapter', 'volatility', 'tools_compared', 'cert_domains',
-  'introduced_in_version', 'last_updated', 'last_verified', 'sources', 'description',
+  'introduced_in_version', 'last_updated', 'last_verified', 'last_reviewed', 'sources', 'description',
 ];
 const VOLATILITY_ENUM = ['stable-principle', 'architectural-pattern', 'feature-surface'];
 const APPROVED_LABELS = ['Official', 'Tip', 'Warning', 'Cost', 'Enterprise', 'Template', 'Note'];
@@ -173,7 +173,7 @@ function checkFrontmatter(chapters) {
       out.push(finding('FAIL', ch.name, `volatility "${ch.data.volatility}" not in enum`));
     if (Array.isArray(ch.data.sources) && ch.data.sources.length === 0)
       out.push(finding('FAIL', ch.name, 'sources: is empty'));
-    for (const key of ['last_updated', 'last_verified']) {
+    for (const key of ['last_updated', 'last_verified', 'last_reviewed']) {
       const v = ch.data[key];
       // js-yaml coerces an unquoted yyyy-mm-dd to a Date — valid, and the template's own convention.
       if (v === undefined || v instanceof Date) continue;
@@ -373,6 +373,27 @@ function checkFreshness(chapters) {
   return { id: 12, title: 'Chapter freshness (last_verified vs volatility)', findings: out };
 }
 
+// ── Check 13: correctness-review currency — last_reviewed vs last_verified ────
+// The factored-CoVe correctness gate (see docs/design/2026-06-08_curriculum-live-dossier-loop.md).
+// Check 12 proves a fact was re-FETCHED; this proves it was independently re-VERIFIED by a blind
+// skeptic. WARNs when facts were refreshed after the last review — fresh but unreviewed-for-correctness
+// (the exact "fresh ≠ correct" gap that shipped the 2026-06-08 MCP-RC error). Presence of `last_reviewed`
+// is enforced by Check 1 (REQUIRED_FRONTMATTER); this check only compares currency.
+function checkReviewCurrency(chapters) {
+  const out = [];
+  const toDate = (v) => (v instanceof Date ? v : new Date(`${String(v)}T00:00:00Z`));
+  for (const ch of chapters) {
+    const lv = ch.data?.last_verified, lr = ch.data?.last_reviewed;
+    if (lv === undefined || lr === undefined) continue; // Check 1 owns presence
+    const verified = toDate(lv), reviewed = toDate(lr);
+    if (Number.isNaN(verified.getTime()) || Number.isNaN(reviewed.getTime())) continue;
+    if (reviewed < verified)
+      out.push(finding('WARN', ch.name,
+        `last_verified ${verified.toISOString().slice(0, 10)} is newer than last_reviewed ${reviewed.toISOString().slice(0, 10)} — facts re-fetched after the last correctness review; run a factored CoVe pass + bump last_reviewed`));
+  }
+  return { id: 13, title: 'Correctness-review currency (last_reviewed vs last_verified)', findings: out };
+}
+
 /** Render the full markdown report from all check results. */
 function renderReport(results, meta) {
   const L = [];
@@ -421,6 +442,7 @@ function main() {
     checkPhantomGuards(chapters),
     checkOutwardLinks(chapters),
     checkFreshness(chapters),
+    checkReviewCurrency(chapters),
   ];
 
   const meta = { chapters: chapters.length, manifestKeys: manifest.entries.length, cacheUrls: cache.urls.size };
