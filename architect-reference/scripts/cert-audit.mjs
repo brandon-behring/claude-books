@@ -353,6 +353,8 @@ function checkOutwardLinks(chapters) {
 // Intentionally time-relative (unlike the deterministic checks above): a freshness
 // tripwire that WARNs once a chapter outruns its volatility budget. Drives the
 // curriculum→live-dossier loop (see docs/design/2026-06-08_curriculum-live-dossier-loop.md).
+// NOTE: Check 12 flags STALENESS, not correctness — the re-run's adversarial-correctness
+// review (the gate that catches fresh-but-wrong) is what licenses a `last_verified` bump.
 function checkFreshness(chapters) {
   const out = [];
   const now = new Date();
@@ -366,7 +368,7 @@ function checkFreshness(chapters) {
     const limit = STALE_AFTER_DAYS[v] ?? 180;
     if (ageDays > limit)
       out.push(finding('WARN', ch.name,
-        `last_verified ${String(lv).slice(0, 10)} is ${ageDays}d old (> ${limit}d for ${v}) — re-verify volatile facts against live docs`));
+        `last_verified ${verified.toISOString().slice(0, 10)} is ${ageDays}d old (> ${limit}d for ${v}) — re-verify volatile facts against live docs`));
   }
   return { id: 12, title: 'Chapter freshness (last_verified vs volatility)', findings: out };
 }

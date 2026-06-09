@@ -83,7 +83,7 @@ Need a natural-language preamble *and* a specific tool? Use `auto` and ask for t
 `any` guarantees that *a* tool fires, but not that its *inputs* are valid — and forcing one specific tool isn't always what you want. Compose two switches to get both guarantees at once: "Combine `tool_choice: {'type': 'any'}` with strict tool use to guarantee both that one of your tools will be called AND that the tool inputs strictly follow your schema. Set `strict: true` on your tool definitions to enable schema validation."<Tag kind="official" /><Citation src="anthropic-define-tools" /> `any` covers *that a tool is called*; `strict: true` (D2.2) covers *that its arguments match the schema*. Together they make "some tool, well-formed" a hard guarantee — the right shape for a classifier or extractor that must always emit structured output through a tool.
 
 <MarginNote variant="note" label="Note">
-`strict: true` is available on all tools except `mcp_toolset`. It is the same prevention switch D2.2 uses against malformed inputs — here it composes with `any` to pin both *whether* a tool fires and *how* its inputs are shaped.
+`strict: true` is a per-tool property, set on a tool definition. It is the same prevention switch D2.2 uses against malformed inputs — here it composes with `any` to pin both *whether* a tool fires and *how* its inputs are shaped.
 </MarginNote>
 
 <WorkedExample id="d2-03-any-strict" title="A classifier that must always emit valid JSON" expanded>
@@ -157,7 +157,7 @@ Every turn that *changes* `tool_choice` **invalidates the cached message blocks*
 
 - **Four `tool_choice` modes** — `auto` (default; Claude decides), `any` (must use some tool), forced `{"type":"tool","name":…}` (this tool), `none` (no tools). A spectrum from free to coerced.
 - **Forced modes break extended thinking** — only `auto` and `none` work with extended (or adaptive) thinking; `any` and forced `tool` error. The single most-tested `tool_choice` constraint.
-- **`any` + `strict: true` = a schema-valid guaranteed call** — `any` guarantees *a* tool fires, `strict: true` guarantees its inputs match the schema; compose them for classifiers/extractors. (`strict` is on all tools except `mcp_toolset`.)
+- **`any` + `strict: true` = a schema-valid guaranteed call** — `any` guarantees *a* tool fires, `strict: true` guarantees its inputs match the schema; compose them for classifiers/extractors. (`strict` is a per-tool property.)
 - **Forced modes prefill the assistant turn** — no natural-language preamble before the `tool_use` block; for preamble plus a specific tool, use `auto` and ask in the user message.
 - **`tool_choice` changes invalidate the prompt cache** — message blocks must be reprocessed (tool defs + system prompt stay cached); keep `tool_choice` stable across cached turns.
 - **Distribution ≠ steering** — `allowedTools` defines which tools exist (`disallowed_tools` removes one entirely); `tool_choice` steers a request. For MCP, a `mcp__server__*` wildcard beats `bypassPermissions` (narrower). Parallelism is its own axis (`disable_parallel_tool_use`).

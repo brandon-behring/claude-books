@@ -36,6 +36,10 @@ the 2026-06-08 doc-reconcile fixed with a single source (`BOOK-MAP`). So **no ne
 - The **provenance tier is honest**: a live WebFetch re-confirm (`web-reconfirm`, e.g. the
   `mcp-rc-2026-07-28` source's `last_reconfirmed`) is labeled distinct from a strict-live SHA-cache
   capture.
+- **Fresh ≠ correct.** `last_verified` + the deterministic linter prove *staleness* and *structure*,
+  not *factual correctness*. The 2026-06-08 run shipped a fresh chapter (linter green) that still
+  carried a wrong MCP-RC status claim; only an **independent adversarial review** caught it. So a
+  re-run's correctness gate is that review (§3), not the date bump.
 
 ## 3. The minimal foundation (shipped 2026-06-08)
 1. **cert-audit Check 12** — WARNs when a chapter's `last_verified` outruns a volatility budget
@@ -50,8 +54,10 @@ the 2026-06-08 doc-reconcile fixed with a single source (`BOOK-MAP`). So **no ne
 
 **Re-run recipe (per model release or quarterly):** baseline `cert-audit.mjs` → fan out per
 feature-surface chapter, verifying each volatile claim against its live cited source → model-version
-grep sweep → refresh + bump `last_verified` → re-run the linter. This *is* the loop's heartbeat,
-runnable by hand or by an agent.
+grep sweep → refresh → **an independent adversarial-correctness review over the diff** → *only then*
+bump `last_verified` → re-run the linter. (`last_verified` means **re-verified AND adversarially
+checked**, not "re-fetched" — see §2's *fresh ≠ correct*; the review is the gate the deterministic
+linter cannot be.) This *is* the loop's heartbeat, runnable by hand or by an agent.
 
 ## 4. Deferred automation (on real triggers)
 - **Scheduled freshness agent.** Revive the **dormant** weekly `/schedule` cert-tracking agent (its

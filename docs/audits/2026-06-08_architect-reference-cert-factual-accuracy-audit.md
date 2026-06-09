@@ -8,12 +8,19 @@ feature-surface chapters — this audit closes that.
 
 **Method:** baseline linter (`cert-audit.mjs` → 0 FAIL / 0 WARN); a 10-agent fan-out (one per
 feature-surface chapter) verifying each volatile claim against its cited live source; a book-wide
-model-version sweep (caught 3 more chapters: D4.1, D5.1, D3.4). **Provenance tier:** *web-reconfirm*
+model-version sweep (surfaced 3 more: D4.1, D5.1 (fixed); D3.4 verified clean). **Provenance tier:** *web-reconfirm*
 (live WebFetch), distinct from a strict-live re-cache.
 
 **Verdict: the book is behind, not wrong.** No load-bearing architecture is incorrect. Findings are
 small drifts (counts that grew; the Opus 4.7→4.8 flagship cutover; a few mis-citations and two genuine
-errors). **~15 fixes across 12 chapters**; 2 chapters (D3.3, D3.4) verified clean.
+errors). **≈16 fixes across 11 chapters**; D3.3 + D3.4 re-verified clean (date-only).
+
+**Review pass.** This run was itself checked by an independent adversarial review over the diff. It
+caught a *fresh-but-wrong* claim the linter passed — a D2.4 MCP-RC "published" vs **locked** error
+introduced during the fixes — prompting that correction plus the D2.3 `mcp_toolset` soften, the D3.6
+"Foundry" trim, and these count corrections. **Lesson (now in the loop):** a `last_verified` stamp
+requires an adversarial-correctness gate, not just a re-fetch + green linter — *fresh ≠ correct*. See
+`docs/design/2026-06-08_curriculum-live-dossier-loop.md` §2–3.
 
 ---
 
