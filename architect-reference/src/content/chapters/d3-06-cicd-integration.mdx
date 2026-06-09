@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [3]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - claude-code-headless
   - claude-code-cli-reference
@@ -70,12 +70,12 @@ A headless run can emit one of three shapes, selected with `--output-format`: `t
 <ConceptBox title="Three output formats">
 - **`text`** (default) — just the final response. For piping into another tool or a human-read log.
 - **`json`** — one payload with `result`, `session_id`, `total_cost_usd`, and a per-model cost breakdown. For scripts that parse a field (e.g. capture `session_id` to resume).
-- **`stream-json`** — newline-delimited events as they happen. The first, `system/init`, reports the model, tools, MCP servers, and a `plugin_errors` field you can check to fail CI when a plugin did not load.
+- **`stream-json`** — newline-delimited events as they happen. Typically the first, `system/init`, reports the model, tools, MCP servers, and a `plugin_errors` field you can check to fail CI when a plugin did not load (with `CLAUDE_CODE_SYNC_PLUGIN_INSTALL` set, `plugin_install` events precede it).
 </ConceptBox>
 
 ## Structured output with `--json-schema`
 
-When a downstream step needs a specific shape rather than prose, constrain the output to a schema: "To get output conforming to a specific schema, use `--output-format json` with `--json-schema` and a JSON Schema definition. The response includes metadata about the request (session ID, usage, etc.) with the structured output in the `structured_output` field."<Tag kind="official" /><Citation src="claude-code-headless" /> The flag is `--json-schema '<schema>'`, and it "validates output against JSON Schema and adds a `structured_output` field."<Tag kind="official" /><Citation src="claude-code-cli-reference" />
+When a downstream step needs a specific shape rather than prose, constrain the output to a schema: "To get output conforming to a specific schema, use `--output-format json` with `--json-schema` and a JSON Schema definition. The response includes metadata about the request (session ID, usage, etc.) with the structured output in the `structured_output` field."<Tag kind="official" /><Citation src="claude-code-headless" /> The flag is `--json-schema '<schema>'`; the CLI reference describes it as producing "validated JSON output matching a JSON Schema after agent completes its workflow (print mode only)."<Tag kind="official" /><Citation src="claude-code-cli-reference" />
 
 A minimal schema looks like this (illustration only — the shape is yours to define):
 
@@ -93,7 +93,7 @@ The schema-conforming result then arrives in `structured_output`, alongside the 
 
 ## Permission gates for a run with no human
 
-The defining constraint of CI is that no one is there to approve a tool call, so the permission surface must be settled before the run starts. The locked-down mode from D3.4 is built for exactly this: `--permission-mode dontAsk` "denies anything not in `permissions.allow` or the read-only command set," which the docs call out as useful for locked-down CI runs.<Tag kind="official" /><Citation src="claude-code-headless" /> Pair it with an allowlist: `--allowedTools "Bash(git diff *),Read"` auto-approves specific tools and supports prefix matching.<Tag kind="official" /><Citation src="claude-code-headless" /><Citation src="claude-code-cli-reference" />
+The defining constraint of CI is that no one is there to approve a tool call, so the permission surface must be settled before the run starts. The locked-down mode from D3.4 is built for exactly this: `--permission-mode dontAsk` "denies anything not in `permissions.allow` or the read-only command set," which the docs call out as useful for locked-down CI runs.<Tag kind="official" /><Citation src="claude-code-headless" /> Pair it with an allowlist: `--allowedTools "Bash(git diff *),Read"` auto-approves specific tools and supports prefix matching.<Tag kind="official" /><Citation src="claude-code-headless" />
 
 Two more knobs bound a run: `--max-turns N` "limits agentic turns and exits with error when reached," and `--max-budget-usd <N>` caps dollar spend — both print-mode-only.<Tag kind="official" /><Citation src="claude-code-cli-reference" /> At the far end, `--permission-mode bypassPermissions` (alias `--dangerously-skip-permissions`) skips prompts entirely<Tag kind="official" /><Citation src="claude-code-headless" /> — appropriate only inside an isolated container, never as a convenience.
 
@@ -133,7 +133,7 @@ Trace each guard: `auth status` (step 1) turns a missing credential into an imme
 
 ## GitHub Actions and the credential model
 
-The managed CI surface wraps all of the above. Claude Code GitHub Actions "is built on the Claude Agent SDK and wraps `claude -p` in a GitHub Action runner. It supports four providers: Anthropic direct API, Amazon Bedrock, Google Vertex AI, Microsoft Foundry — the latter three via OIDC / Workload Identity Federation, no static keys."<Tag kind="official" /><Citation src="claude-code-github-actions" /> The v1.0 interface is deliberately small: "`mode` is auto-detected; use `prompt` for all instructions and `claude_args` for any CLI passthrough"<Tag kind="official" /><Citation src="claude-code-github-actions" /> — so everything from earlier sections (`--bare`, `--output-format`, `--allowedTools`) reaches the runner through `claude_args`.
+The managed CI surface wraps all of the above. Claude Code GitHub Actions is "built on top of the Claude Agent SDK"<Tag kind="official" /><Citation src="claude-code-github-actions" /> and wraps `claude -p` in a GitHub Action runner. Beyond the direct Anthropic API it supports two cloud providers — Amazon Bedrock (`use_bedrock`) and Google Vertex AI (`use_vertex`) — each authenticated through GitHub OIDC / Workload Identity Federation, so no static cloud keys are stored.<Tag kind="official" /><Citation src="claude-code-github-actions" /> The v1.0 interface is deliberately small: "`mode` is auto-detected; use `prompt` for all instructions and `claude_args` for any CLI passthrough"<Tag kind="official" /><Citation src="claude-code-github-actions" /> — so everything from earlier sections (`--bare`, `--output-format`, `--allowedTools`) reaches the runner through `claude_args`.
 
 <Pitfall title="Never hardcode a key in a workflow file">
 Workflow YAML is committed to the repo, so a key written into it is a key published to everyone with read access. Supply the Anthropic key as a GitHub **secret**, and prefer the OIDC / Workload Identity Federation path for Bedrock, Vertex, and Foundry — that route uses no static keys at all. The same `${VAR}`-not-literal discipline from D2.4's `.mcp.json` applies to CI configuration.
@@ -189,4 +189,4 @@ The flag is **`--bare`**, and the cause it addresses is **non-reproducible conte
 - **Structured output** — `--output-format json` with `--json-schema` adds a validated `structured_output` field; `--json-schema` is **print-mode only** (as are `--max-turns`, `--max-budget-usd`).
 - **Permission gates** — CI has no human to prompt, so decide the surface up front: `dontAsk` (deny anything not pre-approved) + `--allowedTools` (prefix matching, e.g. `Bash(git diff *)`); `--max-turns` / `--max-budget-usd` cap a run; `bypassPermissions` / `--dangerously-skip-permissions` skips all checks — containers only.
 - **Exit codes are the CI contract** — a step passes/fails on the run's exit status (`0` success, non-zero failure). `--max-turns` reached and over-cap stdin (10 MB) exit non-zero; `claude auth status` exits `0`/`1` as a pre-flight gate. Don't mask the status (`|| true`) — a failed run would report green.
-- **GitHub Actions** — wraps `claude -p`; v1.0 auto-detects mode (`prompt` + `claude_args`); four providers, the non-Anthropic three via OIDC with **no static keys**; supply credentials as secrets, never hardcoded.
+- **GitHub Actions** — wraps `claude -p`; v1.0 auto-detects mode (`prompt` + `claude_args`); the Anthropic API plus Bedrock + Vertex (the two cloud providers via OIDC, **no static keys**); supply credentials as secrets, never hardcoded.

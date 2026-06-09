@@ -6,8 +6,8 @@ volatility: stable-principle
 tools_compared: [claude-code]
 cert_domains: [4]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 description: The controllable lever for output quality is the specification, not the model. Name the success criteria and the output shape explicitly; positive instruction beats negative; the model will not infer a requirement you did not state. This is durable methodology — a stable principle, not a feature surface.
 sources:
   - anthropic-increase-consistency
@@ -42,7 +42,7 @@ _Part IV opens the domain the exam weights at 20% — getting a model to produce
 Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
 
 1. Two runs of the same prompt return differently-shaped output. Where does the inconsistency actually live?
-2. A more-literal model (Opus 4.7) is given a prompt with one unstated-but-intended requirement. What happens to that requirement?
+2. A more-literal model (Opus 4.8) is given a prompt with one unstated-but-intended requirement. What happens to that requirement?
 3. Which steers more reliably — "don't use markdown lists" or "respond in flowing prose" — and why?
 4. Name the three rungs of the output-control escalation ladder, cheapest first.
 5. Why does a newer, more capable model make "be explicit" *more* important rather than less?
@@ -57,7 +57,7 @@ Consistency is a property of the specification, not of the model. If two runs of
 
 ## The model will not infer what you did not ask for
 
-Modern models follow instructions more literally, which makes implicit expectations a liability. "Claude Opus 4.7 interprets prompts more literally and explicitly than Claude Opus 4.6, particularly at lower effort levels. It will not silently generalize an instruction from one item to another, and it will not infer requests you didn't make."<Tag kind="official" /><Citation src="anthropic-claude-4-best-practices" /> The upside is precision and less thrash; the cost is that a requirement you held in your head but never wrote down will simply not be honored. The fix is not a cleverer prompt that the model "figures out" — it is stating the requirement.
+Modern models follow instructions more literally, which makes implicit expectations a liability. "Claude Opus 4.8 interprets prompts literally and explicitly, particularly at lower effort levels. It does not silently generalize an instruction from one item to another, and it does not infer requests you didn't make."<Tag kind="official" /><Citation src="anthropic-claude-4-best-practices" /> The upside is precision and less thrash; the cost is that a requirement you held in your head but never wrote down will simply not be honored. The fix is not a cleverer prompt that the model "figures out" — it is stating the requirement.
 
 <Pitfall title="Expecting the model to read your intent">
 A prompt that works because the model generously guessed your intent is a prompt that will break the moment the model, the effort level, or the input distribution shifts. "It'll figure out the format from the one example" is precisely the assumption the more-literal models invalidate by design. If a behavior matters, it belongs in the instruction — not in your expectation of the model's charity.
@@ -136,7 +136,7 @@ The three rungs, cheapest first: **(1) explicit instruction** — name the four 
 ## Exam essentials
 
 - **Consistency lives in the specification** — if two runs disagree, a degree of freedom was left unstated; pin the format (fields, types, lengths, missing-data handling) explicitly.
-- **Modern models follow instructions literally** — Opus 4.7 "will not infer requests you didn't make," so an unstated requirement is an unmet one; state it rather than expecting the model to read intent.
+- **Modern models follow instructions literally** — Opus 4.8 "does not infer requests you didn't make," so an unstated requirement is an unmet one; state it rather than expecting the model to read intent.
 - **Positive beats negative** — "respond in flowing prose" / "answer in one sentence" steers better than "don't use lists" / "don't be verbose"; aim at the target instead of ruling out one failure.
 - **Escalation ladder** — explicit instruction → few-shot examples (D4.2) → structured outputs / strict tools (D4.3); climb only as far as the stakes require, since each rung costs more.
 - **Why stable-principle** — "be explicit about what you want" survives every model version; newer, more-literal models make it more load-bearing, not less.

@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - anthropic-citations
   - anthropic-models-overview
@@ -82,7 +82,7 @@ The two provenance mechanisms trade the same way as everything in Part IV. Nativ
 
 ## Temporal provenance: knowing when data is valid
 
-Provenance is not only *where* a claim came from but *when* it can be trusted. Each model has a reliable knowledge cutoff — Opus 4.7 at January 2026, Sonnet 4.6 at August 2025, Haiku 4.5 at February 2025 — and that reliable cutoff is *earlier* than (or equal to) the model's training-data cutoff, not later: Sonnet 4.6 trained on data through January 2026 but is reliable only to August 2025, and Haiku 4.5 trained through July 2025 but is reliable to February 2025.<Tag kind="official" /><Citation src="anthropic-models-overview" /> Data near the training cutoff is sparse, so the model's *reliable* knowledge stops before its *training* does. Past the reliable cutoff the model has no dependable knowledge, so a time-sensitive fact must come from a dated source supplied at request time (retrieval with a citation), not from the model's memory. The use-side workflow for recording claim sources and decision dates is the handbook's territory (its provenance and ADR material is forthcoming).
+Provenance is not only *where* a claim came from but *when* it can be trusted. Each model has a reliable knowledge cutoff — Opus 4.8 at January 2026, Sonnet 4.6 at August 2025, Haiku 4.5 at February 2025 — and that reliable cutoff is *earlier* than (or equal to) the model's training-data cutoff, not later: Sonnet 4.6 trained on data through January 2026 but is reliable only to August 2025, and Haiku 4.5 trained through July 2025 but is reliable to February 2025.<Tag kind="official" /><Citation src="anthropic-models-overview" /> Data near the training cutoff is sparse, so the model's *reliable* knowledge stops before its *training* does. Past the reliable cutoff the model has no dependable knowledge, so a time-sensitive fact must come from a dated source supplied at request time (retrieval with a citation), not from the model's memory. The use-side workflow for recording claim sources and decision dates is the handbook's territory (its provenance and ADR material is forthcoming).
 
 <MarginNote variant="note" label="Note">
 Cross-book pointer is prose-only — the handbook's provenance chapter is outlined but unpublished, so there is no stable URL to link yet.
@@ -138,4 +138,4 @@ A question about an event after the model's **reliable knowledge cutoff** should
 - **Provenance is verifiability** — the Citations API (enable per document with `citations: {"enabled": true}`) ties each claim to a source span so a citation cannot be fabricated (span-bound, not grammar-constrained); `cited_text` does not count toward output tokens. Citations must be enabled on **all or none** of a request's documents.
 - **Three location modes** — plain text → `char_location`, PDF → `page_location`, custom content → `content_block_location`; image citations are not yet supported.
 - **Mutual exclusion** — Citations + Structured Outputs return 400; when you need both a schema and provenance, use the provenance triple (`document_id` + `span_quote` + `confidence`) and verify the span caller-side.
-- **Temporal provenance** — each model has a reliable knowledge cutoff (Opus 4.7 Jan 2026, Sonnet 4.6 Aug 2025, Haiku 4.5 Feb 2025), which is **earlier than (or equal to) the training-data cutoff** — the model trains on later data but is only *reliable* to the earlier date (Sonnet 4.6 trained to Jan 2026, reliable to Aug 2025). Past the reliable cutoff, answer time-sensitive questions from a dated source, not the model's memory.
+- **Temporal provenance** — each model has a reliable knowledge cutoff (Opus 4.8 Jan 2026, Sonnet 4.6 Aug 2025, Haiku 4.5 Feb 2025), which is **earlier than (or equal to) the training-data cutoff** — the model trains on later data but is only *reliable* to the earlier date (Sonnet 4.6 trained to Jan 2026, reliable to Aug 2025). Past the reliable cutoff, answer time-sensitive questions from a dated source, not the model's memory.

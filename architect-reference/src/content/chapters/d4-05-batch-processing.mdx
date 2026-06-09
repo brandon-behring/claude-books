@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [4]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - anthropic-batch-processing
   - anthropic-structured-outputs
@@ -78,7 +78,7 @@ A batch is bounded by size and by shape. **Size:** "A Message Batch is limited t
 
 ## Billing, result types, and the lifecycle
 
-You pay only for what works: a result is `succeeded`, `errored`, `canceled`, or `expired`, and "you are not billed for errored, canceled, or expired requests."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> For unusually long generations there is an opt-in: the `output-300k-2026-03-24` beta header "raises the `max_tokens` cap to 300,000 for batch requests using Claude Opus 4.7, Claude Opus 4.6, or Claude Sonnet 4.6" — batch-only, and a single 300k generation can itself take over an hour, so submit it with the 24-hour window in mind.<Tag kind="official" /><Citation src="anthropic-batch-processing" />
+You pay only for what works: a result is `succeeded`, `errored`, `canceled`, or `expired`, and "you are not billed for errored, canceled, or expired requests."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> For unusually long generations there is an opt-in: the `output-300k-2026-03-24` beta header "raises the `max_tokens` cap to 300,000 for batch requests using Claude Opus 4.8, Claude Opus 4.7, Claude Opus 4.6, or Claude Sonnet 4.6" — batch-only, and a single 300k generation can itself take over an hour, so submit it with the 24-hour window in mind.<Tag kind="official" /><Citation src="anthropic-batch-processing" />
 
 <Pitfall title="A succeeded result is not automatically a usable one">
 The four result types — `succeeded`, `errored`, `canceled`, `expired` — are *batch-level* outcomes: they tell you the request *ran*, not that its answer is good. A `succeeded` result "includes the message result,"<Tag kind="official" /><Citation src="anthropic-batch-processing" /> and that message carries its own `stop_reason`. Two values still bite — a **refusal** (`stop_reason: "refusal"`) returns a 200, is billed, and may not match your schema; a **truncation** (`stop_reason: "max_tokens"`) is incomplete output.<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> Note the cost asymmetry: you are *not* billed for `errored`/`canceled`/`expired`, but a succeeded refusal you **do** pay for. So per-result handling must inspect each succeeded message's `stop_reason`, not stop at the result type.
@@ -159,6 +159,6 @@ The two limits are **100,000 requests** or **256 MB in size**, whichever is reac
 - **The trade** — batch is async and 50% off (input and output, all tiers, stacks with caching); most finish under an hour, the SLA is 24 hours, then the batch expires; results retained 29 days. Choose it by latency tolerance alone.
 - **`custom_id` contract** — results return in any order; match by the unique `custom_id` (1–64 chars, alphanumeric + `-` + `_`). Never rely on positional order; never reuse an id.
 - **Envelope** — 100,000 requests *or* 256 MB per batch (HTTP 413 over payload); streaming unsupported; each request is single-shot (no multi-turn tool loop). Structured outputs compose (schema-valid at 50% off).
-- **Billing + beta** — billed only for `succeeded`; `errored`/`canceled`/`expired` are free; the `output-300k-2026-03-24` beta raises `max_tokens` to 300,000 on batch for Opus 4.7/4.6 and Sonnet 4.6.
+- **Billing + beta** — billed only for `succeeded`; `errored`/`canceled`/`expired` are free; the `output-300k-2026-03-24` beta raises `max_tokens` to 300,000 on batch for Opus 4.8/4.7/4.6 and Sonnet 4.6.
 - **Succeeded ≠ usable** — a `succeeded` result still carries a per-message `stop_reason`; a **refusal** (`"refusal"`, 200, **billed**, may not match schema) or a **truncation** (`"max_tokens"`, incomplete) reaches you as succeeded. Check each succeeded message's `stop_reason`, not just the result type.
 - **Lifecycle** — `POST /v1/messages/batches` → poll until `ended` → stream `results_url` JSONL → match by `custom_id` → optional `DELETE` before the 29-day window.

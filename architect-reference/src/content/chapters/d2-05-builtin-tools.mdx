@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [2]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - agent-sdk-overview
   - agent-sdk-agent-loop
@@ -53,7 +53,7 @@ Answer all five confidently and you can skim to **Exam essentials**; otherwise r
 
 ## The built-in tool roster
 
-Every agent starts with a fixed roster of built-in tools — the SDK ships roughly thirteen of them, in six categories, identical to those that power Claude Code.<Tag kind="official" /><Citation src="agent-sdk-overview" /><Citation src="agent-sdk-agent-loop" /> The six that do the everyday work of reading and changing a codebase are **`Read`**, **`Write`**, **`Edit`** (file operations), **`Grep`**, **`Glob`** (search), and **`Bash`** (execution). The parity with Claude Code is explicit: "The SDK includes the same tools that power Claude Code,"<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> and "Everything that makes Claude Code powerful is available in the SDK."<Tag kind="official" /><Citation src="agent-sdk-overview" /> Beyond this built-in set sit MCP server tools (Chapter D2.4) and your own custom tools; this chapter is about the built-ins every agent has from the start.
+Every agent starts with a fixed roster of built-in tools — the SDK ships roughly fourteen of them, in six categories, identical to those that power Claude Code.<Tag kind="official" /><Citation src="agent-sdk-overview" /><Citation src="agent-sdk-agent-loop" /> The six that do the everyday work of reading and changing a codebase are **`Read`**, **`Write`**, **`Edit`** (file operations), **`Grep`**, **`Glob`** (search), and **`Bash`** (execution). The parity with Claude Code is explicit: "The SDK includes the same tools that power Claude Code,"<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> and "Everything that makes Claude Code powerful is available in the SDK."<Tag kind="official" /><Citation src="agent-sdk-overview" /> Beyond this built-in set sit MCP server tools (Chapter D2.4) and your own custom tools; this chapter is about the built-ins every agent has from the start.
 
 These names are **exact** — they appear verbatim in `allowed_tools` / `allowedTools` rules and as the `tool_use.name` block in messages, so `Read` is the tool and `read` is not.<Tag kind="official" /><Citation src="agent-sdk-agent-loop" />
 
@@ -154,7 +154,7 @@ The **three `Read` calls may run concurrently**; the **`Edit` must run on its ow
 
 ## Exam essentials
 
-- **The roster is fixed and the names are exact** — `Read`, `Write`, `Edit`, `Grep`, `Glob`, `Bash` are the six core built-ins (of ~13), identical to Claude Code's; they appear verbatim in allow/deny rules and as `tool_use.name`, and a mis-cased name matches nothing.
+- **The roster is fixed and the names are exact** — `Read`, `Write`, `Edit`, `Grep`, `Glob`, `Bash` are the six core built-ins (of ~14), identical to Claude Code's; they appear verbatim in allow/deny rules and as `tool_use.name`, and a mis-cased name matches nothing.
 - **Read vs write decides parallelism** — read-only tools (`Read`/`Glob`/`Grep`) run concurrently; state-modifying tools (`Edit`/`Write`/`Bash`) run sequentially; custom tools default to sequential and opt in via `readOnlyHint`. Orthogonal to D2.3's `disable_parallel_tool_use`.
 - **Six permission modes** — `default`, `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, `auto` (TS). `plan` = read-only; `acceptEdits` = auto-approve edits + filesystem ops (`mkdir`/`touch`/`rm`/`rmdir`/`mv`/`cp`/`sed`) inside `cwd`/`additionalDirectories`, prompt outside.
 - **Five-step evaluation order** — Hooks → Deny rules → Permission mode → Allow rules → `canUseTool`. Deny rules and hooks fire *before* the mode, so they bind even under `bypassPermissions`; allow rules fire *after* it, so the mode can override them.

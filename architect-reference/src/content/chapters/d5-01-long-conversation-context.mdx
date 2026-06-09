@@ -6,8 +6,8 @@ volatility: architectural-pattern
 tools_compared: [claude-code]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - agent-sdk-agent-loop
   - anthropic-models-overview
@@ -48,7 +48,7 @@ Answer all five confidently and you can skim to **Exam essentials**; otherwise r
 
 ## Context is a finite, accumulating resource
 
-Everything in a session shares one budget. "Context window is cumulative within a session. System prompt, tool definitions, CLAUDE.md, conversation history, tool inputs/outputs all accumulate."<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> And the budget is concrete: current windows are 1M tokens on Opus 4.7 and Sonnet 4.6 and 200k on Haiku 4.5 — though Opus 4.7's tokenizer can consume up to 35% more tokens for the same text, so the same conversation costs more of the budget on one model than another.<Tag kind="official" /><Citation src="anthropic-models-overview" />
+Everything in a session shares one budget. "Context window is cumulative within a session. System prompt, tool definitions, CLAUDE.md, conversation history, tool inputs/outputs all accumulate."<Tag kind="official" /><Citation src="agent-sdk-agent-loop" /> And the budget is concrete: current windows are 1M tokens on Opus 4.8 and Sonnet 4.6 and 200k on Haiku 4.5 — though Opus 4.8's tokenizer can consume up to 35% more tokens for the same text, so the same conversation costs more of the budget on one model than another.<Tag kind="official" /><Citation src="anthropic-models-overview" />
 
 <KeyIdea>
 Every turn spends from a fixed pool that never refills within a session. A conversation that "still fits" is not free — it has spent budget that shapes how well the model attends to everything still in the window. Long context is a resource to manage, not a capacity to fill.
@@ -125,7 +125,7 @@ When a session nears the context limit, **automatic compaction triggers and repl
 
 ## Exam essentials
 
-- **Cumulative budget** — system prompt, tool defs, CLAUDE.md, conversation history, and tool I/O all accumulate in one finite window (1M tokens on Opus 4.7 / Sonnet 4.6, 200k on Haiku 4.5; tokenizer density varies by model).
+- **Cumulative budget** — system prompt, tool defs, CLAUDE.md, conversation history, and tool I/O all accumulate in one finite window (1M tokens on Opus 4.8 / Sonnet 4.6, 200k on Haiku 4.5; tokenizer density varies by model).
 - **Degradation precedes overflow** — lost-in-the-middle and summarization loss erode a long context before it hits the limit; "fits" is not "well-attended." Depth lives in the design book's context-rot chapter.
 - **Compaction is lossy** — it triggers near the limit and replaces older messages with a summary, so early-conversation specifics may not be preserved.
 - **Durable rules belong in re-injected context** — put session-long constraints in CLAUDE.md (re-injected every request), not the opening prompt, so compaction cannot strand them.

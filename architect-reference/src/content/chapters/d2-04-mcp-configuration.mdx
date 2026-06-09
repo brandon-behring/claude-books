@@ -6,13 +6,14 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [2]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - agent-sdk-mcp
   - agent-sdk-claude-code-features
   - claude-code-mcp
   - mcp-spec-lifecycle
+  - mcp-rc-2026-07-28
 description: Wiring an MCP server so it resolves predictably across personal, team, and machine contexts. The two config paths and strictMcpConfig, claude mcp add --scope, the three scopes and their precedence, the local-scope-versus-local-settings trap, env-var expansion for secrets, verifying the connection via system:init, and the transports atop a mid-revision wire protocol.
 ---
 
@@ -51,7 +52,7 @@ Answer all five confidently and you can skim to **Exam essentials**; otherwise r
 2. What flag on `claude mcp add` chooses local vs project vs user scope?
 3. Where does a *local-scoped* MCP server live — and how does that differ from "local settings"?
 4. After wiring a server, how do you confirm it actually connected before the agent runs?
-5. What are the three config `type` transports, and what is the default connection timeout?
+5. What transports can an MCP server use (name the deprecated one and the `.mcp.json`-only one), and what is the default connection timeout?
 
 ## Two ways to configure a server
 
@@ -118,9 +119,9 @@ If `notion` comes back `needs-auth`, the OAuth flow hasn't completed; `failed` u
 
 ## Transports and the snapshot-dated wire protocol
 
-A server's `type` selects its transport, and there are **three** config transports: `stdio` for local processes, `sse` (Server-Sent Events, now **deprecated** — use HTTP), and `http` (Streamable HTTP; JSON configs accept `streamable-http` as an alias for `http`).<Tag kind="official" /><Citation src="claude-code-mcp" /> Separately — and this is *not* a `.mcp.json` `type` — the SDK lets you run an MCP server **in-process inside your application** (an SDK deployment mode, e.g. a built-in tool server), rather than as an external process or endpoint.<Tag kind="official" /><Citation src="agent-sdk-mcp" />
+A server's `type` selects its transport: `stdio` for local processes, `sse` (Server-Sent Events, now **deprecated** — use HTTP), and `http` (Streamable HTTP; JSON configs accept `streamable-http` as an alias for `http`). A fourth `type`, `ws` (WebSocket), is configurable only through `.mcp.json` or `claude mcp add-json`, not the `--transport` flag (whose values are `http`/`stdio`/`sse`).<Tag kind="official" /><Citation src="claude-code-mcp" /> Separately — and this is *not* a `.mcp.json` `type` — the SDK lets you run an MCP server **in-process inside your application** (an SDK deployment mode, e.g. a built-in tool server), rather than as an external process or endpoint.<Tag kind="official" /><Citation src="agent-sdk-mcp" />
 
-Beneath the config sits the MCP wire protocol — and it is mid-revision, so cite it with a date. Under the 2025-11-25 specification, an `initialize` handshake "MUST be the first interaction between client and server," negotiating protocol version and capabilities before any tool call.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" /> The 2026-07-28 release candidate removes that handshake for a stateless model, so the wire details here are a dated snapshot, not a permanent contract.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" />
+Beneath the config sits the MCP wire protocol — and it is mid-revision, so cite it with a date. Under the 2025-11-25 specification, an `initialize` handshake "MUST be the first interaction between client and server," negotiating protocol version and capabilities before any tool call.<Tag kind="official" /><Citation src="mcp-spec-lifecycle" /> The 2026-07-28 release candidate (published, in its validation window) removes that handshake for a stateless model, so the wire details here are a dated snapshot, not a permanent contract.<Tag kind="official" /><Citation src="mcp-rc-2026-07-28" />
 
 <MarginNote variant="note" label="Note">
 The handshake is a 2025-11-25 protocol fact on a moving target — the cache flags a 2026-07-28 RC that eliminates the `initialize` handshake. Re-verify the wire protocol before relying on it; the *configuration* surface (scopes, files, env vars) is the more stable part of this chapter.
@@ -164,4 +165,4 @@ Inspect the **`system:init` message** and its **`mcp_servers`** field — each s
 - **"Local scope" ≠ "local settings"** — a local-scoped MCP server lives in `~/.claude.json` (home), not `.claude/settings.local.json` (project).
 - **Env-var expansion** — `${VAR}` / `${VAR:-default}` in `command`/`args`/`env`/`url`/`headers`; `${CLAUDE_PROJECT_DIR}` needs the `:-` form in hand-written configs.
 - **Verify the connection** — read the `system:init` `status` (`connected`/`failed`/`needs-auth`/`pending`/`disabled`) before running; the default init timeout is **60s**.
-- **Three config transports** — `stdio` / `sse` (deprecated) / `http` (`streamable-http` alias); the SDK in-process server is a separate deployment mode, not a `type`. The 2025-11-25 `initialize` handshake is a dated snapshot the 2026-07-28 RC removes.
+- **Config transports** — `stdio` / `sse` (deprecated) / `http` (`streamable-http` alias), plus `ws` (WebSocket, `.mcp.json`-only); the SDK in-process server is a separate deployment mode, not a `type`. The 2025-11-25 `initialize` handshake is a dated snapshot the 2026-07-28 RC removes.

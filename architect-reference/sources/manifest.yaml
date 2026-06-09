@@ -213,6 +213,15 @@
   tier: T1-official
   tool: claude-code
 
+- id: mcp-rc-2026-07-28
+  url: https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/
+  title: "The 2026-07-28 MCP Specification Release Candidate"
+  author: Model Context Protocol
+  captured_at: 2026-06-08T00:00:00Z
+  last_reconfirmed: 2026-06-08
+  tier: T2-release-notes
+  tool: cross-tool
+
 # --- D3.1 (CLAUDE.md Hierarchy & @import) — from the 08-claude-code-internals cache.
 
 - id: claude-code-memory

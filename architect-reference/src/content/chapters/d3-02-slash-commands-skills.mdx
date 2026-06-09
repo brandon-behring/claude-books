@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code]
 cert_domains: [3]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-02
-last_verified: 2026-06-02
+last_updated: 2026-06-08
+last_verified: 2026-06-08
 sources:
   - claude-code-commands
   - claude-code-skills
@@ -52,7 +52,7 @@ Answer all five confidently and you can skim to **Exam essentials**; otherwise r
 
 ## Commands and skills have merged
 
-A slash command controls Claude Code from inside a session, and "a command is only recognized at the start of your message. Text that follows the command name is passed to it as arguments."<Tag kind="official" /><Citation src="claude-code-commands" /> Alongside the 70-plus built-in commands, some entries are **bundled skills**: "they use the same mechanism as skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant. Everything else is a built-in command whose behavior is coded into the CLI."<Tag kind="official" /><Citation src="claude-code-commands" />
+A slash command controls Claude Code from inside a session, and "a command is only recognized at the start of your message. Text that follows the command name is passed to it as arguments."<Tag kind="official" /><Citation src="claude-code-commands" /> Alongside the many built-in commands, some entries are **bundled skills**: "they use the same mechanism as skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant. Everything else is a built-in command whose behavior is coded into the CLI."<Tag kind="official" /><Citation src="claude-code-commands" />
 
 That same mechanism is why the two authoring formats have converged: "Custom commands have been merged into skills. A file at `.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create `/deploy` and work the same way. Your existing `.claude/commands/` files keep working."<Tag kind="official" /><Citation src="claude-code-skills" /> Old flat-file commands still run; skills are the recommended form for new work because they add directory bundling, frontmatter, and auto-invocation.
 
@@ -96,7 +96,7 @@ Trace it: **at startup**, only the ~100-token *description* loads (counted again
 
 ## SKILL.md frontmatter and the four scopes
 
-The `SKILL.md` frontmatter is where a skill declares its behavior. Among the fields: `name` (lowercase letters, numbers, hyphens; max 64 chars), `description` (drives auto-invocation; `description` + `when_to_use` capped at 1,536 chars by default), `argument-hint`, `disable-model-invocation`, `user-invocable`, `allowed-tools` (CLI-only), `model`, `effort`, `context`, and `paths` (glob patterns that limit when the skill activates).<Tag kind="official" /><Citation src="claude-code-skills" />
+The `SKILL.md` frontmatter is where a skill declares its behavior. Among the fields: `name` (display name in skill listings, defaults to the directory name — the *directory* name, not this field, sets the `/command` you type, except for a plugin-root `SKILL.md`), `description` (drives auto-invocation; `description` + `when_to_use` capped at 1,536 chars by default), `argument-hint`, `disable-model-invocation`, `user-invocable`, `allowed-tools` (CLI-only), `model`, `effort`, `context`, and `paths` (glob patterns that limit when the skill activates).<Tag kind="official" /><Citation src="claude-code-skills" />
 
 Skills resolve across four scopes by precedence — "enterprise > personal > project; plugin skills use a `plugin-name:skill-name` namespace and never conflict": Enterprise (managed settings, all users), Personal (`~/.claude/skills/`, all your projects), Project (`.claude/skills/`, auto-discovered from cwd up to repo root), and Plugin (namespaced).<Tag kind="official" /><Citation src="claude-code-skills" />
 
