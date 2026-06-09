@@ -1,0 +1,25 @@
+---
+id: d4-03-strict-dropped-openai
+type: mcq
+chapter: d4-03
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: analyze
+difficulty: "3"
+options:
+  - id: a
+    text: "The OpenAI SDK compatibility layer"
+    correct: true
+  - id: b
+    text: "The native Anthropic SDK"
+  - id: c
+    text: "The Message Batches API"
+  - id: d
+    text: "Any call that also sets `tool_choice` to `any`"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You set `strict: true` on a tool to guarantee schema-valid inputs. Through which integration path is that guarantee **silently** lost?
+
+<Rationale>
+`strict: true` (grammar-constrained sampling) is honored only on the native Claude API. Calling through the OpenAI-SDK compatibility layer silently drops it — the request still succeeds, so a type mismatch you thought impossible can reappear. The native SDK honors it; batching is orthogonal; and combining `strict: true` with `tool_choice: {type: "any"}` is the documented "call one of N tools *and* validate its inputs" pattern, not a conflict.
+</Rationale>

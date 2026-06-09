@@ -1,0 +1,25 @@
+---
+id: d2-02-error-flag-casing
+type: mcq
+chapter: d2-02
+domain: 'Tool Design & MCP Integration'
+bloom_level: understand
+difficulty: "2"
+options:
+  - id: a
+    text: "`is_error` (snake_case)"
+    correct: true
+  - id: b
+    text: "`isError` (camelCase)"
+  - id: c
+    text: "`error_code` (snake_case)"
+  - id: d
+    text: "a JSON-RPC `-32602` error"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A tool fails. In the **Claude Messages API** (direct, not MCP), which field on the `tool_result` block flags the failure — and in which casing?
+
+<Rationale>
+The casing is the regime tell: `is_error` (snake_case) is the Claude Messages API's single tool-failure signal, while `isError` (camelCase) is MCP's flag — conflating the two spellings is the most common mistake here. The direct API has no in-band JSON-RPC channel (a protocol-level problem surfaces as an HTTP error such as 400), and `error_code` is not a `tool_result` field.
+</Rationale>

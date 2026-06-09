@@ -1,0 +1,25 @@
+---
+id: d5-04-compact-vs-clear
+type: mcq
+chapter: d5-04
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "`/compact` to continue this task; `/clear` to switch to the new one"
+    correct: true
+  - id: b
+    text: "`/clear` to continue this task; `/compact` to switch"
+  - id: c
+    text: "`/compact` for both — it's the only one that frees context"
+  - id: d
+    text: "`/clear` for both — `/compact` only changes the model"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A long task's history is cluttered but still relevant; your *next* task is unrelated. Which command fits which?
+
+<Rationale>
+The decision rule is **continuity**. `/compact` condenses the conversation in place, so you keep going on the *same* task with a shorter (lossy) history; `/clear` starts a *fresh* conversation — the previous one still reachable via `/resume` — for switching to an unrelated task. Both free context, and neither changes the model.
+</Rationale>

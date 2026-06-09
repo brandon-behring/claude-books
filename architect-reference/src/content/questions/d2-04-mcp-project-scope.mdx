@@ -1,0 +1,20 @@
+---
+id: d2-04-mcp-project-scope
+type: mcq
+chapter: d2-04
+domain: 'Tool Design & MCP Integration'
+bloom_level: understand
+difficulty: "2"
+options:
+  - { id: a, text: "`.mcp.json` at the repository root", correct: true }
+  - { id: b, text: "`~/.claude.json`" }
+  - { id: c, text: "`.claude/settings.local.json`" }
+  - { id: d, text: "the `mcpServers` field in `package.json`" }
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You want an MCP server to be shared with everyone who checks out a repository — scoped to that project, not to your user account. Where do you declare it?
+
+<Rationale>
+A **project-scoped** MCP server is declared in `.mcp.json` at the repository root, which is committed to version control so every collaborator inherits it. `~/.claude.json` is **user**-global — it applies across all of your projects but is not shared through the repo. `.claude/settings.local.json` holds personal, git-ignored overrides. There is no `mcpServers` field in `package.json`.
+</Rationale>

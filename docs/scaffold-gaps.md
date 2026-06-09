@@ -58,8 +58,10 @@ Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier component
   the static spine — `components/ObjectiveMap.astro` (**#117** CLOSED), `components/Rationale.astro`,
   `pages/practice-exam.astro`, the `questions` content-collection schema (`src/schemas.ts`) +
   `src/lib/questions.ts` / `questions-derive.ts` / `exam-domains.ts`, with tests + visual snapshots.
-  The cert book has these **available but not yet wired** (no `questions/` collection, no `examDomains`
-  in its `astro.config`, no `ObjectiveMap`/`Rationale` imports).
+  The cert book now **consumes** them (wired 2026-06-09): `examDomains` (5 CCA-F domains) +
+  `routes.practiceExam` in `astro.config.mjs`, a `src/content/questions/` collection (seeded 10-q bank,
+  2/domain), and `<ObjectiveMap>` on the landing page. **Builds green in-workspace** — the route-injection
+  hoisting bug that blocks `tips.astro` does *not* affect `/practice-exam`.
 - **Still OPEN (genuine remaining upstream work):** **#112** (fuller pooled question-bank *engine*,
   beyond the static spine), **#114** (rationale back-*appendix*, beyond the bare `<Rationale>`
   component), **#110** (`<Diagnostic>`), **#111** (`<PartReview>`), **#113** (`<AssessmentTest>`),
@@ -72,6 +74,15 @@ Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier component
 > which correctly says the static spine ships). Lesson: before "correcting" a record, grep the installed
 > package + check sibling docs for agreement. The #85/#86/#96 rows were never in doubt.
 
-**Unblocked next step:** the cert apparatus can be **authored now** against 4.18.0 — wire `<ObjectiveMap>`
-front-matter, build the `questions` collection + `/practice-exam`, apply `<Rationale>`. The heavier
-components (#110/#111/#113/#115/#116) remain genuine upstream scaffold work.
+**Spine wired ✓ (2026-06-09).** Done in the cert book: `examDomains` + `routes.practiceExam` + the
+`questions` collection (10-q seed, 2/domain) + `<ObjectiveMap>`; `npm run validate` + `npm run build`
+green (37 pages, `/practice-exam` renders all 5 domains). Next: **expand the bank** toward per-chapter
+coverage, then the heavier components (#110/#111/#113/#115/#116) — genuine upstream scaffold work.
+
+**New gap observation (2026-06-09): scaffold default `pages/index.astro` collides with a consumer landing
+page.** The cert book's `src/pages/index.astro` (custom domain-grouped landing + `<ObjectiveMap>`) and the
+scaffold's shipped `pages/index.astro` both claim route `/`; Astro emits a `[router]` WARN ("a static
+route cannot be defined more than once … will be a hard error in following versions of Astro") and the
+consumer page wins by priority. Harmless today but future-breaking. *Suggested upstream fix:* gate the
+scaffold's default `index.astro` behind a `routes.home`-style opt-in (like `practiceExam`), or document
+that consumers overriding `/` should expect the warning. File with `consumer:claude-books`.

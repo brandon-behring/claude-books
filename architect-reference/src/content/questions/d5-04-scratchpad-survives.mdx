@@ -1,0 +1,25 @@
+---
+id: d5-04-scratchpad-survives
+type: mcq
+chapter: d5-04
+domain: 'Context Management & Reliability'
+bloom_level: analyze
+difficulty: "3"
+options:
+  - id: a
+    text: "Yes — a disk scratchpad survives both"
+    correct: true
+  - id: b
+    text: "No — `/compact` summarizes it away"
+  - id: c
+    text: "No — `/clear` wipes the working directory"
+  - id: d
+    text: "Only until `/clear`, which deletes the file"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You write a `PLAN.md` scratchpad, then run `/compact`, then later `/clear`. Is the plan still available to the agent?
+
+<Rationale>
+Compaction summarizes the *window* and `/clear` wipes the *window* — neither touches the filesystem. State written to a file lives on disk, so the agent re-reads `PLAN.md` after a compaction, or in a freshly-cleared session, exactly as it left it. The durable layer of a long task doesn't live in the conversation at all; `/clear` does not delete files.
+</Rationale>

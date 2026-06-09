@@ -1,5 +1,6 @@
 ---
 import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
+import ObjectiveMap from '@brandon_m_behring/book-scaffold-astro/components/ObjectiveMap.astro';
 import { getCollection } from 'astro:content';
 
 // The cert book is organized by CCA-F domain: domain → Part, task area → chapter.
@@ -45,6 +46,10 @@ const byPart = (p) =>
         </section>
       );
     })}
+
+    <h2>Exam objective coverage</h2>
+    <p>Which chapters carry retrieval-practice questions in each domain — auto-derived from the question bank, so it can't drift from what's actually written. Work the full <a href="/practice-exam/">practice question bank</a> (grouped by domain, answers behind a reveal).</p>
+    <ObjectiveMap />
 
     <h2>Status</h2>
     <p>Round 1 — structure + the first exemplar chapter (<strong>D1.1</strong>) are in place; the remaining ~29 chapters replicate that template. The full D1–D5 plan is in <code>OUTLINE.md</code>; see <code>docs/BOOK-MAP.md</code> for how this book relates to the others.</p>

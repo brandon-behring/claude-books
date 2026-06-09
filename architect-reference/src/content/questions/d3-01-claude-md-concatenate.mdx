@@ -1,0 +1,25 @@
+---
+id: d3-01-claude-md-concatenate
+type: mcq
+chapter: d3-01
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: understand
+difficulty: "2"
+options:
+  - id: a
+    text: "Neither — they concatenate; both stay in context"
+    correct: true
+  - id: b
+    text: "The Project file overrides the User file"
+  - id: c
+    text: "The Local file overrides every other scope"
+  - id: d
+    text: "The Managed-policy file overrides the rest"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Two CLAUDE.md files in the load chain give contradictory instructions. Which one takes precedence?
+
+<Rationale>
+Unlike the five-level *settings* precedence (where the highest scope wins), discovered CLAUDE.md files **concatenate** root-down without overriding — both contradictory lines load into context at once (a smell to fix at the source, not something proximity resolves). The rule of thumb: *settings override; instructions accumulate.* Reasoning about CLAUDE.md the way you reason about `settings.json` predicts the wrong behavior every time.
+</Rationale>

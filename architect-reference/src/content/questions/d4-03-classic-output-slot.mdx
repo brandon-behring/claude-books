@@ -1,0 +1,25 @@
+---
+id: d4-03-classic-output-slot
+type: mcq
+chapter: d4-03
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: understand
+difficulty: "2"
+options:
+  - id: a
+    text: "In the tool call's `input` — you discard the tool's result"
+    correct: true
+  - id: b
+    text: "In the tool's result — you return it to the model"
+  - id: c
+    text: "In the assistant text block — you parse it with a regex"
+  - id: d
+    text: "In `output_config.format` — you read it from the response"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+In the classic structured-output pattern you force Claude to call a `print_summary` tool. Where is your extracted JSON, and what do you do with the tool's "result"?
+
+<Rationale>
+You rent the typed tool-call slot as an output channel: the forced call's `input` object *is* your shaped JSON, and the "tool" never does anything — you discard its result. Parsing JSON out of a free-text block with a regex is the brittle approach this pattern replaces, and `output_config.format` is the *modern* grammar-constrained feature — a different generation, not the classic pattern.
+</Rationale>

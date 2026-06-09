@@ -1,0 +1,25 @@
+---
+id: d1-01-tool-error-return
+type: mcq
+chapter: d1-01
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "A `tool_result` block with `is_error: true`"
+    correct: true
+  - id: b
+    text: "An HTTP 500 status to the caller"
+  - id: c
+    text: "Nothing — omit the `tool_result` so the model retries"
+  - id: d
+    text: "A fresh `tool_use` block describing the failure"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Inside your tool handler the call throws an exception. To let the model see the failure and recover, what do you send back on the next turn?
+
+<Rationale>
+A failed call still returns a `tool_result` — but flagged `is_error: true`, with *actionable* content (e.g. `ConnectionError: weather API unavailable (HTTP 500)`), so the next turn can reason about what to do. Omitting the result breaks the round-trip (every `tool_use` needs a matching `tool_result`); HTTP statuses are not how a handler signals the model; and `tool_use` blocks come *from* the model, not from your code.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d1-01-loop-end-turn
+type: mcq
+chapter: d1-01
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: remember
+difficulty: "1"
+options:
+  - id: a
+    text: "`end_turn`"
+    correct: true
+  - id: b
+    text: "`tool_use`"
+  - id: c
+    text: "`max_tokens`"
+  - id: d
+    text: "`stop_sequence`"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+The agent loop repeats the tool-use round-trip until the model replies *without* a tool call. Which `stop_reason` marks that final reply?
+
+<Rationale>
+The loop branches on `stop_reason`: `tool_use` means "execute the call and continue the loop," and the loop ends when Claude responds with `stop_reason: "end_turn"` — a normal completion carrying no tool call. `max_tokens` (truncation) and `stop_sequence` (a stop string was hit) are other ways a response can end, but neither is the "task finished" signal the loop waits for.
+</Rationale>

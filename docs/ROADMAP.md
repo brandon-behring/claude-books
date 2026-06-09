@@ -43,31 +43,32 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 - **Model re-architecture + doc-set reconcile** — 5 books → 3 + glossary; this roadmap (2026-06-08).
 - **Deferred-debt batch** — research-lint green (matcher fix) + scaffold → 4.18 (#96 cross-book XRef) + cert-coverage Design column (2026-06-08).
 - **Cert factual-accuracy audit + freshness pipeline** — 13 ch re-verified vs live docs (Opus 4.7→4.8 cutover + count/citation drift); a curriculum→live-dossier freshness loop: cert-audit **Check 12** (staleness) + **Check 13** (correctness-currency) + a factored-CoVe gate + `last_reviewed` marker (2026-06-08).
+- **Cert study-apparatus spine wired** — consumed the scaffold v4.17 spine: `examDomains` + the `questions` collection + the static `/practice-exam` route + `<ObjectiveMap>` (landing page), seeded 10-question bank (2/domain, chapter-grounded); build green in-workspace (2026-06-09).
 
 ## v1.0 targets (what "done" means; ordering provisional)
 
 | Book | v1.0 = | Gated on |
 |---|---|---|
 | Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve | authoring time |
-| Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02 — verified done 2026-06-09)** + study apparatus | static spine **shipped** (v4.17/4.18, installed) → apparatus **authorable now** (wire `<ObjectiveMap>` + `questions`/`/practice-exam` + `<Rationale>`); heavier components #110/#111/#113/#115/#116 still open upstream but **not blocking** the spine-based apparatus |
+| Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus | spine **WIRED 2026-06-09** — `questions` collection + `/practice-exam` + `<ObjectiveMap>` live, **seeded 10-q bank** (2/domain); remaining = **expand the bank** toward per-chapter coverage + the heavier components #110/#111/#113/#115/#116 (open upstream) |
 | Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
 | Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links | scaffold #115 glossary (still open) |
 
 ## Next (provisional — sequenced on a real trigger)
-- **Finish drafted:** Cert apparatus — wire the **shipped** spine (`<ObjectiveMap>` + `questions`/`/practice-exam` + `<Rationale>`) now; the heavier surfaces wait on scaffold #110/#111/#113/#115/#116. Design Vol 1 polish.
+- **Finish drafted:** Cert apparatus — spine **wired** (2026-06-09); next is **expanding the question bank** toward per-chapter coverage (a `/loop` over chapters fits), then the heavier components (#110/#111/#113/#115/#116). Design Vol 1 polish.
 - **Extend:** Design Vol 2 (Tools & Orchestration) + Vol 3 (Evaluation & Operations) from the dossiers;
   Handbook Parts II–IV port.
 - **Infra:** stand up the Glossary deep-link layer; figures pipeline; dossier freshness re-verify.
 
 ## Known debt (tracked, with triggers)
-- **Cert apparatus — static spine shipped (v4.17/4.18); authoring unblocked.** Verified 2026-06-09
-  (grep of installed `node_modules` + `git show ce3c0ac`): the spine — `<ObjectiveMap>` (#117 closed),
-  `<Rationale>`, `/practice-exam`, the `questions` collection schema + lib — **is in the installed
-  4.18.0**, available but **not yet wired** by the cert book. (An earlier same-day "NOT shipped" note was
-  a verification error — corrected; it had contradicted `architect-reference/CLAUDE.md`.) *Remaining
-  upstream:* the heavier components **#110/#111/#113/#115/#116** + the fuller **#112/#114**; epic **#122**
-  open; the `feat/tier3-inc1-questions-spine` branch is a dead pre-squash leftover. *Trigger:* author the
-  spine-based apparatus in the cert book now; the heavier surfaces wait on those upstream issues.
+- **Cert apparatus — spine wired (2026-06-09); bank + heavy components remain.** The scaffold v4.17
+  spine (#112/#114/#117) is now **consumed** in the cert book: `examDomains` + the `questions` collection
+  + the static `/practice-exam` route + `<ObjectiveMap>` (landing page) build green **in-workspace** (no
+  hoisting bug, unlike `tips.astro`), with a seeded **10-question bank** (2/domain, chapter-grounded).
+  *Remaining:* (a) **expand the bank** toward per-chapter coverage (cert-book authoring — a `/loop` over
+  chapters fits); (b) the heavier components **#110/#111/#113/#115/#116** + the fuller **#112/#114**, still
+  open upstream (epic **#122**; the `feat/tier3-inc1-questions-spine` branch is a dead pre-squash
+  leftover) — scaffold-repo work ending in a release.
 - **`research-program/content-map.md` topic→book map predates multi-volume Design** — rows still map
   to the old book set. *Trigger:* when authoring a Design volume needs the precise atom→section map.
 
