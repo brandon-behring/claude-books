@@ -64,13 +64,14 @@ banner + `noindex` come *off* at v1.0).
 > Part I (4 ch + supplements) ≈ 1–2 sessions.
 
 ### Horizon 1 — committed (the cert track)
-- **Sprint 1 — apparatus adoption** *(S–M, ~1–2 sessions)*. Bump scaffold `^4.18` → `^4.23` and wire the **full study-guide
-  layer** into the cert book: `<Diagnostic>` (replaces the 30 hand-faked "Do I know this already?"
-  sections), `<PartReview>`, the scored **ExamRunner** on `/practice-exam`, `<AssessmentTest>`, the
-  `/answers` rationale appendix, `<Glossary>`, flashcards. Upstream epic **#122 closed 2026-06-10**
-  (v4.19 apparatus + TS-types fix · v4.20 triage · v4.21 interactive layer · v4.22 flashcards · v4.23
-  sidebar brand). Folds repo issue **#10** (`BOOK_PROFILE=tools`). Execution plan:
-  [`plans/active/2026-06-12_cert-apparatus-adoption.md`](./plans/active/2026-06-12_cert-apparatus-adoption.md).
+- **Sprint 1 — apparatus adoption** — ✅ **DONE 2026-06-12** (1 session). Scaffold bumped `^4.18` →
+  `^4.23` across all three workspaces; the cert book wired end-to-end: `<Diagnostic>` ×30 **with
+  authored answer keys** (replacing the hand-faked DIKTA sections; cert-audit Check 9 now requires
+  the component), `<PartReview>` ×5, scored **ExamRunner** on `/practice-exam`, `<AssessmentTest>`
+  on `/assessment`, `/answers` rationale appendix, #10 folded (`BOOK_PROFILE=tools` via script
+  prefixes). **Scope note:** `<Glossary>` + flashcards deferred to item 3 — the flashcards deck
+  derives from the `glossary` collection, which is exactly that item's deliverable. Plan + recon
+  record: [`plans/done/2026-06-12_cert-apparatus-adoption.md`](./plans/done/2026-06-12_cert-apparatus-adoption.md).
 - **Sprint 2 — question-bank expansion** *(M, ~2–3 sessions)*. Grow the 10-q seed toward per-chapter
   coverage (a `/loop` over chapters fits; item-writing rules locked in
   `architect-reference/OUTLINE.md`). Sequenced *after* Sprint 1 so every question lands in the final

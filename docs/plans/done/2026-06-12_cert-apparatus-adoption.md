@@ -1,8 +1,9 @@
 # Sprint 1 — Cert study-apparatus adoption (scaffold 4.18 → 4.23)
 
-> **Status:** active (planned 2026-06-12; **refined same day after API recon** — see Decisions).
-> Horizon-1 Sprint 1 in [`../../ROADMAP.md`](../../ROADMAP.md). Sprint 2 (question-bank expansion)
-> is sequenced *after* this so every new question lands in the final rendering pipeline.
+> **Status: COMPLETE 2026-06-12** (planned, refined after API recon, and executed the same day —
+> one session). All "Done =" criteria met; commits `bf4d410` → `0432756`. Sprint 2 (question-bank
+> expansion) is next in [`../../ROADMAP.md`](../../ROADMAP.md), sequenced after this so every new
+> question lands in the final rendering pipeline.
 
 ## Goal
 

@@ -70,9 +70,15 @@ Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier component
   deck (`/flashcards` route + Flashcards island) → **v4.22.0**. Also since 4.18: **v4.20.0**
   consumer-triage batch (#129 landing shadow warning, #130 validate los-anchor binding, #132
   multi-guide recipe) and **v4.23.0** (sidebar brand reads `defineBookConfig` title/subtitle, #135).
-  npm latest = **4.23.0**; this repo's lockfile pins **4.18.0** until the Sprint-1 bump.
-- **Adoption is in-repo work now** — tracked as Horizon-1 Sprint 1 in
-  [`ROADMAP.md`](./ROADMAP.md) + `plans/active/2026-06-12_cert-apparatus-adoption.md`.
+  npm latest = **4.23.0**; this repo consumes **^4.23.0** (Sprint-1 bump, 2026-06-12).
+- **ADOPTED in the cert book — Sprint 1 complete 2026-06-12** (per
+  `plans/done/2026-06-12_cert-apparatus-adoption.md`): `<Diagnostic>` ×30 **with answer keys**,
+  `<PartReview>` ×5 (Part-final chapters, `build-exercises` wired), scored ExamRunner on
+  `/practice-exam` (automatic with the bump), `<AssessmentTest>` on a new `/assessment` page,
+  `/answers` rationale appendix (`<Rationale appendix for=>` ×10), `BOOK_PROFILE=tools` (#10),
+  v4.23 sidebar brand + `routes: { landing: false }` in **all three books**. **Glossary +
+  flashcards deliberately deferred** to the shared-glossary roadmap item — the flashcards deck
+  derives from the `glossary` collection, which doesn't exist yet.
 - **New upstream open set:** **#140** base-unaware absolute links (**deployment gate** — broken under
   Astro base ≠ `/`), #103 interactive demos, **#83** v4.8.0 provenance backfill rollout to consumer
   books (P3, claude-books-side), #80 v5.x candidates (multibook corpus routing + AnkiCard CLI).
@@ -84,8 +90,8 @@ Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier component
 
 **Spine wired ✓ (2026-06-09).** Done in the cert book: `examDomains` + `routes.practiceExam` + the
 `questions` collection (10-q seed, 2/domain) + `<ObjectiveMap>`; `npm run validate` + `npm run build`
-green (37 pages, `/practice-exam` renders all 5 domains). Next: **adopt the full 4.19–4.23 layer**
-(Sprint 1 — no upstream work left), then **expand the bank** toward per-chapter coverage (Sprint 2).
+green (37 pages, `/practice-exam` renders all 5 domains). **Full 4.19–4.23 layer adopted 2026-06-12**
+(39 pages; see the ADOPTED entry above). Next: **expand the bank** toward per-chapter coverage (Sprint 2).
 
 **New gap observation (2026-06-09): scaffold default `pages/index.astro` collides with a consumer landing
 page.** The cert book's `src/pages/index.astro` (custom domain-grouped landing + `<ObjectiveMap>`) and the
@@ -94,3 +100,9 @@ route cannot be defined more than once … will be a hard error in following ver
 consumer page wins by priority. Harmless today but future-breaking. *Suggested upstream fix:* gate the
 scaffold's default `index.astro` behind a `routes.home`-style opt-in (like `practiceExam`), or document
 that consumers overriding `/` should expect the warning. File with `consumer:claude-books`.
+
+> **RESOLVED upstream (v4.20, #129) + adopted here 2026-06-12:** the scaffold now ships the exact
+> escape hatch suggested above — `routes: { landing: false }` — plus a validate-level warning pointing
+> at it. Declared in all three books' `astro.config.mjs`; the `[router]` WARN is gone. No filing needed.
+> (A sibling advisory remains: handbook + design own `src/pages/chapters/[...slug].astro`, which trips
+> the analogous v4.6 chapters-route warning — pre-existing, non-blocking, revisit if Astro hardens it.)
