@@ -45,47 +45,79 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 - **Cert factual-accuracy audit + freshness pipeline** — 13 ch re-verified vs live docs (Opus 4.7→4.8 cutover + count/citation drift); a curriculum→live-dossier freshness loop: cert-audit **Check 12** (staleness) + **Check 13** (correctness-currency) + a factored-CoVe gate + `last_reviewed` marker (2026-06-08).
 - **Cert study-apparatus spine wired** — consumed the scaffold v4.17 spine: `examDomains` + the `questions` collection + the static `/practice-exam` route + `<ObjectiveMap>` (landing page), seeded 10-question bank (2/domain, chapter-grounded); build green in-workspace (2026-06-09).
 
-## v1.0 targets (what "done" means; ordering provisional)
+## v1.0 targets (what "done" means; ordering committed under Next)
+
+Every book's v1.0 additionally means **published at its public URL** (deployment plan below: draft
+banner + `noindex` come *off* at v1.0).
 
 | Book | v1.0 = | Gated on |
 |---|---|---|
-| Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve | authoring time |
-| Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus | spine **WIRED 2026-06-09**; **upstream epic #122 COMPLETE 2026-06-10** (every heavier component shipped, v4.19–v4.22) — remaining is *in-repo*: **Sprint 1 apparatus adoption** + **Sprint 2 bank expansion** (see Next) |
-| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
-| Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links | **gate LIFTED** — scaffold #115 `<Glossary>` shipped (v4.19/v4.22); remaining = authoring |
+| Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve; published | authoring time; **step 0 = clone `brandon-behring/claude-best-practices`** (sources not local) |
+| Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus; published | spine **WIRED 2026-06-09**; **upstream epic #122 COMPLETE 2026-06-10** (every heavier component shipped, v4.19–v4.22) — remaining is *in-repo*: **Sprint 1 apparatus adoption** + **Sprint 2 bank expansion** (see Next) |
+| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); published; applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
+| Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links; published | **gate LIFTED** — scaffold #115 `<Glossary>` shipped (v4.19/v4.22); remaining = authoring |
 
 ## Next — two horizons (adopted 2026-06-12)
 
+> Sizing: **S/M/L + estimated sessions**, no calendar dates (solo, variable availability — dates
+> drift into falsehood). Calibration: the 30-ch `/loop` study-guide conversion ≈ 1 day; handbook
+> Part I (4 ch + supplements) ≈ 1–2 sessions.
+
 ### Horizon 1 — committed (the cert track)
-- **Sprint 1 — apparatus adoption.** Bump scaffold `^4.18` → `^4.23` and wire the **full study-guide
+- **Sprint 1 — apparatus adoption** *(S–M, ~1–2 sessions)*. Bump scaffold `^4.18` → `^4.23` and wire the **full study-guide
   layer** into the cert book: `<Diagnostic>` (replaces the 30 hand-faked "Do I know this already?"
   sections), `<PartReview>`, the scored **ExamRunner** on `/practice-exam`, `<AssessmentTest>`, the
   `/answers` rationale appendix, `<Glossary>`, flashcards. Upstream epic **#122 closed 2026-06-10**
   (v4.19 apparatus + TS-types fix · v4.20 triage · v4.21 interactive layer · v4.22 flashcards · v4.23
   sidebar brand). Folds repo issue **#10** (`BOOK_PROFILE=tools`). Execution plan:
   [`plans/active/2026-06-12_cert-apparatus-adoption.md`](./plans/active/2026-06-12_cert-apparatus-adoption.md).
-- **Sprint 2 — question-bank expansion.** Grow the 10-q seed toward per-chapter coverage (a `/loop`
-  over chapters fits; item-writing rules locked in `architect-reference/OUTLINE.md`). Sequenced
-  *after* Sprint 1 so every question lands in the final rendering pipeline.
+- **Sprint 2 — question-bank expansion** *(M, ~2–3 sessions)*. Grow the 10-q seed toward per-chapter
+  coverage (a `/loop` over chapters fits; item-writing rules locked in
+  `architect-reference/OUTLINE.md`). Sequenced *after* Sprint 1 so every question lands in the final
+  rendering pipeline.
 - **Riding along:** the cert tail — 27 advisory over-cap MarginNotes; `last_verified` cadence on the
   feature-surface chapters (Checks 12/13 are the tripwire).
 
-### Horizon 2 — recommended order (trigger-revisable, not binding)
-1. **Handbook Parts II–IV port** (ch05–15 + 3 appendices) — *trigger: authoring time.*
-2. **Design Vol 1 polish.**
-3. **Design Vols 2–3** (Tools & Orchestration; Evaluation & Operations) from the dossiers.
-4. **Glossary infra** — *gate lifted* (scaffold #115 shipped); harvest `agent_index/` glossaries.
-5. **Applied volume** (Design v2.0).
+### Horizon 2 — committed order (2026-06-12)
+3. **Glossary infra** *(S, ~1–2 sessions)* — *gate lifted* (scaffold #115 `<Glossary>` shipped);
+   harvest the 23 dossiers' `agent_index/` glossary sections into the shared term layer. Slotted
+   first because it's small and **compounds with early deploys** (shared terms deep-linked across
+   every public book).
+4. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices, to the proven
+   Part-I template. **Step 0: `git clone` `brandon-behring/claude-best-practices`** (private; the
+   LaTeX sources are NOT on this machine).
+5. **Design Vol 1 polish** *(S–M)*, then **Vols 2–3** *(L — the largest open authoring)* from the
+   dossiers (Vol 2 ← tool/MCP/sub-agent/multi-agent/build-vs-buy; Vol 3 ← eval + ops). Sequenced
+   last *because* the freshness loop keeps the dossiers warm — waiting costs accuracy nothing.
+6. **Applied volume** (Design v2.0).
+
+### Deployment (decided 2026-06-12)
+**Host = Cloudflare Pages** (the `brandon-behring.dev` DNS already lives on Cloudflare — one
+dashboard, one-click subdomains later). One Pages project per book, deployed **early, from the
+private repo**, with **`noindex` + a visible draft banner until each book's v1.0**.
+
+- Stand-up tasks *(S, ~1 session + dashboard steps)*: create the per-book Pages projects (host-native
+  build or CI artifact) → set per-book `site` in `astro.config.mjs` → fill the `siblingBooks`
+  origin registry → **BookLink/cross-book XRef gate lifts** (#96 shipped v4.16).
+- **Domain migration (soon):** `cert.` / `handbook.` / `design.brandon-behring.dev` **subdomains** —
+  these keep every book at root base. *Path-style hosting under the apex is gated on upstream #140*
+  (base-unaware absolute links); subdomains make #140 irrelevant.
+- **Gated items:** (a) **repo-public** — a deliberate visibility flip + full-history secret/leak
+  sweep; unlocks the dormant edit-this-page links + per-chapter Discussions; (b) **per-book v1.0
+  flip** — noindex off, draft banner off, domain final.
 
 ### Ops lane (each on its own trigger)
 - Revive the weekly **cert-tracking agent** (dormant; diff log stops at the 2026-05-22 baseline) —
   *trigger unchanged: the manual cadence becomes a chore.*
 - **Freshness-loop heartbeat** re-run — *per model release or quarterly* (recipe in
-  [`design/2026-06-08_curriculum-live-dossier-loop.md`](./design/2026-06-08_curriculum-live-dossier-loop.md) §3).
+  [`design/2026-06-08_curriculum-live-dossier-loop.md`](./design/2026-06-08_curriculum-live-dossier-loop.md) §3);
+  the same heartbeat **re-verifies the 23 external dossiers** (`bib_ledger` `stale_after` radar),
+  not just the cert chapters.
+- **Figures pipeline** — TikZ→SVG via the scaffold's `build-figures` (shipped v4.2); *trigger: the
+  first chapter needing a new diagram — expected during the handbook port.*
 - Upstream **#83** — roll the v4.8.0 provenance backfill out to the consumer books (P3).
-- Upstream **#140** (base-unaware absolute links) = **the deployment gate** — do not deploy any book
-  under a non-root base path until it ships.
-- **BookLink / cross-book XRef adoption** — *gate: design-book deploy* (#96 shipped v4.16).
+- Upstream **#140** (base-unaware absolute links) — only blocks *path-style* hosting; the subdomain
+  deployment plan above makes it non-blocking. Watch for the fix anyway.
 
 ## Known debt (tracked, with triggers)
 - **Cert apparatus — upstream DONE, adoption remains.** The v4.17 static spine is consumed (spine
@@ -121,5 +153,14 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 - **Two-horizon sequencing adopted (2026-06-12):** Horizon 1 = committed cert track (apparatus
   adoption → bank expansion); Horizon 2 = recommended-but-revisable book order with explicit
   triggers + an ops lane. Prompted by upstream epic #122 completing 2026-06-10.
+- **Horizon 2 hardened to a COMMITTED order (2026-06-12, refinement pass):** glossary → handbook →
+  Design Vols 2–3 → applied. Rationale: glossary is S-sized post-#115 and compounds with early
+  deploys; the handbook port is template-proven mechanical work one `git clone` from unblocked;
+  the freshness loop keeps the Design dossiers warm, so sequencing them last costs no accuracy.
+- **Deployment decided (2026-06-12):** Cloudflare Pages (DNS colocation with `brandon-behring.dev`),
+  one project per book, drafts deployed early **from the private repo**, `noindex` + draft banner
+  until each v1.0; domain target = `*.brandon-behring.dev` **subdomains** (root base — paths under
+  the apex stay gated on upstream #140). **Repo-public is a separate gated decision** (deliberate
+  flip + full-history sweep); until then edit-links/Discussions stay dormant.
 - **Hub+sibling repo split considered and declined (2026-06-08):** single-repo workspace is final; per-book extraction stays available on a real trigger (see each book's `SPLIT.md`).
 - **Meta-doc model de-duplicated (2026-06-08):** `docs/BOOK-MAP.md` is the single full statement of the book model; other meta-docs carry a one-line identity + a pointer, not a restatement (drift-proofing).
