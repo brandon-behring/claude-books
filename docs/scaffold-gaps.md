@@ -62,12 +62,20 @@ Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier component
   `routes.practiceExam` in `astro.config.mjs`, a `src/content/questions/` collection (seeded 10-q bank,
   2/domain), and `<ObjectiveMap>` on the landing page. **Builds green in-workspace** — the route-injection
   hoisting bug that blocks `tips.astro` does *not* affect `/practice-exam`.
-- **Still OPEN (genuine remaining upstream work):** **#112** (fuller pooled question-bank *engine*,
-  beyond the static spine), **#114** (rationale back-*appendix*, beyond the bare `<Rationale>`
-  component), **#110** (`<Diagnostic>`), **#111** (`<PartReview>`), **#113** (`<AssessmentTest>`),
-  **#115** (`<Glossary>`), **#116** (flashcards); epic **#122** open.
-- **Dead branch:** `feat/tier3-inc1-questions-spine` is a pre-squash leftover (its work merged as
-  `ce3c0ac`); safe to delete. `main` is at **v4.18.0** (tags v4.14.3–v4.18.0 merged).
+- **ALL SHIPPED — epic #122 CLOSED 2026-06-10** (verified 2026-06-12 via `gh issue view` + the
+  upstream release log; every issue below closed 2026-06-10): **#110** `<Diagnostic>` + **#111**
+  `<PartReview>` + **#115** `<Glossary>` → **v4.19.0** ("study-guide apparatus + shipped TS type
+  surface", with the #133/#134 TS-types fix); **#112-UI** scored **ExamRunner** island + **#113**
+  `<AssessmentTest>` + **#114** `/answers` rationale appendix → **v4.21.0**; **#116** flashcards
+  deck (`/flashcards` route + Flashcards island) → **v4.22.0**. Also since 4.18: **v4.20.0**
+  consumer-triage batch (#129 landing shadow warning, #130 validate los-anchor binding, #132
+  multi-guide recipe) and **v4.23.0** (sidebar brand reads `defineBookConfig` title/subtitle, #135).
+  npm latest = **4.23.0**; this repo's lockfile pins **4.18.0** until the Sprint-1 bump.
+- **Adoption is in-repo work now** — tracked as Horizon-1 Sprint 1 in
+  [`ROADMAP.md`](./ROADMAP.md) + `plans/active/2026-06-12_cert-apparatus-adoption.md`.
+- **New upstream open set:** **#140** base-unaware absolute links (**deployment gate** — broken under
+  Astro base ≠ `/`), #103 interactive demos, **#83** v4.8.0 provenance backfill rollout to consumer
+  books (P3, claude-books-side), #80 v5.x candidates (multibook corpus routing + AnkiCard CLI).
 
 > **Record-correction note (2026-06-09):** an earlier same-day edit flipped this to "apparatus NOT
 > shipped / none in 4.18" — a **verification error** (it even contradicted `architect-reference/CLAUDE.md`,
@@ -76,8 +84,8 @@ Cert study-apparatus epic **#122** — **static spine SHIPPED; heavier component
 
 **Spine wired ✓ (2026-06-09).** Done in the cert book: `examDomains` + `routes.practiceExam` + the
 `questions` collection (10-q seed, 2/domain) + `<ObjectiveMap>`; `npm run validate` + `npm run build`
-green (37 pages, `/practice-exam` renders all 5 domains). Next: **expand the bank** toward per-chapter
-coverage, then the heavier components (#110/#111/#113/#115/#116) — genuine upstream scaffold work.
+green (37 pages, `/practice-exam` renders all 5 domains). Next: **adopt the full 4.19–4.23 layer**
+(Sprint 1 — no upstream work left), then **expand the bank** toward per-chapter coverage (Sprint 2).
 
 **New gap observation (2026-06-09): scaffold default `pages/index.astro` collides with a consumer landing
 page.** The cert book's `src/pages/index.astro` (custom domain-grouped landing + `<ObjectiveMap>`) and the
