@@ -19,6 +19,7 @@ sources:
 description: The first chapter of Domain 1 and the substrate the rest of the book assumes — the agent loop as a control structure whose branch condition is stop_reason. Teaches the tool-use round-trip from first principles, the turn model, error and parallel tool-result handling, termination budgets, and every stop_reason value an architect must recognize.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -43,15 +44,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Domain 1 is the largest slice of the exam (27%), and this chapter is its floor: every later topic — subagents, workflows, hooks, session state — is a variation on the loop defined here. The exam tests whether you can read the loop's control flow, not whether you can recite an SDK signature. We build the loop from the definition of an agent, trace it end to end with a worked example, name the `stop_reason` values that branch it, handle the error and parallel result cases, and fix the termination contract an architect owns._
 
-## Do I know this already?
-
-If you can answer all five of these confidently, skim the chapter and jump to **Exam essentials**. If any is shaky, read closely — each is developed below.
-
+<Diagnostic>
 1. In one sentence, what *is* an agent, and what is the single branch condition that drives its loop?
 2. A session makes three tool calls and then returns a text answer. How many *turns* is that, and what is the smallest `max_turns` that lets it finish?
 3. A tool throws an exception inside your handler. What do you send back to the model, and what field do you set?
 4. The model returns two `tool_use` blocks in one response. May you answer one now and the other next turn?
 5. Your result object has `subtype: "error_max_turns"`. Is `.result` populated? What should your code check *before* reading it?
+
+<Fragment slot="answers">
+1. An agent is an ordinary model in a loop — "LLMs using tools based on environmental feedback in a loop." The branch condition is `stop_reason`: `tool_use` continues the loop, `end_turn` ends it.
+2. **Three turns** — turns count tool-use round-trips, and the final text-only answer is not a turn. The smallest budget that finishes is `max_turns = 3`.
+3. A normal `tool_result` block carrying the error text as content, with **`is_error: true`** — never throw out of the loop; the model reads the failure and adapts.
+4. **No** — every `tool_use` block in a response needs its `tool_result` in the *next* user message, all returned together, keyed by `tool_use_id`.
+5. **`.result` is empty** on every `error_*` subtype. Check `subtype == "success"` before reading it.
+</Fragment>
+</Diagnostic>
 
 <MarginNote variant="tip" label="Tip">
 A "Do I know this already?" pass is pre-testing: trying to retrieve before reading strengthens memory even when you guess wrong. Don't skip it to save time.
