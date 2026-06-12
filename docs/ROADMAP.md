@@ -82,7 +82,9 @@ banner + `noindex` come *off* at v1.0).
 3. **Glossary infra** *(S, ~1–2 sessions)* — *gate lifted* (scaffold #115 `<Glossary>` shipped);
    harvest the 23 dossiers' `agent_index/` glossary sections into the shared term layer. Slotted
    first because it's small and **compounds with early deploys** (shared terms deep-linked across
-   every public book).
+   every public book). Also unlocks the cert book's `/glossary` + `/flashcards` routes — the
+   flashcards deck derives from the `glossary` collection (deferred out of Sprint 1 for exactly
+   this reason: design the term shape once, here).
 4. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices, to the proven
    Part-I template. **Step 0: `git clone` `brandon-behring/claude-best-practices`** (private; the
    LaTeX sources are NOT on this machine).
