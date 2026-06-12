@@ -17,6 +17,7 @@ sources:
 description: A tool's caller-facing contract — description, input examples, operation boundary, name, and response shape — is what a non-deterministic model reads to select and use it. Why the description is the highest-leverage surface, how input_examples show correct usage, when to consolidate, how to namespace, and the object schemas (input and output) every interface stands on.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -40,15 +41,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Part I built the agent and its orchestration; Part II turns to the **tools** that agent reaches for. A tool is a contract between a deterministic system and a non-deterministic caller — and the architect's leverage is not the implementation behind it but the surfaces the model actually reads: the description, the input examples, the operation boundary, the name, and the response. Get those right and a capable model selects the tool correctly; get them wrong and no amount of model quality rescues it._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Which single field on a tool definition moves its performance the most, and what is the documented length floor?
 2. What does `input_examples` do, and what is the one hard rule every example must satisfy?
 3. You have `create_pr`, `review_pr`, and `merge_pr`. What is the documented redesign, and why?
 4. Give the namespaced names for a GitHub search and a Jira search, and the `mcp__` form an MCP tool surfaces as.
 5. What is structurally required of every tool's input schema — and what optional schema governs its output?
+
+<Fragment slot="answers">
+1. The **description** — "by far the most important factor in tool performance" — with a documented floor of **at least 3–4 sentences** per tool description, more if the tool is complex.
+2. `input_examples` is an array of example argument objects that *show* the model correct calls; **each example must validate against the tool's `input_schema`**, or the request returns a 400.
+3. **Consolidate** them into a single tool with an `action` parameter — fewer, more capable tools **reduce selection ambiguity**.
+4. `github_search` and `jira_search`; an MCP tool surfaces as **`mcp__<server>__<tool>`** (e.g. `mcp__github__list_issues`).
+5. The input schema must be a JSON Schema **object** (a no-argument tool still declares an empty object); the optional MCP **`outputSchema`** governs the output, obligating conforming `structuredContent`.
+</Fragment>
+</Diagnostic>
 
 ## The description is the highest-leverage surface
 

@@ -15,6 +15,7 @@ sources:
 description: An architect tracks where each claim came from and when its data is valid. The native Citations API ties quoted text to real document spans so a source cannot be fabricated; the provenance triple is the schema-friendly fallback; and a model's knowledge cutoff bounds what it can be trusted to know without a dated source.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -38,15 +39,21 @@ import PartReview from '@brandon_m_behring/book-scaffold-astro/components/PartRe
 
 _The book closes on the question that underlies trust in any agent output: where did this claim come from, and is it still true? Provenance answers the first — a claim mapped to its source is auditable, one without a source is a trust-me. Temporal validity answers the second. This chapter is the exam-angle treatment; the named features — the Citations API surface, the location modes — are the moving parts, so it is a feature surface._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What does the Citations API actually guarantee about a cited quote — and what does it *not* guarantee (e.g. a JSON grammar)?
 2. Name the three citation location modes by document type.
 3. You need structured JSON *and* per-claim attribution. Why does combining Citations with structured outputs fail, and what is the fallback?
 4. Is a model's reliable knowledge cutoff *earlier* or *later* than its training-data cutoff — and why?
 5. Within one request, on how many of the documents must citations be enabled?
+
+<Fragment slot="answers">
+1. It guarantees the cited text is **tied to an actual span in the source document** — the model cannot fabricate a citation to text that is not there; it is span-bound, **not grammar-constrained**, so it guarantees nothing about output shape.
+2. Plain text → **`char_location`**, PDF → **`page_location`**, custom content → **`content_block_location`**.
+3. Cited text must interleave with the response prose, which a strict JSON schema forbids, so the API returns a **400**; the fallback is the **provenance triple** (`document_id`, `span_quote`, `confidence`) verified caller-side.
+4. **Earlier** (or equal) — data near the training cutoff is sparse, so the model's *reliable* knowledge stops before its *training* does.
+5. **All or none** — you cannot mix cited and uncited documents within a request.
+</Fragment>
+</Diagnostic>
 
 <MarginNote variant="note" label="Note">
 This is a **feature-surface** chapter: the Citations API toggle, the three location-mode field names, and the per-model knowledge cutoffs are concrete surfaces that move between releases. Treat every field and date as a current snapshot and re-verify before relying on it.

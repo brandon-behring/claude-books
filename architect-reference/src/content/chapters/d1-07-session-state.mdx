@@ -16,6 +16,7 @@ sources:
 description: A session is the persisted conversation, not the filesystem. The architect's tools for carrying or branching state across context windows — continue, resume, and fork, with their literal Python/TS spellings — plus the encoded-cwd resume trap and the discipline of capturing durable artifacts as application state rather than shipping transcripts.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -39,15 +40,21 @@ import PartReview from '@brandon_m_behring/book-scaffold-astro/components/PartRe
 
 _The loop of D1.1 runs inside a single context window. Real agents outlive one window — they pause, resume on another host, or branch to try an alternative. The state that survives is the **session**, and this chapter fixes what a session is, the three controls that carry or branch it, and the one discipline that outlasts the session itself. This closes Domain 1: the loop, scaled across many windows._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What does a session persist — and what does it *not*?
 2. Write the literal Python (or TS) call for `continue`, `resume`, and `fork`.
 3. If a forked agent edits a file, is the change isolated from the original session? Why?
 4. A `resume` call returns an empty, fresh session. What is the single most likely cause?
 5. You must finish an interrupted job on a *different* host tomorrow. What is more robust than shipping the transcript?
+
+<Fragment slot="answers">
+1. The **conversation** — prompt, tool calls, results, and responses as JSONL under `~/.claude/projects/<encoded-cwd>/` — **not the filesystem**; reverting file changes is file checkpointing's job.
+2. `continue_conversation=True` / `continue: true`; `resume=sessionId` / `resume: sessionId`; `fork_session=True` / `forkSession: true`.
+3. **No** — forking branches the **conversation history, not the filesystem**, so both forks share one disk and the edit is real and visible to any session in that directory.
+4. A **mismatched `cwd`** — sessions are looked up under `~/.claude/projects/<encoded-cwd>/`, so resuming from a different directory derives the wrong path and starts fresh.
+5. **Capture the artifacts you care about as application state** (analysis output, decisions, file diffs) and pass them into a fresh session's prompt — more robust than shipping transcript files around.
+</Fragment>
+</Diagnostic>
 
 ## A session is the persisted conversation
 

@@ -16,6 +16,7 @@ sources:
   - anthropic-multishot-prompting
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -38,15 +39,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Part IV opens the domain the exam weights at 20% — getting a model to produce what you actually need. The first lever is the cheapest and the most overlooked: the prompt's own precision. Everything later in this Part (few-shot, structured outputs, validation loops) is an escalation from this baseline. The principle here outlasts every model version — newer models make it *more* true, not less — which is why this chapter is a stable principle, not a feature surface._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Two runs of the same prompt return differently-shaped output. Where does the inconsistency actually live?
 2. A more-literal model (Opus 4.8) is given a prompt with one unstated-but-intended requirement. What happens to that requirement?
 3. Which steers more reliably — "don't use markdown lists" or "respond in flowing prose" — and why?
 4. Name the three rungs of the output-control escalation ladder, cheapest first.
 5. Why does a newer, more capable model make "be explicit" *more* important rather than less?
+
+<Fragment slot="answers">
+1. In the **specification, not the model** — the disagreement was *latent in the prompt*: a degree of freedom you left unstated, which the model resolved differently each run.
+2. It is simply **not honored** — Opus 4.8 interprets prompts literally and "does not infer requests you didn't make," so an unwritten requirement goes unmet.
+3. **"Respond in flowing prose"** — a positive instruction points straight at the destination, while a prohibition only names a forbidden region without locating the target inside the still-vast permitted one.
+4. **Explicit instruction → few-shot examples (D4.2) → structured outputs / strict tools (D4.3)** — each rung costs more, so you climb only as far as the stakes require.
+5. Because newer models follow instructions **more literally** — they invalidate the assumption that the model will generously guess your intent, so an unstated requirement becomes a liability, not a gap the model fills.
+</Fragment>
+</Diagnostic>
 
 ## Specify the output format; do not leave it to inference
 

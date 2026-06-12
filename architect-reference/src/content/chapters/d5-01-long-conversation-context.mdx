@@ -15,6 +15,7 @@ sources:
 description: Context is a finite, accumulating resource, and a long conversation degrades before it overflows. This chapter frames the exam angle — cumulative context, the lost-in-the-middle and summarization failure modes, and lossy automatic compaction — and points to the design book where the degradation mechanics are proven in depth.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -37,15 +38,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Part V is the reliability domain — context management, escalation, error propagation, provenance. It opens with the most basic constraint behind all of them: the context window is finite, and a long conversation gets *worse* before it gets full. This chapter is the cert-exam angle; the mechanics of why long context degrades are proven in depth in the design book, to which it points. It is an architectural pattern — the accumulation-and-compaction shape is stable, while the window sizes and message types are the moving surface._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. List what shares the cumulative context budget within a session.
 2. "Fits in the window" and "well-attended" — why are these different claims?
 3. What does automatic compaction do, and which part of the conversation does it tend to drop first?
 4. A rule given only in the opening prompt stops being followed right after a compaction summary. Where should it have lived, and why?
 5. Given a misbehaving long session, which three failure modes should you discriminate among before reaching for a fix?
+
+<Fragment slot="answers">
+1. The **system prompt, tool definitions, CLAUDE.md, conversation history, and tool inputs/outputs** all accumulate in one finite budget that never refills within a session.
+2. The token limit is a *capacity* bound while attention is a *quality* that declines as the window fills — a conversation comfortably under the limit can still have **lost the thread of an instruction given fifty turns ago** (lost-in-the-middle).
+3. Near the context limit it **replaces older messages with a summary** — it summarizes the *oldest* turns first, so specific instructions from early in the conversation are most at risk.
+4. In **CLAUDE.md**, because its content is **re-injected on every request** and so survives compaction, unlike an opening-prompt rule whose survival depends on a summarizer's discretion.
+5. **Accumulation pressure, lost-in-the-middle, and post-compaction loss** — three distinct conditions with three distinct remedies.
+</Fragment>
+</Diagnostic>
 
 ## Context is a finite, accumulating resource
 

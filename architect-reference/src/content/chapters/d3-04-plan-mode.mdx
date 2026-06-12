@@ -16,6 +16,7 @@ sources:
 description: Plan mode restricts Claude to read-only research and a written proposal — no edits — and approving the plan exits the mode into a write mode. Choosing plan versus going direct is a risk-containment decision, not a named-mode toggle; "direct execution" is simply working in a write mode. The opusplan alias pairs the mode with a model-per-phase split — Opus plans, Sonnet executes.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -38,15 +39,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D2.5 enumerated the six permission modes as a tool-gating mechanism. This chapter zooms in on the one an architect chooses on purpose: `plan`. Plan mode is read-only research with a written proposal at the end — and the real exam question is not "what is plan mode" but "when do you plan first versus edit directly." That is a risk-containment decision, and there is no named "direct execution" mode — going direct just means working in a mode that lets edits through. The chapter closes on `opusplan`, the alias that makes the strong-model-plans/fast-model-executes split automatic._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Does plan mode suppress permission prompts? What exactly can Claude do in it, and what can it not?
 2. The instant you approve a plan, what happens to the session's permission mode?
 3. Name three distinct ways to enter plan mode.
 4. What does the `opusplan` alias do — and does its plan phase get the automatic 1M-context upgrade?
 5. A two-line fix in code you know well: plan first or go direct?
+
+<Fragment slot="answers">
+1. **No — permission prompts still apply the same as default mode**; Claude can read files, run shell commands to explore, and write a plan, but it does not edit your source.
+2. **Approving a plan exits plan mode** — the session switches to the write mode the chosen approve option names, and Claude starts editing.
+3. Any three of: cycle with **`Shift+Tab`**, prefix a prompt with **`/plan`**, start with `claude --permission-mode plan`, or set `permissions.defaultMode: "plan"` in settings.
+4. It runs **Opus in plan mode and switches to Sonnet for execution** — and no: the automatic 1M-context upgrade is `opus`-only, so `opusplan`'s plan phase runs at the standard 200K window.
+5. **Go direct** — a small diff in familiar code is the going-direct profile; plan first when reversal cost is high or the design space is unclear.
+</Fragment>
+</Diagnostic>
 
 ## What plan mode restricts
 

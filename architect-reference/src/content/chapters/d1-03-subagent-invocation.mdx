@@ -16,6 +16,7 @@ sources:
 description: The mechanics beneath the coordinator–subagent pattern — how a subagent is actually invoked. The Agent tool and its three creation paths, the AgentDefinition contract, why "Agent" must be in allowedTools, the single prompt-string channel into a fresh context, what crosses back out, and what a subagent does not inherit (including parent permissions).
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -39,15 +40,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Chapter D1.2 established when to reach for a subagent and how to cut the work. This chapter drops one level — to the mechanics of actually defining and invoking one, and reading what crosses each way across the context boundary. The exam tests whether you can read an `AgentDefinition`, predict whether it will be invoked **at all**, and say what crosses *into* the subagent's fresh context and what crosses *back* — and what silently does not._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Through which single tool is every subagent invoked, and what was that tool previously named?
 2. Which two `AgentDefinition` fields are required, and what does each control?
 3. A perfectly-defined subagent never runs. Name the two most likely causes.
 4. A subagent is told "fix the bug we discussed." Why does it fail, and what is the only channel that could have carried the context in?
 5. When the subagent finishes, what does the parent receive — and what might happen to it on the way back?
+
+<Fragment slot="answers">
+1. The **Agent tool** — every subagent is invoked through it; it was **renamed from `Task`** in Claude Code v2.1.63, so tool-name filters must match both values.
+2. **`description`** (natural-language *when to use this agent* — drives automatic matching) and **`prompt`** (the agent's system prompt: its role and behavior); everything else is optional.
+3. **`"Agent"` is missing from `allowedTools`** (the *run* gate — the call is never approved) or the **`description` is too vague** for Claude to match the task to it (the *match* gate).
+4. The subagent starts in a **fresh context window** with no parent conversation, so "the bug we discussed" never crossed; the only inbound channel is the Agent tool's **prompt string**.
+5. The parent receives the subagent's **final message** as the Agent-tool result — and the parent **may summarize it** rather than carry it through verbatim.
+</Fragment>
+</Diagnostic>
 
 ## The Agent tool is the invocation surface
 

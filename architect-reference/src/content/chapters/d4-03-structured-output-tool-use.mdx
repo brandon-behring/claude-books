@@ -17,6 +17,7 @@ sources:
 description: Forcing a known-shape JSON result has two generations. The classic pattern borrows the tool-call channel as a typed output slot; the modern features (strict tool use and output_config.format) use grammar-constrained decoding to make a non-conforming shape unrepresentable. The JSON-Schema subset, additionalProperties false, and the per-request limits are the surfaces to know.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -43,15 +44,21 @@ _D4.1 ended with a top rung: when a shape must not be violated, make it unrepres
 This is a **feature-surface** chapter: field names (`output_config.format`, `strict: true`), the schema subset, and the 20/24/16 request limits are concrete surfaces that move between releases. The `output_format` parameter has already migrated once. Treat every field and number as a current snapshot and re-verify before relying on it.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. In the classic pattern, which field of the forced tool call holds your data, and what do you do with the tool's "result"?
 2. What does `strict: true` guarantee that the classic pattern alone does not — and through which integration path is it silently dropped?
 3. Which JSON-Schema keyword is mandatory on *every* object node, and why does the constrained decoder require it?
 4. Name the two failure modes constrained decoding cannot prevent, and the `stop_reason` value that signals each.
 5. For open-ended extraction ("I don't know which fields will appear"), do you reach for structured outputs or classic tool use, and why?
+
+<Fragment slot="answers">
+1. The data is the forced call's **`tool_use.input`** — that object *is* your extracted JSON; the tool's "result" is **discarded entirely**.
+2. It **grammar-constrains tool inputs to your schema** — no wrong types (`"2"` for `2`), no missing required fields; it is **silently dropped by the OpenAI SDK compatibility layer**, which honors the request but gives no grammar guarantee.
+3. **`additionalProperties: false`** — an open object has **no closed grammar to compile**, so the decoder must know exactly which keys are permitted at each step.
+4. **Refusal** (`stop_reason: "refusal"` — a 200 you are billed for, output may not match) and **truncation** (`stop_reason: "max_tokens"` — every token schema-valid but the object never closed).
+5. **Classic tool use** — open-ended extraction needs `additionalProperties: true`, which structured outputs cannot accept since it **requires `additionalProperties: false`** on every object.
+</Fragment>
+</Diagnostic>
 
 ## The classic mechanism: a tool whose input is your output
 

@@ -18,6 +18,7 @@ sources:
 description: Wiring an MCP server so it resolves predictably across personal, team, and machine contexts. The two config paths and strictMcpConfig, claude mcp add --scope, the three scopes and their precedence, the local-scope-versus-local-settings trap, env-var expansion for secrets, verifying the connection via system:init, and the transports atop a mid-revision wire protocol.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -45,15 +46,21 @@ _D2.1 through D2.3 designed tools, their failures, and their distribution; this 
 This is a **feature-surface** chapter: file paths, scope names, env-var syntax, CLI flags, and the transport list are concrete config surfaces that move between releases — and the MCP wire protocol itself is mid-revision (see the last section). Treat every path and flag as a current snapshot and re-verify before relying on it.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Name the two ways to configure an MCP server, and what `strictMcpConfig: true` does.
 2. What flag on `claude mcp add` chooses local vs project vs user scope?
 3. Where does a *local-scoped* MCP server live — and how does that differ from "local settings"?
 4. After wiring a server, how do you confirm it actually connected before the agent runs?
 5. What transports can an MCP server use (name the deprecated one and the `.mcp.json`-only one), and what is the default connection timeout?
+
+<Fragment slot="answers">
+1. Programmatically (`mcp_servers` in Python, `mcpServers` in TypeScript) or via a **`.mcp.json`** at the project root; **`strictMcpConfig: true` uses only the servers you pass in `mcpServers`**, ignoring `.mcp.json`, user settings, and plugins.
+2. **`--scope <local|project|user>`** — omit it and the default is **Local**.
+3. In **`~/.claude.json`** (your home directory, under a per-project key) — *not* `.claude/settings.local.json`, which is the project's general local-settings file.
+4. Read the **`system:init` message** before the agent runs — each server's `status` is one of `connected | failed | needs-auth | pending | disabled`.
+5. `stdio`, `sse` (**deprecated**), and `http` (alias `streamable-http`), plus **`ws`, configurable only via `.mcp.json` or `claude mcp add-json`**; the default connection timeout is **60 seconds**.
+</Fragment>
+</Diagnostic>
 
 ## Two ways to configure a server
 

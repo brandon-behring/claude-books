@@ -15,6 +15,7 @@ sources:
 description: A hook is a typed callback the SDK fires at a named lifecycle event — the architect's control plane to intercept, gate, and normalize the agent loop without touching the model. The events to know, the two interception modes (PreToolUse gates, PostToolUse normalizes), the four PreToolUse decisions including what defer does, and the deny-beats-defer-beats-ask-beats-allow precedence.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -42,15 +43,21 @@ _The agent loop of D1.1 runs the model's tool calls automatically. Hooks are how
 This is a **feature-surface** chapter: the specific event names and the Python/TS roster change faster than the interception *pattern*. Treat the lists as a current snapshot and re-verify against the SDK reference before relying on a specific event.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What is a hook, and does it consume the agent's context window?
 2. Which event gates a call before it runs, and which normalizes a result after?
 3. Name the four decisions a `PreToolUse` hook can return — and say what `defer` does.
 4. Three hooks return `ask`, `allow`, and `deny` on one event. What happens, and why?
 5. A subagent can't use a tool the parent could. Why — and what hook cleanly pre-approves it?
+
+<Fragment slot="answers">
+1. A hook is a **callback that runs your code in response to an agent event**, running in your application process — it does **not** consume the agent's context window.
+2. **`PreToolUse`** gates a call before it runs; **`PostToolUse`** normalizes the result before the model sees it.
+3. `allow`, `ask`, `deny`, and `defer` — **`defer` ends the query so the host can resume it later from the persisted session**, a pause-and-hand-back, not an allow or a block.
+4. The call is **blocked**: matching hooks run in parallel and the most restrictive result wins, per the precedence `deny > defer > ask > allow`.
+5. Because **subagents do not inherit the parent's permissions** — each runs its own evaluation chain; a **`PreToolUse`** hook cleanly pre-approves the tool.
+</Fragment>
+</Diagnostic>
 
 ## Hooks intercept the loop at named events
 

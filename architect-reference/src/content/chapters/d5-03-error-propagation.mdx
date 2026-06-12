@@ -15,6 +15,7 @@ sources:
 description: In a chain of agents an error does not stay local — an upstream ambiguity becomes a downstream wrong decision, and concurrent faults compound into degradation no single component test reproduces. The defenses are structured error context across boundaries, independent validation, and circuit breakers.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -37,15 +38,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _A single agent fails visibly; a pipeline of agents fails by degrees. An error introduced at one stage rarely announces itself — it rides the handoff to the next stage as if it were sound input, and concurrent faults aggregate into a degradation that looks like nothing in particular. This chapter is about that propagation and the architecture that contains it. The pattern is durable; the percentages that illustrate it are evidence, so this is an architectural pattern._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Why is a pipeline of agents *less* reliable than its single most reliable agent?
 2. Why does a mid-pipeline agent turn an upstream ambiguity into a silent wrong decision, where an interactive one would not?
 3. The MAST taxonomy sorts multi-agent failures into which three categories — and which is the largest?
 4. Overlapping production bugs degraded quality for weeks, yet every component eval stayed green. Why couldn't the unit tests see it?
 5. Name two boundary defenses that contain error propagation across agents.
+
+<Fragment slot="answers">
+1. Because a chain's reliability is the **product of its handoffs**, not its best agent's — each boundary is both a place an error can enter and a place an existing error passes through unexamined.
+2. A mid-pipeline agent has **no one to ask**, so where an interactive agent would pause and clarify, it *resolves* the ambiguity itself and hands the guess downstream as settled fact.
+3. **Specification problems (41.77%)** — the largest — then coordination failures (36.94%) and verification gaps (21.30%).
+4. The degradation lived **between components, not inside any one** — each part passed its own eval, and the combined effect appeared only in the interaction, on traffic slices no single test exercises.
+5. Any two of: **structured error context** across boundaries, **independent validation** by an isolated judge, and **circuit breakers** that isolate a misbehaving agent before it cascades.
+</Fragment>
+</Diagnostic>
 
 ## Failures compound across agent boundaries
 

@@ -16,6 +16,7 @@ sources:
 description: Running Claude Code in CI — the headless `claude -p` entry point and `--bare` for reproducibility, the three output formats, schema-validated structured output via `--json-schema`, the permission flags that lock down a run with no human to prompt, and the GitHub Actions wrapper with its credential model.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -45,15 +46,21 @@ _D2.5 and D3.4 governed permission inside an interactive session. This chapter t
 This is a **feature-surface** chapter: CLI flag names, output event types, GitHub Actions input fields, and exit semantics are concrete surfaces that move between releases. Treat every flag and field as a current snapshot and re-verify before relying on it in production CI.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What does `--bare` skip, and why does omitting it make a headless run non-reproducible?
 2. Which `--output-format` gives you `total_cost_usd` and `session_id` as parseable fields?
 3. With no human at the keyboard, which permission mode is the documented floor for a locked-down CI run, and what does it deny?
 4. What is a CI step actually gating on when it passes or fails a `claude -p` run? Name two conditions that make the run exit non-zero.
 5. In GitHub Actions v1.0, how do you pass `--bare` or `--allowedTools` through to the underlying `claude -p`?
+
+<Fragment slot="answers">
+1. **`--bare` skips auto-discovery** of hooks, skills, plugins, MCP servers, auto memory, and CLAUDE.md; without it the run loads whatever the host machine has, so the same command behaves differently on different runners.
+2. **`--output-format json`** — a single payload with `result`, `session_id`, and `total_cost_usd` (plus a per-model cost breakdown).
+3. **`--permission-mode dontAsk`** — it denies anything not in `permissions.allow` or the read-only command set.
+4. The run's **process exit code** (`0` passes, non-zero fails); hitting **`--max-turns`** and piping stdin over the **10 MB cap** both exit non-zero.
+5. Through the **`claude_args`** passthrough input — v1.0 keeps `prompt` for instructions and routes all CLI flags via `claude_args`.
+</Fragment>
+</Diagnostic>
 
 ## The headless invocation
 

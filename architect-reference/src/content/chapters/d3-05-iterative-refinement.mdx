@@ -14,6 +14,7 @@ sources:
   - claude-code-best-practices
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -36,15 +37,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D3.4's plan mode is one phase of a larger loop. This chapter is the loop itself — how an architect drives a task from understanding to a committed change, refining as they go. These are disciplines, not features: the explore-plan-implement-commit rhythm, the interview pattern, and test-driven prompting outlast any particular keybinding or tool name, which is why this chapter is a stable principle rather than a feature surface._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Name the four phases of the recommended workflow, in order. When is it safe to skip the plan phase?
 2. In the interview pattern, *who* asks the questions, which tool drives them, and what artifact ends the interview?
 3. Why does a *fresh* session implement the spec rather than the one that ran the interview?
 4. What is described as "the single highest-leverage thing you can do," and what does withholding it cost?
 5. You have corrected Claude three times on the same issue this session. What is the recommended move, and why?
+
+<Fragment slot="answers">
+1. **Explore → Plan → Implement → Commit**; skip the plan phase only when the diff is **one-sentence-describable**.
+2. **Claude** asks the questions, driven by the **`AskUserQuestion`** tool, and the interview ends by writing a complete **spec to a file** (e.g. `SPEC.md`).
+3. The interview session is full of **question-answer thrash**; the fresh session starts on clean context whose **only input is the written spec**.
+4. A **verification criterion** — tests, screenshots, or expected outputs so Claude can check itself; without one it "might produce something that **looks right but actually doesn't work**," and you become the only feedback loop.
+5. Past two corrections on the same issue the context is cluttered with failed approaches — run **`/clear`** and start fresh with a more specific prompt that incorporates what you learned.
+</Fragment>
+</Diagnostic>
 
 ## The four-phase rhythm
 

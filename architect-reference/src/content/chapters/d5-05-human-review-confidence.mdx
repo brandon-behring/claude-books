@@ -15,6 +15,7 @@ sources:
   - claude-code-best-practices
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -37,15 +38,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D4.4 closed the validation loop with the model — detect a semantic error, feed it back, retry. This chapter closes the other loop: when automation is not enough, route to a human. The architect's job is calibration — deciding, per output, whether to trust it, verify it automatically, or escalate it to a person. The routing-and-funnel pattern is durable; the specific fields are illustration, so this is an architectural pattern._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What makes the decision to auto-accept vs route-to-human an *economic* one rather than a quality slogan?
 2. Why is a model's self-reported "high confidence" not a signal you can route on directly?
 3. What does it mean for a confidence signal to be *calibrated* in the measurement sense, and how would you check it?
 4. Describe the three tiers of the review funnel and what each one escalates.
 5. What two factors set where the human-review threshold falls?
+
+<Fragment slot="answers">
+1. Because for each output you weigh the **cost of a wrong auto-accept against the cost of a human glance** — cheap and reversible automates, expensive or irreversible routes to a person; "review everything" and "trust everything" are both failures to calibrate.
+2. Self-reported confidence is a **claim, not a measurement** — a confidently-wrong output reports high confidence too, so route on *checkable* signals (e.g. `calculated_total` ≠ `stated_total`, `conflict_detected`) instead.
+3. Calibrated means the stated value **tracks actual accuracy** — "90% confident" outputs are right about 90% of the time; check it by measuring, over real labeled data, the accuracy at each stated-confidence level.
+4. **Auto-check → isolated judge → human**: cheap automated checks handle the obvious cases, the isolated judge (fresh context, no authorship bias) catches the wrong-but-plausible ones, and each tier escalates only what it cannot resolve, so the human sees only what survives both.
+5. **Stakes × uncertainty** — low-stakes, high-confidence proceeds automatically; high-stakes, low-confidence goes to a person; the middle is where the judge tier earns its keep.
+</Fragment>
+</Diagnostic>
 
 ## Not every output earns automatic trust
 

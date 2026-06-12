@@ -15,6 +15,7 @@ sources:
   - anthropic-claude-4-best-practices
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -37,15 +38,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D4.1's escalation ladder put examples on the second rung: when a plain instruction can't fully pin a behavior — especially on the messy, ambiguous inputs — a demonstration does what a description cannot. This chapter is that rung. It is an architectural pattern: the 3-5-example construction and its quality criteria are stable across model versions, with the example-tag syntax as the illustration that may shift._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. When does a *demonstration* outperform a written instruction — what kind of case is few-shot's home turf?
 2. What is the documented example-count sweet spot, and what fails below it and above it?
 3. Name the three example-quality criteria. Which one, when neglected, silently corrupts the prompt?
 4. To pin that a missing field resolves to `null` (not `"unknown"`), do you add a rule or an example — and where in the set?
 5. Few-shot and structured outputs (D4.3): competing or complementary? What does each one control?
+
+<Fragment slot="answers">
+1. A demonstration wins where description is ambiguous — few-shot's home turf is the **case an instruction can't fully specify**, like how a borderline input should resolve.
+2. **3-5 examples** is the documented sweet spot: with 1-2 the model latches onto an *incidental* trait, and at 6+ you burn context and risk disagreeing examples teaching "either is acceptable."
+3. **Relevant, diverse, structured** — **diverse** is the most often neglected and most consequential: examples that all share an irrelevant trait teach that trait as if it were the rule.
+4. An **example** — show an input with the missing field whose output is `null`, placed **in the middle of the set**; the model generalizes from the example treatment, not from a prose rule beside it.
+5. **Complementary** — the schema locks the *shape* while examples teach *content* and *edge-case handling*.
+</Fragment>
+</Diagnostic>
 
 ## Examples are the most reliable steering mechanism
 

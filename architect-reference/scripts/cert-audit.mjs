@@ -287,7 +287,9 @@ function checkPdfLeakage(chapters) {
 function checkStructure(chapters) {
   const out = [];
   for (const ch of chapters) {
-    for (const tok of ['<YouWillLearn', '## Practice', '## Exam essentials']) {
+    // <Diagnostic is the DIKTA "converted" signal since the 2026-06-12 apparatus
+    // adoption (the ## heading was absorbed into the component).
+    for (const tok of ['<YouWillLearn', '<Diagnostic', '## Practice', '## Exam essentials']) {
       if (!ch.body.includes(tok)) out.push(finding('FAIL', ch.name, `missing ${tok}`));
     }
     const headings = [...ch.body.matchAll(/^## (.+)$/gm)].map((m) => m[1].trim());

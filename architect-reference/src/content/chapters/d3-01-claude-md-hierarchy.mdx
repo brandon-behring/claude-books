@@ -15,6 +15,7 @@ sources:
 description: How Claude Code assembles persistent instructions from four CLAUDE.md scopes that concatenate without precedence — the opposite of the strict five-level settings hierarchy (Managed > CLI > Local > Project > User) — plus the @import mechanism (depth-5, first-use approval), the AGENTS.md bridge, and the managed claudeMd / claudeMdExcludes controls.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -37,15 +38,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D2.4 resolved MCP servers and settings across a strict precedence where the highest scope wins. The instruction layer looks like the same machinery — files at managed, user, project, and local scopes — but it behaves in the opposite way: the files do not compete, they **concatenate**. This chapter is the exam angle on that distinction and on the `@import` mechanism that stitches files together. The design rationale for treating the file as a context **budget** lives in the *Further reading*._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Name the four CLAUDE.md scopes and the order they load in.
 2. Two CLAUDE.md files in the chain say contradictory things. Which one "wins"?
 3. Name the five levels of the *settings* precedence, highest to lowest.
 4. What is the `@import` recursion depth, and what happens permanently if you decline the first-use prompt?
 5. Claude Code "ignores" a teammate's `AGENTS.md`. Why, and what one line fixes it?
+
+<Fragment slot="answers">
+1. Broadest to most specific: **Managed policy → User → Project → Local** (`~/.claude/CLAUDE.md`, `./CLAUDE.md` or `./.claude/CLAUDE.md`, `./CLAUDE.local.md`).
+2. **Neither** — CLAUDE.md files **concatenate rather than override**; both contradictory instructions sit in context at once, a smell to fix at the source.
+3. **Managed → CLI arguments → Local → Project → User** — the highest scope wins (exception: permission `allow`/`ask`/`deny` rules merge across scopes).
+4. Maximum recursion depth is **5**; declining the first-use approval dialog **disables imports permanently** — the dialog does not reappear.
+5. Claude Code reads **`CLAUDE.md`, not `AGENTS.md`**; the fix is a one-line bridge — a CLAUDE.md that imports `@AGENTS.md`.
+</Fragment>
+</Diagnostic>
 
 ## Four scopes that load broadest-first
 

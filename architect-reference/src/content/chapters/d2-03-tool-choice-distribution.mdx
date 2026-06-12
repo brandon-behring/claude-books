@@ -18,6 +18,7 @@ sources:
 description: Controlling whether and which tool the model may call — the four tool_choice modes, the extended-thinking constraint, the any+strict guarantee of a schema-valid call, and the prompt-cache invalidation cost — plus allowedTools scoping versus bypassPermissions, with parallel execution as its own orthogonal axis.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -45,15 +46,21 @@ _Defining a good tool (D2.1) and a good failure (D2.2) is only half the architec
 This is a **feature-surface** chapter: the `tool_choice` values, the `allowedTools` syntax, and the parallel-execution flag are named API/SDK surfaces that can shift between releases. Treat the specifics as a current snapshot and re-verify against the docs before relying on an exact flag.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Name the four `tool_choice` modes and what each forces.
 2. Which two modes are unusable when extended thinking is on?
 3. You need a *guaranteed schema-valid* tool call without forcing one specific tool. What two settings do you combine?
 4. What does changing `tool_choice` do to your prompt cache?
 5. `tool_choice` vs `allowedTools` — which steers a request, and which defines the toolbox?
+
+<Fragment slot="answers">
+1. **`auto`** (Claude decides — the default when tools are provided), **`any`** (must use *some* tool), **forced `tool`** (must use *this* tool), and **`none`** (no tools this turn).
+2. **`any` and forced `tool`** — only `auto` and `none` are compatible with extended (or adaptive) thinking; the forced modes error the request.
+3. **`tool_choice: {"type": "any"}` plus `strict: true`** on the tool definition — `any` guarantees *a* tool fires, `strict` guarantees its inputs match the schema.
+4. It **invalidates the cached message blocks** — tool definitions and the system prompt stay cached, but message content must be reprocessed; keep `tool_choice` stable across cached turns.
+5. **`tool_choice` steers a single request; `allowedTools` defines which tools the agent has at all** — one shapes a call, the other shapes the toolbox.
+</Fragment>
+</Diagnostic>
 
 ## The four `tool_choice` modes
 

@@ -15,6 +15,7 @@ sources:
 description: When nothing is waiting on the answer, batch trades latency for half the price. The Message Batches API processes up to 100,000 async requests at a 50 percent discount with a 24-hour SLA, and its one non-negotiable contract is custom_id matching, because results come back in any order.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -42,15 +43,21 @@ _The first three chapters of Part IV controlled a single response. This one scal
 This is a **feature-surface** chapter: the `/v1/messages/batches` endpoint, the 100,000 / 256 MB limits, the 24-hour SLA, and the `output-300k-2026-03-24` beta header are concrete surfaces that move between releases. Treat every number and header as a current snapshot and re-verify before relying on it.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What single factor decides batch versus real-time, and which way does each tolerance point?
 2. Why is `custom_id` mandatory, and what specifically breaks if you rely on result order?
 3. Name the two size limits on a single batch, and which one an HTTP 413 reports.
 4. A batch result comes back `succeeded` — does that mean its answer is usable? What must you still check?
 5. Which result types are *not* billed, and which billed-but-possibly-useless outcome is the trap?
+
+<Fragment slot="answers">
+1. **Latency tolerance** alone decides: if a human or synchronous system is blocked on the result, batch is wrong; if the work is an overnight job, backfill, or offline evaluation, batch halves the bill.
+2. Results "can be returned in any order," so the unique `custom_id` is the **only sanctioned join key**; relying on positional order silently mismatches outputs to inputs, and nothing in the response flags it.
+3. **100,000 requests or 256 MB**, whichever is reached first — an HTTP 413 on creation reports the **256 MB payload** limit.
+4. **No** — `succeeded` is a batch-level outcome that says the request *ran*; you must still inspect the message's own **`stop_reason`**, because a refusal (`"refusal"`) or truncation (`"max_tokens"`) arrives as succeeded.
+5. **`errored`, `canceled`, and `expired` are not billed**; the trap is a succeeded **refusal** — it returns a 200, you pay for it, and it may not match your schema.
+</Fragment>
+</Diagnostic>
 
 ## The cost-latency trade
 

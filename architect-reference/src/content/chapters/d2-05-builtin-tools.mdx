@@ -16,6 +16,7 @@ sources:
 description: The fixed roster of built-in tools every agent ships with — Read, Write, Edit, Bash, Grep, Glob — their exact, case-sensitive names, the read-only-versus-state-modifying line that decides which run in parallel, the six permission modes, the five-step evaluation order, and the allow/deny rules that gate them. Closes on the allowlist-is-not-a-sandbox trap.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -43,15 +44,21 @@ _D2.1 through D2.4 designed tools, their failure contracts, their distribution, 
 This is a **feature-surface** chapter: the tool names, the mode list, and the rule syntax are concrete surfaces that move between releases. Treat every name and flag as a current snapshot and re-verify before relying on it; the *principles* (read/write execution, evaluation order) are the stable part.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Name the six core built-in tools. Does `allowed_tools=["read"]` pre-approve the file reader?
 2. Which built-in tools may run concurrently, and what single property decides it?
 3. Name the six permission modes; which one restricts the agent to read-only tools?
 4. In what order does the SDK evaluate hooks, deny rules, the permission mode, allow rules, and `canUseTool`?
 5. You set `allowed_tools=["Read"]` and `permission_mode="bypassPermissions"`. What can the agent actually do?
+
+<Fragment slot="answers">
+1. **`Read`, `Write`, `Edit`, `Grep`, `Glob`, `Bash`** — names are matched exactly, so `allowed_tools=["read"]` pre-approves *nothing* (the tool is `Read`).
+2. Read-only tools (`Read`, `Glob`, `Grep`) may run **concurrently**; the deciding property is whether a tool is **read-only or state-modifying** — `Edit`, `Write`, and `Bash` run sequentially.
+3. `default`, `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, `auto` (TypeScript-only) — **`plan` restricts the agent to read-only tools**.
+4. **Hooks → Deny rules → Permission mode → Allow rules → `canUseTool`** — deny rules and hooks sit *above* the mode, so they bind even under `bypassPermissions`.
+5. **Every tool, including `Bash`, `Write`, and `Edit`** — `allowed_tools` only pre-approves and never restricts; the allowlist is not a sandbox.
+</Fragment>
+</Diagnostic>
 
 ## The built-in tool roster
 

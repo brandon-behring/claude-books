@@ -17,6 +17,7 @@ sources:
 description: A tool's failure contract — which channel a failure travels down, what its text says, and whether the schema could have prevented it. The two regimes (Messages-API is_error vs MCP isError + JSON-RPC), why is_error turns a failure into a recoverable signal, the normative execution-vs-protocol error split, and the difference between steering a retry and preventing the error.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -40,15 +41,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D2.1 designed a tool's happy path; this chapter designs its failure path. When a call goes wrong, the architect decides three things: which channel the failure travels down, what the failure text says, and whether the schema could have prevented it at all. But "which channel" depends on **which regime** you are in — and conflating the Claude Messages API with MCP is the most common mistake here, so we separate them first._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. In the Claude Messages API, what field flags a failed tool result — and what is its exact casing?
 2. In MCP, what are the *two* error channels, and which one does a validation failure belong in?
 3. Does the Claude Messages API have a JSON-RPC `-32602` channel for a bad tool call? If not, where does a protocol-level problem surface?
 4. How many times does Claude retry a bad call, and is that a parameter you can set?
 5. Which failures does `strict: true` prevent, and which does it *not*?
+
+<Fragment slot="answers">
+1. **`is_error: true`** on the `tool_result` block — **snake_case** (`is_error`); the camelCase `isError` belongs to MCP.
+2. Execution errors ride **`isError: true` inside a successful result**; protocol errors ride a **JSON-RPC error response** (e.g. `-32602`). A validation failure belongs in the **`isError` channel** (SEP-1303), so the model can correct and retry.
+3. **No** — the Messages API has one tool-failure signal (`is_error`); a protocol-level problem surfaces as an **HTTP error (e.g. 400)**, not a JSON-RPC channel.
+4. **2–3 times with corrections** before apologizing — documented default behavior, **not a parameter** you can set; your only lever is the quality of the error content.
+5. `strict: true` prevents **schema violations** (missing parameters, type mismatches); it does *not* prevent runtime API errors, business-logic violations, or semantic constraints a JSON Schema can't express.
+</Fragment>
+</Diagnostic>
 
 ## Two regimes, two spellings
 

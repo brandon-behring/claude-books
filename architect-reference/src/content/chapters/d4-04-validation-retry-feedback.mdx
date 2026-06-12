@@ -16,6 +16,7 @@ sources:
 description: Constrained decoding eliminates schema errors, never semantic ones — valid JSON can still hold wrong data. The architect's job is the layer above the schema, discriminating the two error kinds, encoding semantic checks into the schema itself, and closing a bounded validate-feed-back-retry loop that escalates to a human on exhaustion.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -38,15 +39,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _D4.3 closed with a hard guarantee — a schema a response cannot violate — and one caveat: a refusal still gets through. This chapter is about a deeper caveat. Constrained decoding guarantees the shape, never the truth. A perfectly schema-valid record can name the wrong customer or fabricate a total. The pattern for catching that lives above the API, in your validation loop — and the loop, not its current field names, is what this chapter is about, which makes it an architectural pattern._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. A schema-valid record names the wrong customer. Which error class is this, and can the API catch it?
 2. An SDK structured-output run returns. How do you tell success from exhausted retries, and why must you check before reading the payload?
 3. To catch a `total` that doesn't match the line items, what schema-level hook makes the error mechanically checkable?
 4. Name the three layers of the validate-feed-back-retry pattern. Which layer catches a semantic error?
 5. Your retry loop keeps exhausting on long inputs that come back cut off. Why won't more retries help, and what will?
+
+<Fragment slot="answers">
+1. A **semantic error** — valid JSON, incorrect data — and the API **cannot** catch it: a schema constrains *form*, never *fact*.
+2. Branch on **`subtype`** — `success` carries the payload in `message.structured_output`, `error_max_structured_output_retries` means fall back; exhaustion is a **result, not an exception**, so unchecked code silently reads `undefined`.
+3. The **`stated_total` vs `calculated_total` pair** — the model copies the document's total and re-sums the line items, and the caller compares the two.
+4. **API constrained decoding, application-code semantic checks, and a bounded feedback loop** — the semantic error is caught by **layer 2, application-code checks**.
+5. The failure is **truncation** (`stop_reason: "max_tokens"`) — re-prompting on the same budget truncates at the same place; **raise the cap** (or shrink the schema) instead.
+</Fragment>
+</Diagnostic>
 
 ## Two kinds of error: schema and semantic
 

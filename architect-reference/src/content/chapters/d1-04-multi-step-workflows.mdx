@@ -17,6 +17,7 @@ sources:
 description: A multi-step task's control flow is enforced either in your code (programmatic) or in the model (prompt-based). When to choose each, why every step boundary is a handoff that leaks fidelity, the Writer/Reviewer pattern as the handoff that works, how a written artifact makes a handoff survivable, and how a programmatic validation gate rejects-and-retries a bad step before it propagates.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -40,15 +41,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Most real agent work is several steps, not one. The question this chapter answers is not *what* the steps are but *who enforces the order* — your application code, or the model itself — and how you keep a bad step from poisoning the next one. That choice is an **Evaluate**-level judgment: the exam gives you a workflow and asks where the control flow belongs, how the handoff is specified, and where the gate goes._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Name the two places a multi-step workflow's control flow can live, and one property each buys.
 2. Why is every step boundary a place fidelity can leak?
 3. In the Writer/Reviewer pattern, why must the reviewer *not* inherit the writer's context?
 4. What three things does a handoff contract specify, and what *file* can carry it across a boundary?
 5. A programmatic pipeline produces a malformed step-2 output. What does a validation gate do, and what are its two kinds of check?
+
+<Fragment slot="answers">
+1. In **your code (programmatic)** — which buys determinism and auditability — or in **the model (prompt-based)** — which buys flexibility and adaptivity.
+2. Each boundary is a **handoff** — step *N*'s output becomes step *N+1*'s input — and a re-narrated handoff erodes detail at every retelling: the **telephone game**.
+3. Because the *absence* of inheritance is the feature — a **fresh context** isn't biased toward code it just wrote and cannot rationalize choices it never made.
+4. **An objective, an output format, and clear task boundaries** — carried across the boundary as a **written artifact** the next step reads, such as a spec file or a test file.
+5. It **rejects and retries** — re-prompting the failing step with the specific errors instead of passing the bad output downstream — using a **schema/structural** check (right shape) and a **semantic** check (content actually right).
+</Fragment>
+</Diagnostic>
 
 ## Two places to enforce a workflow
 

@@ -14,6 +14,7 @@ sources:
 description: The .claude/rules/ system — a modular, eager-loaded instruction layer parallel to CLAUDE.md, with optional glob path-scoping so a rule loads only when Claude reads matching files. Covers unconditional vs path-scoped rules, user-level vs project rules and their load order, the glob format, and the directory and symlink mechanics.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -40,15 +41,21 @@ _D3.1 covered the always-on CLAUDE.md; D3.2 covered the lazy, invocable skill. R
 This is a **feature-surface** chapter: the `.claude/rules/` path, the `paths` frontmatter field, and the glob syntax are concrete surfaces that move between releases. Treat them as a current snapshot and re-verify before relying on them.
 </MarginNote>
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Is `.claude/rules/` a subsystem of CLAUDE.md, or a parallel one? At what priority do un-scoped rules load?
 2. When does a `paths`-scoped rule actually enter context?
 3. Where do *user-level* rules live, and do they win over project rules or lose to them?
 4. Write a `paths` glob for every `.ts` and `.tsx` file in the repo.
 5. When should a standing instruction be a `paths`-scoped rule rather than a line in CLAUDE.md?
+
+<Fragment slot="answers">
+1. A **parallel system, not a subsystem** — rules without `paths` load at launch at the **same priority as `.claude/CLAUDE.md`**.
+2. When Claude **reads a file matching the glob** — not at launch, and not on every tool use.
+3. In **`~/.claude/rules/`**, applying to every project; they load **before** project rules, so **project rules win** (read last, higher priority).
+4. **`**/*.{ts,tsx}`** — `**` matches any directory depth, and brace expansion covers both extensions in one pattern.
+5. When the guidance is **real but only relevant to part of the tree** — path-scoping keeps file-specific instructions out of context on unrelated work.
+</Fragment>
+</Diagnostic>
 
 ## A system parallel to CLAUDE.md
 

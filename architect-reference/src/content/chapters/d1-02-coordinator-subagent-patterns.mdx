@@ -16,6 +16,7 @@ sources:
 description: The coordinator–subagent (orchestrator-worker) pattern — a lead agent that decomposes a task and spawns isolated-context subagents. Teaches why a second agent ever helps, when the pattern earns its 3–10x token cost, the full single-vs-multi trade-off (including reliability and maintainability), why decomposition must split by context and not by role, and the one variant that works across domains.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -39,15 +40,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Once the agent loop of D1.1 can run tools, the next architectural question is whether to run **more than one agent**. This chapter develops the canonical multi-agent shape — a coordinator that spawns isolated subagents — and, just as importantly, the discipline of **not** reaching for it. The exam tests judgment here: when the pattern wins, what it costs on every axis, how to cut the work, and which single variant is reliable._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. What single property *defines* a subagent and separates it from a plain tool call?
 2. Name the three conditions under which coordinator–subagent earns its token cost.
 3. Roughly what token multiplier does multi-agent cost versus a single agent, and does it buy speed or thoroughness?
 4. Besides cost, name two axes on which a multi-agent system is *worse* than a single agent.
 5. A teammate proposes splitting a task into planner → implementer → tester → reviewer. What is the name of this anti-pattern and the metaphor for its failure?
+
+<Fragment slot="answers">
+1. **Isolated context** — a subagent runs in its **own context window and does not see the parent's state**, where a tool call returns directly into the calling agent's context.
+2. **Context protection** (large, mostly-irrelevant intermediate data stays out of the main window), **parallelization** (genuinely independent paths), and **specialization** (tool-set overload, conflicting personas, or deep domain expertise).
+3. **3–10× more tokens** than a single agent — and it buys **thoroughness, not speed** (coordination often makes wall-clock slower).
+4. Any two of: **latency** (often slower despite parallelism), **reliability** (multiple failure points), **maintainability** (multiple prompt sets to keep in sync), **context coherence** (fragmented at handoffs).
+5. **Role-based (problem-centric) decomposition** — its failure metaphor is **"the telephone game"**: context loss at every handoff.
+</Fragment>
+</Diagnostic>
 
 ## Why run more than one agent
 

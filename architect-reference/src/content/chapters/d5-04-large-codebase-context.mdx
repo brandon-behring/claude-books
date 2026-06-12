@@ -16,6 +16,7 @@ sources:
 description: A large codebase has more relevant files than any window holds, and reading them all is the trap, not the solution. The three levers that extend the horizon are compaction, scratchpads that externalize state to disk, and subagent delegation that pays exploration cost in a separate context.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -39,15 +40,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _A large codebase has more relevant code than any context window can hold, so the question is never "how do I fit it all in" but "how do I keep the right slice in and the rest out." This chapter is the exam-angle inventory of the levers; the design book owns the at-scale mechanics. It is an architectural pattern — the levers are stable, the commands and hooks that drive them are the surface._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. Why is "read every possibly-relevant file into the main session" a failure mode rather than caution?
 2. Name the three knobs that customize or trigger compaction, and which one steers *what content* survives.
 3. `/compact` and `/clear` both free context — what is the difference, and when do you reach for each?
 4. A subagent explores twenty files; what does the main agent receive back, and where was the context cost paid?
 5. You wrote a `PLAN.md` scratchpad, then ran `/compact`, then later `/clear`. Is the plan still available? Why?
+
+<Fragment slot="answers">
+1. Because context is cumulative and finite, reading everything "to be safe" **fills the window with material that crowds out the work and degrades attention** — the goal is to load the task's *slice*, not the codebase.
+2. A CLAUDE.md "Summary instructions" section, the `PreCompact` hook, and manual `/compact` — the **CLAUDE.md "Summary instructions" section** steers what content survives the summary.
+3. `/compact` condenses the conversation in place so you *continue* the same task; `/clear` starts a fresh conversation to *switch* to an unrelated one — the decision rule is **continuity** (the previous session stays available via `/resume`).
+4. The main agent receives **only a summary** — the three-line answer, not the twenty files — because the exploration cost was paid in the subagent's separate context window and discarded with it.
+5. Yes — a **scratchpad on disk survives both**: compaction only summarizes the window and `/clear` only wipes the window, so the agent re-reads `PLAN.md` exactly as it left it.
+</Fragment>
+</Diagnostic>
 
 ## The codebase does not fit, and reading it all is the trap
 

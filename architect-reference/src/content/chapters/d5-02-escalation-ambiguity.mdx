@@ -15,6 +15,7 @@ sources:
 description: When an agent is uncertain or blocked, the reliable architecture makes it surface the decision rather than guess at intent. AskUserQuestion is the structured mechanism, the interview pattern is its proactive form, and the check-in is a control point where a human resolves what the model cannot.
 ---
 
+import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
@@ -38,15 +39,21 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 
 _Reliability is not only about catching errors after the fact; it is about not committing to a wrong interpretation in the first place. When intent is ambiguous, a well-built agent asks rather than assumes. This chapter is the exam angle on that discipline — the mechanism and its limits — and points to the handbook for the hands-on use-side workflow. The principle is durable; the tool that carries it is the illustration, so this is an architectural pattern._
 
-## Do I know this already?
-
-Answer all five confidently and you can skim to **Exam essentials**; otherwise read closely.
-
+<Diagnostic>
 1. When a task is genuinely ambiguous, what is the reliable move — and what is the cost of guessing instead?
 2. What are the structural limits of one `AskUserQuestion` call (questions per call, options per question, `header`)?
 3. `AskUserQuestion` is the tool Claude calls; what is `canUseTool`, and which two triggers fire it?
 4. Beyond a plain approve/deny, name two of `canUseTool`'s richer response patterns.
 5. Why can a subagent not escalate with `AskUserQuestion`, and how do you design the work around that?
+
+<Fragment slot="answers">
+1. **Escalate — surface the decision** rather than silently pick an interpretation; asking costs one round trip, guessing wrong costs the whole task built on the wrong branch.
+2. One call carries **1–4 questions**, each with **2–4 `options`** (`label` + `description`) and a **`header` of ≤12 characters**.
+3. `canUseTool` is the **callback your application implements**; it fires when Claude wants to use a tool (a permission check) and when Claude calls `AskUserQuestion` (a clarification).
+4. Any two of: **approve-with-changes** (`updatedInput`), **approve-and-remember** (`PermissionUpdate`), **suggest-alternative** (deny with guidance), or **redirect-entirely** (inject a new instruction via streaming input).
+5. **Subagents cannot call `AskUserQuestion`**, so they must guess or fail; have the coordinator resolve the open questions first, then hand the subagent a fully-specified task.
+</Fragment>
+</Diagnostic>
 
 ## Escalate, don't guess
 
