@@ -15,6 +15,6 @@ import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationa
 
 In a CI pipeline you need Claude Code to run a single prompt non-interactively, print the result to stdout, and exit. Which invocation does this?
 
-<Rationale>
+<Rationale appendix for="d3-06-headless-flag">
 `claude -p "<prompt>"` (alias `--print`) is **headless / print mode**: it runs the prompt, writes the final result to stdout, and exits without opening the interactive REPL — the basis for CI/CD use. Pair it with `--output-format json` (or `stream-json`) for machine-parseable output. The other three flags are not real Claude Code modes.
 </Rationale>

@@ -28,6 +28,8 @@ const byPart = (p) =>
 
     <p>This volume maps 1:1 to Anthropic's <strong>Claude Certified Architect — Foundations</strong> five-domain taxonomy. It is exam-prep altitude: authoritative reference prose wrapped in light exam apparatus (objectives, watch-outs, self-checks), pointing outward to the <strong>Agentic Systems Design</strong> book where a domain needs design depth.</p>
 
+    <p><strong>Start with the <a href="/assessment/">assessment test</a></strong> — a scored, cross-domain diagnostic that tells you which Parts to read closely and which to skim.</p>
+
     <h2>Domains</h2>
     {PARTS.map((p) => {
       const chs = byPart(p.part);
@@ -52,6 +54,6 @@ const byPart = (p) =>
     <ObjectiveMap />
 
     <h2>Status</h2>
-    <p>Round 1 — structure + the first exemplar chapter (<strong>D1.1</strong>) are in place; the remaining ~29 chapters replicate that template. The full D1–D5 plan is in <code>OUTLINE.md</code>; see <code>docs/BOOK-MAP.md</code> for how this book relates to the others.</p>
+    <p>All 30 chapters (D1.1–D5.6) are authored as self-contained study-guide chapters — each opens with a "Do I know this already?" diagnostic and closes with exam essentials. The question bank is seeded (2 per domain) and growing toward per-chapter coverage. See <code>OUTLINE.md</code> for the chapter plan and <code>docs/BOOK-MAP.md</code> for how this book relates to the others.</p>
   </article>
 </Base>

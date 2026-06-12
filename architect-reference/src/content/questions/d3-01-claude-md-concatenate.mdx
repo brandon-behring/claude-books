@@ -20,6 +20,6 @@ import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationa
 
 Two CLAUDE.md files in the load chain give contradictory instructions. Which one takes precedence?
 
-<Rationale>
+<Rationale appendix for="d3-01-claude-md-concatenate">
 Unlike the five-level *settings* precedence (where the highest scope wins), discovered CLAUDE.md files **concatenate** root-down without overriding — both contradictory lines load into context at once (a smell to fix at the source, not something proximity resolves). The rule of thumb: *settings override; instructions accumulate.* Reasoning about CLAUDE.md the way you reason about `settings.json` predicts the wrong behavior every time.
 </Rationale>

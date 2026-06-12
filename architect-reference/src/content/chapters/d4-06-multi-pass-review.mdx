@@ -28,6 +28,7 @@ import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise
 import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
 import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import PartReview from '@brandon_m_behring/book-scaffold-astro/components/PartReview.astro';
 
 <YouWillLearn prerequisites="Chapter D1.2 (coordinator-subagent patterns, isolated context) and D4.4 (verification as the catch above the schema).">
 - **Analyze** why a fresh-context reviewer outperforms a model reviewing its own work
@@ -156,3 +157,5 @@ The failure mode is **false-positive amplification**: parallel reviewers each in
 - **Fleet + verification pass** — parallel specialists each own one issue class (the answer to attention dilution); a verification step filters false positives, then dedupe + severity ranking. A fleet without verification amplifies false positives.
 - **Convergence rules** — keep the broadcast instruction block short ("a long REVIEW.md dilutes the rules that matter most") and damp re-review ("suppress new nits, post Important findings only") so trivial diffs don't draw endless passes; this is also cost control.
 - **Code Review surfaces** — research preview, **Team & Enterprise only**, not under Zero Data Retention; three trigger modes (once after PR creation / after every push / manual via `@claude review` or one-off `@claude review once`); severity taxonomy **🔴 Important / 🟡 Nit / 🟣 Pre-existing**; the check run is **neutral and never blocks a merge** — gate by reading the severity breakdown in your own CI.
+
+<PartReview part={4} title="Part 4 · D4 Review" />

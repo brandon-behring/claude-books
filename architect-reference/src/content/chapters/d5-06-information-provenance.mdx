@@ -27,6 +27,7 @@ import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise
 import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
 import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import PartReview from '@brandon_m_behring/book-scaffold-astro/components/PartReview.astro';
 
 <YouWillLearn prerequisites="Chapter D4.4 (the provenance schema hook) and D5.5 (failed provenance as a human-review signal). Closes Part V and the book.">
 - **Apply** the Citations API to map each claim to a verifiable source span
@@ -140,3 +141,5 @@ A question about an event after the model's **reliable knowledge cutoff** should
 - **Three location modes** — plain text → `char_location`, PDF → `page_location`, custom content → `content_block_location`; image citations are not yet supported.
 - **Mutual exclusion** — Citations + Structured Outputs return 400; when you need both a schema and provenance, use the provenance triple (`document_id` + `span_quote` + `confidence`) and verify the span caller-side.
 - **Temporal provenance** — each model has a reliable knowledge cutoff (Opus 4.8 Jan 2026, Sonnet 4.6 Aug 2025, Haiku 4.5 Feb 2025), which is **earlier than (or equal to) the training-data cutoff** — the model trains on later data but is only *reliable* to the earlier date (Sonnet 4.6 trained to Jan 2026, reliable to Aug 2025). Past the reliable cutoff, answer time-sensitive questions from a dated source, not the model's memory.
+
+<PartReview part={5} title="Part 5 · D5 Review" />

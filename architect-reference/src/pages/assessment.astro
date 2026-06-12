@@ -1,0 +1,30 @@
+---
+/**
+ * /assessment — whole-book front-matter assessment test (Sybex "where do I
+ * stand?" convention: a stand-alone page before chapter 1, linked from the
+ * landing). <AssessmentTest> samples a cross-domain form from the question
+ * bank, scores it client-side, and routes weak domains to their chapters.
+ */
+import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
+import AssessmentTest from '@brandon_m_behring/book-scaffold-astro/components/AssessmentTest.astro';
+---
+<Base
+  title="Assessment test — The Claude Architect's Reference"
+  description="Cross-domain assessment test for the Claude Certified Architect — Foundations (CCA-F) domains D1–D5: find your weak domains before you start reading."
+>
+  <article class="prose">
+    <h1>Assessment test</h1>
+    <p>
+      Before you read anything, find out where you stand. This test samples questions across all
+      five CCA-F domains and scores them in your browser; the readout points you at the domains —
+      and the chapters — where your answers were shaky. Strong domains you can skim on a first
+      pass; weak ones deserve a close read.
+    </p>
+    <p>
+      Without JavaScript the questions still render below as a manual self-check, with each answer
+      behind a reveal. For the complete bank grouped by domain, see the
+      <a href="/practice-exam/">practice question bank</a>.
+    </p>
+    <AssessmentTest />
+  </article>
+</Base>

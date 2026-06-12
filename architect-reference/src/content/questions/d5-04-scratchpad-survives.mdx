@@ -20,6 +20,6 @@ import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationa
 
 You write a `PLAN.md` scratchpad, then run `/compact`, then later `/clear`. Is the plan still available to the agent?
 
-<Rationale>
+<Rationale appendix for="d5-04-scratchpad-survives">
 Compaction summarizes the *window* and `/clear` wipes the *window* — neither touches the filesystem. State written to a file lives on disk, so the agent re-reads `PLAN.md` after a compaction, or in a freshly-cleared session, exactly as it left it. The durable layer of a long task doesn't live in the conversation at all; `/clear` does not delete files.
 </Rationale>

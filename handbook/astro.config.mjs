@@ -8,6 +8,13 @@ import { defineBookConfig, toolsStyle } from '@brandon_m_behring/book-scaffold-a
 export default await defineBookConfig({
   styles: [toolsStyle],
   site: 'https://example.invalid',
+  // Sidebar brand (scaffold v4.23, #135) — mirrors the landing page's h1; the
+  // subtitle is BOOK-MAP.md's one-line lens for the Use book.
+  title: 'Best Practices for Using Claude',
+  subtitle: 'Claude Code in daily practice',
+  // landing: false (v4.20, #129): we own src/pages/index.astro; silences the
+  // shadow warning before Astro makes the collision a hard error.
+  routes: { landing: false },
   // routes: { tips: true } — DEFERRED to the deploy phase. The package's
   // pages/tips.astro hardcodes `../../../src/data/tips.json`, which mis-resolves
   // under npm-workspace hoisting (reaches repo-root src/, not handbook/src/) and

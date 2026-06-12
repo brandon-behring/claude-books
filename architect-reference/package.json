@@ -1,26 +1,27 @@
 {
   "name": "architect-reference",
-  "description": "The Claude Architect's Reference — cert-aligned to Claude Certified Architect — Foundations (domains D1–D5), backed by docs/research-program/. References the Agentic Systems Design book for design depth.",
+  "description": "The Claude Architect's Reference \u2014 cert-aligned to Claude Certified Architect \u2014 Foundations (domains D1\u2013D5), backed by docs/research-program/. References the Agentic Systems Design book for design depth.",
   "version": "0.1.0",
   "type": "module",
   "private": true,
   "scripts": {
-    "predev": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present",
-    "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run validate --if-present",
+    "predev": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run build:exercises --if-present",
+    "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run build:exercises --if-present && npm run validate --if-present",
     "build:bib": "book-scaffold build-bib",
     "build:labels": "book-scaffold build-labels",
     "build:tips": "BOOK_CHAPTERS_DIR=src/content/chapters book-scaffold build-tips",
     "build:figures": "book-scaffold build-figures",
     "build:notebooks": "book-scaffold render-notebooks",
-    "validate": "book-scaffold validate",
-    "dev": "astro dev",
-    "build": "astro build && pagefind --site dist",
-    "preview": "astro preview"
+    "validate": "BOOK_PROFILE=tools book-scaffold validate",
+    "dev": "BOOK_PROFILE=tools astro dev",
+    "build": "BOOK_PROFILE=tools astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "build:exercises": "book-scaffold build-exercises"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.3",
     "@astrojs/preact": "^5.1.1",
-    "@brandon_m_behring/book-scaffold-astro": "^4.18.0",
+    "@brandon_m_behring/book-scaffold-astro": "^4.23.0",
     "astro": "^6.3.7",
     "preact": "^10.29.1"
   }

@@ -28,6 +28,7 @@ import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise
 import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
 import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import PartReview from '@brandon_m_behring/book-scaffold-astro/components/PartReview.astro';
 
 <YouWillLearn prerequisites="Chapter D2.3 (allowedTools distributes a tool surface; tool_choice steers selection) and Chapter D1.3 (a subagent runs its own allowedTools). No prior Agent SDK operations assumed.">
 - **Recognize** the six core built-in tools and that their names are matched exactly
@@ -160,3 +161,5 @@ The **three `Read` calls may run concurrently**; the **`Edit` must run on its ow
 - **Six permission modes** — `default`, `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, `auto` (TS). `plan` = read-only; `acceptEdits` = auto-approve edits + filesystem ops (`mkdir`/`touch`/`rm`/`rmdir`/`mv`/`cp`/`sed`) inside `cwd`/`additionalDirectories`, prompt outside.
 - **Five-step evaluation order** — Hooks → Deny rules → Permission mode → Allow rules → `canUseTool`. Deny rules and hooks fire *before* the mode, so they bind even under `bypassPermissions`; allow rules fire *after* it, so the mode can override them.
 - **The allowlist trap** — `allowed_tools` pre-approves, it does not restrict; with `bypassPermissions` it approves everything regardless. Confine with `plan` mode or a deny rule, never with the allowlist alone.
+
+<PartReview part={2} title="Part 2 · D2 Review" />

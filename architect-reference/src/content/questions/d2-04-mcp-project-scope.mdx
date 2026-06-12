@@ -15,6 +15,6 @@ import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationa
 
 You want an MCP server to be shared with everyone who checks out a repository — scoped to that project, not to your user account. Where do you declare it?
 
-<Rationale>
+<Rationale appendix for="d2-04-mcp-project-scope">
 A **project-scoped** MCP server is declared in `.mcp.json` at the repository root, which is committed to version control so every collaborator inherits it. `~/.claude.json` is **user**-global — it applies across all of your projects but is not shared through the repo. `.claude/settings.local.json` holds personal, git-ignored overrides. There is no `mcpServers` field in `package.json`.
 </Rationale>

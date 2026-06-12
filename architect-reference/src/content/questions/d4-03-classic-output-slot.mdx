@@ -20,6 +20,6 @@ import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationa
 
 In the classic structured-output pattern you force Claude to call a `print_summary` tool. Where is your extracted JSON, and what do you do with the tool's "result"?
 
-<Rationale>
+<Rationale appendix for="d4-03-classic-output-slot">
 You rent the typed tool-call slot as an output channel: the forced call's `input` object *is* your shaped JSON, and the "tool" never does anything — you discard its result. Parsing JSON out of a free-text block with a regex is the brittle approach this pattern replaces, and `output_config.format` is the *modern* grammar-constrained feature — a different generation, not the classic pattern.
 </Rationale>

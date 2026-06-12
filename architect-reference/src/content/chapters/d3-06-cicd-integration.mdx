@@ -28,6 +28,7 @@ import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise
 import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
 import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import PartReview from '@brandon_m_behring/book-scaffold-astro/components/PartReview.astro';
 
 <YouWillLearn prerequisites="Chapter D2.5 (allowed-tools and the permission modes) and D3.4 (dontAsk as the locked-down mode). No prior CI setup assumed.">
 - **Apply** the headless invocation (`-p`) and `--bare` for reproducible runs
@@ -191,3 +192,5 @@ The flag is **`--bare`**, and the cause it addresses is **non-reproducible conte
 - **Permission gates** — CI has no human to prompt, so decide the surface up front: `dontAsk` (deny anything not pre-approved) + `--allowedTools` (prefix matching, e.g. `Bash(git diff *)`); `--max-turns` / `--max-budget-usd` cap a run; `bypassPermissions` / `--dangerously-skip-permissions` skips all checks — containers only.
 - **Exit codes are the CI contract** — a step passes/fails on the run's exit status (`0` success, non-zero failure). `--max-turns` reached and over-cap stdin (10 MB) exit non-zero; `claude auth status` exits `0`/`1` as a pre-flight gate. Don't mask the status (`|| true`) — a failed run would report green.
 - **GitHub Actions** — wraps `claude -p`; v1.0 auto-detects mode (`prompt` + `claude_args`); the Anthropic API plus Bedrock + Vertex (the two cloud providers via OIDC, **no static keys**); supply credentials as secrets, never hardcoded.
+
+<PartReview part={3} title="Part 3 · D3 Review" />
