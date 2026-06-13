@@ -60,6 +60,44 @@ Which topics (and eventually which *atoms*) back which planned chapters/sections
 | Market & ecosystem | — | — | applied 🌱 landscape (low) |
 | Pedagogy & authoring | — | meta | meta |
 
+## Vol 2–3 chapter carving (2026-06-13)
+
+The topic→volume rows above refine to chapter grain here, from the rich outline in
+[`agentic-systems-design/OUTLINE.md`](../../agentic-systems-design/OUTLINE.md). Per-chapter
+atom→section detail stays in each dossier's `agent_index/`. Carving is the approved blueprint;
+numbers/titles are working drafts until authored.
+
+**Vol 2 — Tools & Orchestration** (`part: 2`, ch12–19)
+
+| Chapter | Backing dossier(s) |
+|---|---|
+| ch12 Spine — Beyond One Agent, One Tool | cross-dossier (light) |
+| ch13 Build vs Buy | `harness_buildvsbuy` |
+| ch14 Tool Minimization | `tool_minimization` *(the one convergence chapter)* |
+| ch15 MCP: Designing External Capability | `mcp_design` |
+| ch16 Shaping I/O: Prompting & Structured Output | `prompt_engineering` + `structured_output` |
+| ch17 Sub-Agents | `sub_agents` |
+| ch18 Multi-Agent | `multi_agent` |
+| ch19 *(optional)* Composing Tools & Orchestration | authored synthesis |
+
+**Vol 3 — Evaluation & Operations** (`part: 3`, ch20–27)
+
+| Chapter | Backing dossier(s) |
+|---|---|
+| ch20 Spine — Measuring & Operating Agents | cross-dossier (light) |
+| ch21 Evaluating a Prompt | `prompt_evaluation` |
+| ch22 Evaluating an Agent | `eval_harnesses` |
+| ch23 Observability | `ops_observability` |
+| ch24 Cost | `ops_cost` |
+| ch25 Human-in-the-Loop | `ops_hitl` |
+| ch26 Security | `ops_security` *(the one genuine convergence)* |
+| ch27 *(optional)* Operating the Whole | authored synthesis |
+
+**Cross-book note:** `prompt_engineering` / `structured_output` / `prompt_evaluation` (Positioned
+table, marked cert-owned) now **also** back Design — ch16 (merged) + ch21. The same dossiers feed
+the cert book's D4 chapters and Design's chapters; each book authors its own treatment
+independently (standalone rule, no shared build dependency).
+
 ## Notes
 
 - **Re-architecture note (2026-06-08):** the tables above are re-centered on the **Agentic Systems Design** volumes (V1 Environment & Context · V2 Tools & Orchestration · V3 Evaluation & Operations · applied volume), and the standalone cert column was dropped (the authored cert book's map is [`cert-coverage.md`](../cert-coverage.md)). The **notes and dated Wave-log below are preserved as history** — read their references to "Architect's-Reference" environment / context / MCP / orchestration / eval / ops chapters (and to `architect-reference/OUTLINE.md`) as **Agentic Systems Design**: those chapters split out of the cert book on 2026-06-01, and the E1–E5 / C1–C3 Environment & Context rows now live in `agentic-systems-design/`.
