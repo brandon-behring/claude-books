@@ -1,7 +1,9 @@
 # Sprint 2 — Cert question-bank expansion (per-chapter coverage)
 
-> **Status: IN PROGRESS 2026-06-12** (planned + approved same session as Sprint 1, executed on
-> Opus 4.8 max-effort). Issue [#13](https://github.com/brandon-behring/claude-books/issues/13).
+> **Status: COMPLETE 2026-06-12** (planned + approved, then executed same session on Opus 4.8
+> max-effort). All "Done =" criteria met; bank = **75 questions**, cert-audit **14/14**, commits
+> `a53cdf1` → `4e5a857`. See the post-hoc log at the end for what changed during execution.
+> Issue [#13](https://github.com/brandon-behring/claude-books/issues/13).
 > Sequenced *after* Sprint 1 (apparatus adoption) so every authored question lands directly in the
 > final rendering pipeline — scored ExamRunner on `/practice-exam`, `<AssessmentTest>` on
 > `/assessment`, the `/answers` appendix, and `<ObjectiveMap>`'s domain→chapter matrix.
@@ -104,5 +106,25 @@ full bank; #13 closed; records reconciled.
 
 ## Decisions made (post-hoc log)
 
-_(Filled during execution: struck items + why, any quota refills, escalations, distribution actually
-achieved.)_
+- **Author model: Opus, not Fable (forced).** Fable 5 was unavailable at run time (28 author agents
+  returned "Claude Fable 5 is currently unavailable" — an access gate, not a transient outage).
+  Surfaced to the user; the user chose **Opus authors AND reviews** over waiting or a Sonnet
+  substitute. This collapses decision #3's cross-model decorrelation to same-model — the review pass
+  is a fresh fault-finding lens, not an independent-model check. Recorded as the one real deviation.
+- **Review pass caught a real keying bug.** `d4-05-streaming-dashboard` had `correct: true` on a
+  distractor that contradicted both the chapter and its own rationale; the reviewer moved the flag to
+  the right option. (This is the single substantive defect the QC pass found — the rest were pass.)
+- **Two seeds struck → restored as anchors + replacements kept as bonus.** The d2-04 and d3-06
+  reviewers judged the seed items (`mcp-project-scope` → `.mcp.json`; `headless-flag` → `claude -p`)
+  "recall-level" and struck+replaced them. But those are the central recall anchors of their
+  chapters, and the author agents were told to *avoid* those angles — so striking them would have
+  erased the facts from the bank. Decision: **restore both seeds from git AND keep the reviewers'
+  application-level replacements** (`d2-04-scope-precedence-wins`, `d3-06-exit-code-masked`). Net:
+  d2-04 → 4 items, d3-06 → 3 items.
+- **Final distribution: 75 questions, not the planned 73.** The two restored-seed bonuses account for
+  the +2. Per domain: D1=21, D2=13, D3=15, D4=14, D5=12 → ~28/17/20/19/16 vs blueprint 27/18/20/20/15
+  (floor-2 satisfied everywhere; weighting still approximate-by-design).
+- **No quota refills or panel escalations were needed** — only the one keying fix and the two
+  seed restorations.
+- **cert-audit Check 14** added and proven biting (hiding one question → exit 1 with the expected
+  FAIL; restore → 14/14). It is now the permanent ≥2/chapter regression gate.

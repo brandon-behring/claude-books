@@ -53,7 +53,7 @@ banner + `noindex` come *off* at v1.0).
 | Book | v1.0 = | Gated on |
 |---|---|---|
 | Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve; published | authoring time; **step 0 = clone `brandon-behring/claude-best-practices`** (sources not local) |
-| Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus; published | spine **WIRED 2026-06-09**; **upstream epic #122 COMPLETE 2026-06-10** (every heavier component shipped, v4.19–v4.22) — remaining is *in-repo*: **Sprint 1 apparatus adoption** + **Sprint 2 bank expansion** (see Next) |
+| Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus; published | spine **WIRED 2026-06-09**; **upstream epic #122 COMPLETE 2026-06-10** (v4.19–v4.22); **Sprint 1 apparatus adoption DONE 2026-06-12** + **Sprint 2 bank expansion DONE 2026-06-12 (75-q bank, ≥2/ch, cert-audit 14/14)** — cert track in-repo work complete; next is deployment (#14) |
 | Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); published; applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
 | Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links; published | **gate LIFTED** — scaffold #115 `<Glossary>` shipped (v4.19/v4.22); remaining = authoring |
 
@@ -72,10 +72,13 @@ banner + `noindex` come *off* at v1.0).
   prefixes). **Scope note:** `<Glossary>` + flashcards deferred to item 3 — the flashcards deck
   derives from the `glossary` collection, which is exactly that item's deliverable. Plan + recon
   record: [`plans/done/2026-06-12_cert-apparatus-adoption.md`](./plans/done/2026-06-12_cert-apparatus-adoption.md).
-- **Sprint 2 — question-bank expansion** *(M, ~2–3 sessions)*. Grow the 10-q seed toward per-chapter
-  coverage (a `/loop` over chapters fits; item-writing rules locked in
-  `architect-reference/OUTLINE.md`). Sequenced *after* Sprint 1 so every question lands in the final
-  rendering pipeline.
+- **Sprint 2 — question-bank expansion** — ✅ **DONE 2026-06-12** (1 session). Bank grown from the
+  10-q seed to **75 questions**, every chapter ≥2, weighted to the CCA-F blueprint
+  (D1=21/D2=13/D3=15/D4=14/D5=12). 62 new application-level MCQs authored one-agent-per-chapter
+  (grounded only in each chapter's prose), then a per-chapter adversarial reviewer pass; a new
+  **cert-audit Check 14** enforces the ≥2/chapter floor permanently. Every item lands in the scored
+  `/practice-exam`, `/assessment`, `/answers`, and the landing `<ObjectiveMap>` (verified 75/75).
+  Plan + post-hoc log: [`plans/done/2026-06-12_cert-bank-expansion.md`](./plans/done/2026-06-12_cert-bank-expansion.md).
 - **Riding along:** the cert tail — 27 advisory over-cap MarginNotes; `last_verified` cadence on the
   feature-surface chapters (Checks 12/13 are the tripwire).
 
@@ -123,12 +126,13 @@ private repo**, with **`noindex` + a visible draft banner until each book's v1.0
   deployment plan above makes it non-blocking. Watch for the fix anyway.
 
 ## Known debt (tracked, with triggers)
-- **Cert apparatus — upstream DONE, adoption remains.** The v4.17 static spine is consumed (spine
-  wired 2026-06-09: `examDomains` + `questions` collection + `/practice-exam` + `<ObjectiveMap>`,
-  10-q seed, builds green in-workspace). **Upstream epic #122 closed 2026-06-10** — #110/#111/#112-UI/
-  #113/#114/#115/#116 all shipped across v4.19–v4.22 (verified via `gh issue view` + release log,
-  2026-06-12). What remains is **in-repo adoption** (Horizon-1 Sprint 1) + **bank expansion**
-  (Sprint 2). Lockfile still pins **4.18.0** until the Sprint-1 bump.
+- **Cert apparatus — DONE end-to-end (upstream + adoption + bank).** Upstream epic #122 closed
+  2026-06-10 (#110/#111/#112-UI/#113/#114/#115/#116 across v4.19–v4.22); **Sprint 1 adoption**
+  consumed `^4.23` and wired `<Diagnostic>`/`<PartReview>`/ExamRunner/`<AssessmentTest>`/`/answers`
+  (2026-06-12); **Sprint 2** grew the bank to **75 questions** (≥2/chapter, cert-audit Check 14
+  enforces it). Remaining cert tail is advisory only (27 over-cap MarginNotes; `last_verified`
+  cadence) — see "Riding along". `<Glossary>`/`/flashcards` stay gated on the Horizon-2 glossary
+  layer (the deck derives from the `glossary` collection).
 - **`research-program/content-map.md` topic→book map predates multi-volume Design** — rows still map
   to the old book set. *Trigger:* when authoring a Design volume needs the precise atom→section map.
 
