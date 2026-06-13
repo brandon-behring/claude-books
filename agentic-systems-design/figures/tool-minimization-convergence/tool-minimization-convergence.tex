@@ -1,0 +1,48 @@
+% Convergence figure for Ch14 ("Tool Minimization: Subtract First").
+% Standalone TikZ; compiled by `book-scaffold build-figures` via pdflatex -> pdftocairo -> SVG.
+% Three independent production reports, one direction: Vercel (many -> 1), GitHub Copilot
+% (40 -> 13), Block (30+ APIs -> 3 MCP tools). Vercel/GitHub measured gains; Block = count.
+\documentclass[tikz,border=4mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\sffamily,
+  many/.style={draw=blue!70!black, fill=blue!8, rounded corners=3pt, align=center,
+    text width=2.7cm, minimum height=1.0cm, inner sep=3pt, font=\footnotesize},
+  few/.style={draw=teal!70!black, fill=teal!10, rounded corners=3pt, align=center,
+    text width=2.2cm, minimum height=1.0cm, inner sep=3pt, font=\footnotesize},
+  cut/.style={-Stealth, very thick, draw=gray!55!black},
+  team/.style={font=\sffamily\bfseries, anchor=east},
+  note/.style={font=\sffamily\footnotesize, text=gray!35!black, anchor=west}
+]
+
+% Row 1 — Vercel
+\node[team] at (-0.3,0) {Vercel};
+\node[many] (v1) at (2.4,0) {many specialized\\tools};
+\node[few]  (v2) at (6.4,0) {1 tool:\\\texttt{bash}};
+\draw[cut] (v1) -- (v2);
+\node[note] at (7.8,0) {80\% $\rightarrow$ 100\% success};
+
+% Row 2 — GitHub Copilot
+\node[team] at (-0.3,-1.8) {GitHub Copilot};
+\node[many] (g1) at (2.4,-1.8) {40 built-in tools};
+\node[few]  (g2) at (6.4,-1.8) {13 core tools};
+\draw[cut] (g1) -- (g2);
+\node[note] at (7.8,-1.8) {$+2$--$5$ pts success};
+
+% Row 3 — Block
+\node[team] at (-0.3,-3.6) {Block};
+\node[many] (b1) at (2.4,-3.6) {30+ APIs,\\200+ endpoints};
+\node[few]  (b2) at (6.4,-3.6) {3 MCP tools};
+\draw[cut] (b1) -- (b2);
+\node[note] at (7.8,-3.6) {consolidation count\\(no measured delta)};
+
+% shared label
+\draw[-Stealth, very thick, draw=orange!75!black]
+  (2.4,-4.5) -- (6.4,-4.5)
+  node[midway, below, font=\sffamily\bfseries, text=orange!55!black] {subtract-first};
+
+\end{tikzpicture}
+\end{document}

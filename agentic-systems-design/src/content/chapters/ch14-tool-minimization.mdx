@@ -1,0 +1,170 @@
+---
+title: "Tool Minimization: Subtract First"
+part: 2
+chapter: 14
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [2, 1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-13
+last_verified: 2026-06-13
+sources:
+  - anthropic-writing-tools
+  - anthropic-define-tools
+  - anthropic-tool-search
+  - vercel-removed-tools
+  - github-fewer-tools
+  - block-layered-tools
+description: The governing default of the volume's capability axis — the smallest tool set that covers the workflow beats a complete one. Why an extra tool is paid twice (definition tokens at rest, selection errors at runtime), the three independent production reports that converge on subtract-first, the two highest-leverage heuristics (consolidate, return high-signal), and the dynamic complement — load tools on demand when scale forces it.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The spine chapter's two axes (capability as context cost; coordination as isolation). Vol 1's context-as-budget and progressive-disclosure ideas help but are not required.">
+- Why **more tools is not better** — and why the cost of an extra tool is paid twice
+- The **three independent production reports** that converge on subtract-first, and exactly how far that convergence licenses you to generalize
+- The **two highest-leverage heuristics** once you have cut count: consolidate, and make each tool's *response* high-signal
+- The **dynamic complement** — when you genuinely need many tools, load them on demand instead of all at once
+</YouWillLearn>
+
+_This is the governing default of the volume's capability axis. The spine framed every tool as a context cost; this chapter turns that into a discipline. The move is **subtraction**: start from the smallest tool set that covers the workflow and justify every addition, because each tool you add is paid twice — in definition tokens at rest and in selection errors at runtime. The principle is Anthropic's; the unusually strong corroboration is three production teams who cut their tool sets and reported back._
+
+## Subtract-first: the smallest set that covers the workflow
+
+Start from the counter-intuitive claim and let it organize the rest. Anthropic's tool-design guidance states it flatly: "More tools don't always lead to better outcomes."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> The failure mode is specific — "too many tools or overlapping tools can also distract agents from pursuing efficient strategies."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> The corrective is to build a *few thoughtful* tools that cover the workflow rather than wrap every API endpoint you happen to have.<Tag kind="official" /><Citation src="anthropic-writing-tools" />
+
+The reason this is a discipline and not a preference is that an extra tool charges you twice.
+
+<KeyIdea>
+Every tool is paid twice: once in **definition tokens at rest** (its schema sits in the window on every turn, spent whether or not it is called) and once in **selection errors at runtime** (overlapping or near-duplicate tools make the model pick the wrong one or take a longer path). Adding a tool is never free; the default is the minimum set, and each addition has to earn its place.
+</KeyIdea>
+
+This is the same logic the volume's spine drew as the capability axis, now stated as an action. A "complete" tool set — one tool per endpoint, every capability the platform offers — optimizes for coverage of *possibilities*. A minimal set optimizes for coverage of the *workflow*, which is the only thing the agent actually has to do. The two come apart fast: most of a complete set's tools never fire on a given task, but every one of them is in the window distracting selection.
+
+<ConceptBox title="Subtract-first">
+The default tool-set discipline: begin with the smallest set that covers the workflow, and treat each additional tool as a cost to be justified — not a feature to be added. Its complement is *consolidation* (fold overlapping tools into fewer capable ones) and, when scale forbids subtraction, *on-demand loading*.
+</ConceptBox>
+
+## The case studies converge — and how far that licenses you
+
+Subtract-first would be a plausible-but-unproven heuristic if it rested only on the design guidance. It does not. Three first-party engineering reports from 2025, on three different production agents, independently cut their tool sets and reported the same direction.
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+**Vercel** stripped its internal text-to-SQL agent down to "a single tool: execute arbitrary bash commands" and reported a "100% success rate instead of 80%."<Tag kind="practitioner" /><Citation src="vercel-removed-tools" /> **GitHub** trimmed Copilot's default "40 built-in tools down to 13 core ones" and measured a 2–5 percentage-point success-rate gain across SWE-Lancer and SWE-bench Verified (plus a ~400 ms latency drop in A/B testing).<Tag kind="practitioner" /><Citation src="github-fewer-tools" /> **Block** consolidated "over 30+ APIs and 200+ endpoints, with only 3 MCP tools" behind a layered tool pattern in its Square MCP Server.<Tag kind="practitioner" /><Citation src="block-layered-tools" /> Three independent teams, the same finding: fewer, sharper tools made the agent better. <Tag kind="convergence" />
+</Convergence>
+
+That is genuine convergence of practice — and it is worth being precise about what kind. These are **vendor self-reports**, each team measuring its own agent on its own tasks, not independent third-party benchmarks. The figures are real (each is quoted from the primary write-up), but the convergence is in *direction*, not in a transferable effect size.
+
+<MarginNote variant="warning" label="Caveat">
+Block's "30+ APIs → 3 tools" is a **consolidation count**, not a measured quality gain — the report claims improved reliability and maintainability qualitatively, not a success-rate delta like Vercel's and GitHub's. Read it as evidence of the *consolidation* move, not of a number.
+</MarginNote>
+
+The honest reading is the strongest one here: three independent practitioners pointing the same way is better evidence than any single benchmark, *and* none of these numbers is a law you can quote for your own agent. Subtract-first is well-corroborated as a direction; the size of the win is yours to measure.
+
+<Pitfall title="Laundering an unanchored aggregate">
+There are widely-circulated aggregate figures — a "~85% token reduction," a "79.5% → 88.1%" eval jump — attached to tool-minimization advice. This book deliberately does **not** cite them: in the underlying research they were escalated to a secondary mention but never anchored to a verifiable primary. Repeating an unanchored number because it points the right way is exactly the failure subtract-first warns about applied to evidence — coverage of impressive claims over coverage of what you can stand behind. If you want such a figure, re-gather its primary; do not inherit it from a chain of citations.
+</Pitfall>
+
+## Consolidate, and make the response high-signal
+
+Once count is under control, two heuristics carry most of the remaining leverage — and both are really *the same context-management instinct* applied to tools.
+
+**Consolidate overlapping functionality** into fewer capable tools, and **namespace** them so the model can tell them apart.<Tag kind="official" /><Citation src="anthropic-define-tools" /> Two tools that do almost the same thing do not add a capability; they add a coin-flip the model has to win on every relevant turn. Folding them into one tool with a clear name removes the ambiguity at its source.
+
+**Return high-signal information, not raw dumps.** A tool's *response* is as much a context-management decision as its *existence*: returning a 5,000-token raw payload when the agent needs three fields spends the window you just saved by cutting tool count.<Tag kind="official" /><Citation src="anthropic-writing-tools" />
+
+<InsightBox title="The output is a tool-design decision too">
+It is easy to treat "fewer tools" as the whole game and then squander the win by having each surviving tool flood the context with raw output. A minimal tool set whose tools each return high-signal, scoped responses is the actual target. Subtract on both axes: how many tools, and how much each one says back.
+</InsightBox>
+
+## When you can't subtract, defer
+
+Some agents genuinely need a large capability surface — a platform with hundreds of legitimate operations. Subtract-first has a dynamic complement for exactly this case: keep the *active* set small by loading tools on demand rather than presenting all of them upfront. The Tool Search Tool does this — tools are discovered and loaded when relevant, with only the few most-used kept non-deferred in the window.<Tag kind="official" /><Citation src="anthropic-tool-search" /> A working default is to keep roughly the **3–5 most-used tools** resident and defer the rest.<Tag kind="official" /><Citation src="anthropic-tool-search" />
+
+<KeyIdea>
+Subtract-first is the **static** move (have fewer tools); on-demand loading is the **dynamic** one (have fewer tools *resident at once*). They are the same principle — keep the active context small — applied to a fixed versus a scaling capability surface. This is progressive disclosure, the mechanic Vol 1 applied to procedural knowledge, applied here to tools.
+</KeyIdea>
+
+The order matters: subtract first, *then* defer what genuinely cannot be cut. On-demand loading is not a license to keep a bloated set and hide it behind search — a hundred half-redundant tools still produce wrong-tool selection once they are loaded. Cut to the workflow, consolidate the overlaps, and only then defer the irreducible remainder.
+
+## Measure, don't guess
+
+Subtract-first becomes empirical, not aesthetic, when you close the loop: build a small agentic eval over realistic tasks, read the tool-calling metrics for redundant or never-used tools, and prune by evidence. That evaluate-then-prune loop is what turns "fewer tools" from a slogan into a measured discipline — and it belongs to the volume's evaluation material, developed in the Operations volume rather than here. This chapter establishes the *principle and its heuristics*; the measurement loop that decides *which* tools to cut is the eval discipline's job.
+
+<Figure
+  src="/figures/tool-minimization-convergence/tool-minimization-convergence.svg"
+  caption="Three independent production reports, one direction. Vercel (many tools → 1), GitHub Copilot (40 → 13), and Block (30+ APIs → 3 MCP tools) each cut their tool set; Vercel and GitHub measured success-rate gains, Block reports a consolidation count. The convergence is in direction, not in a transferable number."
+  alt="Three rows, one per team. Vercel: a cluster of many tool boxes on the left, an arrow to a single 'bash' box on the right, annotated '80% to 100% success'. GitHub Copilot: a block of 40 tools, an arrow to a block of 13, annotated '+2 to 5 points'. Block: 30-plus API boxes, an arrow to 3 MCP-tool boxes, annotated 'consolidation count, no measured delta'. A shared downward arrow labels all three 'subtract-first'."
+  width="100%"
+  id="fig-tool-minimization-convergence"
+/>
+
+<WorkedExample id="ch14-pruning-a-bloated-agent" title="Pruning a bloated integrations agent">
+
+An agent wraps a SaaS platform with 22 tools — one per API endpoint — and keeps calling `list_records` when it should call `search_records`, then truncating the result by hand. Where is the fix?
+
+Walk subtract-first:
+
+- **Count.** Most of the 22 tools never fire on the real workflow (create-ticket, update-status, search). Cut to the handful the workflow uses — that alone removes most wrong-tool surface.
+- **Overlap.** `list_records` and `search_records` overlap; the model flips between them. Consolidate into one `find_records(query)` and the coin-flip disappears.<Citation src="anthropic-define-tools" />
+- **Response.** `find_records` should return scoped fields, not the raw record dump the agent was hand-truncating.<Citation src="anthropic-writing-tools" />
+- **Only then defer.** If the platform genuinely needs all 22 for *some* workflows, keep the 3–5 most-used resident and load the rest on demand.<Citation src="anthropic-tool-search" />
+
+The wrong move is to add a 23rd tool — a "smart record fetcher" — to paper over the selection error. That is addition where subtraction is the fix.
+
+</WorkedExample>
+
+## Patterns
+
+**Subtract to the workflow.** *Sketch:* start from the smallest tool set that covers the actual workflow, justify every addition. *When to use:* always — it is the default.<Citation src="anthropic-writing-tools" /> *Mechanics:* list the workflow's real operations; expose those, not every endpoint. *Remember:* a tool is paid twice — definition tokens at rest, selection errors at runtime.
+
+**Consolidate overlaps.** *Sketch:* fold near-duplicate tools into one capable, namespaced tool. *When to use:* whenever two tools could plausibly answer the same call.<Citation src="anthropic-define-tools" /> *Mechanics:* merge `list_*`/`search_*`-style pairs; give the survivor a clear name. *Remember:* overlap is a runtime coin-flip, not an added capability.
+
+**High-signal responses.** *Sketch:* return scoped, relevant fields — not raw dumps. *When to use:* any tool whose natural output is large.<Citation src="anthropic-writing-tools" /> *Mechanics:* project to the fields the agent needs; paginate or summarize the rest. *Remember:* the response is a context-management decision as much as the tool's existence.
+
+**Defer the irreducible remainder.** *Sketch:* when many tools are genuinely required, load on demand and keep ~3–5 resident. *When to use:* large, legitimate capability surfaces you cannot cut.<Citation src="anthropic-tool-search" /> *Mechanics:* Tool Search Tool; mark the most-used non-deferred. *Remember:* defer *after* subtracting — search does not fix a bloated set, it only hides it.
+
+## Quick reference
+
+- **Default:** the smallest tool set that covers the workflow beats a "complete" one.<Citation src="anthropic-writing-tools" />
+- **Why:** every tool is paid twice — definition tokens at rest + selection errors at runtime.
+- **Evidence:** Vercel (→1 tool, 80→100%), GitHub Copilot (40→13, +2–5 pts), Block (30+ APIs → 3 tools, consolidation count) — three independent vendor self-reports converging on subtract-first; direction, not a transferable number.
+- **Heuristics:** consolidate overlapping tools (+ namespace); return high-signal responses, not raw dumps.
+- **Scale escape hatch:** load tools on demand (keep ~3–5 resident) — but only *after* subtracting.
+- **Honesty:** unanchored aggregate token/eval figures are deliberately omitted; measure your own win.
+
+## Practice
+
+<Exercise id="ch14-ex-1">
+An extra tool is "paid twice." Name the two costs, and say which one is incurred even on turns where the tool is never called. Why does that make a *complete* tool set strictly worse than a *minimal* one for a fixed workflow?
+</Exercise>
+
+<Practice id="ch14-pr-1" difficulty="3">
+The three case studies all point to subtract-first, yet the chapter insists you cannot quote their numbers as a law for your own agent. Write two or three sentences that state, honestly, what the convergence *does* license you to conclude and what it does *not* — the distinction between convergence-of-direction and a transferable effect size. The point is to practice the evidence discipline the chapter models, not just its tooling advice.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch14-ex-1">
+The two costs are **definition tokens at rest** (the tool's schema occupies the context window on every turn, spent regardless of use) and **selection errors at runtime** (overlapping or near-duplicate tools raise the chance the model picks the wrong one or takes a longer path). The first cost — definition tokens — is incurred even on turns where the tool is never called, because the schema is in the window either way. For a fixed workflow, a complete set therefore pays for capabilities the workflow never exercises while also enlarging the selection surface, so it is strictly worse than a minimal set that covers the same workflow: more cost, more error opportunity, no added coverage of what the agent must actually do.
+</Solution>
+
+<Solution for="ch14-pr-1">
+The convergence licenses a **directional** conclusion: three independent teams, on three different production agents, each cut their tool set and reported the same outcome — fewer, sharper tools made the agent better (or, for Block, materially simpler to maintain). That is stronger evidence for the *direction* of subtract-first than any single benchmark, precisely because the reports are independent. It does **not** license quoting "80→100%" or "+2–5 points" as an effect size you will see: each is a vendor self-report on its own agent and tasks, Block's is a consolidation count with no measured quality delta, and none is an independent benchmark. The honest stance is "subtract-first is well-corroborated as a direction; the size of the win on *my* agent is something I have to measure" — which is exactly why the evaluate-then-prune loop exists.
+</Solution>
+
+</ExerciseSolutions>

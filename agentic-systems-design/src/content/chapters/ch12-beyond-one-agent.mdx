@@ -1,0 +1,153 @@
+---
+title: "Beyond One Agent, One Tool"
+part: 2
+chapter: 12
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-13
+last_verified: 2026-06-13
+sources:
+  - building-effective-agents
+  - anthropic-writing-tools
+  - building-agents-with-the-sdk
+  - effective-context-engineering
+description: The spine of the Tools & Orchestration volume. Two axes organize everything that follows — capability is a context cost (so the default is to subtract), and coordination is a context-isolation move (so a new unit is a fresh window, not an added skill). The chapter sets the volume's altitude and maps its chapters onto those two axes.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="Vol 1's frame — Agent = Model + Harness, and context as a finite budget. No tool or orchestration specifics assumed; this chapter sets them up.">
+- The **two axes** this volume is organized around — capability as a context cost, and coordination as a context-isolation move
+- Why both axes reduce to **one currency** — the context window — so both have the same default: add only when it earns its place
+- The difference between a **primitive** (one isolated unit) and a **topology** (how many units coordinate)
+- The **map of the volume**, and which chapters sit on which axis
+</YouWillLearn>
+
+_Vol 1 engineered the two layers around the model — the environment an agent acts in and the context it reasons over. This volume takes the harness's remaining moves: the **tools** an agent reaches for, and the **orchestration** of more than one agent. Both look like ways to add power. The thesis of this chapter is that both are better understood as ways to **spend context** — and that seeing them in that single currency gives both the same governing default._
+
+## From one agent to a system of capability and coordination
+
+Vol 1 left two of the harness's components deliberately unbuilt: the tool interface, and sub-agent orchestration. They are this volume's subject. An agent, in the working definition the series uses, is a system where models "dynamically direct their own processes and tool usage"<Tag kind="official" /><Citation src="building-effective-agents" /> — so the moment you move past a single bare model, you are making two kinds of decision: **what capability to expose** (which tools, which protocol, which prompts), and **how to coordinate** when one agent is not enough.
+
+It is tempting to treat both as additive — more tools, more agents, more power. The rest of this chapter argues the opposite framing, because the additive view is exactly what produces bloated, slow, hard-to-debug systems. Both decisions spend the same scarce resource.
+
+<KeyIdea>
+Tools and orchestration are not two separate topics — they are the two axes of one design space, and the axis they share is the **context window**. Capability spends context directly; coordination spends it by multiplying windows. The volume is organized so that every chapter is a move on one of these two axes.
+</KeyIdea>
+
+## The first axis: capability is a context cost
+
+The first axis is *what capability to expose*. The naive view treats a capability as free until used. It is not. Context is "a critical but finite resource for AI agents"<Tag kind="official" /><Citation src="effective-context-engineering" /> — a budget — and every tool you expose draws on it whether or not it fires, because its definition sits in the window and its presence enlarges the model's selection problem.
+
+This is why the governing default on the capability axis is **subtraction**: "More tools don't always lead to better outcomes."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> The same instinct governs the build-vs-buy decision (start direct on the API; add abstraction only when it earns its keep, since "many patterns can be implemented in a few lines of code"<Tag kind="official" /><Citation src="building-effective-agents" />), the protocol you wire external capability through, and the way you shape the agent's text input and output.
+
+<ConceptBox title="Capability as context cost">
+Every capability you give an agent — a tool, a framework abstraction, an MCP server, a verbose system prompt — is spent in the context window before it is ever used. The design question is therefore not "what could this agent do?" but "what does this workflow need?" — and the default answer subtracts toward that minimum.
+</ConceptBox>
+
+## The second axis: coordination is a context-isolation move
+
+The second axis is *how to coordinate* once one agent is not enough. Here the key reframing is sharper still: a sub-agent does not give the model a new skill — it gives the work a **fresh, separate window**. Sub-agents "use their own isolated context windows."<Tag kind="official" /><Citation src="building-agents-with-the-sdk" /> The value is the isolation, not an added capability: a unit of work runs out of band, untouched by the main conversation's history, and returns only its relevant result.
+
+So coordination, too, is a context decision — not "add an agent to gain an ability" but "add a window to quarantine context or parallelize work." That reframing carries the whole orchestration half: you reach for another agent when there is context to isolate or independent work to fan out, and you do *not* when the coordination cost outweighs the gain.
+
+<InsightBox title="Both axes, one currency">
+Capability spends context by what sits *in* a window; coordination spends it by how many *windows* you run. Because both reduce to the same finite resource, both inherit the same default — add only when the workflow demonstrably needs it. An architect who internalizes "it's all context" stops asking "can I add this?" and starts asking "what does this cost me in the window, and is the work worth it?"
+</InsightBox>
+
+## Primitive versus topology
+
+One distinction prevents most orchestration confusion: the **primitive** is not the **topology**.
+
+- A **sub-agent** is the *primitive* — a single isolated unit: fresh context in, relevant result out.
+- A **multi-agent system** is a *topology* — how you coordinate many such units (an orchestrator delegating to workers, say).
+
+Conflating them produces both over- and under-engineering: building a multi-agent topology when one isolated sub-agent would do, or expecting a lone sub-agent to deliver what only a coordinated topology can. The orchestration half of this volume treats them as different objects — the isolation primitive first, the coordination of many second — and gates the topology on cost, because coordinating agents is not free.
+
+<MarginNote variant="note" label="Note">
+"Capability axis" and "coordination axis" are this book's organizing framing, laid over the sources' separate treatments of tools and orchestration — a lens for reading the volume, not a term the primaries use.
+</MarginNote>
+
+## The map of this volume
+
+The chapters move along the two axes — first what capability to expose, then how to coordinate.
+
+**Capability — what to expose, and how.**
+
+- **Build vs. buy** — whether to write thin on the API, configure a harness, or build one; the start-direct default.
+- **Tool minimization** — the governing subtract-first discipline for the tool set itself.
+- **MCP** — wiring external capability against a least-privilege, capability-negotiated protocol.
+- **Shaping I/O** — the prompting craft that shapes what goes in, and the levers that make machine-readable output reliable.
+
+**Coordination — how many windows, and how they cooperate.**
+
+- **Sub-agents** — the context-isolation primitive: a fresh window that inherits nothing and returns only the result.
+- **Multi-agent** — the coordination topology, and the cost gate that decides whether it is worth it.
+
+<Figure
+  src="/figures/tools-orchestration-axes/tools-orchestration-axes.svg"
+  caption="The volume's two axes. Horizontal: capability — what to expose — with subtract-first as the default direction (build-vs-buy, tool minimization, MCP, shaping I/O). Vertical: coordination — how many isolated windows — from a single agent up through the sub-agent primitive to multi-agent topologies. Both axes are measured in the same currency: context."
+  alt="Two axes crossing at an origin labeled 'one agent, minimal tools'. The horizontal axis is 'Capability — what to expose', with chapter labels build-vs-buy, tool minimization, MCP, shaping I/O, and an arrow marked 'subtract-first default'. The vertical axis is 'Coordination — how many isolated windows', rising from one agent through 'sub-agent (primitive)' to 'multi-agent (topology)'. A note at the corner reads 'both axes spend the same currency: context'."
+  width="100%"
+  id="fig-tools-orchestration-axes"
+/>
+
+<WorkedExample id="ch12-placing-a-decision" title="Placing a decision on the two axes">
+
+A team says: *"Our agent is slow and unreliable. Should we split it into a multi-agent system?"*
+
+Locate the question before answering it:
+
+- "Slow and unreliable" is often a **capability-axis** problem first — too many overlapping tools causing wrong-tool selection, or verbose tool responses flooding the window. That is subtract-first territory, and it is cheaper to fix than any topology change.
+- Only if the work genuinely *fans out* into independent sub-problems is this a **coordination-axis** question — and then the move is to isolate units (sub-agents), and a multi-agent topology only if the parallel gain clears the coordination cost.
+- Jumping straight to "multi-agent" skips the cheaper axis and adds windows (cost) to paper over a capability problem.
+
+The two axes turned a vague "make it better" into a located decision — capability first, coordination only when the work's shape demands it.
+
+</WorkedExample>
+
+<Pitfall title="Treating more as better">
+The single most common mistake this volume guards against is the additive reflex: more tools, more agents, more abstraction must mean more capable. On both axes the opposite is the default — capability is subtracted toward the workflow, and coordination is added only when there is context to isolate or work to parallelize. "Can we add this?" is the wrong question; "what does it cost in the window, and is it worth it?" is the right one.
+</Pitfall>
+
+## Quick reference
+
+- **Two axes, one currency:** capability (what's *in* a window) and coordination (how many windows) both spend context.<Citation src="effective-context-engineering" />
+- **Capability default — subtract:** expose what the workflow needs, not what the platform offers.<Citation src="anthropic-writing-tools" />
+- **Coordination default — isolate, don't add skill:** a sub-agent is a fresh window, valuable for isolation, not capability.<Citation src="building-agents-with-the-sdk" />
+- **Primitive ≠ topology:** the sub-agent is the unit; the multi-agent system is how units coordinate.
+- **The map:** capability chapters (build-vs-buy, tool minimization, MCP, shaping I/O) → coordination chapters (sub-agents, multi-agent).
+- **The reflex to unlearn:** "can I add this?" → "what does it cost in the window, and is the work worth it?"
+
+## Practice
+
+<Exercise id="ch12-ex-1">
+The chapter claims tools and orchestration "reduce to one currency." Name the currency, and explain in one sentence each how the capability axis and the coordination axis both spend it. Why does sharing a currency mean they share a default?
+</Exercise>
+
+<Practice id="ch12-pr-1" difficulty="2">
+Take an agent you run or have read about. Write down one change you might make on the **capability** axis (a tool added/removed, an abstraction adopted) and one on the **coordination** axis (splitting work across windows). For each, state what it costs in the context window and what would have to be true for it to earn that cost. The point is to feel both axes priced in the same currency before committing to either.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch12-ex-1">
+The currency is the **context window** (a finite resource). The **capability axis** spends it directly: every exposed tool, abstraction, or verbose prompt occupies the window and enlarges the model's selection problem, whether or not it is used. The **coordination axis** spends it by multiplication: each additional agent is another window to populate, run, and pay for. Because both ultimately draw on the same finite budget, they share a default — add only when the workflow demonstrably needs it (subtract on the capability axis; isolate-only-when-worth-it on the coordination axis) — rather than treating either tools or agents as free additions.
+</Solution>
+
+</ExerciseSolutions>

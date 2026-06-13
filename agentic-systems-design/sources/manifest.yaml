@@ -688,3 +688,52 @@
   captured_at: 2026-05-30T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
+
+# === Volume 2 — Tools & Orchestration ===
+
+# --- Ch14 (Tool Minimization) — from the tool_minimization strict-live dossier
+# (~/Claude/research-dossiers/research_agent_tool_minimization/bib_ledger.yml — verified 2026-05-27).
+# anthropic-writing-tools (Ch9, above) is reused for the subtract-first principle + high-signal returns.
+
+- id: anthropic-define-tools
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use
+  title: Define tools
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-tool-search
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool
+  title: Tool search tool
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: vercel-removed-tools
+  url: https://vercel.com/blog/we-removed-80-percent-of-our-agents-tools
+  title: "We removed 80% of our agent's tools"
+  author: Andrew Qu (Vercel)
+  publish_date: 2025-12-22
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: github-fewer-tools
+  url: https://github.blog/ai-and-ml/github-copilot/how-were-making-github-copilot-smarter-with-fewer-tools/
+  title: How we're making GitHub Copilot smarter with fewer tools
+  author: Anisha Agarwal and Connor Peet (GitHub)
+  publish_date: 2025-11-19
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: block-layered-tools
+  url: https://engineering.block.xyz/blog/build-mcp-tools-like-ogres-with-layers
+  title: "Build MCP Tools Like Ogres... With Layers"
+  author: Richard Moot (Block)
+  publish_date: 2025-05-09
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
