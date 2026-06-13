@@ -113,8 +113,8 @@ function checkFrontmatter(chapters) {
     if (!ch.data) { out.push(finding('FAIL', ch.name, 'no parseable frontmatter')); continue; }
     for (const key of REQUIRED_FRONTMATTER)
       if (ch.data[key] === undefined) out.push(finding('FAIL', ch.name, `missing frontmatter key: ${key}`));
-    if (Array.isArray(ch.data.sources) && ch.data.sources.length === 0)
-      out.push(finding('FAIL', ch.name, 'sources: is empty'));
+    if (ch.data.sources === null || (Array.isArray(ch.data.sources) && ch.data.sources.length === 0))
+      out.push(finding('FAIL', ch.name, 'sources: is empty or null'));
     for (const key of ['last_updated', 'last_verified']) {
       const v = ch.data[key];
       if (v === undefined || v instanceof Date) continue;
@@ -204,12 +204,16 @@ function checkTagCitationPairing(chapters) {
 // ── Check 8: freshness (last_verified vs volatility budget) ───────────────────
 function checkFreshness(chapters) {
   const out = [];
-  const now = process.env.DESIGN_AUDIT_TODAY ? new Date(process.env.DESIGN_AUDIT_TODAY) : new Date();
+  // Pin both sides to UTC midnight (js-yaml parses an unquoted yyyy-mm-dd to UTC midnight;
+  // a local-time `now` would jitter ageDays by up to a day). Mirrors cert-audit.mjs.
+  const now = process.env.DESIGN_AUDIT_TODAY
+    ? new Date(`${process.env.DESIGN_AUDIT_TODAY}T00:00:00Z`)
+    : new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00Z`);
   for (const ch of chapters) {
     const v = ch.data?.last_verified;
     const budget = STALE_AFTER_DAYS[ch.data?.volatility];
     if (!v || !budget) continue;
-    const d = v instanceof Date ? v : new Date(String(v));
+    const d = v instanceof Date ? v : new Date(`${String(v)}T00:00:00Z`);
     if (Number.isNaN(d.getTime())) continue;
     const ageDays = Math.floor((now - d) / 86400000);
     if (ageDays > budget)
