@@ -1,0 +1,9 @@
+---
+term: "Subagent"
+aliases: ["sub-agent"]
+domain: "Agentic Architecture & Orchestration"
+see: [agent-loop, context-compaction]
+tags: [d1, orchestration]
+---
+
+A subagent is a nested agent invoked through the **Agent tool** (renamed from `Task` in Claude Code v2.1.63 — tool-name filters must match both names) to run a scoped piece of work in its own **fresh, isolated context window**. It does not inherit the parent's conversation or permissions; the only inbound channel is the Agent tool's **prompt string**, so everything the subagent needs must be written into that prompt. When it finishes, the parent receives the subagent's **final message** as the tool result — and may summarize it rather than carry it through verbatim. Because its exploration cost is paid in a separate window and discarded with it, delegation is a primary lever for keeping the main context scoped.

@@ -1,0 +1,9 @@
+---
+term: "Plan mode"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: []
+tags: [d3, permission-modes, workflow]
+---
+
+Plan mode restricts Claude to **read-only research and a written proposal**: it reads files and runs shell commands to explore, then writes a plan, but does not edit your source (permission prompts still apply as in default mode). Enter it by cycling `Shift+Tab`, prefixing a prompt with `/plan`, launching with `--permission-mode plan`, or setting `permissions.defaultMode: "plan"`. Crucially, **approving a plan exits plan mode** and switches the session into the write mode each approve option names — the read-only guarantee holds only until approval. Choosing plan-first versus going direct is a risk-containment decision keyed to reversal cost and uncertainty: plan first for unfamiliar code or a wide blast radius, go direct for a small diff in code you know. The `opusplan` alias pairs the mode with a model-per-phase split — Opus plans, Sonnet executes.

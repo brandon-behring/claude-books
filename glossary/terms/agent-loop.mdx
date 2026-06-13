@@ -1,0 +1,9 @@
+---
+term: "Agent loop"
+aliases: ["agentic loop", "tool-use loop"]
+domain: "Agentic Architecture & Orchestration"
+see: [subagent, context-compaction]
+tags: [d1, orchestration]
+---
+
+An agent is an ordinary language model placed in a loop: it proposes a tool call, your code executes it, the result is fed back as the model's next input, and the model decides again — "act, observe, decide" repeated until the model answers *without* calling a tool. The loop's single branch condition is `stop_reason`: `tool_use` continues it (your code returns `tool_result` blocks on the next turn), `end_turn` ends it. The model decides *what* happens next, but the surrounding code decides *whether* it gets to — so owning the loop, including its termination budget (`max_turns` / `max_budget_usd`), is the core orchestration discipline, not authoring any single tool.

@@ -1,0 +1,9 @@
+---
+term: "Context compaction"
+aliases: ["compaction"]
+domain: "Context Management & Reliability"
+see: [subagent, agent-loop]
+tags: [d5, context]
+---
+
+Compaction reclaims room in a finite, cumulative context window by **summarizing older turns** when a long session nears the limit. It is automatic (triggered near the context limit) and steerable through three knobs: a CLAUDE.md "Summary instructions" section (which steers *what content* survives), the `PreCompact` hook, and a manual `/compact`. Compaction is lossy, so durable rules belong in re-injected CLAUDE.md rather than in turns the summary may discard. It is distinct from `/clear`: `/compact` condenses in place to **continue the same task**, while `/clear` resets to a **fresh conversation** for an unrelated one (the decision rule is continuity). A scratchpad written to disk survives both, because each only touches the conversation window.

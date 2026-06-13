@@ -1,0 +1,9 @@
+---
+term: "Model Context Protocol (MCP)"
+aliases: ["MCP"]
+domain: "Tool Design & MCP Integration"
+see: []
+tags: [d2, mcp, tools]
+---
+
+The Model Context Protocol (MCP) is the open protocol by which an agent connects to an external server that supplies tools (and other capabilities); a connected server's tools surface to the model under the namespaced form `mcp__<server>__<tool>`. A server is configured either programmatically (`mcp_servers` / `mcpServers`, optionally locked down with `strictMcpConfig: true`) or via a committed `.mcp.json` at the project root, and installed with `claude mcp add <name> --scope <local|project|user> --transport <http|stdio|sse>`. When the same server name appears in several scopes, Claude connects once using the highest-precedence source (Local → Project → User → plugin → connector). A server that never connected is a silent failure mode — confirm `status: connected` in the `system:init` message before relying on its tools.
