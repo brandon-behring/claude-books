@@ -15,6 +15,10 @@ dist/
 **/dist-pdf/
 **/.pagefind/
 
+# Generated glossary copies — synced from the canonical glossary/terms/ by
+# scripts/sync-glossary.mjs (predev/prebuild). Source of truth is glossary/terms/.
+*/src/content/glossary/
+
 # Editor / OS
 .DS_Store
 .idea/

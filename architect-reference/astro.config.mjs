@@ -26,10 +26,11 @@ export default await defineBookConfig({
   // answers (v4.21, #114): the Sybex back-appendix — pairs with the questions'
   // <Rationale appendix for=> markers. landing: false (v4.20, #129): we own
   // src/pages/index.astro; this silences the shadow warning before Astro makes
-  // the collision a hard error. glossary/flashcards stay OFF until the shared
-  // glossary layer is authored (the flashcards deck derives from the glossary
-  // collection, not the question bank) — see docs/ROADMAP.md Horizon 2.
-  routes: { practiceExam: true, answers: true, landing: false },
+  // the collision a hard error. glossary + flashcards (v4.19/v4.22, #115/#116):
+  // the shared term layer. Terms are authored once in the repo-root glossary/terms/
+  // and synced (gitignored) into src/content/glossary/ by scripts/sync-glossary.mjs
+  // (predev/prebuild); the flashcards deck derives from that glossary collection.
+  routes: { practiceExam: true, answers: true, glossary: true, flashcards: true, landing: false },
   // routes: { tips: true } — DEFERRED (same scaffold gap as the other books: the
   // package's pages/tips.astro hardcodes a path that mis-resolves under npm-workspace
   // hoisting and hard-fails the build). See docs/scaffold-gaps.md.
