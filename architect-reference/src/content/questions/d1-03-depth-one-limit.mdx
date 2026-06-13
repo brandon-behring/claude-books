@@ -1,0 +1,25 @@
+---
+id: d1-03-depth-one-limit
+type: mcq
+chapter: d1-03
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "3"
+options:
+  - id: a
+    text: "Orchestrate the extra layer from the parent; subagents cannot spawn subagents"
+    correct: true
+  - id: b
+    text: "Add \"Agent\" to the analyzer's tools array so it can invoke its own helper"
+  - id: c
+    text: "Raise the analyzer's maxTurns so it has budget to run the nested delegation"
+  - id: d
+    text: "Give the analyzer a keyword-rich description so the helper is matched automatically"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A subagent that analyzes a module wants to hand a slice of its work to a further helper agent, giving you a coordinator-to-subagent-to-sub-subagent chain. How should the architecture deliver that third layer?
+
+<Rationale appendix for="d1-03-depth-one-limit">
+Delegation is **one level deep**: subagents cannot spawn subagents. If a task seems to need a third layer, orchestrate that layer from the **parent**, not from inside a child. (b) is the documented anti-pattern — putting `Agent` in a child's `tools` attempts a three-level hierarchy, but the depth-1 limit means the nested call produces no grandchild. (c) misdiagnoses the cause as a budget problem; `maxTurns` caps a subagent's own turns and cannot create a missing level of delegation. (d) addresses the match gate, which is irrelevant here — even a perfect description cannot let a child invoke a grandchild past the structural limit.
+</Rationale>

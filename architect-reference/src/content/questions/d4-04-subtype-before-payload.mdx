@@ -1,0 +1,28 @@
+---
+id: d4-04-subtype-before-payload
+type: mcq
+chapter: d4-04
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Branch on the result's subtype first, reading message.structured_output only on success and falling back otherwise"
+    correct: true
+  - id: b
+    text: "Wrap the call in a try/catch so the exhausted-retries case is caught as an exception and handled there"
+    correct: false
+  - id: c
+    text: "Read message.structured_output and treat an empty object as the signal that the retries were exhausted"
+    correct: false
+  - id: d
+    text: "Hard-code the documented retry count so the caller knows exactly how many attempts preceded the result"
+    correct: false
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A structured-output run sometimes succeeds and sometimes exhausts its retry budget, but downstream code occasionally processes garbage on the failure path instead of falling back. Per the chapter, how should the caller consume an Agent SDK structured-output result so the failure path is handled correctly?
+
+<Rationale appendix for="d4-04-subtype-before-payload">
+Exhaustion is a result you inspect, not an exception that throws, so the caller must branch on `subtype`: `success` carries the typed payload in `message.structured_output`, while `error_max_structured_output_retries` means the budget ran out and you fall back (simpler schema, simpler prompt, or human review). (b) assumes a throw — but the SDK returns a result on exhaustion, so a try/catch never fires and the failure path is still unhandled. (c) reads the payload before discriminating; on the error path `message.structured_output` is `undefined`, which is exactly how garbage reaches downstream code. (d) relies on a retry count the chapter says is undocumented, so it must never be hard-coded.
+</Rationale>

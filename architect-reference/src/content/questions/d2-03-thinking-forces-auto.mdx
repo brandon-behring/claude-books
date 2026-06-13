@@ -1,0 +1,25 @@
+---
+id: d2-03-thinking-forces-auto
+type: mcq
+chapter: d2-03
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The forced mode is incompatible with extended thinking, so the request errors before any tool fires"
+    correct: true
+  - id: b
+    text: "Forcing one named tool silently disables thinking, so the model answers but never reasons first"
+  - id: c
+    text: "The request runs, but the model emits a reasoning preamble that violates the strict schema"
+  - id: d
+    text: "Parallel tool use kicks in, so the model calls several tools at once instead of the one named tool"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate wants the model to reason before acting, so they enable extended thinking, and they also want a specific tool always called, so they set `tool_choice` to a forced `{"type": "tool", "name": …}`. What happens when this request runs?
+
+<Rationale appendix for="d2-03-thinking-forces-auto">
+Only `auto` and `none` are compatible with extended (or adaptive) thinking; `any` and a forced `tool` **return an error** — the two requirements are mutually exclusive, so you cannot both force a tool and let the model reason with thinking on. (b) is the wrong resolution: the conflict surfaces as an error, not as a silent demotion of thinking. (c) misreads the prefill behavior — forcing prefills the assistant message and *suppresses* the natural-language preamble; it does not produce a schema-violating one, and with thinking on the request never gets that far. (d) confuses axes: parallel execution is governed by `disable_parallel_tool_use`, a separate knob from `tool_choice`, and it is not what breaks here.
+</Rationale>

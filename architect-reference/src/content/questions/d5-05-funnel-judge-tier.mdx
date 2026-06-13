@@ -1,0 +1,25 @@
+---
+id: d5-05-funnel-judge-tier
+type: mcq
+chapter: d5-05
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "An isolated judge in a fresh context, because it has no authorship bias toward the output it is checking"
+    correct: true
+  - id: b
+    text: "A second run of the same model, accepting the record when the two runs agree"
+  - id: c
+    text: "The model's own self-reported confidence score, gating the human queue directly"
+  - id: d
+    text: "Sending every record straight to the human reviewer to be safe"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Cheap automated checks pass an extraction — valid shape, no flagged conflict — yet it is wrong-but-plausible, and shipping it as-is is costly. The chapter's funnel puts one tier between the auto-checks and the human to catch exactly this case. Which tier is it, and why does it catch what the auto-checks miss?
+
+<Rationale appendix for="d5-05-funnel-judge-tier">
+Review is a funnel, not a gate: cheap auto-checks, then an **isolated judge**, then the human, with each tier escalating only what it cannot resolve. The judge catches wrong-but-plausible errors precisely because a fresh, independent context has **no authorship bias** toward the output it is checking — it can judge correctness where a regex or equality test cannot. (b) retries with the same model, but a confidently-wrong extraction reproduces on the second run, so agreement is not evidence of correctness. (c) trusts self-reported confidence, which a confidently-wrong output also reports as "high" — a claim, not a measurement. (d) is safe but uncalibrated: it spends the most expensive reviewer on every record and does not scale.
+</Rationale>

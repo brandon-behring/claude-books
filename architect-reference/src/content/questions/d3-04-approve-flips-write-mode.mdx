@@ -1,0 +1,25 @@
+---
+id: d3-04-approve-flips-write-mode
+type: mcq
+chapter: d3-04
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "3"
+options:
+  - id: a
+    text: "It has exited plan mode into acceptEdits, so Claude can now apply edits; re-enter plan mode to research again"
+    correct: true
+  - id: b
+    text: "It remains in plan mode, with the approval recorded as a note for the next edit"
+  - id: c
+    text: "It is paused awaiting a second confirmation before any write mode takes effect"
+  - id: d
+    text: "It has switched to bypassPermissions, since approving a plan waives later checks"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+In plan mode, Claude presents a plan and you select the "accept edits" approve option. Considering only what the chapter says happens at approval, what permission mode is the session now in, and what does that mean for editing?
+
+<Rationale appendix for="d3-04-approve-flips-write-mode">
+Approving a plan exits plan mode and switches the session to the write mode the chosen approve option names — here "accept edits" lands the session in `acceptEdits`, where edits auto-approve and Claude starts editing. To plan again you must re-enter plan mode (cycle with Shift+Tab or prefix `/plan`); approval is one-way. (b) misses the whole point: the approval *ends* the read-only guarantee rather than staying in plan mode. (c) invents a second confirmation step — approval itself is the decision point, with no further gate. (d) confuses approving a plan with skipping permission checks; the approve options choose a write mode, not `bypassPermissions`.
+</Rationale>

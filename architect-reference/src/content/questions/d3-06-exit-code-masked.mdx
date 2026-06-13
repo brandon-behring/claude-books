@@ -1,0 +1,25 @@
+---
+id: d3-06-exit-code-masked
+type: mcq
+chapter: d3-06
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The run hit `--max-turns` and exited non-zero, but the trailing `|| true` swallowed the status, so the shell reported success and the step stayed green"
+    correct: true
+  - id: b
+    text: "`--output-format json` overrides the process exit code with the `result` field, so a parseable payload always reports the step as passing"
+  - id: c
+    text: "`--max-turns` only prints a warning and exits `0`, so the step was genuinely successful and the empty result is a separate stdout bug"
+  - id: d
+    text: "Headless `claude -p` always exits `0`; CI must inspect `total_cost_usd` to infer failure, which this pipeline failed to do"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A CI step runs `claude -p "review the diff" --max-turns 8 --output-format json > out.json || true`. The agent thrashed past eight turns, `out.json` is truncated, yet the step shows green and the next step consumes the partial output. What went wrong?
+
+<Rationale appendix for="d3-06-exit-code-masked">
+In headless mode the **process exit code is the CI success contract** — `0` passes the step, non-zero fails it. Hitting `--max-turns` "limits agentic turns and exits with error when reached," i.e. a non-zero exit; but the trailing `|| true` swallows that status, so the shell reports success and the next step consumes the truncated output as if it were real — exactly the pitfall the chapter warns against ("don't mask the status"). (b) is wrong: `--output-format json` decides what the run *prints*, not its exit code; the two are independent. (c) inverts the documented behavior — `--max-turns` exits with error, it does not exit `0` with a warning. (d) is false: `claude -p` hands its real exit code straight to the runner (`0` on success, non-zero on failure); `total_cost_usd` is a spend field, not a failure signal.
+</Rationale>

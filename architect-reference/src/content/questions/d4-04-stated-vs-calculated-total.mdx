@@ -1,0 +1,28 @@
+---
+id: d4-04-stated-vs-calculated-total
+type: mcq
+chapter: d4-04
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Have the model emit both a stated_total and a calculated_total, then let application code compare them and route mismatches to review"
+    correct: true
+  - id: b
+    text: "Add a minimum constraint on the total field so a value below the line-item floor is rejected by the schema"
+    correct: false
+  - id: c
+    text: "Mark the total field required and strict so its type and presence are guaranteed on every record"
+    correct: false
+  - id: d
+    text: "Raise the model's reasoning budget so it has room to add up the line items more carefully before answering"
+    correct: false
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+An invoice extractor returns schema-valid JSON, but once in a while the `total` it reports does not match the sum of the line items, and those bad totals slip through to billing. Following the chapter's semantic-hook approach, what schema-level design makes such a total mechanically checkable?
+
+<Rationale appendix for="d4-04-stated-vs-calculated-total">
+A wrong-but-well-typed total is a semantic error — valid JSON, incorrect data — that no schema or type guarantee can touch. The chapter's fix is to make the model show enough work for a mechanical test: emit both the document's `stated_total` and its own re-summed `calculated_total`, then let application code compare them and route any mismatch to human review. (b) bounds magnitude, not internal consistency, and the chapter notes `minimum` is unsupported by the structured-outputs subset anyway. (c) only guarantees the total is present and a number — which it already was; a guaranteed type does nothing about a number being wrong. (d) addresses arithmetic effort, not the verification gap; the catch exists only because the verification field pair was added to the schema.
+</Rationale>

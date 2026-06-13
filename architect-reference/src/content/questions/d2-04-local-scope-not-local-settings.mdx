@@ -1,0 +1,25 @@
+---
+id: d2-04-local-scope-not-local-settings
+type: mcq
+chapter: d2-04
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Open the home-directory \"~/.claude.json\", under that project's key, where local-scoped servers actually live"
+    correct: true
+  - id: b
+    text: "Open \".claude/settings.local.json\" and add the missing server block there yourself"
+  - id: c
+    text: "Open the committed \".mcp.json\" at the repo root, since every scope resolves through that file"
+  - id: d
+    text: "Open the user settings, because a local-scoped server is shared across all of your projects"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate added an MCP server at **local** scope, but it never loads. They have been editing `.claude/settings.local.json` to fix it, with no effect. Which file should you open instead to find and repair the server's definition?
+
+<Rationale appendix for="d2-04-local-scope-not-local-settings">
+The chapter's most-confusing collision is the word *local*: a **local-scoped MCP server** is stored in `~/.claude.json` (home directory, under a per-project key), whereas general **local settings** live in `.claude/settings.local.json` (the project directory). They are different files in different directories, so (a) is right — that is where the definition actually lives. (b) edits `.claude/settings.local.json`, the exact file the chapter calls a silent no-op for a local-scoped server. (c) is the Project scope's committed file; local-scoped servers are never written there, and scopes are not all resolved through one file. (d) confuses Local with User scope — a local-scoped server is current-project-only and not shared across all projects.
+</Rationale>

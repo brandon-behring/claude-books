@@ -1,0 +1,25 @@
+---
+id: d5-03-silent-ambiguity-resolution
+type: mcq
+chapter: d5-03
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The coder has no one to ask, so it resolves the ambiguity itself and hands the guess downstream as settled fact"
+    correct: true
+  - id: b
+    text: "The coder copies the planner's ambiguous wording forward verbatim, so the reviewer inherits the same unclear spec"
+  - id: c
+    text: "The coder escalates the ambiguity to a human, but the reply arrives too late to change the committed output"
+  - id: d
+    text: "The coder retries the planner step until the spec comes back unambiguous, masking the original defect"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+In a planner-to-coder-to-reviewer pipeline, the planner emits a spec with one ambiguous requirement. The coder produces clean, working code, the reviewer rates it fine, and the wrong output ships with no warning anywhere. According to the chapter, what does the coder do at the moment it meets the ambiguity that makes the error go silent?
+
+<Rationale appendix for="d5-03-silent-ambiguity-resolution">
+The chapter's propagation mechanism is specific: a mid-pipeline agent "usually has no one to ask, so it *resolves* the ambiguity — and a quietly-wrong resolution is handed downstream as if it were settled fact," and "the next agent has no signal that the input it received was a guess." That is why the reviewer rates plausible code fine: it never sees that a guess was made. (b) is wrong because the chapter's failure is not forwarding unclear *wording* — the coder commits to one interpretation and emits clean code, so the reviewer sees a confident artifact, not ambiguity. (c) inverts the chapter: the whole point is that a mid-pipeline agent cannot escalate the way D5.2's interactive agent can — it has no one to ask, so it does not wait on a human reply. (d) invents a retry-until-clear loop the chapter never describes; the coder does not re-query the planner, it silently picks an interpretation and moves on.
+</Rationale>

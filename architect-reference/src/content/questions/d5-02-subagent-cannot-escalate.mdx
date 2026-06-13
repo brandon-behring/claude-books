@@ -1,0 +1,25 @@
+---
+id: d5-02-subagent-cannot-escalate
+type: mcq
+chapter: d5-02
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Have the coordinator resolve the open questions first, then hand the subagent a fully-specified task"
+    correct: true
+  - id: b
+    text: "Give the subagent its own canUseTool callback so it can surface the question itself"
+  - id: c
+    text: "Let the subagent pick a reasonable default and record the assumption in its final report"
+  - id: d
+    text: "Raise the subagent's token budget so it has room to reason the ambiguity away"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A coordinator dispatches a subagent to implement a feature, but the subagent discovers the spec is ambiguous and has no way to ask the user. How should the work be restructured so the ambiguity is handled correctly?
+
+<Rationale appendix for="d5-02-subagent-cannot-escalate">
+Subagents cannot call `AskUserQuestion`, so a subagent that hits an ambiguous requirement can only guess or fail — the exact failure escalation exists to prevent. The fix is to restructure the decomposition so the part that needs a human stays with the agent that can reach one: the coordinator resolves the open questions first, then delegates a fully-specified task. (b) assumes the limit is a missing callback, but the constraint is on the subagent's side — it cannot raise `AskUserQuestion` at all, so wiring a callback gives it nothing to surface. (c) is exactly the guess-on-intent the chapter warns against; a recorded assumption is still a coin flip on a decision the model cannot make. (d) misdiagnoses the cause: the subagent is blocked by an absent escalation channel, not by a shortage of reasoning budget.
+</Rationale>

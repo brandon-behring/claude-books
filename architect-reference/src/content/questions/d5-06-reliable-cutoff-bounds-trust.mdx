@@ -1,0 +1,25 @@
+---
+id: d5-06-reliable-cutoff-bounds-trust
+type: mcq
+chapter: d5-06
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "August 2025, because the reliable knowledge cutoff is earlier than the training cutoff and is the date that bounds trust"
+    correct: true
+  - id: b
+    text: "January 2026, because the model trained on data through that date and can be trusted to that point"
+  - id: c
+    text: "Either date is fine, since both cutoffs describe the same boundary of dependable knowledge"
+  - id: d
+    text: "Neither date applies, because supplying a dated source removes any cutoff from consideration"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate notes that Sonnet 4.6 trained on data through January 2026 but is reliable only to August 2025, and asks which date should decide whether a time-sensitive fact may be answered from the model's own memory. Per the chapter, which date governs that decision, and why?
+
+<Rationale appendix for="d5-06-reliable-cutoff-bounds-trust">
+The chapter states the reliable knowledge cutoff is earlier than (or equal to) the training-data cutoff because data near the training cutoff is sparse, so the model's reliable knowledge stops before its training does — Sonnet 4.6 trained through January 2026 but is reliable only to August 2025, and the earlier date bounds trust. (b) picks the training cutoff, the exact trap the chapter warns against: training reach is not reliability, so January 2026 overstates what the model dependably knows. (c) denies the gap the chapter builds the whole section on — the two dates are distinct, not the same boundary. (d) is true only after a dated source is supplied; the question is precisely whether memory is trustworthy first, which the reliable cutoff decides.
+</Rationale>

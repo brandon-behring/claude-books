@@ -1,0 +1,25 @@
+---
+id: d1-07-fork-shared-disk
+type: mcq
+chapter: d1-07
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "No — forking branches the conversation, not the filesystem, so both forks share one disk and the deletion is real"
+    correct: true
+  - id: b
+    text: "Yes — a fork starts from a copy of the original's history, and that copy includes a snapshot of the working directory"
+  - id: c
+    text: "Yes — the new session ID gives the fork its own sandboxed filesystem, so edits cannot reach the original"
+  - id: d
+    text: "No — but only because the original session is still open; closing it first would have isolated the files"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You fork your session to try a destructive refactor, expecting the original session's files to be safe. The forked agent deletes a source file. Is that deletion isolated from the original session?
+
+<Rationale appendix for="d1-07-fork-shared-disk">
+Forking branches the **conversation history, not the filesystem** — both forks share one working directory, so a file edit (or deletion) in either is real and visible to the other. The chapter's pitfall names this exactly: treating a fork as an isolated sandbox corrupts the shared directory. (b) misreads what the "copy" is: a fork copies the *conversation history*, never a snapshot of the disk. (c) attaches sandboxing to the new session ID, but the ID identifies a second *conversation*, not a second *world*; to branch the files too you need file checkpointing. (d) invents an open/closed rule the chapter never states — isolation does not turn on whether the original session is still open; the disk is shared regardless.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d1-06-over-decomposition-guard
+type: mcq
+chapter: d1-06
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Tell the orchestrator to scale effort to complexity — 1 agent for simple fact-finding, 2-4 for a comparison, 10+ for complex research"
+    correct: true
+  - id: b
+    text: "Switch the work to a hardcoded sequential pipeline so the subagent count can never vary"
+  - id: c
+    text: "Cap the orchestrator's total token budget so it runs out before it can spawn too many subagents"
+  - id: d
+    text: "Give every spawned subagent the full transcript so each one can decide whether it is actually needed"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+An adaptive system keeps spawning dozens of subagents to answer questions that turn out to be simple — the "50 subagents for a simple query" failure — multiplying token cost for nothing. The task genuinely is open-ended, so abandoning adaptivity isn't an option. What is the chapter's mitigation for this failure mode?
+
+<Rationale appendix for="d1-06-over-decomposition-guard">
+This is **over-decomposition**, the adaptive failure mode, and the chapter's named guard is the **effort-scaling heuristic**: the orchestrator must be told how to size effort to complexity — "1 agent with 3-10 tool calls" for simple fact-finding, "2-4 subagents" for a comparison, "more than 10" for complex research. (b) throws away the adaptivity the open-ended task actually needs — forcing a fixed pipeline onto path-dependent work is the *opposite* failure mode (rigid pipelining). (c) misdiagnoses the cause: a budget cap may stop the bleeding but it doesn't make the orchestrator size effort correctly — it just truncates, leaving the misjudgment intact. (d) is the wrong lever and inflates context: the fix is teaching the orchestrator to scale effort, not feeding every subagent the whole transcript.
+</Rationale>

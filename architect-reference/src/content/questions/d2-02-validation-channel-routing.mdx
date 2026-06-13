@@ -1,0 +1,25 @@
+---
+id: d2-02-validation-channel-routing
+type: mcq
+chapter: d2-02
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Return it as an execution error inside a successful result, so the model can read the message and self-correct"
+    correct: true
+  - id: b
+    text: "Return a JSON-RPC -32602 protocol error, since invalid parameters are a protocol-level problem"
+  - id: c
+    text: "Return a JSON-RPC error so the host can decide whether to surface the failure to the user"
+  - id: d
+    text: "Return a successful empty result and rely on the model to notice the missing booking"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your booking tool, exposed over MCP, receives a departure date that lies in the past — a business-logic failure the model could fix by asking for a new date. The MCP spec gives you two channels for reporting failures. Which channel should this failure travel down, and why?
+
+<Rationale appendix for="d2-02-validation-channel-routing">
+A past departure date is an input-validation / business-logic failure the model can self-correct, so per SEP-1303 it belongs in the `isError: true` channel — an execution error returned inside a successful result, addressed to the model so it can read the text and retry. The routing rule is *who can act on the error*, not how severe it feels. (b) and (c) both mis-route a recoverable failure to JSON-RPC: that channel is reserved for protocol errors the model cannot fix (unknown tool, malformed request), and sending a validation error there silently denies the model its chance to correct and retry. (c) adds the right-sounding rationale of "let the host decide," but the host audience is exactly wrong here — the failure should be addressed to the model. (d) hides the failure behind a success result, leaving the model nothing to flag or recover against.
+</Rationale>

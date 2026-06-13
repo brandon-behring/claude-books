@@ -1,0 +1,25 @@
+---
+id: d2-03-mcp-scope-vs-bypass
+type: mcq
+chapter: d2-03
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Scope with an `allowedTools` wildcard like `mcp__github__*`, which grants exactly that server and nothing more"
+    correct: true
+  - id: b
+    text: "Set `permissionMode: \"bypassPermissions\"`, which auto-approves the server's tools and is the documented MCP path"
+  - id: c
+    text: "Set `tool_choice` to `any` so the model is steered toward the MCP server's tools each request"
+  - id: d
+    text: "Add the server to `disallowedTools` so its tools are removed from the request and then re-approved on demand"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+An agent should be able to call every tool on one MCP server but gain no other broad privileges. Which configuration matches the chapter's documented guidance for scoping that MCP access?
+
+<Rationale appendix for="d2-03-mcp-scope-vs-bypass">
+The documented guidance is to scope with `allowedTools`: a `mcp__server__*` wildcard "grants exactly the MCP server you want and nothing more," leaving every other safety gate intact. (b) inverts the recommendation — `bypassPermissions` auto-approves the MCP tools but *disables every other safety prompt* across the whole agent, broader than necessary. (c) is the wrong axis: `tool_choice` steers which of the *available* tools fires on one request; it does not define which tools the agent has at all. (d) misuses `disallowedTools`, which *removes* a tool from the request entirely (the model never sees it) — the opposite of granting the server's tools.
+</Rationale>

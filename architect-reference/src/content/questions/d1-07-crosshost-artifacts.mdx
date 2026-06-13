@@ -1,0 +1,25 @@
+---
+id: d1-07-crosshost-artifacts
+type: mcq
+chapter: d1-07
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Capture the artifacts that matter — decisions, the diff so far, the remaining plan — as application state and seed a fresh session's prompt"
+    correct: true
+  - id: b
+    text: "Ship the original session's transcript file to the new worker and resume it by ID with a bigger budget"
+  - id: c
+    text: "Fork the original session so the new worker gets an independent copy of the conversation to continue from"
+  - id: d
+    text: "Use file checkpointing to snapshot the working directory and restore it on the new worker before resuming"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A CI agent stops on error_max_turns partway through a refactor, and its container is torn down. You must finish the work tomorrow on a fresh worker that won't have today's transcript file. What is the more robust way to carry the work across hosts?
+
+<Rationale appendix for="d1-07-crosshost-artifacts">
+The chapter's cross-host discipline is to lift the state you care about *out* of the conversation: capture the artifacts (analysis output, decisions, file diffs) as application state and pass them into a fresh session's prompt — which the docs call "often more robust than shipping transcript files around." (b) is the brittle option the chapter argues against: resuming by ID requires both restoring the transcript to the exact `~/.claude/projects/<encoded-cwd>/` path *and* reproducing the same `cwd` on every worker. (c) cannot help across hosts — forking still copies a *transcript* that lives under an encoded-cwd path tied to a directory, the very thing the fresh worker lacks. (d) restores *files*, not the conversation; checkpointing is a separate concern and does not carry the agent's reasoning forward.
+</Rationale>

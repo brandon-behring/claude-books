@@ -1,0 +1,25 @@
+---
+id: d2-05-parallel-read-only
+type: mcq
+chapter: d2-05
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The two Grep calls and the Glob, because read-only tools may run concurrently while Write modifies state"
+    correct: true
+  - id: b
+    text: "All four, because the SDK fans out every tool call within a single turn by default"
+  - id: c
+    text: "The Glob and the Write, because file-system tools are the ones cleared to run in parallel"
+  - id: d
+    text: "None of the three reads, because parallelism is a per-request switch the developer must enable first"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+In one turn an agent issues two `Grep` calls, one `Glob`, and one `Write`. The chapter says the deciding property is whether a tool reads state or changes it. Which of these calls may the SDK run concurrently?
+
+<Rationale appendix for="d2-05-parallel-read-only">
+The roster splits on whether a tool is read-only or state-modifying: read-only tools — `Read`, `Glob`, `Grep` — may run concurrently because they cannot conflict, while state-modifying tools (`Edit`, `Write`, `Bash`) run sequentially to avoid clobbering each other. So the two `Grep` calls and the `Glob` can fan out together; the `Write` must run on its own. (b) overgeneralizes: the runtime does *not* parallelize every call — state-modifying tools are held sequential. (c) misidentifies the property as "file-system tool" rather than read-versus-write — `Write` is a state-modifying file tool and is excluded, while `Grep`/`Glob` qualify by being read-only. (d) confuses this with a request-level cap: parallelism here is a property of the tool's nature, not a switch the developer flips per request.
+</Rationale>

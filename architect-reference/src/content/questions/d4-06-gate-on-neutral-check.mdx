@@ -1,0 +1,25 @@
+---
+id: d4-06-gate-on-neutral-check
+type: mcq
+chapter: d4-06
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Read the severity breakdown from the check-run output in your own CI and fail the step when the Important count is positive"
+    correct: true
+  - id: b
+    text: "Tighten the branch protection rule so Code Review's neutral check is treated as a required passing status"
+  - id: c
+    text: "Switch the trigger from manual to after-every-push so a fresh review runs and blocks each new commit"
+  - id: d
+    text: "Add more specialist reviewers so the fleet produces enough Important findings to halt the merge"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A reviewer asks why a merge still went through even though Code Review posted an Important finding, and wants real bugs to block the merge queue going forward. How should the team make Code Review's advisory output actually gate a merge?
+
+<Rationale appendix for="d4-06-gate-on-neutral-check">
+Code Review's check run "always completes with a neutral conclusion so it never blocks merging through branch protection rules" — it advises, it does not gate. The documented way to enforce its signal is to read the severity breakdown from the check-run output in your own CI and fail the step yourself, exiting non-zero when the Important count is positive so your own required check goes red. (b) misunderstands the neutral conclusion: branch protection can require the check, but a neutral result never counts as a failing status, so the merge is never blocked. (c) confuses trigger mode with gating — after-every-push only controls when reviews run; every run still completes neutral and blocks nothing. (d) treats the symptom as a finding-volume problem; more reviewers produce more findings (and more false positives without the verification pass), but none of them can flip a check that is neutral by design.
+</Rationale>

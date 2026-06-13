@@ -1,0 +1,25 @@
+---
+id: d2-01-input-examples-400
+type: mcq
+chapter: d2-01
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "One example sets unit to a value the enum does not allow, so it fails to validate against input_schema"
+    correct: true
+  - id: b
+    text: "Three examples exceed the per-tool limit, so the request is rejected for too many examples"
+  - id: c
+    text: "input_examples are not permitted on this client tool and must be removed entirely"
+  - id: d
+    text: "The description disagrees with the examples, so the model cannot reconcile the two surfaces"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You add three input_examples to a working client tool, and the API now rejects the whole request with a 400 — your description and your code are untouched and fine. Which explanation matches the one hard rule the chapter states for input_examples?
+
+<Rationale appendix for="d2-01-input-examples-400">
+The chapter's one hard rule is that each example must validate against the tool's input_schema, or the request returns a 400 — so a single example with an illegal enum value (the chapter's own typo'd "kelvin" case) fails the whole request, making (a) correct. (b) invents a numeric ceiling the chapter never states; the cost of examples is a token cost paid deliberately, not a hard cap. (c) misreads the client/server distinction: input_examples are precisely for client (user-defined) tools, so they are permitted here. (d) describes a soundness concern but not a 400 — a description that disagrees with the examples is a quality problem, while the schema-validation failure is what actually returns the error.
+</Rationale>

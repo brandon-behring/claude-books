@@ -1,0 +1,25 @@
+---
+id: d1-05-precedence-deny-wins
+type: mcq
+chapter: d1-05
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The call is blocked: matching hooks run in parallel and the most restrictive result wins"
+    correct: true
+  - id: b
+    text: "The call is allowed, because two of the three hooks did not return deny"
+  - id: c
+    text: "The call runs after a permission prompt, because ask outranks a lone deny"
+  - id: d
+    text: "The outcome depends on which hook finishes first, since order breaks the tie"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Three `PreToolUse` hooks fire on one tool call and return, respectively, `allow`, `ask`, and `deny`. What happens to the call, and what rule decides it?
+
+<Rationale appendix for="d1-05-precedence-deny-wins">
+All matching hooks run **in parallel** and the **most restrictive** result wins, following the fixed precedence `deny > defer > ask > allow` — so one hook returning `deny` blocks the call regardless of what the others return. (b) inverts the safety model: permitting requires *every* hook to agree, not a majority, so two non-deny votes cannot override a single deny. (c) gets the precedence backwards — `deny` outranks `ask`, not the other way around. (d) invokes execution order, but the outcome is decided by precedence, not by who finishes first; completion order is non-deterministic and a hook must never assume it.
+</Rationale>

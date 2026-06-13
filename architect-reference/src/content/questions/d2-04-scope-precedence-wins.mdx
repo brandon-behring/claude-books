@@ -1,0 +1,25 @@
+---
+id: d2-04-scope-precedence-wins
+type: mcq
+chapter: d2-04
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The Local-scope definition in their `~/.claude.json`, because precedence runs Local before Project"
+    correct: true
+  - id: b
+    text: "The committed Project `.mcp.json`, because a shared, version-controlled config always overrides a personal one"
+  - id: c
+    text: "Both connect, and Claude Code merges the two definitions field by field"
+  - id: d
+    text: "Neither connects until the duplicate name is resolved, because matching names is treated as a conflict"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A repo ships a `notion` server in its committed `.mcp.json` (Project scope). A teammate also defines a server named `notion` at **Local** scope in their own `~/.claude.json`. On the teammate's machine, which definition actually connects?
+
+<Rationale appendix for="d2-04-scope-precedence-wins">
+When the same server name appears in more than one scope, Claude Code connects **once**, using the highest-precedence source, and the order is **Local -> Project -> User -> plugin -> claude.ai connectors** (the first three match duplicates by name). Local outranks Project, so the teammate's `~/.claude.json` definition wins on their machine, making (a) correct. (b) inverts the order — the shared Project config does *not* override a personal Local one; this is the intended path for letting personal credentials take over a team default. (c) is wrong: there is no field-by-field merge — only one definition connects. (d) is wrong: a name appearing in two scopes is resolved by precedence, not flagged as a conflict that blocks both.
+</Rationale>

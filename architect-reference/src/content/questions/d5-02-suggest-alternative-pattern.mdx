@@ -1,0 +1,25 @@
+---
+id: d5-02-suggest-alternative-pattern
+type: mcq
+chapter: d5-02
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Suggest-alternative — deny with guidance in the message, which Claude reads and uses to adjust its next step"
+    correct: true
+  - id: b
+    text: "Approve-with-changes — rewrite the command in updatedInput so the pipe-to-shell becomes a safe download"
+  - id: c
+    text: "Reject — return a plain deny so the blocked command simply does not run"
+  - id: d
+    text: "Approve-and-remember — echo a PermissionUpdate so this command is auto-allowed next time"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your `canUseTool` callback intercepts a `Bash(curl … | sh)` call. You want to block this specific command but also tell Claude to download, verify the checksum, and then run, so it can correct course on its own. Which response pattern does this?
+
+<Rationale appendix for="d5-02-suggest-alternative-pattern">
+Suggest-alternative is a `deny` whose message carries guidance; Claude reads the guidance and adjusts its next step, so the command is blocked and the agent is steered toward the safe path in one move. (b) approve-with-changes would run the call after silently editing `updatedInput` — but the goal is to block this command and let Claude re-derive the safe approach itself, not to execute a rewritten version. (c) a plain reject blocks the command but supplies no guidance, so Claude is stopped without being redirected. (d) approve-and-remember allows the call and suppresses future prompts — the opposite of blocking a pipe-to-shell you consider unsafe.
+</Rationale>

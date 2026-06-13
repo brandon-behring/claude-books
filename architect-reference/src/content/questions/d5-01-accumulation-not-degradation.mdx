@@ -1,0 +1,25 @@
+---
+id: d5-01-accumulation-not-degradation
+type: mcq
+chapter: d5-01
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Reduce what accumulates — tighter tool outputs, or /clear and restart with a focused prompt"
+    correct: true
+  - id: b
+    text: "Re-surface the key facts near the end of the context to counter lost-in-the-middle"
+  - id: c
+    text: "Move the standing instructions into CLAUDE.md so they survive the next summary"
+  - id: d
+    text: "Treat it as a quality bug and add stricter instructions to make the model attend better"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Turns in a session keep growing until the window is nearly full and the loop is about to compact, but nothing the model has produced is wrong or misremembered yet. Which response matches the failure mode actually in play?
+
+<Rationale appendix for="d5-01-accumulation-not-degradation">
+This is **accumulation pressure**: nothing is degraded — the budget is simply spent — so the fix is to reduce what accumulates (tighter tool outputs, or `/clear` and restart with a focused prompt). (b) is the lost-in-the-middle remedy, but here no buried fact has been misremembered; nothing is degraded to re-surface. (c) addresses post-compaction loss of an early rule, which hasn't happened — the session has not compacted and no instruction has been dropped. (d) misreads spent budget as a quality bug; the chapter's discipline is to name the mode first, and accumulation is not a degradation to instruct away.
+</Rationale>

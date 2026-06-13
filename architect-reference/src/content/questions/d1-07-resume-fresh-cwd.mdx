@@ -1,0 +1,25 @@
+---
+id: d1-07-resume-fresh-cwd
+type: mcq
+chapter: d1-07
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "You launched the resume from a different working directory, so the encoded-cwd lookup path no longer matches"
+    correct: true
+  - id: b
+    text: "The original session hit error_max_turns, which clears the transcript and leaves nothing to resume"
+  - id: c
+    text: "You passed continue_conversation=True instead of the specific session ID, so the wrong session was reopened"
+  - id: d
+    text: "The session ID expired between runs, so the SDK had to mint a fresh empty session in its place"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A script captured a session_id from the first run's ResultMessage and later calls resume with that exact ID, but the resumed session comes back empty and fresh instead of the expected history. What is the single most likely cause?
+
+<Rationale appendix for="d1-07-resume-fresh-cwd">
+The #1 resume bug is a **mismatched `cwd`**: sessions are stored under `~/.claude/projects/<encoded-cwd>/*.jsonl`, where the encoded-cwd is the absolute working directory with every non-alphanumeric character replaced by `-`. Resume from a different directory and the SDK derives a different path, finds nothing, and silently starts fresh — even with the correct ID. (b) is the opposite of what the chapter teaches: an `error_max_turns` session stops on a budget, not a wall, so its transcript is intact and resumable. (c) misfires because the stem says the specific ID was passed; and `continue` reopening the most-recent session would still return history, not an empty one. (d) invents session-ID expiry, a mechanism the chapter never mentions — the lookup is by encoded path, not a time-limited token.
+</Rationale>

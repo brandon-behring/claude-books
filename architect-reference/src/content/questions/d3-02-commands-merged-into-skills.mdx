@@ -1,0 +1,25 @@
+---
+id: d3-02-commands-merged-into-skills
+type: mcq
+chapter: d3-02
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Either form works — a file at .claude/commands/deploy.md and a skill at .claude/skills/deploy/SKILL.md both create /deploy"
+    correct: true
+  - id: b
+    text: "Only .claude/commands/deploy.md, because a slash command is the sole way to register a /deploy trigger"
+  - id: c
+    text: "Only .claude/skills/deploy/SKILL.md, because the legacy flat-file commands no longer run"
+  - id: d
+    text: "Neither — /deploy must be a built-in command whose behavior is coded into the CLI"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A colleague insists the only way to register a `/deploy` trigger is a flat file at `.claude/commands/deploy.md`. Per this chapter, which placement(s) will actually create a working `/deploy`?
+
+<Rationale appendix for="d3-02-commands-merged-into-skills">
+Custom commands have **merged into skills**: the chapter states that `.claude/commands/deploy.md` and `.claude/skills/deploy/SKILL.md` both create `/deploy` and work the same way, so (a) is right. (b) repeats the colleague's misconception — the flat file is not the *sole* way; it is the legacy shape. (c) inverts the truth: existing `.claude/commands/` files keep working, so the skill form is not the *only* one that runs. (d) confuses built-in commands (behavior coded into the CLI) with the user-authored prompt mechanism that both files use; a custom `/deploy` need not be built-in.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d4-02-single-example-quirk
+type: mcq
+chapter: d4-02
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Move into the 3-5 range with examples that vary the incidental traits, so the wrapping is no longer common across the set"
+    correct: true
+  - id: b
+    text: "Add a prose instruction telling the model not to quote the first field unless the input quotes it"
+  - id: c
+    text: "Cut back to zero examples and let the model infer the shape from the instruction alone"
+  - id: d
+    text: "Keep the one example but raise the model's token budget so it has room to reconsider the quirk"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate steers an extraction task with a single carefully chosen example, and the model starts wrapping the first field in quotes on every output even when the input has no quotes. Which change does the chapter prescribe to stop the model copying that incidental trait?
+
+<Rationale appendix for="d4-02-single-example-quirk">
+With one example the model cannot separate *the pattern* from *incidental* traits, so it copies first-field-quoting as if it were required — the documented failure of 1-2 examples. The fix is diversity-via-count: move into the **3-5** range with examples that vary the incidental traits while holding the intended pattern constant, so the quirk no longer appears in every example and stops reading as the rule. (b) is the D4.1 instinct (write a rule), but the chapter's point is that a prose rule beside the examples is weaker than letting contrasting demonstrations break the spurious pattern. (c) removes the demonstration entirely; zero examples breaks on exactly the kind of case the teammate is trying to pin. (d) misdiagnoses the cause — the model isn't short on budget, it's short on contrast.
+</Rationale>

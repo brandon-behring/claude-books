@@ -1,0 +1,25 @@
+---
+id: d3-06-json-schema-print-mode
+type: mcq
+chapter: d3-06
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "`--json-schema` is print-mode only, so it works under `-p` but not in an interactive session; pairing it with `--output-format json` lands the conforming result in `structured_output`"
+    correct: true
+  - id: b
+    text: "`--json-schema` validates output in any session, but only `-p` exposes the `structured_output` field, so the interactive run silently dropped it"
+  - id: c
+    text: "`--json-schema` requires `--output-format stream-json` to emit a schema-validated payload; `json` alone returns only prose"
+  - id: d
+    text: "`--json-schema` enforces the shape on every model turn, so an interactive session rejects it because it has no fixed turn count"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+An engineer wants a downstream step to receive a schema-conforming payload, so inside a normal interactive terminal session they reach for `--json-schema` with `--output-format json` — and it doesn't behave as documented. Which statement correctly diagnoses the constraint and says where a valid result would arrive?
+
+<Rationale appendix for="d3-06-json-schema-print-mode">
+The chapter is explicit on both points: `--json-schema` is "documented as print-mode-only — it works under `-p`, not in an interactive session," and when used correctly with `--output-format json` "the schema-conforming result then arrives in `structured_output`." So the engineer's error is reaching for a print-mode flag in a terminal session; the fix is to run it under `-p`. (b) inverts the cause — the flag itself is print-mode-only, not merely the field it populates, so the chapter does not describe an interactive run that validates-but-hides the result. (c) misnames the required format: structured output uses `--output-format json` with `--json-schema`, not `stream-json` (which carries newline-delimited events, not a schema-validated payload). (d) invents a per-turn enforcement mechanism the chapter never states; `--json-schema` produces "validated JSON output matching a JSON Schema after agent completes its workflow," not a per-turn check, and the reason it fails interactively is simply that it is print-mode-only.
+</Rationale>

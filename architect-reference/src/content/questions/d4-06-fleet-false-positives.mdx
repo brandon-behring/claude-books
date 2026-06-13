@@ -1,0 +1,25 @@
+---
+id: d4-06-fleet-false-positives
+type: mcq
+chapter: d4-06
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Add a verification pass that re-checks each candidate finding against actual code behavior before any are posted"
+    correct: true
+  - id: b
+    text: "Cut the fleet back to a single reviewer so there are fewer independent sources of flagged issues"
+  - id: c
+    text: "Give every specialist the same broad mandate so their overlapping findings confirm each other"
+  - id: d
+    text: "Raise each reviewer's token budget so it has room to recheck its own findings before posting"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A team runs several parallel specialist reviewers with no filtering step and finds the output noisy — each agent independently flags plausible-but-wrong issues that accumulate into untrustworthy review comments. Which change directly addresses this failure mode while keeping the fan-out?
+
+<Rationale appendix for="d4-06-fleet-false-positives">
+The failure mode is false-positive amplification: parallel reviewers each flag plausible-but-wrong issues, and with no filter those candidates accumulate, so more reviewers means more noise, not just more signal. The fix is the verification step, which re-checks each candidate against actual code behavior to filter out false positives before anything is posted — it is what makes fan-out a net gain rather than a faster false-positive generator. (b) discards the fan-out itself, which the chapter calls the direct architectural answer to attention dilution; shrinking to one reviewer surrenders the benefit instead of fixing the noise. (c) collapses the specialists' single-class mandates back into one over-loaded checklist, reintroducing the dilution the fleet was built to avoid, and overlapping wrong findings still survive unverified. (d) misdiagnoses the cause as a budget shortfall; the problem is the absent behavioral filter, not how much room each reviewer has to second-guess itself.
+</Rationale>

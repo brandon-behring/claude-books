@@ -1,0 +1,25 @@
+---
+id: d1-04-schema-only-gate
+type: mcq
+chapter: d1-04
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Add a semantic check, because a structurally valid output can still carry fabricated or contradictory content"
+    correct: true
+  - id: b
+    text: "Tighten the schema with more required fields and stricter types until the bad data fails validation"
+  - id: c
+    text: "Pass the output downstream and let the publish step flag any content that looks wrong"
+  - id: d
+    text: "Replace the schema check with a semantic check, since structural validation adds no value"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A pipeline validates every inter-step output against a JSON schema, yet it still ships data with a total that does not add up. The output parses cleanly and has every required field. What does the gate need to catch this?
+
+<Rationale appendix for="d1-04-schema-only-gate">
+A schema check confirms the *shape* and nothing else — the chapter warns that a structurally perfect output can be semantically wrong (valid JSON, fabricated data), so the gate must pair the structural check with a **semantic** one wherever the content can be wrong, not just the form. A total that doesn't add up is the chapter's own example of a semantic failure. (b) cannot work: no amount of field or type strictness detects that correctly-typed numbers fail to sum — that is a content question, not a shape question. (c) is the silent-failure path the gate exists to prevent; on failure the gate should reject and retry, not wave the output through to publish. (d) over-corrects — the structural check is cheap and still catches malformed shapes; the chapter says to *pair* the two checks, not swap one for the other.
+</Rationale>

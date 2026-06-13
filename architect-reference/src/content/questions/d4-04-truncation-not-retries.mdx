@@ -1,0 +1,28 @@
+---
+id: d4-04-truncation-not-retries
+type: mcq
+chapter: d4-04
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The responses hit the max_tokens cap, so detect that stop_reason and raise the cap or shrink the schema before retrying"
+    correct: true
+  - id: b
+    text: "The retry budget is too small, so increase the number of attempts until one of them completes the object"
+    correct: false
+  - id: c
+    text: "The semantic cross-checks are too strict, so loosen them so a partial object can pass validation"
+    correct: false
+  - id: d
+    text: "The grammar cache is stale, so vary the schema between attempts to force a fresh compilation each retry"
+    correct: false
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your validate-retry loop keeps reaching `error_max_structured_output_retries` on your longest documents, which come back as cut-off JSON, while shorter documents extract cleanly. Per the chapter, what is the actual failure and the fix?
+
+<Rationale appendix for="d4-04-truncation-not-retries">
+A cut-off response on the longest inputs is truncation, confirmed by `stop_reason: "max_tokens"` — the one failure retries cannot fix on their own, because re-prompting on the same output budget truncates at the same place and silently burns the whole retry allowance. The fix is to detect that stop reason and raise the cap (or shrink the schema). (b) adds attempts against the same budget, so every one truncates identically — more retries make it worse, not better. (c) loosening the checks lets a partial object pass and ships incomplete data; it treats truncation as a validation problem, which it is not. (d) mutating the schema between attempts invalidates the grammar cache and re-pays compilation — the opposite of the chapter's advice to keep the schema fixed and vary only the feedback message.
+</Rationale>

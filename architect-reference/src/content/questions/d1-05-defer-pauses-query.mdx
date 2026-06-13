@@ -1,0 +1,25 @@
+---
+id: d1-05-defer-pauses-query
+type: mcq
+chapter: d1-05
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Neither: defer ends the query for the host to resume later, and updatedInput is ignored with defer"
+    correct: true
+  - id: b
+    text: "Both: defer permits the call and the updatedInput rewrites it before it runs"
+  - id: c
+    text: "The rewrite holds but the call waits: defer just queues the rewritten command for the next turn"
+  - id: d
+    text: "The call is blocked outright, since defer is simply another name for the deny decision"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate writes a `PreToolUse` hook that returns `defer` carrying an `updatedInput`, expecting the rewritten command to then run. Will the command run, and will the rewrite take effect?
+
+<Rationale appendix for="d1-05-defer-pauses-query">
+`defer` is the decision candidates miss: it **ends the query so the host can resume it later from the persisted session** — a pause-and-hand-back, not an allow — so the command does not run now. And `updatedInput` is **ignored with `defer`**; that field applies only to `allow` (or `ask`). To run a rewritten command the hook must return `allow` with `updatedInput`. (b) is the teammate's mistaken model — `defer` neither permits nor applies the rewrite. (c) is closer but still wrong: `defer` hands the whole query back to the host rather than queuing the call for the next turn, and the rewrite is dropped either way. (d) confuses two distinct decisions — `defer` pauses and outranks `ask`, but a `deny` is what blocks a call outright, and `deny` outranks `defer`.
+</Rationale>

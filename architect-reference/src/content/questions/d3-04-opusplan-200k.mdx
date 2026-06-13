@@ -1,0 +1,25 @@
+---
+id: d3-04-opusplan-200k
+type: mcq
+chapter: d3-04
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "3"
+options:
+  - id: a
+    text: "No — opusplan's plan phase runs at the standard 200K; reach for opus[1m] for that phase instead"
+    correct: true
+  - id: b
+    text: "Yes — opusplan's Opus plan phase receives the automatic 1M-context upgrade"
+  - id: c
+    text: "Yes — the 1M window activates once the planning context exceeds 200K"
+  - id: d
+    text: "No — but switching to Sonnet for execution would give the planning step the larger window"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You run `claude --model opusplan` for a refactor whose planning step must hold roughly 400K tokens of context at once. Before picking the alias, decide whether opusplan's plan phase can provide that much context.
+
+<Rationale appendix for="d3-04-opusplan-200k">
+The automatic 1M-context upgrade applies to the `opus` alias only, not `opusplan` — its Opus plan phase runs with the standard 200K window. So a ~400K planning context is out of reach under `opusplan`; you would pin a 1M model such as `opus[1m]` for that phase instead. (b) is the trap the chapter says to memorize against: 1M is opus-only. (c) invents a size-triggered window that does not exist; the cap is fixed at 200K for this alias. (d) misattributes context to the model switch — Sonnet runs *execution*, not planning, and switching models does not grant the planning step a larger window.
+</Rationale>

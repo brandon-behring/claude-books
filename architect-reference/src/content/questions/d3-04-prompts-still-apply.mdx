@@ -1,0 +1,25 @@
+---
+id: d3-04-prompts-still-apply
+type: mcq
+chapter: d3-04
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Tool-permission prompts still appear the same as in default mode; only source edits are withheld"
+    correct: true
+  - id: b
+    text: "All prompts are suppressed, since plan mode runs as a quiet read-only sandbox"
+  - id: c
+    text: "Prompts are suppressed for shell commands but still appear for file reads"
+  - id: d
+    text: "Prompts disappear once Claude begins writing the plan, signalling research is underway"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate switches into plan mode expecting a silent run with no interruptions, then is surprised when Claude still pauses to ask before a shell command. What does plan mode actually do to the permission prompts?
+
+<Rationale appendix for="d3-04-prompts-still-apply">
+Plan mode is a *no-edit* mode, not a *prompt-free* one: Claude can read files, run shell commands to explore, and write a plan, but it does not edit your source — and "permission prompts still apply the same as default mode." So the prompts behave exactly as in default; only the edits to source are withheld. (b) is the precise misconception the chapter corrects — read-only is the guarantee, silence is not. (c) invents a selective-suppression rule the chapter never states; prompts apply uniformly, as in default. (d) misreads writing the plan as a state that quiets prompts, but plan mode still gates the actions it allows throughout.
+</Rationale>

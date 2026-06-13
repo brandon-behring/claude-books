@@ -1,0 +1,25 @@
+---
+id: d1-01-parallel-results-batch
+type: mcq
+chapter: d1-01
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Collect both results and return them in the next user message, each keyed by its tool_use_id"
+    correct: true
+  - id: b
+    text: "Return the first result now and send the second in a later user message once it resolves"
+  - id: c
+    text: "Merge both results into a single tool_result block so the next request stays well-formed"
+  - id: d
+    text: "Return whichever result finished first and let the model re-request the other on the next turn"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A handler runs two independent read-only queries concurrently in response to one assistant turn that contained two `tool_use` blocks. The slower query finishes a few seconds after the faster one. To keep the next request well-formed, how should the handler send the results back?
+
+<Rationale appendix for="d1-01-parallel-results-batch">
+When a single response contains more than one `tool_use` block, the API requires every corresponding `tool_result` in the next user message — you collect all results and send them as one batch, each matched to its call by `tool_use_id`. Waiting for the slower query before sending is correct; (a) describes exactly that. (b) defers one result to a later turn, which the chapter rules out: you cannot answer one tool now and the other later. (c) collapses two results into one block, breaking the per-call `tool_use_id` join key that the next request needs. (d) drops one call's result entirely and assumes the model will re-request it — but an unanswered `tool_use` block leaves the next request malformed, not merely incomplete.
+</Rationale>

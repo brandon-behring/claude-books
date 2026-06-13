@@ -1,0 +1,25 @@
+---
+id: d1-05-posttooluse-normalize
+type: mcq
+chapter: d1-05
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "A PostToolUse hook returning updatedToolOutput, which replaces the result before the model reads it"
+    correct: true
+  - id: b
+    text: "A PreToolUse hook returning updatedInput, which rewrites the call before the tool runs"
+  - id: c
+    text: "A PostToolUse hook returning additionalContext, which strips the codes as it appends to the result"
+  - id: d
+    text: "A PreToolUse hook returning a deny decision so the noisy Bash call never runs"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Every `Bash` result reaches the model carrying ANSI color codes, and you need them stripped before Claude reads the output — the call itself must still run normally. Which hook event and return field do that work?
+
+<Rationale appendix for="d1-05-posttooluse-normalize">
+Stripping noise from a result is **normalization**, which happens on the side of tool execution *after* the tool runs. That is `PostToolUse`, and the field that does the work is `updatedToolOutput`, which **replaces** the output before Claude sees it. (b) names the gate side: `PreToolUse` with `updatedInput` rewrites the *call's input* before the tool runs, but the noisy output does not exist yet at that point, so there is nothing to strip. (c) picks the right event but the wrong field: `additionalContext` *appends* to the result rather than replacing it, so the original ANSI-laden output still reaches the model. (d) blocks the call entirely, but the requirement is that the call still run — `deny` defeats the purpose.
+</Rationale>

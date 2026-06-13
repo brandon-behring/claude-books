@@ -1,0 +1,25 @@
+---
+id: d2-01-description-highest-leverage
+type: mcq
+chapter: d2-01
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Rewrite the description to say what it does, when (and when not) to use it, and what each parameter means"
+    correct: true
+  - id: b
+    text: "Rename it from a bare verb to a service-namespaced name like crm_get_record"
+  - id: c
+    text: "Add input_examples so the model can infer the intent from sample calls"
+  - id: d
+    text: "Trim the response to high-signal fields so the model wastes fewer tokens reading it"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A tool you inherited carries the entire description "Gets data for a record," and the agent keeps reaching for it at the wrong moments. Of the changes available, which one targets the single highest-leverage surface the chapter identifies?
+
+<Rationale appendix for="d2-01-description-highest-leverage">
+The chapter names the description as "by far the most important factor in tool performance" — the surface the model selects from — and prescribes saying what the tool does, when (and when not) to use it, and what each parameter means (3-4 sentences). Since the model chooses tools by description alone and never reads the implementation, an opaque description is a performance bug it cannot route around, so (a) is the highest-leverage fix. (b) helps disambiguate a growing library but does not tell the model what the tool does or its boundary. (c) compounds the gain by showing argument shape, yet the chapter frames examples as a complement to a good description, not a substitute for one. (d) improves the response half of the contract, which shapes the next call rather than fixing why the model misroutes to this tool.
+</Rationale>

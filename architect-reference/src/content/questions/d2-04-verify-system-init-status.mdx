@@ -1,0 +1,25 @@
+---
+id: d2-04-verify-system-init-status
+type: mcq
+chapter: d2-04
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Read the \"system:init\" message and refuse to run if any server's status is not \"connected\""
+    correct: true
+  - id: b
+    text: "Catch the exception the server raises on connection failure and retry the query"
+  - id: c
+    text: "Lower the 60-second initialization timeout so a failing server reports sooner"
+  - id: d
+    text: "Set \"strictMcpConfig: true\" so only your declared servers can connect"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your agent "doesn't seem to have" its MCP tools, yet the config looks correct and **no error is thrown**. Before letting the agent act, what should the program do to turn this silent gap into an explicit failure?
+
+<Rationale appendix for="d2-04-verify-system-init-status">
+A wired server that never connected is this chapter's silent failure: the agent just runs without the tools. The documented fix is to read the **`system:init`** message — each server's `status` is `connected | failed | needs-auth | pending | disabled` — and gate the run on it, so (a) is right. (b) assumes an exception is raised, but the chapter's whole point is that *no error is thrown*; the failure surfaces only in the `status` field. (c) misreads the 60-second timeout: shortening it does not reveal the problem and would make slow-but-healthy servers fail — the chapter says pre-warm or use a lighter package instead. (d) `strictMcpConfig` controls *which* servers are considered (clean-room config), not whether a configured server actually connected.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d5-01-buried-fact-no-compaction
+type: mcq
+chapter: d5-01
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Restate the fact near the end of the context so it sits where the model attends most reliably"
+    correct: true
+  - id: b
+    text: "Move the fact into CLAUDE.md so it is re-injected and survives the next compaction"
+  - id: c
+    text: "Switch to a model with a larger context window so the conversation has more room"
+  - id: d
+    text: "Raise the output token budget so the model has room to recall the detail"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A session is comfortably under the token limit and has never compacted, yet Claude misremembers a detail established about sixty turns ago in a long stretch of context. Which fix most directly addresses the failure mode at work here?
+
+<Rationale appendix for="d5-01-buried-fact-no-compaction">
+Under the limit with no compaction, the failure is **lost-in-the-middle**: a model attends least reliably to material buried in the middle of a long window, so the fix is to re-surface the fact near the *end* of the context where it is attended to most reliably. (b) targets post-compaction loss, but the scenario never compacted — re-injection solves a problem that isn't present. (c) is the bigger-window instinct, which does nothing for this mode: a larger context still loses its middle. (d) governs output length, not which earlier material the model attends to, so it is unrelated to the failure.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d3-02-disable-model-invocation-description
+type: mcq
+chapter: d3-02
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Its description is kept out of startup context entirely, so Claude is never told the skill exists and cannot auto-invoke it"
+    correct: true
+  - id: b
+    text: "Its ~100-token description still loads at startup, but Claude is forbidden from acting on the match"
+  - id: c
+    text: "Its description loads only after the user runs it once, so the first auto-invoke is what is blocked"
+  - id: d
+    text: "Its description is dropped only when the skill-listing budget overflows, otherwise Claude can still auto-invoke"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You mark a risky `/force-release` skill `disable-model-invocation: true`, then ask Claude to "just release it" — and it acts as if the skill does not exist. According to this chapter, what did that flag do to the skill's description?
+
+<Rationale appendix for="d3-02-disable-model-invocation-description">
+`disable-model-invocation: true` keeps the skill's description **out of context** entirely — it loads only when the user types `/name` — so the model is never told the skill exists and cannot auto-invoke; (a) matches the chapter exactly. (b) is the wrong mechanism: the chapter does not gate a *seen* description, it removes the description so there is nothing to match. (c) invents a load-on-first-use rule the chapter never states. (d) describes the *separate* budget-overflow path, where least-invoked descriptions drop first; that is a different cause from this flag, which always withholds the description.
+</Rationale>

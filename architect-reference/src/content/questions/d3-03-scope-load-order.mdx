@@ -1,0 +1,25 @@
+---
+id: d3-03-scope-load-order
+type: mcq
+chapter: d3-03
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The project rule wins, because user-level rules load first and the project rule is read last at higher priority"
+    correct: true
+  - id: b
+    text: "The user-level rule wins, because a machine-wide preference outranks anything a single repository ships"
+  - id: c
+    text: "Whichever rule carries a paths glob wins, since scoping a rule raises its priority over an unscoped one"
+  - id: d
+    text: "Neither applies — two rules giving conflicting instructions cancel out, so Claude falls back to its default"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your machine has `~/.claude/rules/style.md` ("prefer tabs"), and a repo you are working in ships `.claude/rules/style.md` ("prefer spaces"). Neither rule uses a `paths` glob, so both are in context. When the two instructions tension, which one does Claude favor and why?
+
+<Rationale appendix for="d3-03-scope-load-order">
+The documented order is that "user-level rules are loaded before project rules, giving project rules higher priority" — rules concatenate, but the more-specific scope is read last and dominates, the same recency model as the CLAUDE.md hierarchy. So the project rule ("spaces") wins. (b) inverts the order: a user-level preference is a *default* that a project rule can override by being read after it, not the other way around. (c) imports a priority mechanism that does not exist — `paths` controls *whether* a rule is present, not its precedence once loaded, and here neither rule is scoped anyway. (d) invents a cancellation behavior the chapter never describes; the conflict is resolved by load order, not by mutual nullification.
+</Rationale>

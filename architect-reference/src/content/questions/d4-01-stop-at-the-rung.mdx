@@ -1,0 +1,25 @@
+---
+id: d4-01-stop-at-the-rung
+type: mcq
+chapter: d4-01
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Move only sentiment to an enum-constrained tool or structured output, leaving the other fields at explicit instruction"
+    correct: true
+  - id: b
+    text: "Move every field to a structured output, so the whole contract is enforced uniformly at the strongest rung"
+  - id: c
+    text: "Keep all fields on explicit instruction and add retries, since a capable model usually matches the schema when told"
+  - id: d
+    text: "Add few-shot examples for every field so each one is demonstrated before the parser ever runs"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A summarization job returns a JSON object whose fields are all handled well by plain instruction except `sentiment`, which must be one of three labels and will crash the downstream pipeline if a fourth value ever appears. Following the chapter's escalation discipline, how should you harden the prompt?
+
+<Rationale appendix for="d4-01-stop-at-the-rung">
+The chapter's discipline is to "stop at the rung the stakes require": most fields never leave Rung 1 (explicit instruction), and only the crash-on-violation field earns Rung 3 (structured outputs / strict tools), which makes a non-conforming value unrepresentable rather than merely discouraged. (b) over-climbs — promoting every field to the strongest rung just buys setup cost and latency the lower-stakes fields don't need. (c) under-climbs: the premise is that a fourth value *crashes* the pipeline, and instruction-plus-retries only makes the shape likely-correct, not unviolatable. (d) escalates to the wrong rung — few-shot (Rung 2) disambiguates ambiguous judgments but still cannot prevent an out-of-set label from being emitted.
+</Rationale>

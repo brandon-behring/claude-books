@@ -1,0 +1,25 @@
+---
+id: d4-05-succeeded-not-usable
+type: mcq
+chapter: d4-05
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Inspect each succeeded message's own stop_reason, because a refusal or truncation arrives as succeeded"
+    correct: true
+  - id: b
+    text: "Treat every succeeded result as a valid classification, since unusable outputs come back as errored"
+  - id: c
+    text: "Skip stop_reason and instead re-poll processing_status until the batch reports usable results"
+  - id: d
+    text: "Filter out succeeded results, since only canceled and expired results carry a real message"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your overnight batch finishes and you iterate the results, keeping every entry whose result type is `succeeded` and treating it as a finished classification. Some downstream records turn out to hold refused or truncated text. Per the chapter, what must the per-result handler do that this design omits?
+
+<Rationale appendix for="d4-05-succeeded-not-usable">
+The four result types (`succeeded`, `errored`, `canceled`, `expired`) are *batch-level* outcomes — they say the request *ran*, not that its answer is good. A `succeeded` result carries a message with its own `stop_reason`, and two values still bite: a refusal (`stop_reason: "refusal"`) returns a 200, is billed, and may not match your schema; a truncation (`"max_tokens"`) is incomplete output. So handling must inspect each succeeded message's `stop_reason`, not stop at the result type. (b) inverts the chapter's central warning: unusable refusals and truncations arrive precisely *as* `succeeded`, not as `errored`. (c) misreads the lifecycle — re-polling cannot reclassify a finished result, and `stop_reason` lives on the message, not the batch status. (d) is backwards on billing and content: `succeeded` is the type that includes the message result, while `canceled`/`expired` are the unbilled failures.
+</Rationale>

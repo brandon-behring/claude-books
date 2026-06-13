@@ -1,0 +1,25 @@
+---
+id: d3-05-fresh-session-after-interview
+type: mcq
+chapter: d3-05
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Open a fresh session and prompt it to implement from the spec, so the work starts on clean context"
+    correct: true
+  - id: b
+    text: "Keep going in the same session, since it already holds the full design discussion in context"
+  - id: c
+    text: "Start a fresh session but re-paste the interview transcript so no decisions are lost"
+  - id: d
+    text: "Delete the spec file and have the interview session implement from its own memory of the answers"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You ran the interview pattern for a rate limiter: Claude questioned you with the AskUserQuestion tool and wrote a complete SPEC.md, which you reviewed and corrected. To begin implementation, which move does the chapter prescribe?
+
+<Rationale appendix for="d3-05-fresh-session-after-interview">
+The chapter is explicit that a *fresh* session implements from the written spec: the interview session is "full of question-answer thrashing," while the implementation session should "start with clean context whose only input is the written spec." So the correct move is to open a new session (or `/clear`) and prompt it to implement per SPEC.md. (b) is the exact mistake the split exists to prevent — the interview context is full of half-formed options and back-and-forth, and the implementation session should not inherit that noise. (c) re-injects precisely the thrash the fresh session is meant to escape, defeating the purpose; the spec file *is* the clean hand-off, so the transcript is not needed. (d) discards the reviewable artifact that serves as both review gate and context bootstrap, and leans on a cluttered session's memory instead of the corrected spec.
+</Rationale>

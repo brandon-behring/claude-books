@@ -1,0 +1,25 @@
+---
+id: d1-03-fresh-context-channel
+type: mcq
+chapter: d1-03
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Write the file path and error text directly into the Agent-tool prompt string"
+    correct: true
+  - id: b
+    text: "Rely on the parent conversation, which the subagent inherits as shared history"
+  - id: c
+    text: "Set the subagent's model to inherit so it picks up the parent's prior turns"
+  - id: d
+    text: "Add the subagent's name to allowedTools so the discussed context is approved"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You delegate to a subagent with the prompt "fix the bug we discussed," and it flounders with no idea what bug you mean. To make the next delegation succeed, where must the specifics go?
+
+<Rationale appendix for="d1-03-fresh-context-channel">
+A subagent starts in a **fresh context window** with no parent conversation, so "the bug we discussed" never crossed the boundary; the only inbound channel is the Agent tool's **prompt string**. File paths, error messages, and prior decisions must be written into that prompt or they do not exist for the child. (b) is the exact misconception the chapter corrects — the parent conversation and tool results are among the things that do *not* cross. (c) misreads `model`: it only selects the engine and carries no conversation; even `inherit` transmits no prior turns. (d) confuses the run gate with a content channel — `allowedTools` decides whether the call is approved, not what context the child can see.
+</Rationale>

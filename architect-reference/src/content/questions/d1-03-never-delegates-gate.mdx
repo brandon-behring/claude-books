@@ -1,0 +1,25 @@
+---
+id: d1-03-never-delegates-gate
+type: mcq
+chapter: d1-03
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: analyze
+difficulty: "2"
+options:
+  - id: a
+    text: "\"Agent\" is missing from the parent's allowedTools, so the call is never approved"
+    correct: true
+  - id: b
+    text: "The subagent's tools array omits \"Agent\", so it cannot accept the delegated call"
+  - id: c
+    text: "The subagent's model field is unset, so Claude has no engine to route the task to"
+  - id: d
+    text: "The subagent's prompt is too generic, so Claude cannot match the task to it"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You define a focused `doc-reviewer` subagent with a specific, keyword-rich `description`, yet it never triggers — the main agent just reviews the file inline. The parent's `allowedTools` is `["Read", "Edit", "Bash"]`. Which fault best explains why nothing is delegated?
+
+<Rationale appendix for="d1-03-never-delegates-gate">
+A subagent passes through two independent gates: the `description` is the **match** gate and `allowedTools` is the **run** gate — you need both. Here the description is already specific, so matching is fine; the listed `allowedTools` has no `"Agent"` entry, so the Agent-tool call is never auto-approved and falls through to `canUseTool` (or is denied in `dontAsk`). The fix is to add `"Agent"`. (b) inverts the depth rule: you should *not* put `Agent` in a child's `tools` — that array scopes what the child may use, not whether it can be invoked. (c) is wrong because `model` is optional and defaults; an unset model does not block invocation. (d) names the *match* gate, but the stem states the description is specific and keyword-rich, so matching is not the failing gate here.
+</Rationale>

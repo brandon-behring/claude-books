@@ -1,0 +1,25 @@
+---
+id: d3-03-scoped-rule-silent
+type: mcq
+chapter: d3-03
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Nothing happens — the rule stays out of context, because it activates only when Claude reads a file matching its glob"
+    correct: true
+  - id: b
+    text: "The rule loads at session start, since every rule under .claude/rules/ is read into context when Claude launches"
+  - id: c
+    text: "The rule loads as soon as Claude runs any tool during the session, even before touching a matching file"
+  - id: d
+    text: "The rule is ignored permanently this session, because a path-scoped rule that misses at launch never gets a second chance"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A rule at `.claude/rules/backend/api.md` carries `paths: ["src/api/**/*.ts"]`. During a session, Claude edits files under `src/frontend/` and never reads anything under `src/api/`. Regarding that API rule, what is the effect of this session on its presence in context?
+
+<Rationale appendix for="d3-03-scoped-rule-silent">
+Path-scoped rules "trigger when Claude reads files matching the pattern, not on every tool use" — so a rule scoped to `src/api/**` has no effect during work that never touches `src/api/`, which is exactly the value of scoping: file-specific guidance that costs nothing on unrelated turns. (b) describes an *unconditional* rule (no `paths`), which loads at launch at the same priority as `.claude/CLAUDE.md`; the whole point of `paths` is that it does **not** load that way. (c) confuses any-tool-use with file-read: the chapter is explicit that the trigger is reading a matching file, "not on every tool use." (d) invents a one-shot launch check the chapter never describes — the rule is dormant, not disabled, and would activate the moment Claude does read a matching API file.
+</Rationale>

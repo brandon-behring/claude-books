@@ -1,0 +1,25 @@
+---
+id: d1-04-enforcement-locus
+type: mcq
+chapter: d1-04
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Enforce it programmatically, because a fixed repeatable sequence that needs an audit trail and gates is what your code is for"
+    correct: true
+  - id: b
+    text: "Stay prompt-based, because the model can self-direct any sequence more cheaply than orchestration code"
+  - id: c
+    text: "Enforce it programmatically, because prompt-based workflows cannot be translated to the SDK"
+  - id: d
+    text: "Stay prompt-based, because determinism only matters when the steps are not known in advance"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A compliance pipeline runs the same four steps in the same order every time, must produce an audit trail, and needs a check between steps that a malformed output cannot slip past. Where should this workflow's control flow live?
+
+<Rationale appendix for="d1-04-enforcement-locus">
+The chapter's Evaluate-level rule says to **enforce programmatically** when the workflow needs determinism, an audit trail, validation gates between steps, or a fixed and repeatable sequence — exactly this scenario, where the steps are known in advance and you want them to run the same way every time. (b) inverts the rule: prompt-based is the choice when the path is *flexible* and orchestration code would cost more than it saves, neither of which holds here. (c) invents a constraint the chapter denies — Anthropic notes the same workflow "translate[s] directly" between the CLI and the SDK, so translatability is not the deciding factor. (d) misstates when determinism matters: a fixed, known-in-advance sequence is precisely the case that wants deterministic enforcement, not the case that excuses it.
+</Rationale>

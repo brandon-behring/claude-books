@@ -1,0 +1,25 @@
+---
+id: d4-05-streaming-dashboard
+type: mcq
+chapter: d4-05
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "It cannot be built — streaming is not supported for batch requests"
+    correct: true
+  - id: b
+    text: "It works if every request carries a unique custom_id to order the live updates"
+  - id: c
+    text: "It works only after raising max_tokens with the extended-output beta header"
+  - id: d
+    text: "It cannot be built — a single batch is capped at far fewer than that many requests"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate proposes a *streaming batch* so a dashboard can update ticket-by-ticket as each of 80,000 classifications arrives. Setting aside whether streaming is the right tool, which statement about this proposal does the chapter support?
+
+<Rationale appendix for="d4-05-streaming-dashboard">
+The chapter states plainly that "streaming is not supported for batch requests," and the exercise solution rejects the live-updating dashboard for exactly that reason — so the proposal cannot be built as described. (b) is the distractor's trap: `custom_id` is the mandatory join key for *unordered* results pulled after the batch ends, but it does nothing to enable live per-ticket streaming, which the batch surface does not offer at all. (c) misattributes the limit — the `output-300k-2026-03-24` beta raises the `max_tokens` cap, not anything about streaming. (d) invents a false size constraint: a single batch is limited to 100,000 requests, so 80,000 fits comfortably; the real blocker is the streaming feature, not the count.
+</Rationale>

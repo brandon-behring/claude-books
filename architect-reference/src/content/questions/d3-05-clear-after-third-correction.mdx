@@ -1,0 +1,25 @@
+---
+id: d3-05-clear-after-third-correction
+type: mcq
+chapter: d3-05
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Run /clear and restart with a more specific prompt that incorporates what the failed rounds taught you"
+    correct: true
+  - id: b
+    text: "Issue a third, more forceful correction since the feedback loop is finally getting tight"
+  - id: c
+    text: "Open plan mode and have Claude re-explore the codebase before you correct it once more"
+  - id: d
+    text: "Raise the context budget so the failed approaches and the new instruction both fit in the window"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Three times this session you have corrected Claude on the same issue, and each fix drifts back toward the wrong approach. According to the chapter's threshold for course-correction, what should you do next?
+
+<Rationale appendix for="d3-05-clear-after-third-correction">
+The chapter sets a hard threshold: corrected more than twice on the same issue in one session, "the context is cluttered with failed approaches. Run `/clear` and start fresh with a more specific prompt that incorporates what you learned" — a clean session with a better prompt "almost always outperforms a long session with accumulated corrections." (b) is the move the chapter explicitly warns against: past the second correction each nudge fights a context polluted with the very approaches you are steering away from. (c) keeps the polluted context in place and still ends in another correction, so it does not reset the loop. (d) misdiagnoses the problem — the failed approaches in the window are *pulling the model back*, so giving them more room makes the drift worse, not better; the fix is to clear them, not accommodate them.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d5-06-citations-schema-conflict
+type: mcq
+chapter: d5-06
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "The two cannot coexist, because cited text must interleave with the response prose that a strict JSON schema forbids"
+    correct: true
+  - id: b
+    text: "The PDF was scanned without extractable text, so its pages could not be cited under page_location"
+  - id: c
+    text: "Citations were enabled on only some of the request's documents rather than all of them"
+  - id: d
+    text: "The cited_text field overflowed the output token budget once the schema was attached"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+An extraction service enables the Citations API on a document and also sets a structured-output format on the same request, expecting JSON with per-claim citations. The API returns a 400 instead. According to the chapter, what is the root cause of this rejection?
+
+<Rationale appendix for="d5-06-citations-schema-conflict">
+The chapter is explicit that "Citations cannot be used together with Structured Outputs ... the API will return a 400 error," because cited text must interleave with the response prose, which a strict JSON schema forbids. You cannot get span-bound attribution and a grammar-constrained JSON shape in the same call; the fallback is the provenance triple. (b) describes a real limitation — scanned images without extractable text are not citable — but a scan failure is not what produces this 400; the conflict is structural, not a document-quality problem. (c) names the all-or-none enablement rule, a separate constraint that governs mixing cited and uncited documents, not the Citations-plus-schema collision. (d) misreads the cost model: cited_text "does not count towards output tokens," so it cannot overflow the output budget.
+</Rationale>

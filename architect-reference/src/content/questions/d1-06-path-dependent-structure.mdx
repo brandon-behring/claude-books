@@ -1,0 +1,25 @@
+---
+id: d1-06-path-dependent-structure
+type: mcq
+chapter: d1-06
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Adaptive decomposition, because the work is path-dependent — step N+1 depends on what step N discovered, so no design-time sequence can capture it"
+    correct: true
+  - id: b
+    text: "A sequential pipeline, because mapping each finding to the next step in advance is what makes the cost auditable"
+  - id: c
+    text: "A sequential pipeline, because a clean fixed sequence is the structure least likely to be brittle under change"
+  - id: d
+    text: "Adaptive decomposition, because spawning many subagents up front guarantees the broadest possible coverage of the topic"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You are scoping "find out whether any competitor shipped feature X — go as deep as the question needs," where each thing you learn changes what you look at next and the depth is unknowable up front. Which decomposition structure does this task require, and on what property of the task does that choice turn?
+
+<Rationale appendix for="d1-06-path-dependent-structure">
+The chapter's deciding property is **predictability**, and this task fails it: the work is "inherently dynamic and path-dependent" — step N+1 depends on what step N discovered — so "you can't hardcode a fixed path," which is exactly what makes adaptive decomposition the right shape. (b) and (c) both reach for a pipeline, but a fixed sequence applied to path-dependent work is the **rigid-pipelining** failure: it is brittle and cannot branch on what it finds, and you cannot map findings to steps you couldn't predict. (d) lands on adaptive for the wrong reason — "spawn many subagents up front" is over-decomposition; adaptive means the orchestrator *sizes* effort at runtime (the 1 / 2-4 / 10+ ladder), not that more agents is always better.
+</Rationale>

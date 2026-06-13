@@ -1,0 +1,25 @@
+---
+id: d3-01-import-decline-permanent
+type: mcq
+chapter: d3-01
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Imports are disabled permanently — the approval dialog does not reappear, so the file never expands until the choice is reset"
+    correct: true
+  - id: b
+    text: "Claude re-prompts on the next session start, since approval is tracked per session"
+  - id: c
+    text: "The import is skipped only this once, and the referenced file expands automatically next launch"
+  - id: d
+    text: "Claude raises a build error and refuses to start until the import line is removed"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your CLAUDE.md pulls in shared standards with @./standards/api.md. The first time the import runs, Claude Code shows an approval dialog and the developer clicks decline. According to the chapter, what is the lasting consequence for that environment?
+
+<Rationale appendix for="d3-01-import-decline-permanent">
+The first time a session encounters an `@import`, Claude Code shows an approval dialog, and **declining it disables imports permanently** — the dialog does not reappear, so the referenced file silently will not expand until the choice is reset. (b) contradicts the documented behavior: the consequence is permanent, not re-prompted each session. (c) treats the decline as a one-time skip, but the chapter is explicit that the dialog does not come back. (d) confuses a declined approval with a hard failure — declining suppresses imports, it does not block the session from starting, and the chapter notes the *overflow* behavior past depth 5 (silent truncation versus error) is itself undocumented.
+</Rationale>

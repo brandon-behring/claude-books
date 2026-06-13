@@ -1,0 +1,25 @@
+---
+id: d4-01-positive-over-negative
+type: mcq
+chapter: d4-01
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "\"Respond in smoothly flowing prose\" — it names the target shape instead of a forbidden region"
+    correct: true
+  - id: b
+    text: "\"Do not use markdown lists\" — it removes the specific failure the reviewers keep flagging"
+  - id: c
+    text: "\"Avoid bullets and don't be too structured\" — it rules out more than one unwanted form at once"
+  - id: d
+    text: "\"Never use lists or headers under any circumstances\" — its firmness leaves no room to drift"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A teammate's prompt keeps producing bulleted answers when the team wants paragraphs, so they ask you whether to add "do not use markdown lists" or "respond in smoothly flowing prose." Which instruction steers more reliably toward paragraphs, and on what reasoning?
+
+<Rationale appendix for="d4-01-positive-over-negative">
+The chapter is explicit that a positive instruction outperforms a prohibition when steering format or tone: "Respond in smoothly flowing prose" points straight at the destination, while a prohibition only names a forbidden region without locating the target inside the still-vast permitted one. (b) is the negative form the chapter contrasts against — banning lists rules out one failure but leaves a thousand other acceptable-but-unwanted shapes. (c) is still negative and adds a second vague term ("too structured") with no defined target. (d) treats firmness as the fix, but absoluteness does not address the real defect: a prohibition shrinks the output space without aiming within it, so even an emphatic "never" fails to specify the paragraph form you meant.
+</Rationale>

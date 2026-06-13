@@ -1,0 +1,25 @@
+---
+id: d4-02-edge-case-in-the-set
+type: mcq
+chapter: d4-02
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Add an example whose input has no order number and whose output shows the field as null, placed in the middle of the set"
+    correct: true
+  - id: b
+    text: "Add a sentence beside the examples instructing the model to use null, not an empty string, when no order number appears"
+  - id: c
+    text: "Add several more clean examples that all include an order number, giving the model more data to generalize from"
+  - id: d
+    text: "Leave the prompt alone and post-process every empty string in the output into null after the model returns"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your few-shot extraction returns the empty string for `order_id` when an input omits the order number, but the downstream consumer needs `null`. Following the chapter's "target the ambiguous case" guidance, what is the most reliable fix?
+
+<Rationale appendix for="d4-02-edge-case-in-the-set">
+The ambiguous case — an input with no order number — is exactly what an example should *demonstrate*: place one in the set whose output shows the field as `null`, in the middle, and the model generalizes from that treatment. (b) is the D4.1 instinct and it helps, but the chapter is explicit that a prose rule beside the examples teaches the case less reliably than a demonstration *on* it — the model generalizes from the example treatment, not the written rule next to it. (c) adds volume without diversity: more *clean* inputs never show the missing-field case, so the model still has nothing to copy. (d) is a band-aid that hard-codes one symptom — the model may emit `"none"` or `"n/a"` next, leaving you maintaining a translation table instead of fixing the prompt at its root.
+</Rationale>

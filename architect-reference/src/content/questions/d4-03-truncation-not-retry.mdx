@@ -1,0 +1,25 @@
+---
+id: d4-03-truncation-not-retry
+type: mcq
+chapter: d4-03
+domain: 'Prompt Engineering & Structured Output'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Raise `max_tokens` (or shrink the schema) — generation ran out of room to close the object"
+    correct: true
+  - id: b
+    text: "Retry the identical request — a fresh sample will usually complete the object"
+  - id: c
+    text: "Add `additionalProperties: false` to every object node so the grammar can compile"
+  - id: d
+    text: "Switch off `strict` and parse the response text instead, since the grammar is failing"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your strict extraction normally works, but on unusually long inputs the returned JSON is occasionally cut off mid-object and your parser throws — and `stop_reason` comes back as `max_tokens`. What is the correct fix?
+
+<Rationale appendix for="d4-03-truncation-not-retry">
+This is truncation, not a grammar failure: `max_tokens` is a hard cap on output, and generation hit it partway through writing the object. The grammar did its job — every emitted token was schema-valid — but it cannot guarantee the structure *finishes* within the budget, so the JSON is cut off before its closing braces. The fix is to enlarge the room: raise `max_tokens` (or shrink the schema). (b) re-runs against the *same* budget and truncates at the same place — the chapter is explicit that a plain retry is not the fix. (c) addresses a different failure: a missing `additionalProperties: false` is the top schema-compilation 400, not a mid-write cutoff. (d) misreads the cause — the grammar was working per-token; abandoning it forfeits the type guarantee without giving the generation any more room.
+</Rationale>

@@ -1,0 +1,25 @@
+---
+id: d5-05-measure-before-routing
+type: mcq
+chapter: d5-05
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Measure, on labeled past extractions, how often each stated level is actually correct, then route by that observed accuracy"
+    correct: true
+  - id: b
+    text: "Auto-accept every record marked high, since high monotonically outranks medium and low"
+  - id: c
+    text: "Drop the confidence field and route purely on whichever label the model emits most often"
+  - id: d
+    text: "Treat the field as calibrated and reuse the same thresholds after the model is upgraded"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+An extraction pipeline emits a `confidence` field of high, medium, or low, and you want to use it to decide which records auto-accept and which route onward for a high-stakes clinical field. Before you trust the label to route, what does the chapter say you must do?
+
+<Rationale appendix for="d5-05-measure-before-routing">
+A confidence signal earns its routing role by **measurement, not by its name**: you measure, over real labeled data, the accuracy at each stated-confidence level and set the bar where the signal reliably predicts correctness. (b) trusts the word "high" as if it meant "certain" — but a measured "high" can be 94%, not ~100%, so roughly six in a hundred high-confidence extractions are wrong, an unacceptable residual on a high-stakes clinical field. (c) discards a signal the measurement shows is *informative* (accuracy falls monotonically high to low) and routes on frequency, which carries no information about correctness. (d) ignores the chapter's warning that calibration is not permanent — you re-measure when the model, prompt, or input distribution changes.
+</Rationale>

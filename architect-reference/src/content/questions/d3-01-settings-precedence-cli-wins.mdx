@@ -1,0 +1,25 @@
+---
+id: d3-01-settings-precedence-cli-wins
+type: mcq
+chapter: d3-01
+domain: 'Claude Code Configuration & Workflows'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "haiku — the CLI argument sits above both file scopes on the precedence ladder"
+    correct: true
+  - id: b
+    text: "opus — the project settings file is committed, so it outranks a session-only flag"
+  - id: c
+    text: "sonnet — the user file is the broadest scope, and broadest wins as it does for CLAUDE.md"
+  - id: d
+    text: "haiku — but only because all three values happen to merge, like permission rules do"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A developer sets \"model\": \"sonnet\" in their user settings and \"model\": \"opus\" in the project's committed settings, then launches the session with --model haiku. Given how Claude Code resolves the settings hierarchy, which model actually runs, and why?
+
+<Rationale appendix for="d3-01-settings-precedence-cli-wins">
+Settings resolve by a strict five-level precedence where the highest scope wins: **Managed → CLI arguments → Local → Project → User**. The `--model haiku` flag is a **CLI argument** (level 2), which beats both the project `opus` (level 4) and the user `sonnet` (level 5), so `haiku` runs. (b) inverts the ladder — being committed gives Project no power over a CLI argument, which sits a full two levels higher. (c) imports the *CLAUDE.md* mental model (broadest-first concatenation) onto settings; for settings the broadest scope, User, is the **lowest**, not the winner. (d) reaches the right model but by the wrong mechanism: settings **override** to a single value, and only permission allow/ask/deny rules are the merge exception — `model` is not.
+</Rationale>

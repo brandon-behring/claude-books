@@ -1,0 +1,25 @@
+---
+id: d1-06-adaptive-cost-tradeoff
+type: mcq
+chapter: d1-06
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Roughly 3-10x more tokens, and what it buys is thoroughness, not speed"
+    correct: true
+  - id: b
+    text: "Roughly 3-10x more tokens, and what it buys is a faster wall-clock from parallel subagents"
+  - id: c
+    text: "About the same tokens, since the work is identical, but a faster wall-clock from parallelism"
+  - id: d
+    text: "Roughly 3-10x more tokens, with the gain being deterministic, auditable, bounded cost"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A lead picks an adaptive multi-agent decomposition over a single-agent approach for an open-ended research task and is asked to justify the spend to a skeptical stakeholder. Compared to a single agent on an equivalent task, what is the rough token cost, and what does that spend actually buy?
+
+<Rationale appendix for="d1-06-adaptive-cost-tradeoff">
+The chapter attaches a price tag: an adaptive multi-agent flow "typically use[s] 3-10x more tokens than single-agent approaches for equivalent tasks," and that spend buys **thoroughness, not speed** — parallel subagents explore a larger space, but coordination plus the slowest subagent often make the wall-clock *slower*. (b) keeps the right number but inverts the benefit: the chapter is explicit that parallelism does **not** buy speed. (c) is doubly wrong — it both denies the multiplier (adaptive work is not "the same tokens") and claims a speed gain the chapter rules out. (d) borrows the language of the *opposite* structure: deterministic, auditable, bounded cost describe the **sequential pipeline**, which is precisely what an adaptive flow is *not*.
+</Rationale>

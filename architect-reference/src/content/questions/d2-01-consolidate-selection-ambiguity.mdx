@@ -1,0 +1,25 @@
+---
+id: d2-01-consolidate-selection-ambiguity
+type: mcq
+chapter: d2-01
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Fold them into one tool with an action parameter, because fewer, more capable tools reduce selection ambiguity"
+    correct: true
+  - id: b
+    text: "Keep three tools but namespace each by service so their names no longer collide"
+  - id: c
+    text: "Keep three tools and add input_examples to each so the model picks the right one"
+  - id: d
+    text: "Keep three tools but make each response return only high-signal identifiers"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your toolset exposes create_pr, review_pr, and merge_pr as three separate tools, and the agent frequently invokes the wrong one. Which redesign does the chapter document for exactly this set, and on what stated rationale?
+
+<Rationale appendix for="d2-01-consolidate-selection-ambiguity">
+The chapter uses this exact trio as its example of the documented default — consolidate related operations into a single tool with an action parameter, because "fewer, more capable tools reduce selection ambiguity" — so (a) is the documented redesign and rationale. (b) addresses name collisions, but these three names already differ; the problem is too many near-equivalent tools, which namespacing does not reduce. (c) shows argument shape per tool yet leaves three selectable tools in place, so the model can still misroute among them. (d) improves each response's signal but again preserves the three-way choice the consolidation is meant to remove.
+</Rationale>

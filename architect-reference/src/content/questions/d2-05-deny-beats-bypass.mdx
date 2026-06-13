@@ -1,0 +1,25 @@
+---
+id: d2-05-deny-beats-bypass
+type: mcq
+chapter: d2-05
+domain: 'Tool Design & MCP Integration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Yes — deny rules are checked before the permission mode, so the rule binds even under bypassPermissions"
+    correct: true
+  - id: b
+    text: "No — bypassPermissions sits above deny rules in the order, so it approves the call first"
+  - id: c
+    text: "No — the rule must instead go in allowed_tools, which is the list bypassPermissions honors"
+  - id: d
+    text: "Only if you also drop the mode to default, since deny rules apply in default mode alone"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A headless agent runs under `permission_mode="bypassPermissions"` to suppress prompts, with one guardrail: `disallowed_tools=["Bash(rm -rf *)"]`. The model requests `Bash(rm -rf /data)`. Will the deletion be blocked?
+
+<Rationale appendix for="d2-05-deny-beats-bypass">
+The SDK checks permissions in a fixed order: Hooks, then Deny rules, then Permission mode, then Allow rules, then `canUseTool`. Because deny rules (step 2) sit *above* the permission mode (step 3), the `Bash(rm -rf *)` rule matches and denies the call before the mode is ever consulted — so the deletion is blocked even though the mode is `bypassPermissions`. (b) inverts the order: `bypassPermissions` is step 3, *below* deny rules, so it cannot approve first. (c) confuses the two instruments — `allowed_tools` only pre-approves and lives at step 4 (below the mode), so under `bypassPermissions` it is ignored entirely; the allowlist would not block anything. (d) invents a restriction: deny rules apply in *every* mode, which is exactly why they are the tool for forbidding.
+</Rationale>

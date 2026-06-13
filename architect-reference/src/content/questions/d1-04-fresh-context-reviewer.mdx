@@ -1,0 +1,25 @@
+---
+id: d1-04-fresh-context-reviewer
+type: mcq
+chapter: d1-04
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "A fresh context cannot rationalize choices it never made, so it judges the work independently"
+    correct: true
+  - id: b
+    text: "The writer's context is too large to pass to the reviewer without exceeding the token budget"
+  - id: c
+    text: "Inheriting the context would let the reviewer finish faster and declare success too early"
+  - id: d
+    text: "The reviewer needs the writer's full transcript to judge the code accurately in context"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+Your quality workflow has Session A write a rate limiter and Session B review it, and a teammate proposes saving effort by handing Session B all of Session A's prior context. In the Writer/Reviewer pattern, why must the reviewer *not* inherit the writer's context?
+
+<Rationale appendix for="d1-04-fresh-context-reviewer">
+In the Writer/Reviewer pattern the *absence* of inheritance is the feature: a fresh context "won't be biased toward code it just wrote" and "cannot rationalize choices it never made," which is what makes the review independent. (b) invents a token-budget reason the chapter never gives — the point is bias, not context size. (c) describes early victory, a different failure mode from D1.2; here the issue is that an inheriting reviewer defends its own choices, not that it stops too soon. (d) is the biased case the pattern exists to avoid — handing the reviewer the writer's transcript is exactly what reintroduces the bias the fresh context removes.
+</Rationale>

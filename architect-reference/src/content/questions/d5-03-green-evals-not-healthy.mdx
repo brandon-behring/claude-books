@@ -1,0 +1,25 @@
+---
+id: d5-03-green-evals-not-healthy
+type: mcq
+chapter: d5-03
+domain: 'Context Management & Reliability'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Run integration-level testing — per-model evals on every prompt change, ablation testing, and soak periods that exercise the system as it actually runs"
+    correct: true
+  - id: b
+    text: "Raise the coverage threshold on the existing component evals until each agent's suite is exhaustive"
+  - id: c
+    text: "Add a structured-error-context schema to every agent boundary so faults are reported in machine-readable form"
+  - id: d
+    text: "Replace the slowest agent in the chain, since the degradation must originate in whichever component is least reliable"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A multi-stage system shows broad, inconsistent quality degradation in production, yet every per-component evaluation stays green and neither internal usage nor the existing eval suite reproduces the problem. Following the April-23 postmortem's conclusion, what kind of testing does the chapter say is actually needed?
+
+<Rationale appendix for="d5-03-green-evals-not-healthy">
+The chapter states a compounding failure "is invisible to component tests precisely because it lives *between* components" — each part passes its own eval and the degradation appears only in the interaction, on traffic slices no single test exercises. The postmortem's remedy is integration-level: "per-model evaluations on every prompt change, ablation testing, and soak periods before rollout — exercising the system as it actually runs." (b) misses the point: the failure is not inside any one component, so more exhaustive *component* suites still can't see a between-components effect. (c) is a real defense the chapter lists for *error propagation across boundaries*, but structured error context routes faults that surface — it is not the *detection* method the postmortem concluded was needed for a degradation no eval reproduced. (d) repeats the weakest-link fallacy the chapter rejects: the degradation lived in the interaction, not in a single least-reliable component, so swapping one agent does not address it.
+</Rationale>
