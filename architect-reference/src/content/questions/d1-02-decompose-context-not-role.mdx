@@ -1,0 +1,25 @@
+---
+id: d1-02-decompose-context-not-role
+type: mcq
+chapter: d1-02
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: analyze
+difficulty: "3"
+options:
+  - id: a
+    text: "Spawn one subagent per vendor (independent research paths), then have the coordinator synthesize the comparison in a single window"
+    correct: true
+  - id: b
+    text: "Keep the researcher → analyst → writer → fact-checker pipeline — it cleanly separates concerns"
+  - id: c
+    text: "Run the four-role pipeline inside one subagent per vendor, for maximum specialization"
+  - id: d
+    text: "Don't split at all — the comparison is too coupled for subagents to help"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A team must research three unrelated vendors and produce one comparison. An engineer proposes four subagents — *researcher → analyst → writer → fact-checker* — passing the task down the line. Applying the chapter's decomposition rule, what is the better way to cut this work?
+
+<Rationale appendix for="d1-02-decompose-context-not-role">
+Decompose **by context, not by role**. The three vendors are independent research paths — a true context boundary — so the win is one isolated subagent per vendor, with the coordinator synthesizing once it holds all three (synthesis stays in *one* window because comparing needs every result at once). The *researcher → analyst → writer → fact-checker* split (b) is problem-centric: sequential phases of one tightly-coupled task that lose fidelity at every handoff — "the telephone game." (c) nests that same anti-pattern inside the good split, multiplying handoff loss. (d) is wrong because there *is* a clean boundary to exploit — and parallelization to gain.
+</Rationale>

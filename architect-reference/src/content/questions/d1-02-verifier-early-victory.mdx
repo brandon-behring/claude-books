@@ -1,0 +1,25 @@
+---
+id: d1-02-verifier-early-victory
+type: mcq
+chapter: d1-02
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Instruct it explicitly — e.g. \"You MUST run the complete test suite before marking as passed\""
+    correct: true
+  - id: b
+    text: "Give the verifier the full transcript of how the work was produced, so it can judge in context"
+  - id: c
+    text: "Replace the single verifier with three verifiers and take a majority vote"
+  - id: d
+    text: "Raise the verifier's token budget so it has room to keep checking"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+You add a verification subagent to blackbox-test your agent's output, but it keeps declaring success after a single check. What is the chapter's documented mitigation for this failure mode?
+
+<Rationale appendix for="d1-02-verifier-early-victory">
+The verification subagent is the one multi-agent shape that succeeds across domains, and its characteristic failure is **early victory** — declaring success after one or two checks. The documented fix is an explicit completeness instruction: *"You MUST run the complete test suite before marking as passed."* (b) destroys the property that makes a verifier reliable — its **isolation**; a blackbox verifier should get minimal context and hold no stake in how the work was produced. (c) adds cost and more failure points without addressing the premature-stop behavior. (d) misdiagnoses the cause: the verifier stops early by choice, not for want of budget.
+</Rationale>

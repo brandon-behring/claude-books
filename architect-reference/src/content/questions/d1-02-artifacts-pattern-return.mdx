@@ -1,0 +1,25 @@
+---
+id: d1-02-artifacts-pattern-return
+type: mcq
+chapter: d1-02
+domain: 'Agentic Architecture & Orchestration'
+bloom_level: apply
+difficulty: "2"
+options:
+  - id: a
+    text: "Write the full output to the filesystem (or external storage) and return a lightweight reference to it"
+    correct: true
+  - id: b
+    text: "Stream all 4,000 tokens back to the coordinator so nothing is lost"
+  - id: c
+    text: "Append the raw material to the coordinator's system prompt for the rest of the run"
+  - id: d
+    text: "Summarize the 4,000 tokens to ~200 and re-inject that summary on every later turn"
+---
+import Rationale from '@brandon_m_behring/book-scaffold-astro/components/Rationale.astro';
+
+A subagent gathers 4,000 tokens of raw source material, but the coordinator only needs its short conclusion to keep going. Per the chapter, how should the subagent return its work so the coordinator's window stays lean?
+
+<Rationale appendix for="d1-02-artifacts-pattern-return">
+This is the **artifacts pattern**: because results must cross a context boundary, large outputs are written to the filesystem or external storage and a *lightweight reference* is passed back — the high-fidelity output lives outside the coordinator's window until it is actually needed. (b) defeats the whole reason the pattern exists: streaming everything back repollutes the lead's window with the noise isolation was meant to keep out. (c) is worse still — the system prompt is the most expensive, always-resident slot. (d) is conversational compaction, not the multi-agent mechanism; it still spends tokens every turn, whereas a reference is read only on demand.
+</Rationale>
