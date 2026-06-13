@@ -189,11 +189,14 @@ function checkTagCitationPairing(chapters) {
   const out = [];
   for (const ch of chapters)
     ch.body.split('\n').forEach((line, i) => {
-      const tags = (line.match(/<Tag\s+kind=/g) || []).length;
+      // Count only per-claim assertion tags. `convergence` is a multi-source SUMMARY tag
+      // (no 1:1 citation by design); counting it false-positives on every convergence line
+      // and on backticked `<Tag kind="convergence">` mentions in prose.
+      const tags = (line.match(/<Tag\s+kind=["'](?:official|practitioner)["']/g) || []).length;
       const cites = (line.match(/<Citation\s+src=/g) || []).length;
       if (tags > cites)
         out.push(finding('WARN', `${ch.name}:${ch.bodyStartLine + i}`,
-          'tagged assertion with no co-located <Citation> (evidence-honesty check)'));
+          'official/practitioner assertion with no co-located <Citation> (evidence-honesty check)'));
     });
   return { id: 7, title: 'Tag/Citation co-location', findings: out };
 }
