@@ -1,15 +1,15 @@
 # agentic-systems-design — AI authoring guide
 
-This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, currently v4.18.0). It's the **Design** book of the claude-books series — the broad, **multi-volume** discipline of engineering agentic systems: the environment an agent acts in and the context it reasons over, then tools, orchestration, evaluation, and operations.
+This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, `^4.23.0`). It's the **Design** book of the claude-books series — the broad, **multi-volume** discipline of engineering agentic systems: the environment an agent acts in and the context it reasons over, then tools, orchestration, evaluation, and operations.
 
 **Status — multi-volume, foundation-first:**
 
-- **Vol 1 — Environment & Context** — **first full draft (11 ch, `ch01`–`ch11`); polish pending.**
-- **Vol 2 — Tools & Orchestration** — pending (backed by the tool / MCP / sub-agent / multi-agent / build-vs-buy dossiers).
-- **Vol 3 — Evaluation & Operations** — pending (backed by the eval + ops dossiers).
+- **Vol 1 — Environment & Context** — **11 ch (`ch01`–`ch11`); deep-QA pass done 2026-06-13** (8 fixes across 6 ch; new `design-audit.mjs` linter + `validate:design` gate).
+- **Vol 2 — Tools & Orchestration** — **rich outline done 2026-06-13 (ch12–19); authoring pending** (backed by the tool / MCP / sub-agent / multi-agent / build-vs-buy dossiers; see `OUTLINE.md`).
+- **Vol 3 — Evaluation & Operations** — **rich outline done 2026-06-13 (ch20–27); authoring pending** (backed by the eval + ops dossiers; see `OUTLINE.md`).
 - **+ a problem-first applied volume** (v2.0) — re-traverses the material through real problems; carries the public "what teams did" mission (the retired Field-Guide's role).
 
-**Design v1.0 = Vols 1–3.** See [`OUTLINE.md`](./OUTLINE.md) (Vol 1 outline) and [`../docs/ROADMAP.md`](../docs/ROADMAP.md).
+**Design v1.0 = Vols 1–3.** See [`OUTLINE.md`](./OUTLINE.md) (Vols 1–3 outline) and [`../docs/ROADMAP.md`](../docs/ROADMAP.md).
 
 **Where things live**:
 

@@ -96,9 +96,12 @@ banner + `noindex` come *off* at v1.0).
 4. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices, to the proven
    Part-I template. **Step 0: `git clone` `brandon-behring/claude-best-practices`** (private; the
    LaTeX sources are NOT on this machine).
-5. **Design Vol 1 polish** *(S–M)*, then **Vols 2–3** *(L — the largest open authoring)* from the
-   dossiers (Vol 2 ← tool/MCP/sub-agent/multi-agent/build-vs-buy; Vol 3 ← eval + ops). Sequenced
-   last *because* the freshness loop keeps the dossiers warm — waiting costs accuracy nothing.
+5. **Design Vols 2–3 authoring** *(L — the largest open authoring)* — **prep DONE 2026-06-13**: a Vol 1
+   deep-QA pass (8 fixes across 6 ch; new `design-audit.mjs` linter) + the **rich Vol 2–3 chapter
+   blueprint** (ch12–27, dossier-mapped, claim-level) now in `agentic-systems-design/OUTLINE.md`.
+   Remaining = author the chapters from the dossiers (Vol 2 ← tool/MCP/sub-agent/multi-agent/build-vs-buy;
+   Vol 3 ← eval + ops), one volume (or chapter-cluster) per sprint — now unblocked by the outline. Plan +
+   post-hoc: [`plans/done/2026-06-13_design-vol23-outline-vol1-polish.md`](./plans/done/2026-06-13_design-vol23-outline-vol1-polish.md).
 6. **Applied volume** (Design v2.0).
 
 ### Deployment (decided 2026-06-12)
