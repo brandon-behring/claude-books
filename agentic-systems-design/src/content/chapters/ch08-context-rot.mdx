@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-29
-last_verified: 2026-05-29
+last_updated: 2026-06-13
+last_verified: 2026-06-13
 sources:
   - liu-lost-middle
   - chroma-context-rot
@@ -58,7 +58,7 @@ Treating rot as one number — "models lose X% at Y tokens" — is the central e
 
 ## The robust claim is directional, not numeric
 
-Across an 18-model panel and a peer-reviewed synthetic suite, the robust, corroborated finding is *that* performance falls with length and *that* the effective window is materially shorter than the claimed one — RULER reports "almost all models exhibit large performance drops as the context length increases."<Citation src="ruler" /> The specific percentages ("11 models below 50% at 32K,"<Citation src="nolima" /> "only half at 32K") are model- and benchmark-dependent.
+Across an 18-model panel and a peer-reviewed synthetic suite, the robust, corroborated finding is *that* performance falls with length and *that* the effective window is materially shorter than the claimed one — RULER reports "almost all models exhibit large performance drops as the context length increases."<Citation src="ruler" /> The specific percentages ("11 models drop below 50% of their strong short-length baselines" at 32K,<Citation src="nolima" /> "only half at 32K") are model- and benchmark-dependent.
 
 <MarginNote variant="warning" label="Caveat">
 Never launder a portable "context-rot %." The directional claim is robust; the magnitudes are benchmark-specific. Two folk figures — a "~1M-token ceiling" and a "~40% dumb zone" — have no primary backing and are deliberately not cited.
@@ -74,7 +74,7 @@ The practitioner operationalization is directional too: "get your context into t
 
 ## "Unsolved" overshoots — and rot reaches the overseer
 
-The strong framing — context rot is architectural and no model solves it — overshoots the 2026 evidence. The degradation is robust and near-universal *today*, but decode-time work shows the attenuation is partially reversible: gold tokens are "down-weighted, not erased"<Citation src="xiao-pcd" /> and recoverable at decode time. Honest synthesis: **degradation is near-universal now; whether it is fundamentally architectural or substantially trainable/decodable is open**, and the 2026 frontier is actively eroding the "unsolvable" claim. Build for the degradation that exists; don't bet the architecture on it being permanent.
+The strong framing — context rot is architectural and no model solves it — overshoots the 2026 evidence. The degradation is robust and near-universal *today*, but decode-time work shows the attenuation is partially reversible: gold tokens are down-weighted, not erased<Citation src="xiao-pcd" /> — they still occupy high-ranking positions in the decoding space, recoverable at decode time. Honest synthesis: **degradation is near-universal now; whether it is fundamentally architectural or substantially trainable/decodable is open**, and the 2026 frontier is actively eroding the "unsolvable" claim. Build for the degradation that exists; don't bet the architecture on it being permanent.
 
 One 2026 extension matters for design: rot reaches the *monitor*. An LLM acting as judge/monitor degrades on long transcripts, missing flagged actions far more often as the trace grows.<Citation src="martin-classifier-rot" /> Long-running agentic sessions degrade *both* the actor and the safety layer watching it.
 

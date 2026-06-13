@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-29
-last_verified: 2026-05-29
+last_updated: 2026-06-13
+last_verified: 2026-06-13
 sources:
   - memgpt
   - generative-agents
@@ -19,6 +19,7 @@ sources:
   - belitz-md-vs-memory
   - bustamante-agent-memory
   - ji-manus
+  - effective-context-engineering
   - chen-markdown-memory
   - langchain-longterm-memory
 description: Memory is just recalled context — so every memory anti-pattern is a context anti-pattern. Typing enables decay, the doc-vs-memory boundary is durable-shared vs fast-private, repo-as-memory is the cheap floor you outgrow. An openly unsolved design space.
@@ -83,7 +84,7 @@ The same boundary is drawn by two Anthropic docs and two independent practitione
 
 ## Repo-as-memory: the cheap floor
 
-The filesystem is a real memory store — "the file system not just as storage, but as structured, externalized memory,"<Tag kind="practitioner" /><Citation src="ji-manus" /> unbounded and persistent, so after a context reset the agent "reads its own notes and continues" long tasks. But it is the **floor**, not the ceiling: it has no decay, no typing, no retrieval ranking; files "get unmanageable >5MB,"<Citation src="chen-markdown-memory" /> and a flat scratchpad is "scoped to a single thread" while a real store "persists across threads and can be recalled at any time."<Citation src="langchain-longterm-memory" />
+The filesystem is a real memory store — "the file system not just as storage, but as structured, externalized memory,"<Tag kind="practitioner" /><Citation src="ji-manus" /> unbounded and persistent, so after a context reset the agent "reads its own notes and continues"<Tag kind="official" /><Citation src="effective-context-engineering" /> long tasks. But it is the **floor**, not the ceiling: it has no decay, no typing, no retrieval ranking; files "get unmanageable >5MB,"<Citation src="chen-markdown-memory" /> and a flat scratchpad is "scoped to a single thread" while a real store "persists across threads and can be recalled at any time."<Citation src="langchain-longterm-memory" />
 
 <ConceptBox title="Reach for the floor, outgrow it predictably">
 Repo-as-memory is the cheap baseline: start here (a notes file, a progress record). Outgrow it along known axes — when you need *typing* (address facts by kind), *decay* (invalidate stale ones), or *ranking* (retrieve the relevant few), promote to a structured store. The limits are predictable, which is what makes the floor a safe default.

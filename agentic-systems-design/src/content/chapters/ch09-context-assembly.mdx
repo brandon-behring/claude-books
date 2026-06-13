@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-29
-last_verified: 2026-05-29
+last_updated: 2026-06-13
+last_verified: 2026-06-13
 sources:
   - ji-manus
   - anthropic-prompt-caching
@@ -87,7 +87,7 @@ What enters the window during a turn is a choice, not a default. The just-in-tim
 The premise: the window "must be treated as a finite resource with diminishing marginal returns."<Tag kind="official" /><Citation src="effective-context-engineering" /> When it fills, you summarize (`/compact`) or you checkpoint-and-restart — the harness pattern of "finding a way for agents to quickly understand the state of work when starting with a fresh context window,"<Citation src="effective-harnesses" /> i.e., a progress file plus checkpoints rather than lossy in-context summarization.
 
 <Pitfall title="Compaction can invalidate the cache">
-Compaction is a cache-invalidation boundary: a shipping-product regression report reasons that "any prefix cached before compaction is guaranteed stale after it."<Citation src="cc-cache-regression" /> (Reporter-asserted, not Anthropic-confirmed.) The interaction matters — the same compaction that saves window space can cost you the cache savings if the prefix is rebuilt. Checkpoint-and-restart with a small, re-derivable prefix sidesteps both.
+Compaction is a cache-invalidation boundary: a shipping-product regression report (since closed as not-planned) reasons that "any prefix cached before compaction is guaranteed stale after it."<Citation src="cc-cache-regression" /> (Reporter-asserted, not Anthropic-confirmed.) The interaction matters — the same compaction that saves window space can cost you the cache savings if the prefix is rebuilt. Checkpoint-and-restart with a small, re-derivable prefix sidesteps both.
 </Pitfall>
 
 ## Attention placement — position is not neutral

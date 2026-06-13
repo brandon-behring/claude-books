@@ -6,8 +6,8 @@ volatility: architectural-pattern
 tools_compared: [claude-code, cross-tool]
 cert_domains: [1, 5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-29
-last_verified: 2026-05-29
+last_updated: 2026-06-13
+last_verified: 2026-06-13
 sources:
   - building-effective-agents
   - effective-context-engineering
@@ -44,7 +44,7 @@ _The introduction drew the frame and stated the thesis: an agent is a model plus
 
 ## What autocomplete cannot do
 
-Start with the gap this book is about. Code completion suggests the next token from the surrounding text; it has no autonomy. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter: an agent is an "LLM autonomously using tools in a loop."<Citation src="effective-context-engineering" />
+Start with the gap this book is about. Code completion suggests the next token from the surrounding text; it has no autonomy. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter: agents are "LLMs autonomously using tools in a loop."<Citation src="effective-context-engineering" />
 
 The model supplies that autonomy. But a model alone, prompted in a vacuum, is still close to autocomplete — it can only act on what is in front of it. What makes it an *agent* is everything the harness arranges **around** the model: the substrate it can act in, and the window it gets to reason over. Claude Code, for instance, "provides the tools, context management, and execution environment that turn a language model into a capable coding agent."<Tag kind="official" /><Citation src="how-claude-code-works" />
 
@@ -87,7 +87,7 @@ Two honest limits travel with this book, and they shape how to read it.
 - **The vocabulary is young.** "Environment engineering" and "context engineering" are recent coinages over practices that predate the names. Treat the framing as a useful organizing lens, not a settled taxonomy, and re-check the landscape rather than the labels.
 
 <Convergence tools={['claude-code', 'cross-tool']}>
-The coinage is young but independently converged-upon. Anthropic frames "context engineering" as curating what enters a finite window;<Tag kind="official" /><Citation src="effective-context-engineering" /> Shopify's Tobi Lütke independently prefers the term for "the art of providing all the context for the task to be plausibly solvable by the LLM,"<Tag kind="practitioner" /><Citation src="lutke-context-engineering" /> and Andrej Karpathy amplifies it as "the delicate art and science of filling the context window."<Citation src="karpathy-context-engineering" /> A vendor and two practitioners name the same lever — not the prompt, not the model, but the context. <Tag kind="convergence" />
+The coinage is young but independently converged-upon. Anthropic frames "context engineering" as curating what enters a finite window;<Tag kind="official" /><Citation src="effective-context-engineering" /> Shopify's Tobi Lütke independently prefers the term for "the art of providing all the context for the task to be plausibly solvable by the LLM,"<Tag kind="practitioner" /><Citation src="lutke-context-engineering" /> and Andrej Karpathy amplifies it as "the delicate art and science of filling the context window."<Tag kind="practitioner" /><Citation src="karpathy-context-engineering" /> A vendor and two practitioners name the same lever — not the prompt, not the model, but the context. <Tag kind="convergence" />
 </Convergence>
 
 <Pitfall title="Treating the model as the only variable">

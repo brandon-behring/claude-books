@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5, 1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-29
-last_verified: 2026-05-29
+last_updated: 2026-06-13
+last_verified: 2026-06-13
 sources:
   - anthropic-permissions
   - anthropic-settings
@@ -17,6 +17,7 @@ sources:
   - replit-register
   - replit-aiid
   - anthropic-cc-best-practices
+  - anthropic-containment
 description: The safety layer of the environment — express intent in policy, contain failure in mechanism. The permission model gates what the agent may attempt; sandbox isolation relaxes prompts safely; and reversibility must be out-of-band, because the agent's self-report can't be trusted.
 ---
 
@@ -103,7 +104,7 @@ Reversibility that routes through the agent — its in-app checkpoint, its self-
 
 Two 2026 developments extend the chapter's two layers without changing its thesis.
 
-**Auto mode** is the policy-side step past sandbox auto-allow. Instead of prompting per action, a model-based classifier mediates approvals — catching "roughly 83% of problematic behaviors before they execute," with the remaining ~17% bypassing it as the price of low friction.<Tag kind="official" /><Citation src="anthropic-containment" /> It sits between manual approval and full autonomy, and it exists because manual approval does not scale: users approved ~93% of prompts with attention "declining over time," and oversight is "much less likely to be effective" at multi-agent scale.<Citation src="anthropic-containment" />
+**Auto mode** is the policy-side step past sandbox auto-allow. Instead of prompting per action, a model-based classifier mediates approvals — catching "roughly 83% of overeager behaviors before they execute," with the remaining ~17% bypassing it as the price of low friction.<Tag kind="official" /><Citation src="anthropic-containment" /> It sits between manual approval and full autonomy, and it exists because manual approval does not scale: users approved ~93% of prompts with attention "declining over time," and oversight is "much less likely to be effective" at multi-agent scale.<Citation src="anthropic-containment" />
 
 **Containment** is the same OS-boundary idea at product scale. Each surface is isolated differently — ephemeral gVisor containers, OS sandboxes (Seatbelt/bubblewrap) with network denied by default, and VMs behind a vsock+hypervisor boundary — and "credentials stay in the host's keychain and never enter the guest machine."<Tag kind="official" /><Citation src="anthropic-containment" /> Network **egress** is the choke point: it is where data leaves, so it is where the boundary is enforced.
 

@@ -6,8 +6,8 @@ volatility: architectural-pattern
 tools_compared: [claude-code, cross-tool]
 cert_domains: [1]
 introduced_in_version: "0.1.0"
-last_updated: 2026-05-29
-last_verified: 2026-05-29
+last_updated: 2026-06-13
+last_verified: 2026-06-13
 sources:
   - building-effective-agents
   - how-claude-code-works
@@ -49,7 +49,7 @@ _What turns a model into an agent is not the model — it is the engineering of 
 
 ## The frame: an agent is a model plus a harness
 
-Start with the distinction that organizes everything else. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter still: an agent is an "LLM autonomously using tools in a loop."<Citation src="effective-context-engineering" /> That is the **model** side — the source of the agent's autonomy.
+Start with the distinction that organizes everything else. An **agent**, in Anthropic's framing, is a system where models "dynamically direct their own processes and tool usage."<Tag kind="official" /><Citation src="building-effective-agents" /> The working shorthand is tighter still: agents are "LLMs autonomously using tools in a loop."<Citation src="effective-context-engineering" /> That is the **model** side — the source of the agent's autonomy.
 
 The **harness** is everything else: the deterministic code wrapped around the model. Claude Code, for instance, "provides the tools, context management, and execution environment that turn a language model into a capable coding agent."<Tag kind="official" /><Citation src="how-claude-code-works" /> A general-purpose harness such as the Claude Agent SDK is one concrete instance of that wrapper.<Citation src="effective-harnesses" />
 
