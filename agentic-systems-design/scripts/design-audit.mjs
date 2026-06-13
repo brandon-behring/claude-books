@@ -63,6 +63,18 @@ function parseFrontmatter(raw) {
   return { data: yaml.load(m[1]), body: raw.slice(m[0].length), bodyStartLine: m[0].split('\n').length };
 }
 
+// Component-usage checks (3/5/6/7) scan the body for `<Citation>`/`<XRef>`/`<Tag>`/`<MarginNote>`.
+// A tools/MCP chapter legitimately *shows* that syntax inside a code example, which would
+// false-FAIL (genre guard) or false-validate (citation/label/co-location). maskCode blanks
+// every non-newline char inside fenced blocks and inline-code spans, leaving length and newline
+// positions identical — so the match-index→line math downstream is unchanged.
+const blankNonNewline = (s) => s.replace(/[^\n]/g, ' ');
+function maskCode(body) {
+  return body
+    .replace(/```[\s\S]*?```/g, blankNonNewline)   // fenced blocks (incl. component examples)
+    .replace(/`[^`\n]*`/g, blankNonNewline);        // inline code spans (single-line)
+}
+
 function normalizeUrl(u) {
   if (!u || typeof u !== 'string') return '';
   return u.trim().replace(/^https?:\/\//i, '').replace(/[#?].*$/, '').replace(/\/+$/, '').toLowerCase();
@@ -85,7 +97,9 @@ function loadChapters() {
   return walk(CHAPTERS_DIR, '.mdx').sort().map((file) => {
     const raw = read(file);
     const { data, body, bodyStartLine } = parseFrontmatter(raw);
-    return { name: path.basename(file), file, raw, data, body, bodyStartLine };
+    // `scan` = body with code fences/inline-code masked; component checks (3/5/6/7) use it so
+    // component syntax shown in examples isn't mistaken for live usage. Same length as `body`.
+    return { name: path.basename(file), file, raw, data, body, scan: maskCode(body), bodyStartLine };
   });
 }
 
@@ -140,9 +154,9 @@ function checkCitationResolution(chapters, byId) {
   for (const ch of chapters) {
     for (const key of ch.data?.sources ?? [])
       if (!byId.has(key)) out.push(finding('FAIL', ch.name, `frontmatter sources key not in manifest: ${key}`));
-    for (const m of ch.body.matchAll(/<Citation\s+src=["']([^"']+)["']/g))
+    for (const m of ch.scan.matchAll(/<Citation\s+src=["']([^"']+)["']/g))
       if (!byId.has(m[1]))
-        out.push(finding('FAIL', `${ch.name}:${ch.bodyStartLine + lineOf(ch.body, m.index) - 1}`,
+        out.push(finding('FAIL', `${ch.name}:${ch.bodyStartLine + lineOf(ch.scan, m.index) - 1}`,
           `<Citation src="${m[1]}"> not in manifest`));
   }
   return { id: 3, title: 'Citation resolution', findings: out };
@@ -161,8 +175,8 @@ function checkManifest(manifest) {
 function checkGenreGuard(chapters) {
   const out = [];
   for (const ch of chapters)
-    for (const m of ch.body.matchAll(/<XRef\b/g))
-      out.push(finding('FAIL', `${ch.name}:${ch.bodyStartLine + lineOf(ch.body, m.index) - 1}`,
+    for (const m of ch.scan.matchAll(/<XRef\b/g))
+      out.push(finding('FAIL', `${ch.name}:${ch.bodyStartLine + lineOf(ch.scan, m.index) - 1}`,
         '<XRef> found — the Design book is standalone (no cross-book XRef in/out); use a prose breadcrumb'));
   return { id: 5, title: 'Genre guard (no <XRef>)', findings: out };
 }
@@ -171,13 +185,13 @@ function checkGenreGuard(chapters) {
 function checkLabels(chapters) {
   const out = [];
   for (const ch of chapters) {
-    for (const m of ch.body.matchAll(/<MarginNote[^>]*\blabel=["']([^"']+)["']/g))
+    for (const m of ch.scan.matchAll(/<MarginNote[^>]*\blabel=["']([^"']+)["']/g))
       if (!APPROVED_LABELS.includes(m[1]))
         out.push(finding('FAIL', ch.name, `MarginNote label "${m[1]}" not approved`));
-    for (const m of ch.body.matchAll(/<MarginNote[^>]*\bvariant=["']([^"']+)["']/g))
+    for (const m of ch.scan.matchAll(/<MarginNote[^>]*\bvariant=["']([^"']+)["']/g))
       if (!MARGIN_VARIANTS.includes(m[1]))
         out.push(finding('FAIL', ch.name, `MarginNote variant "${m[1]}" not in {${MARGIN_VARIANTS.join(',')}}`));
-    for (const m of ch.body.matchAll(/<Tag[^>]*\bkind=["']([^"']+)["']/g))
+    for (const m of ch.scan.matchAll(/<Tag[^>]*\bkind=["']([^"']+)["']/g))
       if (!TAG_KINDS.includes(m[1]))
         out.push(finding('FAIL', ch.name, `Tag kind "${m[1]}" not in {${TAG_KINDS.join(',')}}`));
   }
@@ -188,7 +202,7 @@ function checkLabels(chapters) {
 function checkTagCitationPairing(chapters) {
   const out = [];
   for (const ch of chapters)
-    ch.body.split('\n').forEach((line, i) => {
+    ch.scan.split('\n').forEach((line, i) => {
       // Count only per-claim assertion tags. `convergence` is a multi-source SUMMARY tag
       // (no 1:1 citation by design); counting it false-positives on every convergence line
       // and on backticked `<Tag kind="convergence">` mentions in prose.
