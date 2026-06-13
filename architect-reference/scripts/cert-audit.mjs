@@ -26,6 +26,7 @@ import yaml from 'js-yaml';
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..');
 const CHAPTERS_DIR = path.join(REPO_ROOT, 'architect-reference', 'src', 'content', 'chapters');
+const QUESTIONS_DIR = path.join(REPO_ROOT, 'architect-reference', 'src', 'content', 'questions');
 const MANIFEST_PATH = path.join(REPO_ROOT, 'architect-reference', 'sources', 'manifest.yaml');
 const RESEARCH_DIRS = ['docs/research', 'docs/research-program'].map((d) => path.join(REPO_ROOT, d));
 
@@ -38,6 +39,10 @@ const APPROVED_LABELS = ['Official', 'Tip', 'Warning', 'Cost', 'Enterprise', 'Te
 // The 25-word cap was retired (guidance only, never wired). This is a soft smell-test
 // threshold: a margin note this long is likely displaced body text, per the new guideline.
 const MARGIN_ADVISORY_WORDS = 60;
+// Check 14 — question-bank coverage floor: every chapter must carry at least this many
+// scoreable bank questions so the scored /practice-exam and <AssessmentTest> sample all
+// chapters (Sprint 2, #13). A permanent structural regression gate, like Check 9.
+const MIN_QUESTIONS_PER_CHAPTER = 2;
 // Check 12 — freshness clock: re-verify a chapter when its `last_verified` exceeds these
 // volatility-keyed day limits. The single source of a fact's volatility is the chapter
 // frontmatter (`volatility` + `last_verified`) — no parallel per-source field to drift.
@@ -396,6 +401,35 @@ function checkReviewCurrency(chapters) {
   return { id: 13, title: 'Correctness-review currency (last_reviewed vs last_verified)', findings: out };
 }
 
+// ── Check 14: question-bank coverage — every chapter has >= MIN bank questions ─
+// The Sprint-2 (#13) coverage gate. Each chapter must carry at least
+// MIN_QUESTIONS_PER_CHAPTER scoreable questions (matched by the question's `chapter`
+// frontmatter slug against the chapter's canonical d{part}-{nn}). Also fails loud on a
+// question whose `chapter` matches no chapter file (orphan) or is missing entirely.
+function checkBankCoverage(chapters) {
+  const out = [];
+  const chapterSlugs = new Map(); // d{part}-{nn} -> chapter filename
+  for (const ch of chapters) {
+    if (ch.data?.part === undefined || ch.data?.chapter === undefined) continue;
+    chapterSlugs.set(`d${ch.data.part}-${String(ch.data.chapter).padStart(2, '0')}`, ch.name);
+  }
+  const counts = new Map();
+  for (const qf of walk(QUESTIONS_DIR, '.mdx')) {
+    const { data } = parseFrontmatter(read(qf));
+    const slug = data?.chapter;
+    if (!slug) { out.push(finding('FAIL', path.basename(qf), 'question missing `chapter` field')); continue; }
+    counts.set(slug, (counts.get(slug) ?? 0) + 1);
+    if (!chapterSlugs.has(slug))
+      out.push(finding('FAIL', path.basename(qf), `question chapter "${slug}" matches no chapter file`));
+  }
+  for (const [slug, name] of [...chapterSlugs].sort()) {
+    const n = counts.get(slug) ?? 0;
+    if (n < MIN_QUESTIONS_PER_CHAPTER)
+      out.push(finding('FAIL', name, `chapter ${slug} has ${n} bank question(s) (< ${MIN_QUESTIONS_PER_CHAPTER})`));
+  }
+  return { id: 14, title: `Question-bank coverage (>=${MIN_QUESTIONS_PER_CHAPTER}/chapter)`, findings: out };
+}
+
 /** Render the full markdown report from all check results. */
 function renderReport(results, meta) {
   const L = [];
@@ -445,6 +479,7 @@ function main() {
     checkOutwardLinks(chapters),
     checkFreshness(chapters),
     checkReviewCurrency(chapters),
+    checkBankCoverage(chapters),
   ];
 
   const meta = { chapters: chapters.length, manifestKeys: manifest.entries.length, cacheUrls: cache.urls.size };
