@@ -14,7 +14,7 @@
 | `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | Part I shipped (4/15 ch prose); ch05–15 port pending |
 | `architect-reference/` | Cert | Self-contained CCA-F D1–D5 study guide | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
 | `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
-| `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | not started |
+| `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | v1 shipped 2026-06-13 — 70-term bank + sync infra; cert consumer live |
 
 **Agentic Systems Design — the volumes** (foundation-first):
 Vol 1 **Environment & Context** *(drafted)* → Vol 2 **Tools & Orchestration** → Vol 3 **Evaluation &
@@ -55,7 +55,7 @@ banner + `noindex` come *off* at v1.0).
 | Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve; published | authoring time; **step 0 = clone `brandon-behring/claude-best-practices`** (sources not local) |
 | Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus; published | spine **WIRED 2026-06-09**; **upstream epic #122 COMPLETE 2026-06-10** (v4.19–v4.22); **Sprint 1 apparatus adoption DONE 2026-06-12** + **Sprint 2 bank expansion DONE 2026-06-12 (75-q bank, ≥2/ch, cert-audit 14/14)** — cert track in-repo work complete; next is deployment (#14) |
 | Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); published; applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
-| Glossary | infra + initial shared term set (harvest dossier `agent_index/` glossaries) + deep-links; published | **gate LIFTED** — scaffold #115 `<Glossary>` shipped (v4.19/v4.22); remaining = authoring |
+| Glossary | infra + initial shared term set + deep-links; published | **v1 SHIPPED 2026-06-13** — canonical `glossary/terms/` (70 terms) synced into the cert book; `/glossary` + `/flashcards` live; cert-audit Check 15. Remaining: inline `<Term>` retrofit + wiring handbook/Design consumers (on their deploys) |
 
 ## Next — two horizons (adopted 2026-06-12)
 
@@ -83,12 +83,16 @@ banner + `noindex` come *off* at v1.0).
   feature-surface chapters (Checks 12/13 are the tripwire).
 
 ### Horizon 2 — committed order (2026-06-12)
-3. **Glossary infra** *(S, ~1–2 sessions)* — *gate lifted* (scaffold #115 `<Glossary>` shipped);
-   harvest the 23 dossiers' `agent_index/` glossary sections into the shared term layer. Slotted
-   first because it's small and **compounds with early deploys** (shared terms deep-linked across
-   every public book). Also unlocks the cert book's `/glossary` + `/flashcards` routes — the
-   flashcards deck derives from the `glossary` collection (deferred out of Sprint 1 for exactly
-   this reason: design the term shape once, here).
+3. **Glossary infra** — ✅ **DONE 2026-06-13** (1 session). Shared term layer stood up: canonical
+   `glossary/terms/**.mdx` (single source of truth) synced into each consuming book's gitignored
+   `src/content/glossary/` by `scripts/sync-glossary.mjs` (wired into predev+prebuild). v1 bank =
+   **70 terms** from the **cert book's own vocabulary** — *not* the dossiers' `agent_index/`, which
+   on inspection hold no structured glossary sections (the original harvest premise was wrong).
+   Authored per-domain (harvest → dedup → author → adversarial review, all-OK), domain-tagged (D1–D5)
+   + see-linked; **cert-audit Check 15** enforces integrity. Cert `/glossary` + `/flashcards` now live
+   (closes the Sprint-1 flashcards deferral). **Deferred** (tracked): inline `<Term>` retrofit across
+   the 30 chapters; wiring the handbook/Design consumers (on their deploy/port — infra + script ready).
+   Plan + post-hoc: [`plans/done/2026-06-13_glossary-infra.md`](./plans/done/2026-06-13_glossary-infra.md).
 4. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices, to the proven
    Part-I template. **Step 0: `git clone` `brandon-behring/claude-best-practices`** (private; the
    LaTeX sources are NOT on this machine).
@@ -131,8 +135,8 @@ private repo**, with **`noindex` + a visible draft banner until each book's v1.0
   consumed `^4.23` and wired `<Diagnostic>`/`<PartReview>`/ExamRunner/`<AssessmentTest>`/`/answers`
   (2026-06-12); **Sprint 2** grew the bank to **75 questions** (≥2/chapter, cert-audit Check 14
   enforces it). Remaining cert tail is advisory only (27 over-cap MarginNotes; `last_verified`
-  cadence) — see "Riding along". `<Glossary>`/`/flashcards` stay gated on the Horizon-2 glossary
-  layer (the deck derives from the `glossary` collection).
+  cadence) — see "Riding along". `<Glossary>`/`/flashcards` **shipped 2026-06-13** (Glossary sprint;
+  the deck derives from the `glossary` collection).
 - **`research-program/content-map.md` topic→book map predates multi-volume Design** — rows still map
   to the old book set. *Trigger:* when authoring a Design volume needs the precise atom→section map.
 

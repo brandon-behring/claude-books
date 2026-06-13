@@ -5,7 +5,7 @@ A multi-book series + shared glossary. Each book covers Claude from a different 
 - **handbook/** — the **Use** book: how to *use* Claude Code effectively, day to day
 - **architect-reference/** — the **Cert** book: self-contained study guide, cert-aligned to *Claude Certified Architect — Foundations* (D1–D5)
 - **agentic-systems-design/** — the **Design** book: the broad, **multi-volume** book on engineering agentic systems (Vol 1 Environment & Context drafted)
-- **glossary/** — shared term layer (planned infra; not a read-through book)
+- **glossary/** — shared term layer (v1 shipped 2026-06-13: canonical `glossary/terms/` synced into each book; not a read-through book)
 
 Current project roadmap + status lives at [`docs/ROADMAP.md`](./docs/ROADMAP.md) (canonical).
 

@@ -1,8 +1,10 @@
 # Glossary infra — shared term layer (v1 = cert vocabulary)
 
-> **Status (2026-06-13): EXECUTING.** Plan approved (4 one-question rounds). Repo at start:
-> `main` clean + pushed at `c6b3301` (cert track Sprints 1+2 done; bank = 75 q, cert-audit
-> 14/14). ROADMAP Horizon-2 committed-first content item; no external blocker.
+> **Status (2026-06-13): COMPLETE.** Shipped in one session, commits `2d153a6` (plan) →
+> `75a0e38` (infra) → `214b4b2` (pattern terms) → `db04b89` (bank) → `fb38b32` (Check 15) →
+> closeout. 70-term glossary (5 hand-authored pattern + 65 fan-out), shared canonical source +
+> sync infra, cert `/glossary` + `/flashcards` live, cert-audit **15/15** (new Check 15).
+> Adversarial review: all 70 terms OK (0 fixes). **NOT yet pushed — awaiting user's word.**
 
 ## Context
 
@@ -145,6 +147,30 @@ retrofit filed.
 
 ## Decisions made (post-hoc log)
 
-*(Filled during execution — deviations, surprises, fixes, final counts.)*
-
-- _TBD_
+- **Harvest was per-domain (5 agents), not per-chapter (30) as the plan sketched.** Execution-judgment
+  call: term harvesting *benefits* from cross-chapter awareness (it dedups within a domain) and isn't
+  grounding-sensitive the way MCQ authoring is, so per-domain gives full coverage at ~6× lower agent
+  cost. Each domain agent read its chapters in its own context and returned candidates — the very
+  delegation lever the book teaches (D5.4).
+- **Curation: ~103 harvested candidates → 65 new terms.** I (the barrier) normalized slugs (kebab, no
+  underscores/filename-prefixes), removed cross-domain dups (`is-error`, `allowed-tools`,
+  `strict-tool-use`, `stop-reason`, `writer-reviewer-pattern`, `interview-pattern`), dropped overlaps
+  with the 5 pattern terms (`plan-mode`, `compact-vs-clear`, `subagent-delegation`,
+  `automatic-compaction`), and trimmed the niche tail. Deferred candidates (e.g. `permission-evaluation-order`,
+  `citation-location-modes`, `provenance-triple`, `execution-vs-protocol-error`, `bare-flag`) are a
+  documented backlog — the infra adds terms incrementally.
+- **Final bank = 70 terms** (5 pattern + 65), incl-pattern by domain: D1 16 · D2 14 · D3 13 · D4 13 · D5 14.
+- **Opus authored AND reviewed** (decision 3's cross-model intent unavailable — Fable 5 still
+  runtime-gated, same as Sprint 2). Adversarial review returned **all 70 OK, zero FIX** — glossary
+  definitions are faithful chapter paraphrases (a simpler artifact than Sprint-2's MCQ keying, which
+  is why no bug surfaced). Two non-material notes only (a D1 cross-ref fact in `allowed-tools`; a naming
+  variance in `validation-retry-loop`).
+- **Bug fixed mid-build:** the first `scripts/sync-glossary.mjs` had `*/src/content/glossary/` inside a
+  JSDoc block comment — the `*/` closed the comment early (SyntaxError). Reworded to avoid the literal.
+- **Finding B confirmed and recorded:** the dossiers' `agent_index/` dirs hold topic summaries, **no
+  structured glossary sections** — the ROADMAP/BOOK-MAP "harvest the dossiers" premise was wrong and is
+  now corrected in both. v1 is sourced from the cert book's own vocabulary instead.
+- **Caught Sprint-2 staleness:** `architect-reference/CLAUDE.md` still read "seeded 10 questions" —
+  reconciled to 75 in this closeout.
+- **Check 15 negative-tested** (3 FAILs on a throwaway bad fixture: unknown key, bad domain, dangling
+  `see`); reverts to 15/15 green on removal.

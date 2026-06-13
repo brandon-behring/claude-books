@@ -17,7 +17,7 @@ Each book is a distinct **scope** with a one-word **lens** — the question it a
 | Handbook | `handbook/` | **Use** | How do I use Claude Code effectively, day to day? | use-side; D3 primary owner | Part I prose (4 ch, ch01–04); ch05–15 outline |
 | The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I design to (and pass) the CCA-F domains D1–D5? | **is** the cert map | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
 | Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
-| Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | infra layer (not started) — **not a read-through book** |
+| Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | v1 shipped 2026-06-13 (cert consumer) — **not a read-through book** |
 
 ## Handbook = Use
 
@@ -56,8 +56,11 @@ dossiers back the volumes (Vol 2 ← tool / MCP / sub-agent / multi-agent / buil
 ## Glossary = shared infrastructure
 
 Not a read-through book: a **deep-linkable term layer** — canonical one-paragraph definitions +
-breadcrumb XRefs to where each term is covered in depth. Harvested from the dossiers' `agent_index/`
-glossary sections + the books. Serves the whole series.
+breadcrumb XRefs to where each term is covered in depth. Serves the whole series. **v1 (2026-06-13)**
+is sourced from the **cert book's own vocabulary** (70 terms): the dossiers' `agent_index/` dirs were
+found to hold no structured glossary sections, so the original "harvest the dossiers" premise was
+dropped. Terms live once in the canonical `glossary/terms/` and sync (gitignored) into each book's
+`src/content/glossary/`; inline `<Term id="…">` deep-links into `/glossary`.
 
 ## Retired from the public lineup — Field-Guide (Observe)
 
