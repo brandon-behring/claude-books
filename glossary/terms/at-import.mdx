@@ -1,0 +1,9 @@
+---
+term: "@import"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: [claude-md, settings-precedence]
+tags: [d3, instruction-layer]
+---
+
+`@import` is the syntax (`@path/to/import`) by which a `CLAUDE.md` pulls in other files, stitching a modular instruction set together: the imported files expand and load at launch alongside the referencing file, and relative paths resolve relative to the file containing the import. The import chain has a documented **maximum recursion depth of 5**. The first time a session encounters an import, Claude Code shows an approval dialog, and **declining it disables imports permanently** — the dialog does not reappear, so a future import in that environment will silently not expand until the choice is reset. The mechanism is also the cross-tool bridge for `AGENTS.md`: because Claude Code reads only `CLAUDE.md` and never loads `AGENTS.md` on its own, a one-line `@AGENTS.md` import lets a single instruction set serve Claude Code and other agents at once without duplicating its contents.

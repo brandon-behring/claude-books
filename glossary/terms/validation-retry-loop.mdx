@@ -1,0 +1,9 @@
+---
+term: "Validation-retry-feedback loop"
+aliases: ["validate-feed-back-retry loop"]
+domain: "Prompt Engineering & Structured Output"
+see: [semantic-error, structured-output, constrained-decoding]
+tags: [d4, structured-output]
+---
+
+The validation-retry-feedback loop is the three-layer pattern that catches what a schema cannot, since constrained decoding eliminates schema errors but never **semantic errors** (valid JSON, wrong data). **Layer 1** is API constrained decoding — the schema layer, where syntax, type, required, and enum errors disappear for free. **Layer 2** is application-code semantic checks — the domain layer, running the cross-checks the schema can't, such as re-summing line items against a stated total or verifying a quoted provenance span actually appears in the source. **Layer 3** is a *bounded* feedback loop that re-prompts with the *specific* failures ("`calculated_total` does not equal the sum; re-extract correcting this") for a limited number of attempts, then escalates to human review on exhaustion. Each retry is a full inference (≈4× cost for three retries), so keep the schema fixed across attempts to avoid re-paying grammar-cache compilation and vary only the feedback message. The Agent SDK exposes this as a result you inspect, not an exception: branch on `subtype` — `success` carries the payload in `message.structured_output`, while `error_max_structured_output_retries` means the budget ran out. The one trap retries cannot fix is **truncation** (`stop_reason: "max_tokens"`): re-prompting on the same budget truncates at the same place, so detect it and raise the cap instead.

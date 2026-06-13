@@ -1,0 +1,9 @@
+---
+term: "Explicit criteria"
+aliases: ["explicit instruction"]
+domain: "Prompt Engineering & Structured Output"
+see: [escalation-ladder, few-shot-prompting, structured-output]
+tags: [d4, prompting]
+---
+
+Explicit criteria is the principle that output quality is controlled by the *specification*, not the model: name the success criteria and the output shape — fields, types, lengths, missing-data handling — directly in the prompt rather than leaving them to inference. If two runs of the same prompt disagree, the disagreement was latent in the prompt, a degree of freedom you left unstated that the model resolved differently each time; pinning every degree of freedom you care about stops the drift. Modern models follow instructions more literally and **do not infer requests you did not make**, so a requirement held only in your head is simply unmet — which makes this a durable, stable principle that newer models make *more* load-bearing, not less. A corollary is that positive instruction ("respond in flowing prose") steers more reliably than a prohibition ("don't use lists"), because a positive instruction aims at the target while a negative one only rules out one failure inside a still-vast permitted region. It is the cheapest and first rung of the output-control escalation ladder.

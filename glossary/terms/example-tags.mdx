@@ -1,0 +1,9 @@
+---
+term: "Example tags"
+aliases: ["<example> tags"]
+domain: "Prompt Engineering & Structured Output"
+see: [few-shot-prompting, explicit-criteria]
+tags: [d4, prompting]
+---
+
+Example tags are the XML-style wrapper — a single demonstration in `<example>` tags, the whole set grouped in `<examples>` tags — that marks few-shot examples as *examples* so the model can distinguish them from the instructions and from the live input. "Structured" is one of the three documented example-quality criteria (alongside relevant and diverse) precisely because this delimiting matters: without it, a demonstration can blur into the instruction text and the model may read a sample input as a directive. Inside the set, each pair couples an `<input>` with its desired `<output>`, and the conventional move is to place the ambiguous edge case in the middle of the set with the handling you want — for instance, an input with a missing field whose output is `null`, teaching that "no value" resolves to `null` rather than an empty string or `"unknown"`. The tags are the syntactic illustration of few-shot prompting; the construction and quality criteria are the stable substance.

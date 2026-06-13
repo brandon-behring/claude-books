@@ -1,0 +1,9 @@
+---
+term: "explore-plan-implement-commit"
+aliases: ["four-phase workflow"]
+domain: "Claude Code Configuration & Workflows"
+see: [plan-mode, interview-pattern, opusplan]
+tags: [d3, workflow]
+---
+
+Explore-plan-implement-commit is the recommended four-phase rhythm for driving an agentic task: **Explore** (read files in plan mode to build understanding) → **Plan** (create a detailed implementation plan) → **Implement** (switch out of plan mode and verify against the plan) → **Commit** (write a descriptive message and PR). Explore and Plan are the read-only front half — exactly plan mode's territory — and Implement and Commit are where edits land. The loop's whole purpose is to **separate understanding from editing**: a shared model of the change is built before a single line moves, and the implement phase then checks its work against that plan; collapse the two and Claude optimizes a problem it never confirmed it understood, producing code that solves the wrong problem. You may **skip the plan phase only when the diff is one-sentence-describable** — a change small and clear enough that there is nothing for a plan to de-risk. The rhythm is a durable discipline rather than a feature, surviving any tool rename or keybinding change.

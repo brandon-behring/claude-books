@@ -1,0 +1,9 @@
+---
+term: "tool_choice"
+aliases: ["tool choice"]
+domain: "Tool Design & MCP Integration"
+see: [strict-tool-use, allowed-tools, input-schema]
+tags: [d2, tools]
+---
+
+`tool_choice` is the per-request control over whether and which tool the model may call, with four documented modes forming a spectrum from free to coerced: `auto` (Claude decides — the default when tools are provided), `any` (Claude must use *some* tool but picks which), `{"type": "tool", "name": …}` (forces one specific tool), and `none` (no tools this turn). The most-tested constraint is that the forced modes break reasoning: only `auto` and `none` are compatible with extended (or adaptive) thinking, while `any` and forced `tool` error the request; forcing also prefills the assistant message, so a forced call emits no natural-language preamble before its `tool_use` block. To get a *guaranteed schema-valid* call without naming one tool, combine `tool_choice: {"type": "any"}` (guarantees a tool fires) with `strict: true` (guarantees the inputs match the schema) — the right shape for a classifier or extractor. Changing `tool_choice` between turns invalidates the cached message blocks under prompt caching (tool definitions and the system prompt stay cached), so keep it stable across cached turns.

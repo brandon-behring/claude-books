@@ -1,0 +1,9 @@
+---
+term: "allowedTools"
+aliases: ["allowed_tools"]
+domain: "Tool Design & MCP Integration"
+see: [tool-choice, permission-modes, subagent]
+tags: [d1, d2, tools]
+---
+
+`allowedTools` (Python `allowed_tools`) is the per-agent distribution knob that defines which tools an agent has at all — distinct from `tool_choice`, which steers a single request: one shapes the toolbox, the other shapes a call. It *pre-approves* the tools it lists so they run without a prompt, while the paired `disallowedTools` *removes* a tool from the request entirely so the model never sees it. For MCP access the documented guidance is to scope with a wildcard such as `mcp__github__*`, which "grants exactly the MCP server you want and nothing more," rather than `permissionMode: "bypassPermissions"`, which auto-approves MCP tools but disables every other safety prompt — far broader than necessary. The crucial caveat is that an allowlist is not a sandbox: `allowed_tools` only pre-approves and never restricts, so paired with `bypassPermissions` it approves every tool regardless (confine with `plan` mode or a deny rule instead). Subagents are a related gate — `"Agent"` must appear in `allowedTools` or a defined subagent never runs, since the Agent-tool call is otherwise never approved.

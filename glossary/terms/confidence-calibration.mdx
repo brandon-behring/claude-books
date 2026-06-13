@@ -1,0 +1,9 @@
+---
+term: "Confidence calibration"
+aliases: ["calibration"]
+domain: "Context Management & Reliability"
+see: [checkable-confidence-signal, multi-pass-review, escalate-dont-guess]
+tags: [d5, reliability]
+---
+
+Confidence calibration is the discipline of deciding, output by output, which results proceed automatically, which get verified, and which route to a human — an *economic* decision, not a quality slogan, that weighs the cost of a wrong auto-accept against the cost of a human glance ("review everything" and "trust everything" are both failures to calibrate). The word carries two senses worth keeping distinct. *Routing* calibration is choosing which output goes to which tier of the review funnel; *measurement* calibration is whether a stated confidence value actually tracks accuracy — a model is well-calibrated only if its "90% confident" outputs are right about 90% of the time, and models tend to be over-confident, reporting high certainty on answers that are wrong. Because a raw "high" cannot be trusted out of the box, you have two honest options: route on checkable signals that need no calibration, or empirically calibrate a `confidence` field by measuring accuracy at each stated level over real labeled data — re-measuring whenever the model, prompt, or input distribution changes, since calibration is not permanent.

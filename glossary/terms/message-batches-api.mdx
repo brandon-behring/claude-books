@@ -1,0 +1,9 @@
+---
+term: "Message Batches API"
+aliases: ["batch processing"]
+domain: "Prompt Engineering & Structured Output"
+see: [custom-id, structured-output, stop-reason]
+tags: [d4, batch]
+---
+
+The Message Batches API asynchronously processes large volumes of Messages requests for a flat **50% discount** on both input and output, the trade being latency: most batches finish under an hour, but the SLA is 24 hours, after which an incomplete batch expires (results stay retrievable for 29 days). The decision rule is purely latency tolerance — if a human or synchronous system is blocked on the answer, batch is wrong; if the work is an overnight job, a backfill, or an offline evaluation, batch halves the bill, and the discount stacks with prompt caching. A single batch is bounded by **100,000 requests or 256 MB**, whichever comes first (an oversized payload returns HTTP 413); streaming is unsupported, and each request is single-shot with no multi-turn tool round-trip, though structured outputs compose cleanly. Its one non-negotiable contract is `custom_id` matching, because results return in any order. Billing is only for `succeeded` results (`errored`, `canceled`, `expired` are free), and a crucial subtlety is that `succeeded` is a *batch-level* outcome meaning the request *ran* — the per-message `stop_reason` must still be checked, since a billed refusal or a truncation arrives as succeeded.

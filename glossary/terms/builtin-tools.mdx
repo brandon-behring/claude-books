@@ -1,0 +1,9 @@
+---
+term: "built-in tools"
+aliases: ["built-in tool roster"]
+domain: "Tool Design & MCP Integration"
+see: [permission-modes, allowed-tools, mcp]
+tags: [d2, tools]
+---
+
+Built-in tools are the fixed roster every agent ships with on the first turn — the SDK provides roughly fourteen across six categories, identical to those that power Claude Code. The six that do the everyday work of reading and changing a codebase are `Read`, `Write`, `Edit` (file operations), `Grep`, `Glob` (search), and `Bash` (execution); beyond this set sit MCP server tools and your own custom tools. Their names are matched **exactly** — they appear verbatim in `allowedTools` / `allowed_tools` rules and as the `tool_use.name` block in messages — so `allowed_tools=["read"]` pre-approves *nothing* (the tool is `Read`), and a mis-cased name fails silently as if it were never listed. The roster also splits on one property that the runtime cares about: read-only tools (`Read`, `Glob`, `Grep`) may run **concurrently** while state-modifying tools (`Edit`, `Write`, `Bash`) run **sequentially** to avoid conflicts; custom tools default to sequential and opt into parallelism via `readOnlyHint`. Whether any given tool actually fires is then decided by the active permission mode and the allow/deny rules.

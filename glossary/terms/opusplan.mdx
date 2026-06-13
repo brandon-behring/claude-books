@@ -1,0 +1,9 @@
+---
+term: "opusplan"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: [plan-mode, explore-plan-implement-commit]
+tags: [d3, model-config]
+---
+
+`opusplan` is a Claude Code model alias that pairs plan mode with a model-per-phase split: it **uses `opus` in plan mode** for complex reasoning and architecture decisions, then **automatically switches to `sonnet` for execution** (code generation and implementation). The switch fires at the plan→execute boundary — the moment you approve a plan, one action flips two things at once: the permission mode leaves `plan` for the chosen write mode, and the model leaves its Opus plan phase for Sonnet. The intent is to spend the expensive tokens where the leverage is, on the design, and the cheaper, faster model on the mechanical edits. Set it like any alias — `/model opusplan` during a session or `claude --model opusplan` at startup. One trap worth memorizing: the automatic 1M-context upgrade applies to the **`opus` alias only, not `opusplan`**, so `opusplan`'s plan phase runs at the standard 200K window — if a planning step genuinely needs more than 200K of context at once, reach for `opus[1m]` (or pin a 1M model) for that phase instead.

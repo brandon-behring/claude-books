@@ -1,0 +1,9 @@
+---
+term: "paths scoping"
+aliases: ["path-scoped rules"]
+domain: "Claude Code Configuration & Workflows"
+see: [rules-directory, skill-md, claude-md]
+tags: [d3, instruction-layer]
+---
+
+Paths scoping is the use of the optional `paths` frontmatter — a list of glob patterns — to make a `.claude/rules/` rule (or a skill) load conditionally rather than unconditionally. A path-scoped rule **triggers when Claude reads a file matching the pattern, not at launch and not on every tool use**: a rule scoped to `src/api/**/*.ts` costs nothing in context until Claude actually reads an API file, and then applies while that work is in scope — so work that never touches `src/api/` never pays for it. The glob format is shared between rules and skills: `**/*.ts` (all TypeScript files at any depth), `src/**/*` (everything under `src/`), `*.md` (Markdown in the project root only), and brace expansion such as `**/*.{ts,tsx}` (multiple extensions in one pattern). The discipline it enables: reach for a path-scoped rule when guidance is real but only relevant to part of the tree, keeping file-specific instructions out of context on unrelated work — the one shape that offers this lever, since a `CLAUDE.md` line or an un-scoped rule would load every session.

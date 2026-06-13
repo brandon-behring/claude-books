@@ -1,0 +1,9 @@
+---
+term: "Structured output"
+aliases: ["structured outputs", "output_config.format"]
+domain: "Prompt Engineering & Structured Output"
+see: [constrained-decoding, strict-tool-use, semantic-error]
+tags: [d4, structured-output]
+---
+
+Structured output is the modern feature that constrains a model's *response text* to a JSON schema — carried on the request as `output_config.format` — using grammar-constrained decoding, so the conforming JSON arrives directly in the response with no retries needed for schema violations. It is the top rung of the output-control escalation ladder and the sibling of strict tool use: both compile your JSON Schema into a grammar and constrain token sampling, but structured output targets what the model *says* while strict tool use targets how it *calls a tool*. It accepts only a subset of JSON Schema (objects, arrays, scalars, `enum`, `const`, `anyOf`, internal `$ref`; no numeric or length bounds, external `$ref`, or recursion), and `additionalProperties: false` is mandatory on every object node. Critically, the grammar constrains *form*, never *fact*: it guarantees a schema-valid shape but cannot prevent a **semantic error** (valid JSON with wrong data), nor two failures that still slip past — a refusal (`stop_reason: "refusal"`, a billed 200) and truncation (`stop_reason: "max_tokens"`, the object cut off mid-write) — so a caller must still check `stop_reason` and run domain checks above the schema.

@@ -1,0 +1,9 @@
+---
+term: "adaptive decomposition"
+aliases: ["adaptive orchestration"]
+domain: "Agentic Architecture & Orchestration"
+see: [coordinator-subagent-pattern, subagent, escalation-ladder]
+tags: [d1, orchestration]
+---
+
+Adaptive decomposition is the structural shape of a decomposed task in which an **orchestrator decides at runtime** how many subtasks to spawn and what each does, scaling the decomposition to the specific input — as opposed to a sequential pipeline, whose steps are fixed in advance at design time. It is the right shape for open-ended, **path-dependent** work, where step *N+1* depends on what step *N* discovered and no design-time sequence can capture the process. The canonical example is the effort-scaling ladder: simple fact-finding needs ~1 agent, a direct comparison 2–4 subagents, and complex research 10+. The capability costs roughly **3–10× the tokens** of a single agent and buys **thoroughness, not speed**. Its failure mode is **over-decomposition** — "spawning 50 subagents for simple queries" — which the effort-scaling heuristic exists to guard against.

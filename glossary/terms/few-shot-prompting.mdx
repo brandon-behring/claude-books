@@ -1,0 +1,9 @@
+---
+term: "Few-shot prompting"
+aliases: ["multishot prompting"]
+domain: "Prompt Engineering & Structured Output"
+see: [example-tags, explicit-criteria, escalation-ladder]
+tags: [d4, prompting]
+---
+
+Few-shot prompting (also called multishot) steers a model by giving it a small set of worked input→output examples rather than only a written instruction; it is one of the most reliable ways to fix format, tone, and structure, and the only clean way to pin down an ambiguous case. The model does not memorize the examples — it extracts the implicit pattern across them and applies it to the new input, so a demonstration carries information a sentence struggles to (exact field ordering, how a borderline input should resolve). The documented sweet spot is **3-5 examples**: with 1-2 the model latches onto an *incidental* trait instead of the intended pattern, and at 6+ you burn context and risk two examples disagreeing and teaching "either is acceptable." Examples should be **relevant** (mirror the real use case), **diverse** (vary enough to avoid teaching a spurious shared trait — the most-neglected, most-consequential criterion), and **structured** (wrapped in example tags so the model separates them from instructions). The highest-value move is to place an example *on* the edge case showing the desired handling; few-shot composes with structured output rather than competing with it, since the schema locks the shape while examples teach the content and edge-case handling.

@@ -1,0 +1,9 @@
+---
+term: "verification subagent"
+aliases: ["verifier subagent"]
+domain: "Agentic Architecture & Orchestration"
+see: [subagent, writer-reviewer-pattern, isolated-context]
+tags: [d1, orchestration]
+---
+
+The verification subagent is the one multi-agent shape that "consistently succeeds across domains": the main agent does the work, and a *separate* agent **blackbox-tests** the result against clear success criteria with minimal context transfer. The isolation is its strength — the verifier has no stake in, and no memory of, how the work was produced, so it cannot rationalize choices it never made. This is the same logic as the Writer/Reviewer pattern, where a fresh context improves review because it isn't biased toward code it just wrote. Its characteristic failure mode is **early victory**: verifiers tend to declare success after one or two checks, and the documented mitigation is an explicit instruction such as "You MUST run the complete test suite before marking as passed."

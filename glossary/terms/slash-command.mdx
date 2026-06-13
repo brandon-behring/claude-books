@@ -1,0 +1,9 @@
+---
+term: "slash command"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: [skill, skill-md, claude-md]
+tags: [d3, commands]
+---
+
+A slash command is a stored prompt that controls Claude Code from inside a session: it is **recognized only at the start of your message**, and any text that follows the command name is passed to it as arguments. Custom commands have **merged into skills** — a file at `.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create `/deploy` and work the same way, because they share one mechanism (a prompt handed to Claude). Old flat-file `.claude/commands/` files keep working, but the skill form is recommended for new work because it adds directory bundling, frontmatter, and the ability for Claude to auto-invoke it when relevant. A command is thus the legacy flat-file shape of the same idea a skill expresses with a directory; everything not backed by this prompt mechanism is instead a built-in command whose behavior is coded directly into the CLI.

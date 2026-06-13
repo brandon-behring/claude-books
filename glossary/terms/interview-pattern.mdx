@@ -1,0 +1,9 @@
+---
+term: "interview pattern"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: [plan-mode, ask-user-question, explore-plan-implement-commit]
+tags: [d3, workflow]
+---
+
+The interview pattern is a technique for starting a large feature whose design space is still unclear: rather than write a full spec you do not yet have, you invert the usual flow and let **Claude drive the questions**. You begin with a minimal prompt asking Claude to interview you using the **`AskUserQuestion`** tool, and Claude asks about things you might not have considered — technical implementation, UI/UX, edge cases, concerns, and tradeoffs — surfacing the hard decisions before any code is written. The interview ends by writing a complete **spec to a file** (e.g. `SPEC.md`), which is both a reviewable deliverable and the context bootstrap for what comes next. Crucially, a **fresh session implements from that spec** rather than the session that ran the interview: the interview session's context is full of question-answer thrash and half-formed options, while the implementation session should start on clean context whose *only* input is the reviewed spec. The pattern is distinct from plan mode — plan mode makes Claude interrogate the *codebase*, whereas the interview makes Claude interrogate *you* about intent — so it fits when the unknowns live in your requirements, not in the code.

@@ -1,0 +1,9 @@
+---
+term: "Writer/Reviewer pattern"
+aliases: ["writer-reviewer"]
+domain: "Agentic Architecture & Orchestration"
+see: [verification-subagent, multi-pass-review, isolated-context]
+tags: [d1, orchestration]
+---
+
+The Writer/Reviewer pattern is the canonical multi-step quality workflow in which one session implements and a *second*, fresh-context session reviews — because "a fresh context improves code review since Claude won't be biased toward code it just wrote." Session A writes the rate limiter; Session B reviews the file for edge cases, race conditions, and consistency; Session A then addresses the feedback. The same shape works for tests — have one Claude write the tests and another write code to pass them. Here the *absence* of inherited context is the feature: the reviewer cannot defend or rationalize choices it never made. This is why an agent should never review its own work, and the rule generalizes to the verification subagent, which blackbox-tests a result from its own isolated window.

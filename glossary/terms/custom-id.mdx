@@ -1,0 +1,9 @@
+---
+term: "custom_id"
+aliases: ["custom id"]
+domain: "Prompt Engineering & Structured Output"
+see: [message-batches-api, structured-output]
+tags: [d4, batch]
+---
+
+`custom_id` is the unique identifier attached to each request in a Message Batch, and it is the **only sanctioned key** for joining a result back to the request that produced it. It is mandatory rather than optional because batch results "can be returned in any order" and may not match the order of submission — a batch is a *set*, not a sequence, so there is no positional correspondence to fall back on. Relying on submission order is the characteristic batch failure: it silently mis-joins outputs to inputs (result *n* attributed to request *n* when it answers some other request), corrupting data with nothing in the response to flag it. The id must be unique across the batch — reusing one makes two results indistinguishable — and the documented format is 1-64 characters of alphanumerics plus `-` and `_`. Treat it as a primary key: unique, meaningful, and the sole correct way to match results to requests.

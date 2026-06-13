@@ -1,0 +1,9 @@
+---
+term: "Checkable confidence signal"
+aliases: ["checkable signal"]
+domain: "Context Management & Reliability"
+see: [confidence-calibration, citations-api, knowledge-cutoff]
+tags: [d5, reliability]
+---
+
+A checkable confidence signal is a routing signal a caller can *independently verify*, preferred over a model's self-reported confidence because self-reported confidence is a claim, not a measurement — a confidently-wrong output reports "high" too. The reliable signals are the ones that either match or do not, no calibration required: a **cross-check mismatch** (a `calculated_total` that disagrees with the document's `stated_total`, meaning either the source is bad or a value was fabricated), a self-flagged **`conflict_detected`** (the model found contradictory source fields and is asking for adjudication), and **failed provenance** (a cited span that does not appear in the source document, meaning the citation was fabricated). A structured `confidence` field is an input too, but only after it has been empirically calibrated. These signals are the schema hooks of the validation pattern doing double duty as routing criteria — each is a place where the system can say "I am not sure" in a form a router can read — and the design rule is to route on what a caller can verify rather than letting the model's own number gate the human queue by itself.

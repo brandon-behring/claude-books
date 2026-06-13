@@ -1,0 +1,9 @@
+---
+term: "max_turns"
+aliases: ["turn budget"]
+domain: "Agentic Architecture & Orchestration"
+see: [turn, agent-loop, session]
+tags: [d1, orchestration]
+---
+
+`max_turns` is a termination budget the architect sets on the agent loop — a cap on the number of tool-use round-trips the model may run before the loop is forced to stop. Because a model-driven loop can otherwise run forever, supplying this stop condition (often paired with `max_budget_usd`, a client-side cost ceiling) is the architect's safety contract: the model owns *what to try next*, but the architect owns *whether the loop may continue*. Since the final text-only response is not a turn, you size `max_turns` to the tool calls a task needs plus headroom — not to the messages you expect. When the loop hits the limit it ends and sets the result's `subtype` to `error_max_turns`, on which `.result` is left empty; a recoverable session can then be resumed with a bumped budget rather than restarted from scratch.

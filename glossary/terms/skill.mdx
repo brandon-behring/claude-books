@@ -1,0 +1,9 @@
+---
+term: "skill"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: [slash-command, skill-md, claude-md]
+tags: [d3, skills]
+---
+
+A skill is a lazy-loaded, directory-bundled capability — a markdown directory `.claude/skills/<name>/SKILL.md` with optional supporting files (`reference.md`, `scripts/`) — that Claude can invoke on its own or that you trigger by typing `/name`. Unlike `CLAUDE.md`, which loads every session, **skills load on demand**: the agent receives only the skill *descriptions* (roughly 100 tokens each) at startup, and the full body materializes only when the skill is invoked, entering the conversation as a single message that persists for the rest of the session (it is not re-read each turn). The descriptions load into a budget defaulting to **1% of the model's context window**, and on overflow the least-invoked skills' descriptions drop first, so a rarely-used skill can become invisible. This lazy model is what makes a skill cheap and discoverable at once, and it resolves across four scopes by precedence — **enterprise > personal > project**, plus **plugin** skills namespaced as `plugin-name:skill-name` so they never conflict.

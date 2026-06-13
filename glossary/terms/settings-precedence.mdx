@@ -1,0 +1,9 @@
+---
+term: "settings precedence"
+aliases: ["settings hierarchy"]
+domain: "Claude Code Configuration & Workflows"
+see: [claude-md, permission-modes, mcp-scopes]
+tags: [d3, configuration]
+---
+
+Settings precedence is the strict five-level hierarchy by which Claude Code resolves configuration values, where **the highest scope wins**. Named in full, highest to lowest: **Managed** (cannot be overridden by anything), **CLI arguments** (`--model`, `--permission-mode`, … — session-only), **Local** (`.claude/settings.local.json`, gitignored), **Project** (`.claude/settings.json`, committed), and **User** (`~/.claude/settings.json`, lowest). When the same setting appears in several scopes, only the highest one takes effect — so `--model haiku` on the CLI (level 2) beats a project `opus` (level 4) and a user `sonnet` (level 5). The two most often forgotten rungs are CLI and Local. This override model is the deliberate **opposite** of the `CLAUDE.md` instruction layer, which concatenates rather than overrides; conflating the two is the single most common configuration error. One exception: permission `allow`/`ask`/`deny` rules **merge** across scopes rather than override.

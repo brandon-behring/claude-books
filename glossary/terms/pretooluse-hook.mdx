@@ -1,0 +1,9 @@
+---
+term: "PreToolUse hook"
+aliases: ["PreToolUse"]
+domain: "Agentic Architecture & Orchestration"
+see: [hook-precedence, agent-loop, allowed-tools]
+tags: [d1, orchestration]
+---
+
+A `PreToolUse` hook is the interception mode that **gates** a tool call: it runs your code *before* the tool executes and returns a `permissionDecision` of `allow`, `deny`, `ask`, or `defer`, optionally with `updatedInput` to rewrite the call. It is the counterpart to `PostToolUse`, which **normalizes** a result *after* the tool runs — so a rule like "never write a `.env` file" must be a `PreToolUse` hook (at `PostToolUse` the write has already happened). A matcher, a regex string tested against the tool *name* (e.g. `"Write|Edit"`), selects which calls the hook sees; it does not filter by argument, so any path or command test happens inside the callback. Because subagents do not inherit the parent's permissions, a `PreToolUse` hook is also the clean way to pre-approve a subagent's tools rather than re-prompting inside every child.

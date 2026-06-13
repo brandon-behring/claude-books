@@ -1,0 +1,9 @@
+---
+term: "Constrained decoding"
+aliases: ["grammar-constrained sampling"]
+domain: "Prompt Engineering & Structured Output"
+see: [structured-output, strict-tool-use, semantic-error]
+tags: [d4, structured-output]
+---
+
+Constrained decoding (also grammar-constrained sampling) is the technique underlying both structured output and strict tool use: a JSON Schema is compiled into a grammar, and the model's token sampling is restricted to only those tokens the grammar permits, so a non-conforming *shape* cannot be emitted at all. This is what lets the modern features eliminate schema-violation retries — the shape is guaranteed rather than hoped for. The compiled grammar carries a first-request latency and is then cached (per the API, 24 hours from last use), invalidated by a change to the schema structure or tool set but not by renaming `name`/`description` fields. Its essential limit, and the reason a validation layer still sits above it: constrained decoding constrains **form, never fact**. Every *emitted* token is schema-valid, but it does not guarantee a *complete or correct* result — a **semantic error** (a schema-valid response carrying wrong data) is exactly as likely as before, and two incomplete-result failures still pass, a refusal (`stop_reason: "refusal"`) and truncation (`stop_reason: "max_tokens"`, where the structure ran out of token budget mid-write and cannot be fixed by retrying on the same cap).

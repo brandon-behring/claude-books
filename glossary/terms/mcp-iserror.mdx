@@ -1,0 +1,9 @@
+---
+term: "isError (MCP)"
+aliases: ["isError"]
+domain: "Tool Design & MCP Integration"
+see: [is-error, mcp, semantic-error]
+tags: [d2, mcp, tools]
+---
+
+`isError` is the camelCase boolean (default `false`) on an MCP `CallToolResult` that flags an **execution** error — and in MCP it is one of *two* error channels, a distinction that is normative rather than stylistic. Execution errors the model should self-correct on — input validation, API failures, business-logic violations — ride `isError: true` *inside a successful result*, addressed to the model so it reads the text and retries; protocol errors the model cannot fix — an unknown tool, a malformed request — ride a JSON-RPC error response such as `-32602`, addressed to the client/host. The most-tested trap lives on this line: an input-validation failure (e.g. a past departure date) belongs in the `isError` channel per SEP-1303, with actionable content like `Invalid departure date: must be in the future`, *not* in a JSON-RPC `-32602`, because routing a recoverable error to the host silently denies the model its retry. Route by *who can act on the error*, not by how severe it feels — and do not conflate this camelCase MCP flag with the Messages API's snake_case `is_error`.

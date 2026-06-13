@@ -1,0 +1,9 @@
+---
+term: "Citations API"
+aliases: ["citations"]
+domain: "Context Management & Reliability"
+see: [knowledge-cutoff, checkable-confidence-signal, structured-output]
+tags: [d5, provenance]
+---
+
+The Citations API is the native mechanism that ties each cited claim in a response to an actual span in a source document, so the model cannot fabricate a citation to text that is not there — turning "trust me" into "check line 14." You enable it per document with `citations: {"enabled": true}`, and the rule to memorize is that citations must be on **all or none** of a request's documents (no mixing cited and uncited). Its real value is span-binding, not formatting: it is span-bound, *not* grammar-constrained, so it guarantees nothing about output shape. How a citation points at its source depends on document type — plain text by **`char_location`**, PDF by **`page_location`**, custom content (your own chunks) by **`content_block_location`** — and the returned `cited_text` is provided for convenience and does not count toward output tokens. A hard limit: Citations and Structured Outputs are **mutually exclusive** (the API returns a 400), because cited text must interleave with the response prose, which a strict JSON schema forbids; when you need both a schema and per-claim attribution, the fallback is a verified provenance triple.

@@ -1,0 +1,9 @@
+---
+term: "AgentDefinition"
+aliases: ["agent definition"]
+domain: "Agentic Architecture & Orchestration"
+see: [agent-tool, subagent, allowed-tools]
+tags: [d1, orchestration]
+---
+
+An `AgentDefinition` is the contract that describes a subagent created programmatically (passed in the `agents` option of a query — the recommended path for SDK apps). It has two **required** halves: a **`description`** that states in natural language *when* to use the agent, and a **`prompt`** that is the agent's system prompt — its role and behavior. Everything else is optional refinement: `tools` (allowed tool names; omit to inherit all the parent's tools), `model`, and `maxTurns` (the subagent's own turn budget). The `description` does double duty, because it is also how Claude decides to invoke the agent automatically, so it must be specific and keyword-rich rather than generic — a vague description is one of the two top reasons a defined subagent never gets matched to a task.

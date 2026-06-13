@@ -1,0 +1,9 @@
+---
+term: "tool_result block"
+aliases: ["tool result"]
+domain: "Agentic Architecture & Orchestration"
+see: [agent-loop, stop-reason, is-error]
+tags: [d1, orchestration]
+---
+
+A `tool_result` block is the structure your code returns to the model after executing a tool call, carrying the call's outcome back into the loop as the model's next input. It is sent on the next user turn with the fields `{type, tool_use_id, content, is_error?}`, where the **`tool_use_id`** is the join key matching each result to the `tool_use` block that requested it. A failed tool does not raise — it reports: you return a normal `tool_result` with **`is_error: true`** and the error text as content, so the model can read the failure and adapt rather than having the loop severed. When a single response contains more than one `tool_use` block, every corresponding `tool_result` must be returned together in that same next user message, each keyed by its `tool_use_id`; deferring one makes the next request malformed.

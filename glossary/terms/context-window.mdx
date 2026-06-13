@@ -1,0 +1,9 @@
+---
+term: "Context window"
+aliases: ["context budget"]
+domain: "Context Management & Reliability"
+see: [context-rot, lost-in-the-middle, context-compaction]
+tags: [d5, context]
+---
+
+The context window is the finite, cumulative token budget a session draws from, and everything shares it: the system prompt, tool definitions, CLAUDE.md, the full conversation history, and every tool input and output all accumulate in one pool that never refills within a session. Current capacities are concrete — 1M tokens on Opus 4.8 and Sonnet 4.6, 200k on Haiku 4.5 — though tokenizer density varies, so the same text can cost up to ~35% more of the budget on one model than another. The key reliability distinction is that "fits in the window" and "well-attended" are different claims: the token limit is a *capacity* bound, while attention is a *quality* that declines as the window fills, so a conversation comfortably under the limit can still have lost the thread of an instruction given fifty turns ago. On a large codebase the goal is therefore never to fit everything in but to load the task's slice and keep the rest out — what you decline to read is as much a design decision as what you read.

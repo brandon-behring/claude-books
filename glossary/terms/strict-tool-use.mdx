@@ -1,0 +1,9 @@
+---
+term: "Strict tool use"
+aliases: ["strict: true"]
+domain: "Prompt Engineering & Structured Output"
+see: [structured-output, constrained-decoding, additional-properties-false]
+tags: [d4, structured-output]
+---
+
+Strict tool use is the feature, enabled by setting `strict: true` on a tool definition, that guarantees a model's tool inputs match the tool's JSON Schema by constraining token sampling to schema-valid outputs (grammar-constrained sampling). It closes the gap the classic tool-use pattern leaves open: without it the model might return an incompatible type (`"2"` where you need `2`) or omit a required field, breaking the function it calls; with it those become impossible at the token level. It is the sibling of structured output — strict tool use constrains the `tool_use.input` (how the model *calls a tool*), while structured output constrains the response text (what the model *says*) — and both run the same grammar pipeline and compose in one request. To "call one of N candidate tools *and* validate its inputs," pair `tool_choice: {type: "any"}` with `strict: true` on each tool. A sharp caveat: `strict: true` is honored only on the native Claude API and is **silently dropped through the OpenAI SDK compatibility layer**, where the request still succeeds but you get no grammar guarantee. Like structured output, it constrains form, not fact, so a schema-valid input can still be semantically wrong.

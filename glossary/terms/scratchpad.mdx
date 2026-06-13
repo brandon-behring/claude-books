@@ -1,0 +1,9 @@
+---
+term: "Scratchpad"
+aliases: []
+domain: "Context Management & Reliability"
+see: [context-compaction, subagent, context-window]
+tags: [d5, context]
+---
+
+A scratchpad is a working file on disk that an agent writes to and reads back from, externalizing durable state *out* of the context window so it survives operations that touch only the conversation. Its defining property is that it outlives both context-freeing commands: compaction only summarizes the window and `/clear` only wipes the window, so a `PLAN.md` written to disk is untouched by either — the agent re-reads it after a compaction, or in a freshly-cleared session, exactly as it left it. The durable layer of a long task therefore does not live in the conversation at all. The scratchpad is one of three complementary levers for keeping the main context scoped on a large codebase — alongside compaction, which summarizes bulk away, and subagent delegation, which spends exploration cost in a separate window that returns only a summary. Each does the same job of moving bulk out of the main window; the scratchpad's specialty is state that must persist across windows and across hosts.

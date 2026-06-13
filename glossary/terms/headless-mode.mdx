@@ -1,0 +1,9 @@
+---
+term: "headless mode"
+aliases: ["print mode", "-p"]
+domain: "Claude Code Configuration & Workflows"
+see: [plan-mode, allowed-tools, permission-modes]
+tags: [d3, ci-cd]
+---
+
+Headless mode is Claude Code's non-interactive invocation — `claude -p "<query>"` — which runs the full agent loop and exits after responding, with no prompt or session UI; all standard CLI options work with `-p`. It is the entry point for running Claude Code in CI, where the mechanics change because **there is no human at the keyboard** to approve a tool or answer a question, so the run must settle its output shape and permission surface up front. For reproducibility you pair it with `--bare`, which skips auto-discovery of hooks, skills, plugins, MCP servers, auto memory, and `CLAUDE.md` — without it the run loads whatever the host machine has, so the same command behaves differently on different runners (`--bare` is slated to become the `-p` default). Output is selected with `--output-format`: `text` (default), `json` (a payload with `result`, `session_id`, and `total_cost_usd`), or `stream-json` (newline-delimited events); `--json-schema` adds a validated `structured_output` field and is **print-mode only**, as are `--max-turns` and `--max-budget-usd`. The permission floor is `--permission-mode dontAsk` (denies anything not in `permissions.allow` or the read-only set) paired with `--allowedTools`, and the pipeline gates on the run's **process exit code** — `0` passes, non-zero (e.g. hitting `--max-turns`, or over-cap stdin above 10 MB) fails.

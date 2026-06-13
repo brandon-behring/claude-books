@@ -1,0 +1,9 @@
+---
+term: "hook precedence"
+aliases: ["hook decision precedence"]
+domain: "Agentic Architecture & Orchestration"
+see: [pretooluse-hook, agent-loop]
+tags: [d1, orchestration]
+---
+
+Hook precedence is the fixed rule that decides the outcome when several hooks (or permission rules) act on one event: **`deny` > `defer` > `ask` > `allow`**. All matching hooks run **in parallel**, and the *most restrictive* result wins — so if any hook returns `deny`, the operation is blocked regardless of what the others return, and to permit a call every hook must agree. The system fails safe: one hook saying "no" is enough to stop something. `defer` sits just under `deny` because it is the special decision that **ends the query so the host can resume it later from the persisted session** — a pause-and-hand-back that is more restrictive than asking or allowing. Because completion order is non-deterministic, a hook must never assume another has already run; each should act independently.

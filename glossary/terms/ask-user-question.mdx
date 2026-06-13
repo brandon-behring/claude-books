@@ -1,0 +1,9 @@
+---
+term: "AskUserQuestion"
+aliases: []
+domain: "Context Management & Reliability"
+see: [escalate-dont-guess, escalation-ladder, subagent]
+tags: [d5, reliability]
+---
+
+`AskUserQuestion` is the built-in tool Claude calls to surface a structured clarification when intent is ambiguous, with a deliberately bounded shape: one call carries **1–4 questions**, each with a short **`header` (≤12 characters)**, a `multiSelect` flag, and **2–4 `options`** that each pair a `label` with a `description`. The response maps each question to its chosen `label` (an array or comma-joined string when `multiSelect`), and free-text is handled by offering an "Other" option and passing the typed text rather than the literal `"Other"`. The bounded multiple-choice form is the point — it makes the human's answer fast to give and unambiguous to route back into the agent's flow. It is the tool *Claude* raises; the application resolves it through the `canUseTool` callback, which also gates ordinary tool use. A key limit for design: **subagents cannot call `AskUserQuestion`**, so a subagent that hits an ambiguous requirement can only guess or fail — open questions must be resolved by the coordinator before a fully-specified task is delegated.

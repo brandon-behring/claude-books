@@ -1,0 +1,9 @@
+---
+term: "MCP transports"
+aliases: ["MCP transport"]
+domain: "Tool Design & MCP Integration"
+see: [mcp, mcp-json, system-init]
+tags: [d2, mcp]
+---
+
+An MCP transport is the channel a server communicates over, selected by its `type`: `stdio` for local processes, `sse` (Server-Sent Events, now **deprecated** — use HTTP), and `http` (Streamable HTTP, with `streamable-http` accepted as an alias for `http` in JSON configs). A fourth type, `ws` (WebSocket), is configurable only through `.mcp.json` or `claude mcp add-json`, not via the `--transport` flag — whose accepted values are just `http` / `stdio` / `sse`. Distinct from these, and *not* a `.mcp.json` `type`, the SDK can run an MCP server **in-process inside your application** as a deployment mode (for example a built-in tool server), rather than as an external process or endpoint. Beneath the transport sits the MCP wire protocol, which is mid-revision and should be cited with a date: the 2025-11-25 spec requires an `initialize` handshake as the first interaction, while the 2026-07-28 release candidate removes that handshake for a stateless model — so verify the wire details against the current spec, even though the configuration surface (scopes, files, env vars) is the more stable part.

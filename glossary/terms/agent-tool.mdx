@@ -1,0 +1,9 @@
+---
+term: "Agent tool"
+aliases: ["Task tool"]
+domain: "Agentic Architecture & Orchestration"
+see: [subagent, agent-definition, allowed-tools]
+tags: [d1, orchestration]
+---
+
+The Agent tool is the single tool through which *every* subagent is invoked — the one invocation surface beneath the coordinator–subagent pattern. It was **renamed from `Task` to `Agent`** in Claude Code v2.1.63: current SDK releases emit `Agent` in `tool_use` blocks but still report `Task` in the `system:init` tools list and in `result.permission_denials[].tool_name`, so code that filters on the tool name must match **both** values. The tool can be given something to invoke three ways — a programmatic `AgentDefinition`, a filesystem agent in `.claude/agents/*.md`, or the built-in `general-purpose` agent. For any of them to actually run, **`"Agent"` must be in `allowedTools`**, otherwise the call is never approved. Delegation through it is one level deep: a subagent's own tools must not include `Agent`, because subagents cannot spawn subagents.

@@ -1,0 +1,9 @@
+---
+term: ".claude/rules/"
+aliases: ["rules"]
+domain: "Claude Code Configuration & Workflows"
+see: [claude-md, paths-scoping, settings-precedence]
+tags: [d3, instruction-layer]
+---
+
+`.claude/rules/` is a modular instruction system of markdown files loaded into context every session with recursive subdirectory discovery — a system **parallel to `CLAUDE.md`, not a subsystem of it**: rules without `paths` frontmatter load at launch at the **same priority as `.claude/CLAUDE.md`**, neither nested under it nor overridden by it. Rules come in two scopes with a documented load order: **user-level** rules live in `~/.claude/rules/` and apply to every project on your machine (for machine-wide personal preferences), while **project** rules live in the repo's `.claude/rules/`; user-level rules are loaded *before* project rules, **giving project rules higher priority** when two instructions tension — the same broad-to-specific recency model as the CLAUDE.md hierarchy. The lever that makes rules more than "another CLAUDE.md" is the optional `paths` glob, which path-scopes a rule so it loads only when Claude reads matching files. Symlinks work in the directory (circular ones are detected gracefully), so shared rules can be linked from a central location.

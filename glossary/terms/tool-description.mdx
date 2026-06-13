@@ -1,0 +1,9 @@
+---
+term: "description (tool)"
+aliases: ["tool description"]
+domain: "Tool Design & MCP Integration"
+see: [input-schema, tool-namespacing, strict-tool-use]
+tags: [d2, tools]
+---
+
+A tool's `description` is the natural-language field on its definition that tells the model what the tool does, when to use it (and when not to), what each parameter means, and any caveats — and it is "by far the most important factor in tool performance," the single highest-leverage surface an architect controls. The model never reads your implementation; it selects tools by their descriptions alone, so the description *is* the API as far as the agent is concerned. The documented floor is at least 3–4 sentences per description, more if the tool is complex: a `get_stock_price` that spells out its inputs, its USD return value, and that "it will not provide any other information" routes correctly, whereas "Gets the stock price for a ticker" leaves the model guessing about inputs, outputs, and boundaries. A vague description is a performance bug the model cannot route around, which is why it earns the first and largest share of design effort.

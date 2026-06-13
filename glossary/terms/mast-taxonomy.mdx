@@ -1,0 +1,9 @@
+---
+term: "MAST taxonomy"
+aliases: ["MAST"]
+domain: "Context Management & Reliability"
+see: [error-propagation, coordinator-subagent-pattern, multi-pass-review]
+tags: [d5, reliability]
+---
+
+The MAST taxonomy is a practitioner classification of multi-agent system failures, drawn from an analysis of over 1,600 execution traces, that sorts the breakdowns into three categories: **specification problems (41.77%)**, the largest, then **coordination failures (36.94%)** and **verification gaps (21.30%)**. It backs the finding that multi-agent LLM systems fail at rates between 41% and 86.7% in production, because specification ambiguity and unstructured coordination protocols cause agents to misinterpret roles, duplicate work, and skip verification. Specification problems propagate especially badly in a pipeline: a mid-pipeline agent cannot pause to ask, so an under-specified handoff becomes a guess it resolves and passes downstream as settled fact, seeding a wrong decision every later stage treats as valid input. The taxonomy motivates the standard boundary remedies — converting prose specs into machine-validatable schemas, enforcing typed and schema-validated messages between agents, deploying isolated judge agents for independent validation, and adding circuit breakers — one report citing a 7x accuracy improvement (10% to 70%) from structured validation loops.

@@ -1,0 +1,9 @@
+---
+term: "Multi-pass review"
+aliases: ["independent reviewer pattern"]
+domain: "Prompt Engineering & Structured Output"
+see: [verification-subagent, writer-reviewer-pattern, isolated-context]
+tags: [d4, review]
+---
+
+Multi-pass review is the practice of checking work with a *fresh, independent context* rather than asking a model to review its own output in the same session — the weakest review, for two independent reasons. First, **attention dilution**: performance degrades as the context window fills, so a session that already holds the implementation reviews from a dilated state. Second, **implementer bias**: a model that just wrote the code is biased toward defending it, while a reviewer with no authorship has nothing to rationalize. The pattern scales across three levels: a **verification subagent** (a child in its own context window, cheapest, single session), a **Writer/Reviewer** pair (two genuinely independent sessions, the quality-critical default), and a **fleet** (many parallel specialists, each owning one issue class — the direct architectural answer to attention dilution). A fleet's essential safeguard is a **verification pass** that re-checks each candidate finding against actual code behavior to filter false positives; without it, parallel reviewers' plausible-but-wrong findings accumulate, so more reviewers means more noise, not more signal. Convergence rules (a short instruction block, damped re-review) keep "more passes" from becoming spam, and are also cost control.

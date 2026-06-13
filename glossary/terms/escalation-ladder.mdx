@@ -1,0 +1,9 @@
+---
+term: "Escalation ladder"
+aliases: ["output-control ladder"]
+domain: "Prompt Engineering & Structured Output"
+see: [explicit-criteria, few-shot-prompting, structured-output]
+tags: [d4, prompting]
+---
+
+The escalation ladder is the three-rung hierarchy for controlling a model's output shape, climbed only as far as the stakes require because each rung costs more in context, latency, and setup. **Rung 1 is explicit instruction** — name the format and the criteria in the prompt; the cheapest rung, and it handles the common case. **Rung 2 is few-shot examples** — demonstrate the desired handling on the ambiguous inputs a written rule cannot fully pin down. **Rung 3 is structured outputs or strict tool use** — constrain decoding so a non-conforming shape cannot be emitted at all; the strongest guarantee and the highest setup cost. The documented discipline is to ask plainly first, since newer models can reliably match complex schemas when simply told to, and to escalate a given field only when a stronger guarantee is genuinely needed — most fields never leave rung 1, and only a crash-on-violation field earns rung 3, where an out-of-set value becomes *unrepresentable* rather than merely discouraged.

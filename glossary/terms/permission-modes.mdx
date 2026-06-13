@@ -1,0 +1,9 @@
+---
+term: "permission modes"
+aliases: ["permission mode"]
+domain: "Tool Design & MCP Integration"
+see: [builtin-tools, allowed-tools, plan-mode]
+tags: [d2, tools]
+---
+
+A permission mode is the setting consulted when the model requests a tool, deciding whether that tool actually fires; there are six — `default`, `acceptEdits`, `plan`, `dontAsk`, `bypassPermissions`, and `auto` (TypeScript-only). Two change the *tool surface* directly: **`plan` restricts the agent to read-only tools** (it explores and proposes without editing source files), and **`acceptEdits` auto-approves file edits and filesystem commands** (`mkdir`, `touch`, `rm`, `rmdir`, `mv`, `cp`, `sed`) but only inside `cwd` plus `additionalDirectories`, prompting for paths outside that scope. The mode is only step 3 of a fixed five-step evaluation order — **Hooks → Deny rules → Permission mode → Allow rules → `canUseTool`** — and that order is the crux: deny rules and hooks sit *above* the mode, so a `disallowedTools` entry like `Bash(rm -rf *)` blocks even under `bypassPermissions`, whereas allow rules sit *below* it, so under `bypassPermissions` an allowlist is never consulted. Hence the trap: confine an agent with `plan` mode or a deny rule, never with `allowed_tools` alone, which only pre-approves and never restricts.

@@ -1,0 +1,9 @@
+---
+term: "session"
+aliases: ["agent session"]
+domain: "Agentic Architecture & Orchestration"
+see: [scratchpad, max-turns, context-compaction]
+tags: [d1, orchestration]
+---
+
+A session is the persisted **conversation** — the prompt and every tool call, tool result, and response — stored as JSONL on disk at `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`. The boundary that matters most is what it does *not* include: a session persists the conversation, **not the filesystem** (snapshotting and reverting the agent's file changes is file checkpointing's separate job). Three controls carry or branch a session: **`continue`** picks up the most recent session in the current `cwd`, **`resume`** picks up a specific session by ID (and recovers one that hit `error_max_turns` with a bumped budget), and **`fork`** starts a new session ID from a copy of the history, leaving the original untouched. Forking branches the conversation, not the disk; for cross-host work it is often more robust to capture durable artifacts as application state than to ship transcript files around.

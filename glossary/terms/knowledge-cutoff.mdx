@@ -1,0 +1,9 @@
+---
+term: "Knowledge cutoff"
+aliases: ["reliable knowledge cutoff"]
+domain: "Context Management & Reliability"
+see: [citations-api, checkable-confidence-signal]
+tags: [d5, provenance]
+---
+
+A model's knowledge cutoff is the date past which it has no dependable knowledge — the temporal half of provenance, answering not *where* a claim came from but *when* it can be trusted. The crucial subtlety is that the *reliable* knowledge cutoff is **earlier than (or equal to) the training-data cutoff**, not later: because data near the training boundary is sparse, the model's reliable knowledge stops before its training does. Concretely, Opus 4.8 is reliable to January 2026; Sonnet 4.6 trained on data through January 2026 but is reliable only to August 2025; Haiku 4.5 trained through July 2025 but is reliable to February 2025 — so the earlier date is the one that bounds trust. The design consequence is that a time-sensitive fact about anything after the reliable cutoff must come from a dated source supplied at request time (retrieval with a citation), not from the model's memory, where it risks a confident fabrication. This closes the provenance pair: a trustworthy claim needs both *where* (a source span) and *when* (a dated source past the cutoff).

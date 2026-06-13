@@ -1,0 +1,9 @@
+---
+term: "Semantic error"
+aliases: ["semantic errors"]
+domain: "Prompt Engineering & Structured Output"
+see: [validation-retry-loop, constrained-decoding, structured-output]
+tags: [d4, structured-output]
+---
+
+A semantic error is a response that is **valid JSON matching your schema but contains incorrect data** — the model named the wrong customer, copied a wrong total, or fabricated a value. It is the error class that survives structured output and strict tool use, because constrained decoding constrains *form, never fact*: a schema can require `customer_name` to be a non-empty string, but it cannot know the source said "Jane" while the model wrote "John." Once you adopt structured outputs, schema and type errors are gone and your entire remaining error budget is semantic, so that is where validation effort must move — and since the API never sees a semantic error, you cannot retry your way out of one the model is never told about. The countermeasure is to encode the check into the schema, adding fields whose only job is verification (a `stated_total` re-summed against a `calculated_total`, a `conflict_detected` flag, a provenance triple whose quoted span you confirm appears in the source) so an un-checkable judgment becomes a mechanical test that application code, inside a validation-retry-feedback loop, can run.

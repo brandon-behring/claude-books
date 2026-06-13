@@ -1,0 +1,9 @@
+---
+term: "turn"
+aliases: ["agent turn", "tool-use round-trip"]
+domain: "Agentic Architecture & Orchestration"
+see: [agent-loop, max-turns, stop-reason]
+tags: [d1, orchestration]
+---
+
+A turn is one tool-use round-trip inside the agent loop: the model produces output that includes tool calls, your code (or the SDK) executes those tools, and the results feed back to the model — turns continue until the model produces output with **no** tool calls. The consequence that trips candidates is that **a text-only final response is not a turn**: a four-message session of three tool-use round-trips plus one final text answer counts as three turns, so a budget of `max_turns = 2` would stop *before* that final step. Size a turn budget to the *tool calls* a task needs, not to the messages you expect to see; the free final text answer never counts against `max_turns`.

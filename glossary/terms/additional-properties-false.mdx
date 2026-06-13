@@ -1,0 +1,9 @@
+---
+term: "additionalProperties: false"
+aliases: ["additionalProperties false"]
+domain: "Prompt Engineering & Structured Output"
+see: [structured-output, strict-tool-use, constrained-decoding]
+tags: [d4, structured-output]
+---
+
+`additionalProperties: false` is the JSON-Schema keyword that forbids any object key beyond those explicitly listed, and in the structured-output and strict-tool-use subset it is **mandatory on every object node**, nested ones included. The constrained decoder requires it because an *open* object — one that allows arbitrary extra keys — has no closed set of valid continuations to compile into a grammar; at each decoding step the model must know exactly which keys are permitted, and this keyword is what closes that set. It is the single most common cause of a 400 on a hand-authored schema, precisely because standard JSON Schema defaults `additionalProperties` to *true*, so a schema that "validates fine in your editor" still fails grammar compilation at the API. Its required presence is also why open-ended extraction (where the set of fields is genuinely unknown, i.e. `additionalProperties: true`) cannot use structured output and must fall back to the classic tool-use pattern, which imposes no such closure.

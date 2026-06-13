@@ -1,0 +1,9 @@
+---
+term: "stop_reason"
+aliases: ["stop reason"]
+domain: "Agentic Architecture & Orchestration"
+see: [agent-loop, tool-result, turn]
+tags: [d1, orchestration]
+---
+
+`stop_reason` is the field on the model's response that serves as the agent loop's single branch condition. Its value decides whether the loop continues or ends: **`tool_use`** means the response carries tool calls, so your code executes them, returns `tool_result` blocks, and requests again (**continue**); **`end_turn`** means the model finished naturally with no tool calls, so the text is the deliverable (**stop**). Two other values stop the loop but need handling rather than delivery: **`max_tokens`** means the output was truncated at the token budget mid-response, and **`refusal`** means the model declined and the result is a non-answer. The full Messages API set includes further values (such as `stop_sequence` and `pause_turn`), so confirm the current list against the API reference before relying on one.

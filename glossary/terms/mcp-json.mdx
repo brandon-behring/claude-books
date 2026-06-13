@@ -1,0 +1,9 @@
+---
+term: ".mcp.json"
+aliases: ["mcp.json"]
+domain: "Tool Design & MCP Integration"
+see: [mcp, mcp-scopes, mcp-transports]
+tags: [d2, mcp]
+---
+
+`.mcp.json` is the file-based way to configure an MCP server — a declaration at the project root that is committed to version control and read by both the CLI and any SDK run whose `settingSources` includes `"project"` (it is the alternative to registering a server programmatically via `mcp_servers` / `mcpServers`). Because it is committed and shared, secrets must never be written into it literally; they are referenced through env-var expansion instead — `${VAR}` (expands, or fails the parse if unset) and `${VAR:-default}` (expands, or uses the default) — which works inside `command`, `args`, `env`, `url`, and `headers`, so a config can carry `"Authorization": "Bearer ${API_KEY}"` while the key lives only in the environment. As a config location it corresponds to **Project scope**, the shared, approval-prompted tier (versus the home-directory `~/.claude.json` used by Local and User scope). It is also where transports unavailable to the `--transport` flag, notably `ws` (WebSocket), can be declared, alongside `claude mcp add-json`.

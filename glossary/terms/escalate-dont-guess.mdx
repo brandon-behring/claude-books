@@ -1,0 +1,9 @@
+---
+term: "Escalate, don't guess"
+aliases: []
+domain: "Context Management & Reliability"
+see: [ask-user-question, error-propagation, escalation-ladder]
+tags: [d5, reliability]
+---
+
+"Escalate, don't guess" is the reliability principle that, when a task is genuinely ambiguous or blocked, a well-built agent surfaces the decision to the party who can make it rather than silently picking an interpretation. A silently-resolved ambiguity is a coin flip on intent that nobody chose to take; escalation converts that flip into a decision made by the one party who actually knows the answer. The economics are lopsided — the cost of asking is one round trip, while the cost of guessing wrong is the whole task built on the wrong branch — and the cost only grows the longer an ambiguity survives, so the strongest form is proactive (front-loading clarifying questions before any work depends on the answers). The principle has sharp teeth in multi-agent pipelines: a mid-pipeline agent usually has no one to ask, so where an interactive agent would pause and clarify, it instead *resolves* the ambiguity itself and hands the guess downstream as settled fact — which is why open questions should be resolved at the coordinator before delegating a fully-specified task.

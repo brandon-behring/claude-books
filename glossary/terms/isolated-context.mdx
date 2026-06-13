@@ -1,0 +1,9 @@
+---
+term: "isolated context"
+aliases: ["isolated context window"]
+domain: "Agentic Architecture & Orchestration"
+see: [subagent, coordinator-subagent-pattern, scratchpad]
+tags: [d1, orchestration]
+---
+
+Isolated context is the property that *defines* a subagent and separates it from a plain tool call: a subagent **runs in its own context window and does not see the parent's state**, where a tool call returns directly into the calling agent's context. The intermediate tokens a subagent generates never touch the coordinator's window — and that isolation is the feature, keeping a subtask's noise out of the agent that must reason over the whole problem. Because results must still cross the context boundary, large outputs use the **artifacts pattern**: a subagent writes its full output to the filesystem or external storage and passes a lightweight *reference* back, rather than streaming everything through the coordinator. On the exam, the phrases "isolated context window" and "does not see parent state" are what identify a subagent.

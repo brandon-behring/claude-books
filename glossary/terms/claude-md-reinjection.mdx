@@ -1,0 +1,9 @@
+---
+term: "CLAUDE.md re-injection"
+aliases: ["re-injection"]
+domain: "Context Management & Reliability"
+see: [claude-md, context-compaction, context-window]
+tags: [d5, context]
+---
+
+CLAUDE.md re-injection is the property that CLAUDE.md content is re-added to the context on *every* request, which is what makes it the right home for any rule that must hold for a whole session. The contrast is with an instruction given only in the opening prompt: when a long session nears the limit and automatic compaction summarizes the *oldest* turns first, a one-line rule from turn one rarely survives the summary intact, so the constraint silently stops being honored — the failure typically showing up right after a summary appears. Because re-injected content is present in the context after compaction exactly as before it, a durable rule placed in CLAUDE.md (loaded via `settingSources`) no longer depends on a summarizer's discretion to survive. The discipline is simple: put session-long constraints where they are re-injected, not in turns a summary may discard. The same re-injection is also why CLAUDE.md can carry a "Summary instructions" section that steers what compaction preserves — the compactor reads it like any other context.

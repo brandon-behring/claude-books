@@ -1,0 +1,9 @@
+---
+term: "tool namespacing"
+aliases: ["service namespacing"]
+domain: "Tool Design & MCP Integration"
+see: [tool-description, mcp, allowed-tools]
+tags: [d2, tools]
+---
+
+Tool namespacing is the convention of prefixing a tool's name with the service it belongs to — `github_list_prs`, `slack_send_message`, `jira_search` — so tool selection stays unambiguous as a library grows: a bare `search` becomes a liability the moment a second `search` exists, whereas `github_search` and `jira_search` never collide. Names also carry hard constraints that differ by regime — a Claude API tool name must match `^[a-zA-Z0-9_-]{1,64}$`, while an MCP tool name should be 1–128 characters of ASCII letters, digits, underscore, hyphen, or dot (no spaces) and unique within its server. MCP tools then reach the agent under a fixed namespaced form, `mcp__<server>__<tool>`: a `list_issues` tool on a server keyed `github` surfaces as `mcp__github__list_issues`. Naming is a distribution decision, not just a readability one, because the wildcard scoping of `allowedTools` (`mcp__github__*`) and the server configuration both key off these names.

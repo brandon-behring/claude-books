@@ -1,0 +1,9 @@
+---
+term: "MCP scopes"
+aliases: ["MCP scope"]
+domain: "Tool Design & MCP Integration"
+see: [mcp, mcp-json, system-init]
+tags: [d2, mcp]
+---
+
+MCP scopes are the three tiers Claude Code stores MCP servers in, each a different file with a different audience: **Local** (`~/.claude.json`, under a per-project key — current project only, not shared), **Project** (`.mcp.json` at the repo root — shared via version control, with a one-time approval prompt on first use), and **User** (`~/.claude.json` — available across all your projects). The CLI flag `claude mcp add <name> --scope <local|project|user>` picks the scope; omit it and the default is Local. When the same server name appears in more than one scope, Claude Code connects once using the highest-precedence source — **Local → Project → User → plugin-provided → claude.ai connectors** (the first three match duplicates by name) — which is the intended override path for personal credentials, not a conflict. The right first question is never "which file?" but "who should see this server?": credential-bearing or experimental servers go Local, team-shared servers go Project, cross-project personal servers go User. Note the notorious collision — MCP "local scope" lives in `~/.claude.json`, *not* in the project's `.claude/settings.local.json` general local-settings file.

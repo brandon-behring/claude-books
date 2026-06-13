@@ -1,0 +1,9 @@
+---
+term: "Lost in the middle"
+aliases: []
+domain: "Context Management & Reliability"
+see: [context-window, context-rot, context-compaction]
+tags: [d5, context]
+---
+
+Lost-in-the-middle is the degradation effect in which a model attends *less reliably* to material buried in the middle of a long context than to material near its start or end. It is a quality failure, not an overflow failure: a conversation can sit comfortably under the token limit, never trigger compaction, and yet have the model misremember a detail established sixty turns ago simply because that detail is now stranded in the middle of a large window. This is why "fits in the window" is not the same claim as "well-attended" — the onset of this kind of degradation, not the overflow error, is the thing to design against. The practical fix is to re-surface a critical fact near the *end* of the context (restate it) or to assemble the working context deliberately rather than letting it sprawl, and to discriminate this failure mode from accumulation pressure and post-compaction loss before reaching for a remedy.

@@ -1,0 +1,9 @@
+---
+term: "coordinator–subagent pattern"
+aliases: ["orchestrator-worker", "hub-and-spoke"]
+domain: "Agentic Architecture & Orchestration"
+see: [subagent, isolated-context, agent-tool]
+tags: [d1, orchestration]
+---
+
+The coordinator–subagent pattern (also orchestrator-worker, or hub-and-spoke) is the canonical multi-agent shape: a **lead agent** decomposes a task, dispatches **subagents** that each run in their own context window and explore parts of it independently, and then synthesizes their returned results. The coordinator owns planning and synthesis; the subagents own focused execution. The motivation is not "more brains" but **more windows** — a single agent has one finite context window, and extra agents relieve that bottleneck. It is expensive, typically using 3–10× more tokens than a single agent, so reach for it only when one of three conditions holds: **context protection** (large, mostly-irrelevant intermediate data should stay out of the main window), **parallelization** (genuinely independent paths), or **specialization** (tool-set overload or deep domain expertise). Delegation is one level deep: subagents cannot spawn subagents.

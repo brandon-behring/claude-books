@@ -1,0 +1,9 @@
+---
+term: "is_error"
+aliases: ["is_error flag"]
+domain: "Tool Design & MCP Integration"
+see: [tool-result, mcp-iserror, strict-tool-use]
+tags: [d1, d2, tools]
+---
+
+`is_error` is the snake_case boolean on a Claude Messages API `tool_result` block that flags a failed tool call — the canonical signal that turns a failure into a message the model can reason over rather than a dead end. When set to `true` with actionable `content` (for example, `ConnectionError: the weather service API is not available (HTTP 500)`), Claude folds the error into its next-turn reasoning and may retry 2–3 times with corrections before apologizing; that retry is documented default behavior, not a parameter you can set, so the legibility of the error text is your only lever over it. The Messages API has exactly **one** tool-failure signal: a protocol-level problem (a malformed request, or `tool_result` not first in the content array) surfaces as an HTTP error such as 400, not a second in-band channel. The casing is the tell that distinguishes it from MCP's `isError` — keep the spelling consistent with the regime you are in, and never present the MCP two-channel model as if the direct API had a JSON-RPC error class.

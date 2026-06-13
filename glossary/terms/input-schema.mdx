@@ -1,0 +1,9 @@
+---
+term: "input_schema"
+aliases: ["inputSchema"]
+domain: "Tool Design & MCP Integration"
+see: [tool-description, strict-tool-use, additional-properties-false]
+tags: [d2, tools]
+---
+
+`input_schema` is the JSON Schema that defines a tool's arguments, and it is the structural floor every tool interface stands on: it must be a JSON Schema **object** — a tool that takes no arguments still declares an empty object schema, never null. In the Claude API a tool definition's three required fields are `name`, `description`, and `input_schema`; in MCP the equivalent `inputSchema` is likewise required and must be a valid JSON Schema object. The schema is what the optional `input_examples` are checked against — every example argument object must validate against `input_schema`, or the whole request returns a 400, so the examples double as a self-check on the schema. Setting `strict: true` on the definition then makes the model's inputs conform to that schema exactly, eliminating missing-parameter and type-mismatch errors before they reach your handler.

@@ -1,0 +1,9 @@
+---
+term: "Error propagation"
+aliases: []
+domain: "Context Management & Reliability"
+see: [mast-taxonomy, escalate-dont-guess, coordinator-subagent-pattern]
+tags: [d5, reliability]
+---
+
+Error propagation is the way a fault in a chain of agents does not stay local: an upstream ambiguity becomes a downstream wrong decision, and concurrent faults compound into a degradation no single component test reproduces. A chain's reliability is the *product of its handoffs*, not its best agent's reliability — each boundary is both a place an error can enter and a place an existing error passes through unexamined — so adding agents multiplies the surfaces where intent can be dropped. The propagation mechanism is specific: a mid-pipeline agent cannot pause to ask, so it resolves an ambiguity and hands the guess downstream as settled fact, and the next agent has no signal that its input was a guess. Compounding failures are especially hard to catch because they live *between* components — each part passes its own eval, and the breakdown appears only in the interaction, on traffic slices no single test exercises. The boundary defenses are structured error context that crosses handoffs in machine-readable form, independent validation by an isolated judge, circuit breakers that isolate a misbehaving agent before it cascades, and keeping the escalable decision at the coordinator.

@@ -1,0 +1,9 @@
+---
+term: "CLAUDE.md"
+aliases: ["memory file"]
+domain: "Claude Code Configuration & Workflows"
+see: [settings-precedence, at-import, rules-directory]
+tags: [d3, instruction-layer]
+---
+
+`CLAUDE.md` is Claude Code's persistent-instruction file, assembled at launch from up to four scopes loaded broadest to most specific: **Managed policy**, **User** (`~/.claude/CLAUDE.md`), **Project** (`./CLAUDE.md` or `./.claude/CLAUDE.md`), and **Local** (`./CLAUDE.local.md`, which you gitignore). Discovery walks up the directory tree from your working directory, and a CLAUDE.md nested *below* cwd loads on demand — when Claude first reads a file in that subdirectory — rather than at launch. Crucially, the discovered files **concatenate into context rather than overriding each other** (ordered filesystem-root down to cwd, with `CLAUDE.local.md` appended after `CLAUDE.md`): there is no "winning" file, so two contradictory instructions simply sit in context at once — a smell to fix at the source, not something a closer file resolves. This is the opposite of the strict settings hierarchy, which is why reasoning about CLAUDE.md the way you reason about `settings.json` predicts the wrong behavior. The managed-policy file is the one scope that can never be excluded (via `claudeMdExcludes`), making it the instrument for org-enforced instructions.

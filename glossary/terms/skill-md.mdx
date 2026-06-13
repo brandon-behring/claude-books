@@ -1,0 +1,9 @@
+---
+term: "SKILL.md"
+aliases: []
+domain: "Claude Code Configuration & Workflows"
+see: [skill, slash-command, paths-scoping]
+tags: [d3, skills]
+---
+
+`SKILL.md` is the markdown file at the root of a skill directory (`.claude/skills/<name>/SKILL.md`) whose frontmatter declares the skill's behavior. Among its fields: `name` (the display name in skill listings, which defaults to the directory name — though it is the *directory* name, not this field, that sets the `/command` you type, except for a plugin-root `SKILL.md`), `description` (the field Claude reads at startup to decide whether to auto-invoke; `description` + `when_to_use` are capped at 1,536 characters by default), `argument-hint`, `allowed-tools` (CLI-only), `model`, `effort`, `context`, and `paths` (glob patterns that limit when the skill activates). Two switches decide who may call it: `user-invocable: false` hides it from the `/` menu so only Claude can invoke it, while `disable-model-invocation: true` does the inverse — only the user can trigger it via `/`, Claude cannot auto-invoke, and its **description is kept out of context entirely** (which also blocks subagent preloading). Inside the body, `$ARGUMENTS` expands to all passed arguments and `$ARGUMENTS[N]` / `$N` pick a specific 0-indexed one.

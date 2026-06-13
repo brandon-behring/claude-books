@@ -1,0 +1,9 @@
+---
+term: "system:init"
+aliases: ["system init message"]
+domain: "Tool Design & MCP Integration"
+see: [mcp, mcp-scopes, mcp-transports]
+tags: [d2, mcp]
+---
+
+`system:init` is the initialization message the SDK emits before the agent runs (a `system` message with subtype `init`), and reading it is how you confirm an MCP server actually connected — the antidote to this chapter's silent failure mode, where a wired-but-unconnected server leaves the agent running without its tools and you find out only from a confusing answer. Each entry in the message's `mcp_servers` field reports a `status` that is one of `connected | failed | needs-auth | pending | disabled`; the disciplined pattern is to inspect it and refuse to run on any status other than `connected`, turning "the tools just aren't there" into an explicit, actionable failure. A `needs-auth` means an OAuth flow hasn't completed, while `failed` usually means a missing env var, an uninstalled package, a bad connection string, or an unreachable host. Remember the default 60-second initialization timeout, a common cause of `failed`/`pending` for slow-starting servers — pre-warm or use a lighter package.
