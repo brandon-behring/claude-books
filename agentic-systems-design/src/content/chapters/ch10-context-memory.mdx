@@ -86,7 +86,7 @@ The same boundary is drawn by two Anthropic docs and two independent practitione
 
 The filesystem is a real memory store — "the file system not just as storage, but as structured, externalized memory,"<Tag kind="practitioner" /><Citation src="ji-manus" /> unbounded and persistent, so after a context reset the agent "reads its own notes and continues"<Tag kind="official" /><Citation src="effective-context-engineering" /> long tasks. But it is the **floor**, not the ceiling: it has no decay, no typing, no retrieval ranking; files "get unmanageable >5MB,"<Citation src="chen-markdown-memory" /> and a flat scratchpad is "scoped to a single thread" while a real store "persists across threads and can be recalled at any time."<Citation src="langchain-longterm-memory" />
 
-<ConceptBox title="Reach for the floor, outgrow it predictably">
+<ConceptBox term="Reach for the floor, outgrow it predictably">
 Repo-as-memory is the cheap baseline: start here (a notes file, a progress record). Outgrow it along known axes — when you need *typing* (address facts by kind), *decay* (invalidate stale ones), or *ranking* (retrieve the relevant few), promote to a structured store. The limits are predictable, which is what makes the floor a safe default.
 </ConceptBox>
 

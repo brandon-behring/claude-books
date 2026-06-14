@@ -72,7 +72,7 @@ The two layers meet at the sandbox. Sandbox mode puts an OS-enforced boundary ar
 
 That is the hinge: a hard boundary lets you safely **relax** the per-action prompts — "auto-allow runs sandboxed commands without prompting."<Citation src="anthropic-sandboxing-docs" /> Authorization shifts from prompt-driven to boundary-driven.
 
-<ConceptBox title="Boundary-driven authorization">
+<ConceptBox term="Boundary-driven authorization">
 Without isolation, safety means prompting on each risky action (prompt-driven). With an OS-enforced boundary, you define the limit up front and auto-approve within it (boundary-driven). Isolation is what makes loosening the prompts safe — not a replacement for the policy layer, but the mechanism that lets policy be less interruptive.
 </ConceptBox>
 

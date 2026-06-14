@@ -58,7 +58,7 @@ _The previous chapter established the problem: long context does not degrade gra
 
 Each turn, the harness assembles a window from regions that differ in stability and role.
 
-<ConceptBox title="The assembled window">
+<ConceptBox term="The assembled window">
 **Pre-commitment** (system prompt, CLAUDE.md, tool definitions) — set before the turn, cacheable, shapes intent. **Loaded context** (file reads, tool results) — pulled in during the turn; the just-in-time decision lives here. **Working history** — the running transcript, which grows until compacted. **Placement** — *where* each piece lands, because attention is not uniform. The assembled window is itself a prompt: its prefix stability is an economic variable, its length is finite, its ordering is an attention variable.
 </ConceptBox>
 

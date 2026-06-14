@@ -74,7 +74,7 @@ A server exposes capability through exactly three primitives, and the design pay
 
 **Prompts are user-controlled.** They are templates surfaced "with the intention of the user being able to explicitly select them for use."<Tag kind="official" /><Citation src="mcp-spec-prompts" /> The user picks them deliberately (a slash command, say) — neither the model nor the application invokes them autonomously.
 
-<ConceptBox title="Primitive = control authority">
+<ConceptBox term="Primitive = control authority">
 The choice among tools, resources, and prompts is not primarily a data-shape choice; it is a **control-authority** choice. Tools hand initiative to the model, resources to the application, prompts to the user. If a capability should fire only when the user asks, a model-controlled tool is the wrong primitive — it hands the model an initiative you meant to keep. Pick the primitive by who you want holding the trigger.
 </ConceptBox>
 
@@ -131,7 +131,7 @@ Put the two halves together — a stable conceptual core, a churning transport-a
 
 The durable parts are the conceptual ones: the host/client/server architecture<Citation src="mcp-spec-architecture" /> and the three-primitive control model<Citation src="mcp-spec-tools" /> are not what the RC touches. Design your integration's *shape* against those and it survives the transition. The parts in motion are the mechanical ones — the transport and lifecycle (the handshake, the session ID)<Citation src="mcp-spec-transports" /><Citation src="mcp-spec-lifecycle" /> heading toward a stateless core, and Tasks<Citation src="mcp-changelog" /> heading out of core into an extension. Wrap exactly those behind a thin adapter so the migration, when it lands, is contained to one seam instead of smeared across the codebase.
 
-<InsightBox title="The dossier convention is the design advice">
+<InsightBox title="The current-plus-coming convention is the design advice">
 The discipline this chapter models — separate what *is* from what's *announced coming*, and date the recheck — is not a presentational tic. It is the actual design move: a stateful assumption baked diffusely through your code is a migration you will pay for at the RC; the same assumption isolated behind an adapter is a one-file change. Designing against a known moving target means making the moving parts *findable*. Build to the core; quarantine the churn.
 </InsightBox>
 

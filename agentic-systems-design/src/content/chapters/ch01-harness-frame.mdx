@@ -53,7 +53,7 @@ Start with the distinction that organizes everything else. An **agent**, in Anth
 
 The **harness** is everything else: the deterministic code wrapped around the model. Claude Code, for instance, "provides the tools, context management, and execution environment that turn a language model into a capable coding agent."<Tag kind="official" /><Citation src="how-claude-code-works" /> A general-purpose harness such as the Claude Agent SDK is one concrete instance of that wrapper.<Citation src="effective-harnesses" />
 
-<ConceptBox title="Harness">
+<ConceptBox term="Harness">
 The deterministic code around the model — its tools, context management, execution environment, and control loop. It is **not** the model, and **not** a fixed pipeline. "Harness engineering" is the discipline of building it.
 </ConceptBox>
 
@@ -73,7 +73,7 @@ A harness decomposes into three layers, and its defining job is owning the bound
 - **Environment** — the substrate the agent acts in: the repository, the filesystem, scripts, a running process. A long-running harness "asks the model to set up the initial environment" before work begins.<Citation src="effective-harnesses" />
 - **Context-assembly** — the boundary between them. Rather than dumping the environment into the window, agents keep lightweight references and "use these references to dynamically load data into context at runtime using tools."<Citation src="effective-context-engineering" />
 
-<ConceptBox title="The three layers">
+<ConceptBox term="The three layers">
 **Environment** (large, durable substrate) → **context-assembly** (what crosses, and when) → **context** (small, finite window). The harness is the artifact that owns the assembly boundary — deciding what enters the window, and when.
 </ConceptBox>
 

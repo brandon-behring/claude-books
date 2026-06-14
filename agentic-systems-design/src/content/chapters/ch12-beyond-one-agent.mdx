@@ -56,7 +56,7 @@ The first axis is *what capability to expose*. The naive view treats a capabilit
 
 This is why the governing default on the capability axis is **subtraction**: "More tools don't always lead to better outcomes."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> The same instinct governs the build-vs-buy decision (start direct on the API; add abstraction only when it earns its keep, since "many patterns can be implemented in a few lines of code"<Tag kind="official" /><Citation src="building-effective-agents" />), the protocol you wire external capability through, and the way you shape the agent's text input and output.
 
-<ConceptBox title="Capability as context cost">
+<ConceptBox term="Capability as context cost">
 Every capability you give an agent — a tool, a framework abstraction, an MCP server, a verbose system prompt — is spent in the context window before it is ever used. The design question is therefore not "what could this agent do?" but "what does this workflow need?" — and the default answer subtracts toward that minimum.
 </ConceptBox>
 
