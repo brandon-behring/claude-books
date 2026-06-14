@@ -55,7 +55,7 @@ capstone→ch20), and Vol 3 → ch21–28. OUTLINE.md + content-map.md updated t
   protocol level" as a design-time obligation and enumerated four principles; ch17 stated the
   structured-output guarantee **with** its refusals/max_tokens/supported-subset exceptions every
   time — never "always valid JSON".
-- **Source fidelity:** all 26 new manifest entries are dossier-backed (design-audit Check 9 flagged
+- **Source fidelity:** all 31 new manifest entries (5 pilot + 26 fan-out) are dossier-backed (design-audit Check 9 flagged
   none of them). Caught + fixed one author date error — `mcp-rc-2026` had `publish_date: 2026-07-28`
   (the RC's *future target* date, not the post's publish date) → omitted; undated doc pages also had
   their `2026-01-01` placeholders dropped (matching the manifest's convention).

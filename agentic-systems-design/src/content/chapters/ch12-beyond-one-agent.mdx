@@ -92,7 +92,8 @@ The chapters move along the two axes — first what capability to expose, then h
 - **Build vs. buy** — whether to write thin on the API, configure a harness, or build one; the start-direct default.
 - **Tool minimization** — the governing subtract-first discipline for the tool set itself.
 - **MCP** — wiring external capability against a least-privilege, capability-negotiated protocol.
-- **Shaping I/O** — the prompting craft that shapes what goes in, and the levers that make machine-readable output reliable.
+- **Shaping input — the prompting craft** — the five moves that shape what goes *into* the agent.
+- **Shaping output — structured & reliable** — the levers that force machine-readable output you can *trust* coming back.
 
 **Coordination — how many windows, and how they cooperate.**
 
@@ -101,8 +102,8 @@ The chapters move along the two axes — first what capability to expose, then h
 
 <Figure
   src="/figures/tools-orchestration-axes/tools-orchestration-axes.svg"
-  caption="The volume's two axes. Horizontal: capability — what to expose — with subtract-first as the default direction (build-vs-buy, tool minimization, MCP, shaping I/O). Vertical: coordination — how many isolated windows — from a single agent up through the sub-agent primitive to multi-agent topologies. Both axes are measured in the same currency: context."
-  alt="Two axes crossing at an origin labeled 'one agent, minimal tools'. The horizontal axis is 'Capability — what to expose', with chapter labels build-vs-buy, tool minimization, MCP, shaping I/O, and an arrow marked 'subtract-first default'. The vertical axis is 'Coordination — how many isolated windows', rising from one agent through 'sub-agent (primitive)' to 'multi-agent (topology)'. A note at the corner reads 'both axes spend the same currency: context'."
+  caption="The volume's two axes. Horizontal: capability — what to expose — with subtract-first as the default direction (build-vs-buy, tool minimization, MCP, and shaping I/O — split across prompting then structured output). Vertical: coordination — how many isolated windows — from a single agent up through the sub-agent primitive to multi-agent topologies. Both axes are measured in the same currency: context."
+  alt="Two axes crossing at an origin labeled 'one agent, minimal tools'. The horizontal axis is 'Capability — what to expose', with capability themes build-vs-buy, tool minimization, MCP, and shaping I/O (prompting and structured output), and an arrow marked 'subtract-first default'. The vertical axis is 'Coordination — how many isolated windows', rising from one agent through 'sub-agent (primitive)' to 'multi-agent (topology)'. A note at the corner reads 'both axes spend the same currency: context'."
   width="100%"
   id="fig-tools-orchestration-axes"
 />
@@ -131,7 +132,7 @@ The single most common mistake this volume guards against is the additive reflex
 - **Capability default — subtract:** expose what the workflow needs, not what the platform offers.<Citation src="anthropic-writing-tools" />
 - **Coordination default — isolate, don't add skill:** a sub-agent is a fresh window, valuable for isolation, not capability.<Citation src="building-agents-with-the-sdk" />
 - **Primitive ≠ topology:** the sub-agent is the unit; the multi-agent system is how units coordinate.
-- **The map:** capability chapters (build-vs-buy, tool minimization, MCP, shaping I/O) → coordination chapters (sub-agents, multi-agent).
+- **The map:** capability chapters (build-vs-buy, tool minimization, MCP, prompting, structured output) → coordination chapters (sub-agents, multi-agent).
 - **The reflex to unlearn:** "can I add this?" → "what does it cost in the window, and is the work worth it?"
 
 ## Practice
@@ -148,6 +149,10 @@ Take an agent you run or have read about. Write down one change you might make o
 
 <Solution for="ch12-ex-1">
 The currency is the **context window** (a finite resource). The **capability axis** spends it directly: every exposed tool, abstraction, or verbose prompt occupies the window and enlarges the model's selection problem, whether or not it is used. The **coordination axis** spends it by multiplication: each additional agent is another window to populate, run, and pay for. Because both ultimately draw on the same finite budget, they share a default — add only when the workflow demonstrably needs it (subtract on the capability axis; isolate-only-when-worth-it on the coordination axis) — rather than treating either tools or agents as free additions.
+</Solution>
+
+<Solution for="ch12-pr-1">
+A worked example. Take a code-review agent with twelve tools. **Capability-axis change:** remove the three overlapping search tools (`grep`, `find_symbol`, `semantic_search`) in favour of one `search` tool. *Cost in the window:* each removed tool was ~150 definition tokens at rest *and* a recurring wrong-tool-selection risk; consolidating reclaims both. *What must be true to earn it:* the one survivor has to actually cover the workflow's searches — so the bar is "does the merged tool lose any search the agent genuinely needs?" If no, the change is pure win (less budget, less selection error). **Coordination-axis change:** split the review into a fan-out of per-file reviewer sub-agents that each return only their findings. *Cost in the window:* every sub-agent is a *fresh* window to populate and pay for — a real multiple of the single-agent token spend. *What must be true to earn it:* the files must be reviewable *independently* (no cross-file context needed) and the parallel speed-up or context-isolation gain must clear that multiple; if the review needs whole-repo context in one head, the split costs more than it returns. The point is that both changes are priced in the *same* currency — window tokens — so the decision rule is identical: does the spend buy more than it costs, for *this* workflow?
 </Solution>
 
 </ExerciseSolutions>
