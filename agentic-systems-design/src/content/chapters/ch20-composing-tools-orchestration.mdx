@@ -1,0 +1,137 @@
+---
+title: "Composing Tools & Orchestration: The Two Axes as One System"
+part: 2
+chapter: 20
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - anthropic-writing-tools
+  - building-effective-agents
+  - anthropic-multi-agent-research
+  - effective-context-engineering
+description: The capstone of the Tools & Orchestration volume — composing its chapters into one sequenced design workflow on the spine's two axes (capability and coordination), the recurring decision points, an honest map of the evidence tiers, and the boundary this volume leaves to Operations.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The whole volume — the capability chapters (build-vs-buy, tool minimization, MCP, shaping I/O) and the coordination chapters (sub-agents, multi-agent).">
+- How the volume's chapters compose into **one sequenced design workflow**, not eight separate concerns
+- A **decision order** for designing an agent's tools and orchestration together
+- The recurring **trade-offs**, and how the volume resolves them
+- An honest **map of the evidence** — what is official, converged, single-datapoint, openly contested, and volatile
+</YouWillLearn>
+
+_This chapter is integrative. It introduces no new evidence — it composes the volume's grounded claims into a design workflow and a decision guide. Where it restates a load-bearing fact, it points back to the chapter that established it; the rest is synthesis._
+
+<MarginNote variant="note" label="Note">
+Integrative synthesis, grounded in the prior chapters — not a new evidence chapter. Read it as the "how to put it together," not as new claims.
+</MarginNote>
+
+## The two axes are one system
+
+The volume opened on two axes the spine drew: **capability** — what you expose to the agent — and **coordination** — how many isolated windows you run. Eight chapters in, the payoff is that they are not separate subjects but two ways of spending **one currency**. Context is "a critical but finite resource for AI agents,"<Tag kind="official" /><Citation src="effective-context-engineering" /> and both axes draw on it: capability spends the window directly (every tool, abstraction, and prompt sits in it), and coordination spends it by multiplication (every agent is another window to fill and pay for).
+
+<KeyIdea>
+Both axes reduce to the context window, so both inherit the same default: **add only when the workflow demonstrably needs it.** On the capability axis that means *subtract*; on the coordination axis it means *isolate only when there's context to quarantine or independent work to fan out*. "Can I add this?" is the wrong question on either axis; "what does it cost in the window, and is the work worth it?" is the right one.
+</KeyIdea>
+
+## A design workflow
+
+The chapters fall into a natural order when you design a real agent's tools and orchestration together.
+
+1. **Start direct; add a harness only when earned** (ch13). Write thin on the API first; configure/wrap/extend a production harness before building one, and treat any framework's convenience as abstraction you pay for in lost visibility.<Tag kind="official" /><Citation src="building-effective-agents" />
+2. **Subtract the tool set to the workflow** (ch14). The smallest set that covers the work beats a complete one: "more tools don't always lead to better outcomes."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> Consolidate overlaps; make each tool's response high-signal; load on demand only when scale forbids subtracting.
+3. **Wire external capability least-privilege** (ch15). Reach across MCP against a capability-negotiated protocol, designing to its security obligations rather than assuming it enforces them — and against a known moving target.
+4. **Shape the I/O** (ch16, ch17). Use the prompting craft for what goes in (examples first), and the output levers for what comes back — preferring the grammar-backed guarantee, stated with its limits, over a recover-after-the-fact retry loop.
+5. **Reach for coordination only when the work fans out** (ch18, ch19). A sub-agent is isolation, not capability — use it to quarantine context, parallelize, or clean-room review. Escalate to a multi-agent topology only when subtasks are genuinely independent *and* the value clears the cost.
+
+<ConceptBox term="Capability first, coordination last">
+Steps 1–4 are the capability axis (what to expose, and how to shape its I/O); step 5 is the coordination axis (how many windows). The order matters: most "my agent is slow/unreliable" problems are capability-axis problems (too many overlapping tools, verbose responses) that are cheaper to fix than any topology change. Exhaust the capability axis before spending windows on coordination.
+</ConceptBox>
+
+## Decision points
+
+The recurring trade-offs, and how the volume resolves them:
+
+- **Add vs. subtract (capability).** Default to subtract: the smallest tool set that covers the workflow, the minimal harness, the prompt that achieves its effect with examples rather than elaborate structure. Every addition is paid in the window whether or not it fires.
+- **Build vs. buy (harness).** Start direct; adopt a configurable harness when a concrete need earns the abstraction; build from scratch only when nothing fits — because a custom harness is a standing maintenance cost as models move.
+- **Guarantee vs. flexibility (output).** Reach for structured outputs / `strict` when you need a hard schema guarantee (stated with its refusal/`max_tokens`/supported-subset limits); reach for prompt-craft when you need flexibility beyond a strict schema. Prevent beats recover.
+- **Primitive vs. topology (coordination).** A sub-agent is the unit (one isolated window); a multi-agent system is how units coordinate. Don't build a topology where one isolated sub-agent would do, and don't expect a lone sub-agent to deliver what only coordination can.
+- **The cost gate (multi-agent).** Go multi-agent only when the work is genuinely parallelizable — a single first-party datapoint puts the cost at ~15× a chat's tokens,<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> so interdependent, shared-context work fails the gate.
+
+<InsightBox title="The one question that locates most decisions">
+"What does this cost in the context window, and is the work worth it?" Every move in this volume — a tool, an abstraction, an MCP server, a verbose prompt, a sub-agent, a whole topology — is a debit against the same finite window. Locating a decision means pricing it in that currency and asking whether the workflow's need clears the price. Most do not, which is why *subtract* and *stay single-agent* are the defaults.
+</InsightBox>
+
+## An honest map of the evidence
+
+The volume's claims sit at different evidence tiers, and designing well means weighting them accordingly.
+
+- **Official mechanics (authoritative by construction).** The tool-design guidance, the MCP spec, the structured-outputs guarantee, the sub-agent and orchestrator-worker mechanics are first-party Anthropic — authoritative on *what they are*. Much of it is single-vendor; treat it as the platform's design, not independently-benchmarked efficacy.
+- **Converged (two kinds, of different strength).** Two places earn a convergence tag: tool-minimization's **three independent vendor self-reports** (Vercel, GitHub, Block — three separate companies), and the decompose-delegate-aggregate loop that **two Anthropic posts state independently** of each other<Citation src="building-effective-agents" /> (same vendor, two publications — a weaker independence than three separate companies). Convergence of *direction*, not transferable numbers.
+- **A single datapoint (hold loosely).** The ~15× multi-agent token figure is one first-party number for one system,<Citation src="anthropic-multi-agent-research" /> quoted verbatim — a cost gate, not a law to generalize.
+- **Openly contested.** Whether multi-agent is worth it is a live 2026 disagreement: Anthropic ships orchestrator-worker, Cognition argues for single-threaded, and the two share a parallelizability test while disagreeing on how much work passes it. Design for the work in front of you; keep the choice reversible.
+- **Volatile (re-check).** The MCP release candidate (2026-07-28) and the prefill deprecation move per release. Build to the stable core; date your snapshots.
+
+<Pitfall title="Designing as if it's all settled">
+The biggest capstone error is flattening the tiers — quoting the ~15× as a universal law, treating a first-party mechanic as proven efficacy, or picking a permanent side in the multi-agent debate. Design to the evidence you have: lean on the converged practices, hold single datapoints as single datapoints, keep the contested and volatile parts (the worth-it window, the MCP RC, prefill) behind reversible, re-checkable choices.
+</Pitfall>
+
+## The boundary of this volume
+
+This volume engineers two of the harness's moves — the **tools** an agent reaches for and the **orchestration** of more than one. It stops, deliberately, at *measuring and operating* them. How to **evaluate** an agent (the harness, the suite, judge calibration), how to **model cost** beyond the single ~15× datapoint, how to make a system **observable**, how to keep a **human in the loop**, and how to defend against **adversarial input** (the MCP threat model this volume only pointed at) are the **Operations** volume's subject, not this one's. What this volume owns of them is only their *footprint* — the token cost a sub-agent or topology incurs, the design-time security posture MCP asks for — flagged where it lands.
+
+<Figure
+  src="/figures/composing-tools-orchestration/composing-tools-orchestration.svg"
+  caption="The volume composed as one sequenced workflow. The capability axis comes first — start direct and add a harness only when earned, subtract the tool set to the workflow, wire external capability least-privilege over MCP, shape the I/O — and the coordination axis comes last: reach for a sub-agent (isolation) or a multi-agent topology only when the work genuinely fans out and clears the ~15× cost gate. Every step is a debit against the same finite context window."
+  alt="A left-to-right workflow. A 'Capability axis' group of four sequential boxes: 'build vs. buy — start direct', 'tool minimization — subtract', 'MCP — least-privilege', 'shape I/O — prompting + structured output'. An arrow leads to a 'Coordination axis' gate: 'work genuinely fans out?' forking to 'sub-agent (isolation) / multi-agent topology' on yes and 'stay single-agent' on no, the multi-agent branch annotated '~15x cost gate'. A banner underneath reads 'every step debits one finite context window'."
+  width="100%"
+  id="fig-composing-tools-orchestration"
+/>
+
+## Quick reference
+
+- **Two axes, one currency:** capability (what's in a window) and coordination (how many windows) both spend context.<Citation src="effective-context-engineering" />
+- **Workflow:** start direct → subtract the tools → wire MCP least-privilege → shape the I/O → coordinate only when the work fans out.
+- **The locating question:** what does it cost in the window, and is the work worth it?
+- **Defaults:** *subtract* on capability; *stay single-agent* on coordination.
+- **Weight the evidence:** official-mechanic → converged → single-datapoint → contested → volatile.
+- **Boundary:** evaluation, cost-modeling, observability, human-in-the-loop, and security are the Operations volume.
+
+## Practice
+
+<Exercise id="ch20-ex-1">
+Walk the five-step workflow for an agent you'd actually build. At each step name the one decision you'd make and which chapter grounds it. Where is your design leaning on the weakest-tier evidence (a single datapoint, or the contested multi-agent question), and how would you keep that choice reversible?
+</Exercise>
+
+<Practice id="ch20-pr-1" difficulty="4">
+Take a real or imagined agent and design it end-to-end across both axes: the harness (build vs. buy), the tool set (what survives subtraction), any MCP wiring, the output shape, and whether any coordination (sub-agent or multi-agent) is justified. For each decision, price it in the context-window currency and state what would have to be true to spend more. Then identify the single place your design is most exposed to weak-tier evidence and make that choice reversible. The point is to feel the volume as one discipline — capability priced first, coordination only when the work earns it.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch20-ex-1">
+A representative pass for a code-review agent: (1) **build vs. buy** — configure an existing harness, don't build (start direct, grounded in ch13); (2) **tool set** — a small set (read diff, post comment, run tests), consolidating any overlapping search tools (ch14's subtract-first); (3) **MCP** — if it reaches an external code host, wire it least-privilege with audience-bound tokens (ch15); (4) **output** — use structured outputs / `strict` for the machine-read review payload, stated with its limits (ch17); (5) **coordination** — a clean-room *verifier* sub-agent to filter false positives is justified (isolation, ch18), but a full multi-agent topology is not — review subtasks share too much context to fan out and would fail the cost gate (ch19). The weakest-tier exposure is the coordination choice (the multi-agent worth-it question is contested) and any reliance on the ~15× figure; keep it reversible by starting single-agent-plus-verifier and only escalating if a genuinely parallel workload appears — re-checking the field rather than committing to a topology up front.
+</Solution>
+
+<Solution for="ch20-pr-1">
+The shape of a good answer, not a single right one: the design names each decision *and its price*. Harness: configure, not build — the price of building is standing maintenance as models move, only worth it if no configurable option fits. Tools: the minimal set covering the workflow — each extra tool is paid in definition tokens at rest plus selection risk, so the bar for adding one is "the workflow genuinely needs it." MCP: only if external capability is required, designed least-privilege. Output: the strongest guarantee the schema allows, retry loop only as fallback. Coordination: stay single-agent unless subtasks are genuinely independent — every agent is another ~15× window, so the bar is real parallelizability, not task size. The most weak-tier-exposed choice is almost always the coordination one (contested) or any quoted cost number (single datapoint); making it reversible means defaulting to the cheaper option (single agent, fewer tools) and escalating only on demonstrated need — which is exactly the volume's two defaults, *subtract* and *stay single-agent*, applied as one discipline.
+</Solution>
+
+</ExerciseSolutions>

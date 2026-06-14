@@ -1,0 +1,187 @@
+---
+title: "Multi-Agent: Coordinating Many"
+part: 2
+chapter: 19
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - anthropic-multi-agent-research
+  - building-effective-agents
+  - langgraph-supervisor
+  - langgraph-swarm
+  - cognition-dont-build
+  - cognition-working
+description: Coordinating many agents as one decision chain — topology, then coordinator, then verifier, then a cost gate. Orchestrator-worker and the centralized-to-decentralized axis; the decompose-delegate-aggregate loop two independent first-party posts describe; the in-orchestration verifier; and the genuinely open, unflattened question of when multi-agent is worth its cost — Anthropic ships it, Cognition argues against it, and they share the parallelizability test.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The sub-agent chapter (the isolation primitive this coordinates) and the spine's coordination axis. The tool-minimization cost instinct helps.">
+- Multi-agent design as **one decision chain** — topology → coordinator → verifier → cost gate
+- **Orchestrator-worker** as the spine, and the centralized↔decentralized axis (supervisor / swarm)
+- The **decompose → delegate → aggregate** coordinator loop, and the in-orchestration **verifier**
+- The genuinely **open question** of when multi-agent is worth its cost — held unflattened, with both camps and the test they share
+</YouWillLearn>
+
+_The sub-agent chapter gave you the unit: a fresh, isolated window. This chapter coordinates many of them. The temptation is to treat "multi-agent" as a capability tier — more agents, more power — but it is better read as **one decision chain**: choose a topology, implement a coordinator, add a verifier, and gate the whole thing on cost. The last gate is the one that matters most, and it is where the field genuinely disagrees — so this chapter ends not with a verdict but with an honest, dated map of an open question._
+
+## One decision chain
+
+Multi-agent design looks like four separate topics — topologies, coordination, verification, cost — but they are four **sequential moves** in one decision. You pick a **topology** (how the agents are arranged and who directs them), implement the **coordinator** (how the lead decomposes and recombines), add a **verifier** (how worker output is checked), and **gate** the whole thing on **cost** (whether the work is parallelizable enough to be worth it). Reading the chapter in order is reading the decision in order.
+
+<KeyIdea>
+Multi-agent is **topology → coordinator → verifier → cost gate**, in that order. The first three are mechanics you can get right; the fourth is a *go/no-go* that most candidate multi-agent systems fail. Design the chain, but expect the cost gate to send you back to a single agent more often than not.
+</KeyIdea>
+
+## Orchestrator-worker, and the centralized↔decentralized axis
+
+The canonical shape is **orchestrator-worker**. Anthropic's research system "uses a multi-agent architecture with an orchestrator-worker pattern, where a lead agent coordinates the process while delegating to specialized subagents that operate in parallel."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> On a query, "the lead agent analyzes it, develops a strategy, and spawns subagents to explore different aspects simultaneously."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" />
+
+Framework vocabulary names the two ends of an axis. The **centralized** end is the **supervisor**: "The supervisor controls all communication flow and task delegation, making decisions about which agent to invoke based on the current context and task requirements."<Tag kind="official" /><Citation src="langgraph-supervisor" /> The **decentralized** end is the **swarm**, "where agents dynamically hand off control to one another based on their specializations"<Tag kind="official" /><Citation src="langgraph-swarm" /> with no central coordinator.
+
+<ConceptBox term="Orchestrator-worker on a centralized↔decentralized axis">
+Orchestrator-worker and **supervisor** are the same centralized shape under two vocabularies: one lead directs the workers. The **swarm** is the decentralized alternative: peers hand off control with no lead. Most production systems sit at the centralized end — a lead is easier to reason about, verify, and cost — so treat orchestrator-worker as the default and the swarm as the exception you justify.
+</ConceptBox>
+
+<MarginNote variant="note" label="Note">
+The supervisor/swarm *names* come from a framework (LangGraph) — vendor-authoritative on their own framework, and corroborating Anthropic's centralized/decentralized shapes (so `official`-relative-to-the-vendor, not `practitioner`, which this chapter reserves for Cognition). The names are stable, durable vocabulary; the library APIs behind them are in flux (the LangChain 1.0 transition) — the names anchor, not the API surface.
+</MarginNote>
+
+## The coordinator: decompose → delegate → aggregate
+
+Inside the centralized shape, the lead runs one reusable loop. It **decomposes** the query — "the lead agent decomposes queries into subtasks and describes them to subagents,"<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> where each brief carries an objective, an output format, tool guidance, and clear boundaries. It **delegates** those briefs to workers running in parallel. And it **aggregates** their results.
+
+That this is a *pattern* and not one team's idiom is the strongest evidence in the chapter, because two independent first-party posts describe the same loop.
+
+<Convergence tools={['claude-code', 'cross-tool']}>
+Anthropic's 2025 research-system post states the lead "decomposes queries into subtasks and describes them to subagents."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> The earlier "Building effective agents" taxonomy defines the orchestrator-workers workflow independently as one where "a central LLM dynamically breaks down tasks, delegates them to worker LLMs, and synthesizes their results."<Tag kind="official" /><Citation src="building-effective-agents" /> Two independent first-party posts, the same decompose-delegate-aggregate loop. <Tag kind="convergence" />
+</Convergence>
+
+The convergence is what licenses treating the loop as the reusable coordinator pattern rather than a single system's design choice.
+
+## The verifier: separating generation from review
+
+A coordinator that only generates is incomplete; the pattern's natural complement is a **verifier** — a dedicated reviewer, separate from the workers. In practice, Anthropic "used an LLM judge that evaluated each output against criteria in a rubric"<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> (factual accuracy, citation accuracy, completeness, source quality, tool efficiency) — LLM-as-judge applied *inside* the orchestrated system. At the workflow level this is the evaluator-optimizer: "one LLM call generates a response while another provides evaluation and feedback in a loop."<Tag kind="official" /><Citation src="building-effective-agents" />
+
+This is the same separate-the-reviewer move the sub-agent chapter's clean-room verifier made, now applied across the orchestrated system: workers generate, a verifier reviews. *How* to calibrate that judge — its score scale, rubric reliability — is the Operations volume's evaluation subject, not this chapter's; here the verifier is a structural role, not a measured instrument.
+
+## The cost gate — and a genuinely open question
+
+Now the gate that decides whether any of the above should exist. Multi-agent systems are **expensive**, and the first-party figure is the one to hold: "agents typically use about 4× more tokens than chat interactions, and multi-agent systems use about 15× more tokens than chats."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" />
+
+<MarginNote variant="warning" label="Caveat">
+That ~15× is a **single first-party datapoint** — Anthropic's own number for its own research system, quoted verbatim. It is not a measured cross-system law; do not generalize it to "multi-agent always costs 15×." The deeper token-economics is the Operations volume's subject.
+</MarginNote>
+
+Anthropic itself draws a boundary on the same page: tasks that "require all agents to share the same context or involve many dependencies between agents are not a good fit for multi-agent systems today."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> So even the camp that ships orchestrator-worker reserves it for fan-out-friendly work.
+
+And here the field does not agree — which is worth presenting honestly rather than resolving.
+
+### When is multi-agent worth it? A live, open question
+
+As of mid-2026 this is **genuinely unresolved**, and the two most-cited positions point opposite ways. The honest move is to lay them side by side, dated, and let the reader weigh them.
+
+| | **Anthropic** | **Cognition (Walden Yan)** |
+|---|---|---|
+| Stance | Builds and ships orchestrator-worker for a production research system | Argues against multi-agent collaboration for most cases |
+| Recommended default | Orchestrator-worker *for fan-out-friendly tasks* | A single-threaded linear agent |
+| On the worth-it test | Reserve it for parallelizable work; shared-context/high-dependency tasks are a poor fit | Same boundary, read pessimistically: most real work shares too much context to parallelize cleanly |
+| Provenance (dated) | "How we built our multi-agent research system," **2025-06-13** | "Don't Build Multi-Agents," **2025-06**; "Multi-Agents: What's Actually Working," **2026-04-22** |
+
+The positions, in each camp's own words. **Cognition argues** that multi-agent collaboration is fragile because "the decision-making ends up being too dispersed and context isn't able to be shared thoroughly enough between the agents,"<Tag kind="practitioner" /><Citation src="cognition-dont-build" /> and that "the simplest way to follow the principles is to just use a single-threaded linear agent."<Tag kind="practitioner" /><Citation src="cognition-dont-build" /> Its 2026 follow-up refines rather than reverses that: "parallel agents make implicit choices about style, edge cases, and code patterns ... these decisions often conflicted with each other, leading to fragile products."<Tag kind="practitioner" /><Citation src="cognition-working" />
+
+<InsightBox title="They share the test; they disagree on the window">
+**This is the book's reading, not a sourced claim.** The two camps are not as far apart as the headlines suggest: both converge on a *parallelizability test* (multi-agent earns its keep only when work fans out into genuinely independent subtasks), and they disagree on **how wide that window is**. Anthropic finds enough fan-out-friendly work (research) to ship orchestrator-worker; Cognition finds most real work (coding) too interdependent and defaults to single-threaded. The open question is not *whether* the test is right but *how much work passes it* — and that is unsettled. Design for the work in front of you, keep the choice reversible, and re-check the field; do not treat either camp as the settled answer.
+</InsightBox>
+
+<MarginNote variant="warning" label="Caveat">
+This is a moving front: the Cognition follow-up is recent (2026-04-22) and narrows to designs where writes stay single-threaded. Re-check both camps' current positions before treating this map as current — it is a 2026 snapshot of an open debate, not a resolved one.
+</MarginNote>
+
+<Figure
+  src="/figures/multi-agent-decision-chain/multi-agent-decision-chain.svg"
+  caption="Multi-agent as one decision chain. Choose a topology (orchestrator-worker on a centralized supervisor ↔ decentralized swarm axis), implement the coordinator (decompose → delegate → aggregate), add a verifier (an LLM judge separating generation from review), then gate on cost — a single first-party datapoint puts multi-agent at ~15× a chat's tokens, so the work must fan out into genuinely independent subtasks to clear the gate. The gate is where the field disagrees: Anthropic ships orchestrator-worker for fan-out-friendly work; Cognition argues most work is too interdependent and prefers a single-threaded agent."
+  alt="A downward decision chain of four stages. Stage 1 'Topology': a lead box over parallel worker boxes (orchestrator-worker), on a left-to-right axis from 'supervisor (centralized)' to 'swarm (decentralized)'. Stage 2 'Coordinator': decompose to delegate to aggregate. Stage 3 'Verifier': an LLM judge reviewing worker outputs against a rubric. Stage 4 'Cost gate': annotated '~15x tokens (one first-party datapoint) - clear only if the work is genuinely parallelizable', with a fork showing 'fans out -> multi-agent' versus 'shares context -> single-threaded agent'."
+  width="100%"
+  id="fig-multi-agent-decision-chain"
+/>
+
+<WorkedExample id="ch19-walk-the-chain" title="Walking the chain on a real task">
+
+A team wants a multi-agent system to "modernize our legacy service." Walk the chain:
+
+- **Topology.** If anything, centralized (orchestrator-worker / supervisor) — a swarm's dispersed control is harder to verify and cost.
+- **Coordinator.** The lead would decompose "modernize" into subtasks and brief workers.<Citation src="anthropic-multi-agent-research" /> But notice the briefs: "update the data layer," "refactor the API," "migrate the tests" — these are not independent. They share types, contracts, and patterns.
+- **Verifier.** You could add an LLM judge over each worker's diff.<Citation src="building-effective-agents" />
+- **Cost gate — and this is where it fails.** The subtasks are highly interdependent (shared context, mutual dependencies), exactly the "not a good fit" regime Anthropic names.<Citation src="anthropic-multi-agent-research" /> Cognition's critique bites here too: parallel agents would make conflicting implicit choices about patterns and edge cases.<Citation src="cognition-working" /> The work doesn't pass the parallelizability test, and at ~15× the token cost,<Citation src="anthropic-multi-agent-research" /> it isn't worth it.
+
+The verdict: a single-threaded agent (or sequential sub-agent delegations for the genuinely-isolable bits, per the previous chapter), not a multi-agent system. The chain did its job by sending you *back* to one agent.
+
+</WorkedExample>
+
+<Pitfall title="Reaching for multi-agent because the task feels big">
+Task size is not the gate; **parallelizability** is. A big, interdependent task (most coding) fails the cost gate — it shares too much context to fan out, so multi-agent multiplies tokens (~15×) and invites conflicting implicit choices without buying parallel speed. Reach for multi-agent when the work decomposes into *genuinely independent* subtasks (research-style fan-out), not when it is merely large. When in doubt, the field's skeptical camp defaults to a single-threaded agent — a reasonable prior.
+</Pitfall>
+
+## Patterns
+
+**Default to orchestrator-worker.** *Sketch:* one lead coordinates parallel workers; reach for a swarm only with cause. *When to use:* any multi-agent system that clears the cost gate.<Citation src="anthropic-multi-agent-research" /> *Mechanics:* lead analyzes, strategizes, spawns workers; supervisor controls flow + delegation. *Remember:* centralized is easier to verify and cost than decentralized.
+
+**Run the coordinator loop.** *Sketch:* decompose → delegate (focused briefs) → aggregate. *When to use:* the lead's core job.<Citation src="building-effective-agents" /> *Mechanics:* each brief carries objective, output format, tool guidance, boundaries; the lead synthesizes results. *Remember:* two independent first-party posts describe this same loop — it is a pattern, not an idiom.
+
+**Add a clean-room verifier.** *Sketch:* a dedicated LLM judge reviews worker output against a rubric. *When to use:* whenever generation should be checked by something other than the generator.<Citation src="anthropic-multi-agent-research" /> *Mechanics:* rubric dimensions (accuracy, completeness, source quality, …); generation and review separated. *Remember:* judge *calibration* is the Operations volume's job; here it's a structural role.
+
+**Gate hard on parallelizability.** *Sketch:* go multi-agent only when the work fans out into independent subtasks. *When to use:* the go/no-go before building anything.<Citation src="anthropic-multi-agent-research" /> *Mechanics:* shared-context/high-dependency work is a poor fit; multi-agent runs ~15× a chat's tokens (one first-party datapoint). *Remember:* most tasks fail this gate — defaulting back to a single agent is the common, correct outcome.
+
+## Quick reference
+
+- **The chain:** topology → coordinator → verifier → **cost gate**.
+- **Topology:** orchestrator-worker (= supervisor, centralized) is the default; swarm (decentralized) is the exception.<Citation src="langgraph-supervisor" /><Citation src="langgraph-swarm" />
+- **Coordinator:** decompose → delegate → aggregate — described by two independent first-party posts.<Citation src="building-effective-agents" />
+- **Verifier:** an in-orchestration LLM judge separates generation from review (calibration → Operations volume).<Citation src="anthropic-multi-agent-research" />
+- **Cost:** ~15× a chat's tokens — *one first-party datapoint*, not a law; don't generalize.<Citation src="anthropic-multi-agent-research" />
+- **The open question:** Anthropic ships orchestrator-worker; **Cognition argues** for single-threaded; both share the parallelizability test, disagree on the window width — unsettled as of 2026, recheck.<Citation src="cognition-dont-build" />
+
+## Practice
+
+<Exercise id="ch19-ex-1">
+State the multi-agent decision chain in order, and say which stage is a *go/no-go* rather than a mechanic. Then explain why "the task is large" is the wrong trigger for multi-agent and what the right trigger is.
+</Exercise>
+
+<Practice id="ch19-pr-1" difficulty="4">
+Take a task you might be tempted to make multi-agent. Walk the chain: pick a topology, sketch the coordinator's decomposition, name a verifier, then apply the cost gate honestly — are the subtasks *genuinely independent*, or do they share context? Decide go or no-go, and tie your reasoning to both the ~15× cost figure (without generalizing it) and the parallelizability test. The point is to feel the gate do its work — most honest walks end in "no-go, use one agent."
+</Practice>
+
+<Practice id="ch19-pr-2" difficulty="4">
+The chapter presents the Anthropic↔Cognition disagreement as a *live, open question*, not a settled one. In three or four sentences, state both positions fairly (with their dates), name exactly what they agree on and what they disagree on, and explain why a responsible architect treats this as a reversible, re-checkable decision rather than picking a permanent side. The point is to practice holding a genuine disagreement unflattened — neither flattening Cognition into "multi-agent is bad" nor Anthropic into "multi-agent is good."
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch19-ex-1">
+The chain is **topology → coordinator → verifier → cost gate**. The first three are mechanics (choosing a shape, implementing the decompose-delegate-aggregate loop, adding a reviewer); the **cost gate is the go/no-go** — it decides whether the system should exist at all. "The task is large" is the wrong trigger because size is not what makes multi-agent pay: a large but *interdependent* task shares too much context to fan out, so multiple agents multiply tokens (~15× a chat, on the one first-party datapoint) and risk conflicting implicit choices without buying parallel speed. The right trigger is **parallelizability** — the work must decompose into genuinely independent subtasks (research-style fan-out), which is exactly the regime both camps' test points to and which most large coding tasks fail.
+</Solution>
+
+<Solution for="ch19-pr-2">
+A fair statement: **Anthropic** (multi-agent-research, 2025-06-13) builds and ships orchestrator-worker for a production research system, and reserves it for fan-out-friendly work — it explicitly says shared-context/high-dependency tasks are a poor fit. **Cognition** (Walden Yan: "Don't Build Multi-Agents," 2025-06; "Multi-Agents: What's Actually Working," 2026-04-22) argues that multi-agent collaboration is fragile because decision-making is too dispersed and context can't be shared thoroughly enough, and defaults to a single-threaded linear agent. They **agree** on the underlying test — multi-agent is worth it only when work fans out into independent subtasks; they **disagree** on how much real work passes that test (Anthropic finds enough in research; Cognition finds most coding too interdependent). A responsible architect treats it as reversible and re-checkable because the question is empirically open and moving (the Cognition follow-up is from 2026-04-22), so betting the architecture permanently on either camp — rather than designing for the work in front of you and re-checking — would be flattening a live disagreement into a false certainty.
+</Solution>
+
+</ExerciseSolutions>

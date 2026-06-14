@@ -970,3 +970,105 @@
   captured_at: 2026-05-27T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# === Volume 2 — Orchestration half (ch18–20) ===
+
+# --- Ch18 (Sub-Agents) — from the sub_agents strict-live dossier (verified 2026-05-27).
+# building-effective-agents / building-agents-with-the-sdk reused.
+
+- id: anthropic-multi-agent-research
+  url: https://www.anthropic.com/engineering/multi-agent-research-system
+  title: How we built our multi-agent research system
+  author: Anthropic
+  publish_date: 2025-06-13
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-subagents-docs
+  url: https://code.claude.com/docs/en/sub-agents
+  title: Create custom subagents
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-subagents-blog
+  url: https://claude.com/blog/subagents-in-claude-code
+  title: How and when to use subagents in Claude Code
+  author: Anthropic
+  publish_date: 2026-04-07
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-context-window
+  url: https://code.claude.com/docs/en/context-window
+  title: Explore the context window
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-agent-sdk-subagents
+  url: https://code.claude.com/docs/en/agent-sdk/subagents
+  title: Subagents in the SDK
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-review-docs
+  url: https://code.claude.com/docs/en/code-review
+  title: Code Review
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-review-blog
+  url: https://claude.com/blog/code-review
+  title: "Bringing Code Review to Claude Code"
+  author: Anthropic
+  publish_date: 2026-03-09
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# --- Ch19 (Multi-Agent) — from the multi_agent strict-live dossier (verified 2026-05-27).
+# anthropic-multi-agent-research (above) + building-effective-agents (Ch1) reused.
+# LangGraph topology NAMES are stable; the library APIs are in flux (LangChain 1.0 transition).
+# The two Cognition posts are T3-practitioner critiques — rendered "Cognition argues", never load-bearing.
+
+- id: langgraph-supervisor
+  url: https://github.com/langchain-ai/langgraph-supervisor-py
+  title: LangGraph Multi-Agent Supervisor
+  author: LangChain (langchain-ai)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: langgraph-swarm
+  url: https://github.com/langchain-ai/langgraph-swarm-py
+  title: LangGraph Multi-Agent Swarm
+  author: LangChain (langchain-ai)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: cognition-dont-build
+  url: https://cognition.ai/blog/dont-build-multi-agents
+  title: "Don't Build Multi-Agents"
+  author: Walden Yan (Cognition)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: cognition-working
+  url: https://cognition.ai/blog/multi-agents-working
+  title: "Multi-Agents: What's Actually Working"
+  author: Walden Yan (Cognition)
+  publish_date: 2026-04-22
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool

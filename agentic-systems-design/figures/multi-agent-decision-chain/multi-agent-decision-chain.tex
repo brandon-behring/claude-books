@@ -1,0 +1,47 @@
+% Decision-chain figure for Ch19 ("Multi-Agent: Coordinating Many").
+% Standalone TikZ; compiled by `book-scaffold build-figures` via pdflatex -> pdftocairo -> SVG.
+% topology -> coordinator -> verifier -> cost gate; the gate forks: fans out -> multi-agent,
+% shares context -> single-threaded agent. ~15x is one first-party datapoint, not generalized.
+\documentclass[tikz,border=4mm]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\sffamily,
+  stage/.style={draw=blue!70!black, fill=blue!8, rounded corners=3pt, align=center,
+    text width=5.2cm, minimum height=1.0cm, inner sep=4pt, font=\small},
+  gate/.style={draw=orange!75!black, fill=orange!10, rounded corners=3pt, align=center,
+    text width=5.2cm, minimum height=1.0cm, inner sep=4pt, font=\small},
+  outcome/.style={draw=teal!70!black, fill=teal!10, rounded corners=3pt, align=center,
+    text width=3.0cm, minimum height=0.95cm, inner sep=3pt, font=\footnotesize},
+  flow/.style={-Stealth, very thick, draw=gray!55!black},
+  note/.style={font=\sffamily\footnotesize, text=gray!35!black, align=left, anchor=west, text width=4.6cm}
+]
+
+\node[stage] (top) at (0,0)
+  {{\bfseries 1 · Topology}\\orchestrator-worker — supervisor (centralized) $\leftrightarrow$ swarm (decentralized)};
+\node[stage] (coord) at (0,-1.7)
+  {{\bfseries 2 · Coordinator}\\decompose $\rightarrow$ delegate $\rightarrow$ aggregate};
+\node[stage] (ver) at (0,-3.4)
+  {{\bfseries 3 · Verifier}\\an LLM judge reviews outputs (generation $\neq$ review)};
+\node[gate] (gate) at (0,-5.1)
+  {{\bfseries 4 · Cost gate}\\is the work \emph{genuinely parallelizable}?};
+
+\draw[flow] (top) -- (coord);
+\draw[flow] (coord) -- (ver);
+\draw[flow] (ver) -- (gate);
+
+% the fork at the gate
+\node[outcome] (yes) at (4.7,-4.5) {fans out $\rightarrow$\\\textbf{multi-agent}};
+\node[outcome, draw=gray!60!black, fill=gray!7] (no) at (4.7,-5.8)
+  {shares context $\rightarrow$\\\textbf{single-threaded agent}};
+\draw[flow, draw=teal!60!black] (gate.east) -- (yes.west);
+\draw[flow, draw=gray!55!black] (gate.east) -- (no.west);
+
+% the cost annotation
+\node[note] at (-7.4,-5.1) {gate on cost: multi-agent $\approx$\,\textbf{15$\times$} a chat's tokens
+  --- \emph{one first-party datapoint}, not a law};
+
+\end{tikzpicture}
+\end{document}

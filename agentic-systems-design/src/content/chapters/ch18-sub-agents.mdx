@@ -1,0 +1,166 @@
+---
+title: "Sub-Agents: The Context-Isolation Primitive"
+part: 2
+chapter: 18
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1, 2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - anthropic-subagents-docs
+  - anthropic-subagents-blog
+  - anthropic-context-window
+  - claude-agent-sdk-subagents
+  - claude-code-review-docs
+  - claude-code-review-blog
+  - anthropic-multi-agent-research
+description: The first move of the coordination axis — a sub-agent is isolation, not capability. A fresh window that inherits nothing and returns only the relevant result; the fresh-in / result-only-out contract that makes it composable; separation of concerns; roles as description plus system prompt plus scoped tools; and when the isolation earns its keep versus when it is pure overhead.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The spine's coordination axis (a new unit is a fresh window, not an added skill). The tool-minimization and context-as-budget ideas help; no orchestration specifics assumed.">
+- Why a sub-agent is a **context-isolation primitive, not added capability** — the single most important thing to understand before reaching for one
+- The **fresh-in / relevant-result-only-out** contract that makes isolation composable (and how `fork_session` inverts the input side)
+- How isolation buys **separation of concerns**, and how a role is just **description + system prompt + a scoped tool set**
+- **When a sub-agent earns its keep** — and when it is pure overhead
+</YouWillLearn>
+
+_The spine's second axis was coordination, and its reframing was sharp: a new unit of work is not a new skill, it is a fresh window. This chapter develops the primitive that embodies that — the sub-agent. Everything here follows from one claim the rest of the chapter unpacks: a sub-agent's value is the **separate context window**, not any capability the model otherwise lacks. Get that backwards and you reach for a sub-agent to "make the model smarter"; get it right and you reach for one to **quarantine context**._
+
+## Isolation, not capability
+
+Start from what a sub-agent *is*, because the common mental model — "a helper that can do something the main agent can't" — is wrong and leads to misuse. Across Anthropic's own descriptions the sub-agent is defined by its **isolation**, not by any new ability. It is, plainly, "an isolated Claude instance with its own context window."<Tag kind="official" /><Citation src="anthropic-subagents-blog" /> When a side task would otherwise flood the main conversation, "the subagent does that work in its own context and returns only the summary."<Tag kind="official" /><Citation src="anthropic-subagents-docs" /> And from the caller's side the isolation is total: "The subagent works in its own separate context window. None of its file reads touch yours."<Tag kind="official" /><Citation src="anthropic-context-window" />
+
+So the value is the *window*, not the *worker*. A sub-agent runs the same model you already have; what it adds is a clean, separate place for that model to do focused work whose verbose middle never lands in your conversation.
+
+<KeyIdea>
+A sub-agent is a **context-isolation primitive, not an added capability.** The point is to quarantine context — protect the main window and do focused work out of band — not to give the model a skill it otherwise lacks. Reach for a sub-agent when you have *context to isolate*, never to "add intelligence."
+</KeyIdea>
+
+<MarginNote variant="note" label="Note">
+"Isolation, not capability" is this book's framing — a lens laid over the sources' isolation statements. The primaries describe the mechanism (own window, inherits nothing, returns only the summary); the "not a capability" gloss is the interpretation that organizes them.
+</MarginNote>
+
+## The contract: fresh in, relevant result only out
+
+Isolation is only *composable* if the boundary is well-defined in both directions, and it is. On the way **in**, a sub-agent inherits nothing: "Each subagent starts fresh, unburdened by the history of the conversation or invoked skills."<Tag kind="official" /><Citation src="anthropic-subagents-blog" /> The SDK is precise about how fresh: a sub-agent "runs in its own fresh conversation"<Tag kind="official" /><Citation src="claude-agent-sdk-subagents" /> and does not receive the parent's conversation history, tool results, or system prompt — the *only* channel from parent to sub-agent is the prompt string you pass it. On the way **out**, the return is equally narrow: "only its final message returns to the parent"<Tag kind="official" /><Citation src="claude-agent-sdk-subagents" /> — every intermediate tool call and result stays inside the sub-agent.
+
+<ConceptBox term="The fresh-in / result-only-out contract">
+A sub-agent takes **one input** (a prompt string — not your history, tools, or system prompt) and gives back **one output** (its final message). The verbose middle — its reads, its tool calls, its dead ends — never crosses either boundary. That narrow contract is exactly what lets you delegate without polluting your own window in either direction.
+</ConceptBox>
+
+There is one deliberate exception, and naming it sharpens the rule. **Fork mode** (`fork_session`) inverts the *input* side: it carries the parent's context *into* the sub-agent, for cases where the side task genuinely needs the conversation so far. The return contract is unchanged — still only the final message comes back. The configuration mechanics of fork mode belong to the SDK reference, not here; what matters for design is that the default is *fresh*, and fork is the explicit opt-out when isolation-on-input would cost you more than it saves.
+
+<MarginNote variant="note" label="Note">
+`fork_session` is named here as the deliberate inversion of the fresh-start default; its API surface is the Agent SDK's subject, not this chapter's.
+</MarginNote>
+
+## Isolation buys separation of concerns
+
+Why is a separate window worth the trouble? Because it makes each unit of work **independent and non-interfering**. Anthropic's multi-agent write-up names the payoff directly: a sub-agent "provides separation of concerns—distinct tools, prompts, and exploration trajectories—which reduces path dependency and enables thorough, independent investigations."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> Sub-agents "facilitate compression by operating in parallel with their own context windows,"<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> each compressing its slice of the work rather than sharing one crowded window.
+
+The separate window is not just hygiene, then — it is the property that makes the next move (assigning roles) possible. Two investigations in one window contaminate each other's reasoning; the same two in separate windows stay clean.
+
+## Roles: description + system prompt + scoped tools
+
+If isolation gives you independent units, a **role** is how you specialize one. A role is not a new mechanism — it is three ordinary knobs set deliberately: a description, a system prompt, and a **scoped tool set**. The docs make the tool-scoping explicit ("limiting which tools a subagent can use"<Tag kind="official" /><Citation src="anthropic-subagents-docs" />) and the design principle blunt: "each subagent should excel at one specific task."<Tag kind="official" /><Citation src="anthropic-subagents-docs" />
+
+The most productive role decomposition the sources demonstrate is **generate-then-verify** — focused generators plus a *separate* reviewer. Claude Code's code review runs it concretely: "Each agent looks for a different class of issue,"<Tag kind="official" /><Citation src="claude-code-review-docs" /> and then "a verification step checks candidates against actual code behavior to filter out false positives."<Tag kind="official" /><Citation src="claude-code-review-docs" /> The product announcement says the same in plainer words — the agents "look for bugs in parallel"<Tag kind="official" /><Citation src="claude-code-review-blog" /> and then "verify bugs to filter out false positives."<Tag kind="official" /><Citation src="claude-code-review-blog" />
+
+<InsightBox title="A clean-room verifier beats self-evaluation">
+The reason the verifier is a *separate* sub-agent, not the generator checking its own work, is isolation again: a fresh window reviewing candidates against actual behavior has no stake in the path that produced them. Self-evaluation inherits the generator's blind spots; a clean-room verifier does not. Separating generation from evaluation is the single highest-leverage use of the isolation primitive.
+</InsightBox>
+
+<MarginNote variant="note" label="Note">
+The **Planner / Generator / Evaluator** naming is this book's framing for that decomposition — a vocabulary laid over the anchored one-task principle and the generate-then-verify split, not a term the primaries use for sub-agents.
+</MarginNote>
+
+## When a sub-agent earns its keep
+
+Isolation is not free, and the honest rule is a tradeoff, not a default-on. The **benefit** side: delegating verbose work (running tests, fetching docs, processing logs) keeps that output in the sub-agent so "only the relevant summary returns to your main conversation,"<Tag kind="official" /><Citation src="anthropic-subagents-docs" /> and the multi-agent architecture "distributes work across agents with separate context windows to add more capacity for parallel reasoning."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> The **cost** side, stated just as plainly: "Subagents start fresh and may need time to gather context"<Tag kind="official" /><Citation src="anthropic-subagents-docs" /> — a latency hit — and the task's value "must be high enough to pay for the increased performance."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" />
+
+<KeyIdea>
+Reach for a sub-agent when there is **large or irrelevant context to quarantine**, a **parallelizable focused subtask**, or a **clean-room review** to run. Stay on the main thread when **latency dominates** (a fresh agent must re-gather context) or the **task value doesn't clear the cost**. Isolation is the lever; the question is always whether this task is worth a fresh window.
+</KeyIdea>
+
+The quantified side of that cost — how many more tokens, how much more latency — is the Operations volume's subject; this chapter asserts the tradeoff qualitatively and leaves the numbers to where they can be measured.
+
+<Figure
+  src="/figures/subagent-isolation/subagent-isolation.svg"
+  caption="The isolation contract. The main conversation holds the full context; the only channel into a sub-agent is a single prompt string (not history, tool results, or system prompt), so it starts fresh. The sub-agent's reads, tool calls, and intermediate steps stay inside its own window; only its final message returns. fork_session deliberately inverts the input side — carrying the parent's context in — while leaving the result-only-out return unchanged."
+  alt="Two boxes. Left: 'Main conversation' holding the full context. A single arrow labelled 'prompt string (the only input channel)' runs to the right box: 'Sub-agent — fresh window', annotated 'inherits nothing: no history, no tool results, no system prompt'. Inside the sub-agent box, smaller items labelled 'reads · tool calls · dead ends' are marked 'stay here'. A return arrow labelled 'only the final message' runs back to the main conversation. A dashed arrow under the input channel is labelled 'fork_session: carries parent context in (return unchanged)'."
+  width="100%"
+  id="fig-subagent-isolation"
+/>
+
+<WorkedExample id="ch18-quarantine-or-not" title="Two delegations: one earns the window, one doesn't">
+
+An agent is mid-task and faces two side jobs. Which should be a sub-agent?
+
+- **"Run the full test suite and tell me what failed."** Verbose output (thousands of lines), most of it irrelevant to the main thread. Delegate it: the sub-agent runs the suite in its own window and returns only the relevant summary,<Citation src="anthropic-subagents-docs" /> keeping the noise out of your context. The isolation pays.
+- **"Rename this variable in the file you're already editing."** Tiny, and it needs the context you already hold. A fresh sub-agent would start cold and "need time to gather context"<Citation src="anthropic-subagents-docs" /> you already have — pure overhead. Stay on the main thread.
+
+Same primitive, opposite verdicts — because the question was never "can a sub-agent do this?" (it always can; it's the same model) but "is there context worth quarantining here?"
+
+</WorkedExample>
+
+<Pitfall title="Reaching for a sub-agent to add intelligence">
+The misuse that follows from the wrong mental model: spinning up a sub-agent to "think harder" or "be the expert." It is the same model with no extra ability — all you have added is a fresh window and the latency of filling it. If the task doesn't have context to isolate, work to parallelize, or a review to run clean, a sub-agent makes the system slower and no smarter. Isolation is the only thing on offer; if you don't need it, don't pay for it.
+</Pitfall>
+
+## Patterns
+
+**Quarantine verbose work.** *Sketch:* delegate high-volume, low-relevance work (tests, doc fetches, log scans) to a sub-agent; keep only the summary. *When to use:* any side task whose output would crowd the main window.<Citation src="anthropic-subagents-docs" /> *Mechanics:* pass a focused prompt; the sub-agent's verbose middle stays in its window, only the final message returns. *Remember:* the win is the quarantine, not the work — the main agent could do it, just not without the noise.
+
+**Clean-room verify.** *Sketch:* generate with one (or several) focused sub-agents, then review with a *separate* verifier. *When to use:* anything where self-evaluation would inherit the generator's blind spots.<Citation src="claude-code-review-docs" /> *Mechanics:* focused generators look for distinct issue classes; a verifier checks candidates against actual behavior to filter false positives. *Remember:* the verifier is separate *on purpose* — a fresh window has no stake in the path it reviews.
+
+**Scope the role, not just the prompt.** *Sketch:* define a role by description + system prompt + a deliberately limited tool set. *When to use:* whenever a sub-agent should excel at one task and not wander.<Citation src="anthropic-subagents-docs" /> *Mechanics:* allowlist/denylist its tools; one task per sub-agent. *Remember:* the tool scope *is* part of the role — an unscoped sub-agent is an unfocused one.
+
+**Default fresh, fork on purpose.** *Sketch:* let sub-agents start fresh; use `fork_session` only when the task genuinely needs the parent's context. *When to use:* fork when re-gathering context would cost more than carrying it in.<Citation src="claude-agent-sdk-subagents" /> *Mechanics:* fresh is the default (one prompt string in); fork inverts the input side, return unchanged. *Remember:* fork trades isolation-on-input for context — reach for it deliberately, not by habit.
+
+## Quick reference
+
+- **What it is:** an isolated instance with its own context window — **isolation, not capability**.<Citation src="anthropic-subagents-blog" />
+- **The contract:** fresh in (one prompt string; no inherited history/tools/system prompt), relevant-result-only out (final message only).<Citation src="claude-agent-sdk-subagents" />
+- **`fork_session`:** the deliberate inversion of the fresh-start default (carries parent context in; return unchanged).
+- **Why isolate:** separation of concerns — distinct tools/prompts/trajectories, non-interfering.<Citation src="anthropic-multi-agent-research" />
+- **Roles:** description + system prompt + scoped tools; the productive split is generate-then-verify with a clean-room reviewer.<Citation src="claude-code-review-docs" />
+- **When:** quarantine context / parallelize / clean-room review. **When not:** latency dominates, or task value doesn't clear the cost.<Citation src="anthropic-multi-agent-research" /> (Quantified cost → the Operations volume.)
+
+## Practice
+
+<Exercise id="ch18-ex-1">
+A teammate says, "Let's add a sub-agent so the system can handle the hard math it keeps getting wrong." Name the mental-model error in one sentence, and state what a sub-agent actually adds. Under what *different* framing (if any) could a sub-agent legitimately help with the math task?
+</Exercise>
+
+<Practice id="ch18-pr-1" difficulty="3">
+Take an agent you run. Identify one side task that *should* be a sub-agent and one that should *not*, and justify each by the contract — what context gets quarantined (or wastefully re-gathered), and what single result would return. For the one that should be a sub-agent, decide whether it should run fresh or `fork_session`, and say why. The point is to feel the decision turn on *context to isolate*, not on *capability needed*.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch18-ex-1">
+The error is treating a sub-agent as **added capability** — it is the *same model* with no extra ability, so it will get the hard math wrong in its own window just as the main agent does. What a sub-agent actually adds is **context isolation**: a fresh, separate window. A sub-agent could legitimately help the math task only under an isolation framing, not a capability one — e.g. a **clean-room verifier** that checks the main agent's answer against actual computation (running code, not re-deriving by hand), where the value is the independent check in a window with no stake in the original derivation, or quarantining a verbose symbolic-computation step so its output doesn't flood the main thread. The reframing is the whole lesson: "make it smarter" is the wrong reason; "isolate or independently check" is the right one.
+</Solution>
+
+<Solution for="ch18-pr-1">
+A representative pass. **Should be a sub-agent:** "summarize the 2,000-line dependency-audit log." It quarantines a large, low-relevance output — the sub-agent reads the log in its own window and returns only the few findings that matter, so the main conversation never carries the 2,000 lines. It should run **fresh** (`fork_session` off): the task needs only the log, not the conversation so far, so carrying parent context in would cost window for no benefit. **Should not be a sub-agent:** "fix the typo in the function we're editing." It needs context the main agent already holds, the output is trivial, and a fresh sub-agent would pay startup latency to re-gather what's already in hand — pure overhead. The decision turned on *context to isolate* (lots, in the first; none, in the second), exactly as the contract predicts — never on whether a sub-agent *could* do it.
+</Solution>
+
+</ExerciseSolutions>
