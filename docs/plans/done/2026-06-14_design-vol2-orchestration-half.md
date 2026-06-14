@@ -56,8 +56,19 @@ From the question-driven planning (3 first-round + 4 via `/exploring-options`):
 - **External `/adversarial-review` (chapters-only, baked in):** gemini `ok` with **0 findings**
   (clean); **codex `timeout` (>300s)** — no signal (large payload), surfaced not treated as clean;
   my blind pass = 2 low items, both grounded as non-issues (figure caption/alt all match their
-  `.tex`; ch19 table cells are characterizations with the cited verbatim claims in the prose). **No
-  tool-verified findings to fold.**
+  `.tex`; ch19 table cells are characterizations with the cited verbatim claims in the prose). No
+  tool-verified findings from that pass.
+- **ch19-scoped codex re-pass:** since codex timed out on the combined payload, ran a second
+  `/adversarial-review` isolated to **ch19 alone** (a throwaway `git worktree` at `origin/main` with
+  only ch19 present, so the payload was ~198 lines — small enough to finish). codex completed `ok`
+  and caught **one real apparatus gap the per-chapter reviewer missed: `ch19-pr-1` had no
+  `<Solution>`** (ch19-ex-1 + ch19-pr-2 did) — folded (added the worked solution). codex's other
+  findings (missing manifest ids / figure SVG / ch18) were **worktree-isolation artifacts**
+  (origin/main + ch19 only), tool-refuted against the real HEAD (design-audit 0 FAIL, build 26pp,
+  ch18 committed). gemini's 2 "Caveat label" findings were the standing false positive (the binding
+  linter's APPROVED_LABELS includes `Caveat`). **Lesson:** isolating one chapter in a worktree lets
+  codex finish on a honesty-critical chapter, at the cost of cross-repo false positives that are
+  trivially refuted against HEAD — a good trade for the one real catch.
 
 ## Lessons / notes
 
