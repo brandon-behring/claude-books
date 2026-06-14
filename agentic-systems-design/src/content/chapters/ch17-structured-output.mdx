@@ -1,0 +1,190 @@
+---
+title: "Shaping Output — Structured & Reliable"
+part: 2
+chapter: 17
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [4, 2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-13
+last_verified: 2026-06-13
+sources:
+  - anthropic-tool-use-define
+  - anthropic-tool-use-overview
+  - anthropic-structured-outputs
+  - anthropic-strict-tool-use
+  - anthropic-handle-tool-calls
+  - anthropic-agent-sdk-structured-outputs
+  - anthropic-increase-consistency
+  - anthropic-json-mode-cookbook
+description: The output half of shaping I/O — four levers that force reliable machine-readable output, ordered strongest-guarantee to lightest. tool_choice forces the call while strict guarantees the args; structured outputs add a grammar-backed guarantee that holds except for refusals and max_tokens cutoffs and only over the supported schema subset; prevent beats recover, so the retry loop is the fallback, not the primary path.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The prompting-craft chapter just before this one (it shapes what goes in; this chapter shapes what comes out) and the spine's capability axis — output shape is a capability-axis decision. Tool use as a mechanism (the MCP and tool-minimization chapters) helps but is not required.">
+- The **four output levers** as one continuous surface — strongest guarantee down to lightest weight — and that choosing one is a *guarantee-vs-flexibility* decision
+- Why **`tool_choice` and `strict` are two different levers**: one forces the call, the other guarantees the arguments
+- The **structured-outputs guarantee** *and its documented limits* — so you never write "always valid JSON"
+- Why **prevent beats recover**, which makes the validation/retry loop the fallback rather than the primary path
+</YouWillLearn>
+
+_The previous chapter shaped what goes *into* the model — the prompting craft. This one shapes what comes *out*: how you force output a program can parse instead of prose a human must read. It picks up a loose end from there — prefilling the assistant turn, a classic JSON-extraction trick, is being deprecated on the newest models, and the question "what do I reach for instead?" is exactly this chapter's subject. The answer is **four levers**, arranged on one surface from the strongest guarantee to the lightest touch. The mechanics are Anthropic's own API documentation — authoritative by construction, but a moving target: structured outputs is mid-GA-transition and the prefill gate grows with each model release, so this is a chapter to re-check per release, not to memorize._
+
+## One problem, four levers
+
+Forcing reliable machine-readable output looks like several unrelated tricks — tool calls, a `strict` flag, retry loops, prefilling a brace — but they are one problem with four levers, and the levers form a single continuous surface from **strongest guarantee** to **lightest weight**.
+
+- **Tool use** turns a tool definition into an output mechanism: a tool's `input_schema` is "[a JSON Schema] object defining the expected parameters for the tool,"<Tag kind="official" /><Citation src="anthropic-tool-use-define" /> so you define one tool whose schema is the shape you want and parse the call it returns.<Tag kind="official" /><Citation src="anthropic-tool-use-overview" />
+- **Structured outputs / `strict: true`** add a grammar-backed *guarantee* on top — schema-compliant output by construction.<Tag kind="official" /><Citation src="anthropic-structured-outputs" />
+- **The validation + retry loop** is the *recover* path for when the guarantee is unavailable or insufficient — define a schema, "and the SDK validates the output against it, re-prompting on mismatch."<Tag kind="official" /><Citation src="anthropic-agent-sdk-structured-outputs" />
+- **The prompt-craft recipes** — specify the format, prefill, stop sequences — are the lightest-weight, *guarantee-free* option.<Tag kind="official" /><Citation src="anthropic-increase-consistency" />
+
+<KeyIdea>
+Choosing a lever is a **guarantee-versus-flexibility** decision. Reach *down* the list — toward structured outputs / `strict` — when you need a hard schema guarantee; reach *up* it — toward prompt-craft recipes — when you need flexibility beyond a strict schema. The docs draw the boundary explicitly: "Structured outputs provide guaranteed schema compliance and are specifically designed for this use case."<Tag kind="official" /><Citation src="anthropic-increase-consistency" /> Everything else trades guarantee for reach.
+</KeyIdea>
+
+This is a capability-axis decision in the spine's sense: the output shape is part of what the agent's tool surface costs and promises. The rest of the chapter walks the levers in order, and the discipline that orders them — *prevent beats recover* — falls out at the end.
+
+<Figure
+  src="/figures/output-levers-ladder/output-levers-ladder.svg"
+  caption="The four output levers as one ladder, strongest guarantee at the top. Structured outputs / strict give a grammar-constrained guarantee — but only except refusals and max_tokens cutoffs, over the supported schema subset. tool_choice + strict force a call and constrain its arguments. The validation/retry loop recovers after an invalid output rather than preventing one. Prompt-asked JSON shapes likelihood, not the token grammar, so it carries no guarantee. Down the ladder is more guarantee; up it is more flexibility."
+  alt="A vertical ladder of four rungs. Top rung (teal): 'Structured outputs / strict: true — grammar-constrained decoding', annotated 'schema-valid except refusals and max_tokens cutoffs, over the supported schema subset'. Second rung (blue): 'tool_choice + strict — force the call, guarantee the args', annotated 'a call is emitted; strict makes its arguments conform'. Third rung (orange): 'Validation + retry loop — re-prompt on mismatch', annotated 'no prevention — recovers after an invalid output (bounded retries)'. Bottom rung (gray): 'Prompt-asked JSON — specify format, stop sequence', annotated 'no guarantee — shapes likelihood, not the token grammar'. A left-hand axis runs from 'stronger guarantee' at the bottom to 'more flexibility' at the top."
+  width="100%"
+  id="fig-output-levers-ladder"
+/>
+
+## Tool use: `tool_choice` forces the call, `strict` guarantees the args
+
+The first lever is the one most teams already have wired, because they use tool calls for everything else. Using a tool to *shape output* has two separable moves, and conflating them is the most common framing error.
+
+The first move forces the model to emit a call. The `tool_choice` option `{"type":"tool","name":"..."}` "forces Claude to always use a particular tool."<Tag kind="official" /><Citation src="anthropic-tool-use-define" /> Give the model a single tool whose `input_schema` is your target shape, force that tool, and you are guaranteed it *calls* it.
+
+The second move is not implied by the first. Forcing the call does not make the call's *arguments* schema-valid — the model can still emit the wrong types or drop a required field. That guarantee is a separate addition: setting `strict: true` on the tool "guarantees Claude's tool inputs match your JSON Schema by constraining the model's token sampling to schema-valid outputs."<Tag kind="official" /><Citation src="anthropic-strict-tool-use" />
+
+<KeyIdea>
+`tool_choice` and `strict` are **two different levers** doing two different jobs. `input_schema` declares the target shape; `tool_choice` forces the model to *emit a call*; `strict` is what makes the call's *arguments conform* to the schema. "I forced the tool, so the output is valid" is wrong — you forced the call, not the contents. Without `strict`, the docs note, Claude "might return incompatible types or missing required fields."<Tag kind="official" /><Citation src="anthropic-strict-tool-use" />
+</KeyIdea>
+
+<MarginNote variant="note" label="Note">
+The conceptual loop the overview names — Claude "returns a structured call that your application executes"<Citation src="anthropic-tool-use-overview" /> — is *why* tool use doubles as an output mechanism: the call's `input` is JSON conforming to the tool's `input_schema`, which your code parses directly.
+</MarginNote>
+
+This chapter treats tool use as an *output* mechanism only. *Which* tools to expose, how few, and how to design their surface is the subject of the tool-minimization and MCP chapters earlier in this volume — a different question from "how do I get a known shape back."
+
+## The structured-outputs guarantee — and its limits
+
+The second lever is the strongest, and the one most often overstated. Structured outputs "guarantee schema-compliant responses through constrained decoding,"<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> and the guarantee is mechanistically grounded rather than a strong-prompt effect: structured outputs "use constrained sampling with compiled grammar artifacts"<Tag kind="official" /><Citation src="anthropic-structured-outputs" /> — the schema is compiled into a grammar that constrains which tokens the model may sample. That compiled-grammar mechanism is *why* the guarantee holds and what distinguishes it from prompt-only JSON, which carries no such constraint.
+
+But the guarantee is conditioned, and the conditions are load-bearing — you must render them every time.
+
+<KeyIdea>
+The structured-outputs / `strict` guarantee is: schema-compliant output **except** for refusals (`stop_reason: refusal`) and `max_tokens` cutoffs, and **only over the supported JSON-Schema subset**. It is conditioned on a *normal completion*. Never write "always valid JSON in every circumstance" — a refused or truncated generation can still be non-conforming, and a schema feature outside the supported subset is not covered. State the guarantee with its exceptions or you have misstated it.
+</KeyIdea>
+
+<Pitfall title="“It always returns valid JSON”">
+The single most common error here is dropping the conditions and quoting the headline. Two failure modes survive the guarantee by design: a **refusal** ends generation with `stop_reason: refusal` before a complete object exists, and a **`max_tokens` cutoff** truncates mid-object. Both can yield output that does not parse, *with the guarantee fully in force* — because the guarantee is over normal completions, not over every API response. A production path still checks `stop_reason` and still handles a parse failure; the guarantee shrinks that handling to a rare edge, it does not delete it.
+</Pitfall>
+
+<MarginNote variant="warning" label="Caveat">
+Structured outputs is **now generally available**, but mid-transition: the old beta header (`structured-outputs-2025-11-13`) and the `output_format` param keep working for a transition period, with the current param being `output_config.format`. This is feature-surface — confirm the param name and whether the transition has closed against the live docs before relying on it.
+</MarginNote>
+
+This is the bridge to the first lever: `tool_choice` forces a call, and `strict` runs *this same* constrained-decoding pipeline over the call's arguments. Schema-shaped *return value* (structured outputs) and schema-valid *tool arguments* (`strict` tool use) are the same guarantee applied to two surfaces.
+
+## Prevent beats recover
+
+The third lever closes the loop when the output is *still* malformed — but its place in the ordering is the real lesson. There are two ways to deal with bad output, and they are not equals.
+
+The **recover** path responds after the fact. On the tool-use API, when a client tool returns a `tool_result` with `is_error: true`, "Claude will then incorporate this error into its response,"<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> and for an invalid or missing-parameter call, "Claude will retry 2-3 times with corrections before apologizing to the user."<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" /> On the Agent SDK, the same instinct is wired as a loop: you define a JSON Schema "and the SDK validates the output against it, re-prompting on mismatch,"<Tag kind="official" /><Citation src="anthropic-agent-sdk-structured-outputs" /> erroring out — surfaced as `error_max_structured_output_retries` — if validation does not succeed within the retry limit.
+
+The **prevent** path is the second lever: `strict` / structured outputs eliminate the invalid call *by construction*, so there is nothing to recover from. The handle-tool-calls docs themselves point at `strict` as the way to "eliminate invalid calls" rather than retry them.<Tag kind="official" /><Citation src="anthropic-handle-tool-calls" />
+
+<KeyIdea>
+The design ordering is **prevent, then recover**. Use the grammar-constrained guarantee wherever you can — it removes the failure rather than reacting to it. Fall back to the validation/retry loop only where the guarantee is unavailable (a model or path without structured outputs) or insufficient (a schema richer than the supported subset). A retry loop layered on top of a guarantee you could have used is paying twice — latency on every failure plus the engineering of the loop — for a failure you could have prevented.
+</KeyIdea>
+
+Recovery is not free and it is not certain. The SDK names three documented ways generation still fails: "This typically happens when the schema is too complex for the task, the task itself is ambiguous, or the agent hits its retry limit trying to fix validation errors."<Tag kind="official" /><Citation src="anthropic-agent-sdk-structured-outputs" /> Each is a reason to prefer prevention: a simpler schema, a less ambiguous task, and a guarantee that needs no retries at all.
+
+<InsightBox title="The retry loop is a fallback, not a default">
+It is tempting to reach for a validate-and-re-prompt loop first — it is familiar and it works without the API's newer features. But a loop is *recovery*: it spends a round trip on every malformed output and can still exhaust its retries. The guarantee is *prevention*: no malformed output, no round trip. Order them prevent-first, and keep the loop for exactly the cases the guarantee cannot reach.
+</InsightBox>
+
+## The lightest lever: prompt-craft recipes
+
+The fourth lever is the oldest and the weakest — prompt-craft recipes that *ask* for a shape without constraining the tokens. They carry no schema guarantee at all, which is precisely when you want them: for flexibility beyond a strict schema, or on a path where the guarantee is not available.
+
+The base recipe is to be explicit: "Precisely define your desired output format using JSON, XML, or custom templates so that Claude understands every output formatting element you require."<Tag kind="official" /><Citation src="anthropic-increase-consistency" /> Two narrower JSON tricks have long ridden on top: prefilling the assistant turn to "skip the preamble and go straight to the JSON,"<Tag kind="official" /><Citation src="anthropic-json-mode-cookbook" /> and pairing it with a stop sequence — "You can get rid of text that comes after the JSON by using a stop sequence."<Tag kind="official" /><Citation src="anthropic-json-mode-cookbook" />
+
+Here is where the loose end from the prompting chapter gets tied off. **Prefilling the assistant turn is being deprecated on the newest models** — it is not supported on Claude Opus 4.7, Opus 4.6, Sonnet 4.6, or Mythos Preview; on those models the documented replacement is structured outputs or system-prompt instructions.<Tag kind="official" /><Citation src="anthropic-increase-consistency" /> So the classic prefill-`{` recipe is now legacy on current models — reach for the guarantee (lever two) or a system-prompt instruction instead. The stop-sequence recipe is unaffected by the gate and remains useful for trimming trailing prose.
+
+<MarginNote variant="warning" label="Caveat">
+The prefill model gate **grows with each release** — the unsupported-model list will get longer. Treat the named set (Opus 4.7 / Opus 4.6 / Sonnet 4.6 / Mythos Preview) as a snapshot and re-check the prefill note on the increase-consistency page per model release before using prefill in any example.
+</MarginNote>
+
+These recipes shape the *likelihood* of a good shape; they do not constrain the grammar. That is the whole reason the docs redirect to structured outputs the moment you need a *guarantee* — the recipes are for the cases where you deliberately don't.
+
+## A note on evidence
+
+Everything in this chapter is Anthropic's own API documentation — T1, authoritative by construction. That is the right tier for a vendor-API reference, but it is mono-vendor: there is no independent benchmark of *how often* structured outputs fail on a complex schema, or of the real-world distribution of refusal-versus-cutoff. This chapter does not invent one. The one number it quotes — "2-3 times" — is the docs' own documented retry range, not a measured rate. If you want a failure rate for your schemas, you measure it; the docs tell you the guarantee and its conditions, not your distribution.
+
+## Patterns
+
+**Schema-as-output tool.** *Sketch:* define one tool whose `input_schema` is your target shape, force it, parse the call. *When to use:* you already speak tool use and want a known shape back.<Citation src="anthropic-tool-use-define" /> *Mechanics:* set `tool_choice` to `{"type":"tool","name":"..."}` to force the call; add `strict: true` to constrain the arguments.<Citation src="anthropic-strict-tool-use" /> *Remember:* `tool_choice` forces the *call*; `strict` is what makes the *arguments* conform — they are two levers.
+
+**Grammar-constrained guarantee.** *Sketch:* use structured outputs / `strict` for a hard schema guarantee. *When to use:* you need schema-compliant output by construction, within the supported subset.<Citation src="anthropic-structured-outputs" /> *Mechanics:* the schema compiles to a grammar that constrains token sampling; same pipeline drives `strict` tool use. *Remember:* the guarantee holds *except* refusals and `max_tokens` cutoffs, over the supported schema subset — still check `stop_reason` and a parse failure.
+
+**Prevent, then recover.** *Sketch:* prevent invalid output with the guarantee; keep a retry loop for what it can't reach. *When to use:* always order it this way.<Citation src="anthropic-agent-sdk-structured-outputs" /> *Mechanics:* structured outputs / `strict` first; fall back to validate-and-re-prompt (the SDK loop, or `is_error` feedback) where the guarantee is unavailable or insufficient.<Citation src="anthropic-handle-tool-calls" /> *Remember:* recovery costs a round trip per failure and can exhaust retries (complex schema, ambiguous task, retry-limit hit) — prevention costs neither.
+
+**Prompt-craft for flexibility.** *Sketch:* specify the format and (optionally) use a stop sequence when you need reach beyond a strict schema. *When to use:* output flexibility the guarantee can't express, or a path without it.<Citation src="anthropic-increase-consistency" /> *Mechanics:* state the format precisely; stop-sequence to trim trailing prose; **do not** prefill on current models (Opus 4.7 / Opus 4.6 / Sonnet 4.6 / Mythos Preview) — use system-prompt instructions or structured outputs.<Citation src="anthropic-json-mode-cookbook" /> *Remember:* these shape likelihood, not the token grammar — no guarantee.
+
+## Quick reference
+
+- **One surface, four levers:** tool use → structured outputs / `strict` → validation/retry → prompt-craft — strongest guarantee to lightest weight.<Citation src="anthropic-structured-outputs" />
+- **Two levers, not one:** `tool_choice` forces the *call*; `strict` guarantees the *arguments*.<Citation src="anthropic-strict-tool-use" />
+- **The guarantee, stated honestly:** schema-compliant output *except* refusals and `max_tokens` cutoffs, over the supported schema subset — never "always valid JSON."<Citation src="anthropic-structured-outputs" />
+- **Prevent beats recover:** use the guarantee first; the retry loop is the fallback, not the default.<Citation src="anthropic-handle-tool-calls" />
+- **Prefill is deprecated on current models** (Opus 4.7 / Opus 4.6 / Sonnet 4.6 / Mythos Preview) — use structured outputs or system-prompt instructions; the gate grows per release.<Citation src="anthropic-increase-consistency" />
+- **Volatility:** structured-outputs GA is mid-transition and the prefill gate moves — re-check the param name and unsupported-model list per release.
+- **Evidence:** mono-vendor T1 docs; the only number ("2-3 times") is the docs' documented retry range, not a measured failure rate.<Citation src="anthropic-handle-tool-calls" />
+
+## Practice
+
+<Exercise id="ch17-ex-1">
+A teammate sets `tool_choice` to force a single `extract_invoice` tool and says, "Now the output is guaranteed to match the schema." Name the two distinct levers they have conflated, and state precisely what forcing the tool *does* and does *not* guarantee. What one addition closes the gap?
+</Exercise>
+
+<Practice id="ch17-pr-1" difficulty="3">
+Write the structured-outputs guarantee in a single sentence a teammate could paste into a design doc — including its exceptions — and then explain in two or three sentences why "it always returns valid JSON" is not just sloppy shorthand but an *operational* error: name the two completion conditions that break it and say what a production path must still do despite the guarantee being in force.
+</Practice>
+
+<Practice id="ch17-pr-2" difficulty="4">
+You are designing the output path for an agent that must return a moderately complex nested object. Lay out, in order, which levers you reach for and why — and where prompt-craft (specifically prefill) drops out given current models. State explicitly where the validation/retry loop sits in your ordering and the conditions under which you would expect it to *still* fail even as a fallback. The point is to practice the prevent-then-recover ordering, not to enumerate the API surface.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch17-ex-1">
+The two conflated levers are **`tool_choice`** (forces the model to *emit a call*) and **`strict`** (guarantees the call's *arguments* match the JSON Schema by constraining token sampling). Forcing the tool with `tool_choice` `{"type":"tool","name":"extract_invoice"}` guarantees only that Claude *calls* `extract_invoice` — it does **not** guarantee the arguments are schema-valid; without `strict`, the docs note, the model "might return incompatible types or missing required fields." The one addition that closes the gap is `strict: true` on the tool definition, which runs the constrained-decoding pipeline over the arguments so they conform to the `input_schema`. The teammate forced the call and assumed they had also constrained the contents; those are separate levers.
+</Solution>
+
+<Solution for="ch17-pr-1">
+A pasteable sentence: *"Structured outputs / `strict` guarantee schema-compliant output through constrained decoding — except for refusals (`stop_reason: refusal`) and `max_tokens` cutoffs, and only over the supported JSON-Schema subset."* "It always returns valid JSON" is an operational error, not just loose phrasing, because the guarantee is conditioned on a *normal completion*: a **refusal** ends generation before a complete object exists, and a **`max_tokens` cutoff** truncates mid-object — both can yield output that does not parse, with the guarantee fully in force. So a production path must still check `stop_reason` and still handle a parse failure; the guarantee shrinks that handling to a rare edge case but does not remove the need for it. Treating the guarantee as absolute is what removes those checks and turns a rare refusal or truncation into an unhandled crash.
+</Solution>
+
+<Solution for="ch17-pr-2">
+Order by prevent-then-recover. **First, the guarantee:** reach for structured outputs / `strict` (lever two) — for a nested object you want the grammar-constrained guarantee, provided the schema stays inside the supported JSON-Schema subset; if the return is naturally a tool call, use `tool_choice` to force it and `strict` to constrain its arguments (the same pipeline). **Prompt-craft drops out early:** prefill is deprecated on current models (Opus 4.7 / Opus 4.6 / Sonnet 4.6 / Mythos Preview), so the classic prefill-`{` recipe is off the table — if you need any prompt-side help, it is a system-prompt format instruction (and a stop sequence to trim trailing prose), used only for flexibility the schema can't express. **The validation/retry loop sits last, as the fallback** — engaged when the guarantee is unavailable (a path or model without structured outputs) or insufficient (a schema richer than the supported subset). Even as a fallback it can still fail, and the docs name when: the schema is too complex for the task, the task itself is ambiguous, or the agent exhausts its retry limit — which is exactly the argument for keeping the schema focused and the task unambiguous so prevention carries the load and the loop rarely runs.
+</Solution>
+
+</ExerciseSolutions>

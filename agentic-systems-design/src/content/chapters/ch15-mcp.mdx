@@ -1,0 +1,213 @@
+---
+title: "MCP: Designing External Capability"
+part: 2
+chapter: 15
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [2, 1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-13
+last_verified: 2026-06-13
+sources:
+  - mcp-spec
+  - mcp-spec-architecture
+  - mcp-spec-tools
+  - mcp-spec-resources
+  - mcp-spec-prompts
+  - mcp-spec-authorization
+  - mcp-spec-transports
+  - mcp-spec-lifecycle
+  - mcp-rc-2026
+  - mcp-changelog
+  - anthropic-mcp-donation
+  - mcp-roadmap-2026
+description: How to wire external capability against a least-privilege, capability-negotiated protocol — and design against a known moving target. The host/client/server split and its design-time isolation, the three primitives as three control modes, the OAuth-2.1 authorization posture, and how to build to MCP's stable core while isolating what the announced 2026-07-28 release candidate changes.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The volume's capability axis (capability is a context cost; the default is to subtract) and the tool-minimization discipline. Vol 1's environment-as-boundary and least-privilege ideas help but are not required.">
+- The **host / client / server** split and why its isolation is a **design-time obligation**, not a runtime guarantee the protocol enforces
+- The **three primitives as three control modes** — tools are model-controlled, resources are app-driven, prompts are user-controlled — so choosing one is a decision about *who is in control*
+- The **OAuth-2.1 authorization posture** MCP standardizes on (resource indicators, no token passthrough, mandatory PKCE) — the design-time posture, not the threat model
+- How to **design against a moving target** — build to MCP's stable core, isolate what the announced 2026-07-28 release candidate changes
+</YouWillLearn>
+
+_The previous chapter set the discipline for the tools you write yourself; this one is about the tools you reach for across a wire. MCP — the Model Context Protocol — is how an agent connects to external data and tools through a standard interface instead of a bespoke integration each time. The thesis: wire external capability against a least-privilege, **capability-negotiated** protocol, and treat its security properties as obligations you design to — because the spec is explicit that it "cannot enforce these security principles at the protocol level." And because MCP is mid-transition, design against a **known moving target**: build to the stable core, isolate what the release candidate changes._
+
+## What MCP is, and where its guarantees stop
+
+MCP is an open protocol whose stated job is the integration problem this volume keeps circling: it "is an open protocol that enables seamless integration between LLM applications and external data sources and tools."<Tag kind="official" /><Citation src="mcp-spec" /> Structurally it is a JSON-RPC client–host–server model: MCP "follows a client-host-server architecture where each host can run multiple client instances,"<Tag kind="official" /><Citation src="mcp-spec-architecture" /> with each client bound one-to-one to a server. The host runs the model and holds the conversation; each client speaks to exactly one server.
+
+The protocol is **capability-negotiated**: clients and servers declare which features they support at initialization, and "Both parties must respect declared capabilities throughout the session."<Tag kind="official" /><Citation src="mcp-spec-architecture" /> Nothing is assumed to be present; everything in play is negotiated up front and honored for the session's duration. And the architecture carries a least-privilege isolation principle — servers "should not be able to read the whole conversation, nor 'see into' other servers."<Tag kind="official" /><Citation src="mcp-spec-architecture" /> The full conversation stays with the host; a server sees only what is routed to it.
+
+Here is the load-bearing honesty, and it shapes the whole chapter. The spec states plainly that "While MCP itself cannot enforce these security principles at the protocol level,"<Tag kind="official" /><Citation src="mcp-spec" /> the responsibility shifts to implementers to build the consent and authorization flows. Capability negotiation, server isolation, and the auth posture in this chapter are **design-time obligations**, not runtime guarantees.
+
+<KeyIdea>
+MCP's security properties — negotiated capabilities, cross-server isolation, least-privilege auth — are things you **design to**, not things the protocol **enforces for you**. The spec says so directly: it "cannot enforce these security principles at the protocol level." Read every "the protocol does X" in this chapter as "the protocol asks the implementer to do X." An MCP integration is only as isolated as the host you build around it.
+</KeyIdea>
+
+<MarginNote variant="note" label="Note">
+The runtime *threat* model — prompt injection through tool results, malicious servers, token theft, the "lethal trifecta" of private data plus untrusted content plus exfiltration — is a distinct subject. This chapter is the *design* side (what the protocol asks you to build); the attack surface is an operations-and-security concern, developed in a later volume. Pointing at it is deliberate; developing it here is not.
+</MarginNote>
+
+## Three primitives, three control modes
+
+A server exposes capability through exactly three primitives, and the design payload is that each encodes a different answer to *who is in control*.
+
+**Tools are model-controlled.** The model itself decides when to call them: the language model can "discover and invoke tools automatically based on its contextual understanding and the user's prompts."<Tag kind="official" /><Citation src="mcp-spec-tools" /> This is the primitive that puts the agent in the driver's seat — and so it is the one tool-minimization's whole discipline applies to.
+
+**Resources are application-driven.** They are URI-addressable read context whose inclusion the host decides, "with host applications determining how to incorporate context based on their needs."<Tag kind="official" /><Citation src="mcp-spec-resources" /> The model does not reach for a resource; the application places it. Resources can be parameterized — "Resource templates allow servers to expose parameterized resources using"<Tag kind="official" /><Citation src="mcp-spec-resources" /> URI templates — so a single resource definition covers a family of addresses.
+
+**Prompts are user-controlled.** They are templates surfaced "with the intention of the user being able to explicitly select them for use."<Tag kind="official" /><Citation src="mcp-spec-prompts" /> The user picks them deliberately (a slash command, say) — neither the model nor the application invokes them autonomously.
+
+<ConceptBox title="Primitive = control authority">
+The choice among tools, resources, and prompts is not primarily a data-shape choice; it is a **control-authority** choice. Tools hand initiative to the model, resources to the application, prompts to the user. If a capability should fire only when the user asks, a model-controlled tool is the wrong primitive — it hands the model an initiative you meant to keep. Pick the primitive by who you want holding the trigger.
+</ConceptBox>
+
+The tool primitive also fixes two interface details worth carrying into your own server design. The error model is deliberately split: a tool-execution error is reported *inside* the result with `isError` true, and such errors "contain actionable feedback that language models can use to self-correct and retry with adjusted parameters,"<Tag kind="official" /><Citation src="mcp-spec-tools" /> whereas a malformed or unknown-tool request is a JSON-RPC protocol error the model is far less likely to recover from. Return business-logic failures as `isError` results, not protocol errors, so the model can read the feedback and retry. And tool annotations (`readOnly`, `destructive`, and the like) are advisory only: clients must "consider tool annotations to be untrusted unless they come from trusted servers."<Tag kind="official" /><Citation src="mcp-spec-tools" /> An annotation is a hint, not a permission — which is the design-time-obligation theme again, applied to a single field.
+
+## The authorization posture: OAuth 2.1, by design
+
+MCP standardizes its authorization on OAuth 2.1 — it "implements a selected subset of their features to ensure security and interoperability while maintaining simplicity:"<Tag kind="official" /><Citation src="mcp-spec-authorization" /> drawing on the established OAuth specification family rather than inventing a new scheme. On that baseline the spec sets four verified design requirements a remote MCP server or host builds to. Three sit on the OAuth posture; the architectural isolation principle above is the fourth, and together they are what "least-privilege by design" means in MCP.
+
+The three OAuth requirements:
+
+- **Resource indicators (RFC 8707).** Clients MUST "implement Resource Indicators for OAuth 2.0 as defined in"<Tag kind="official" /><Citation src="mcp-spec-authorization" /> RFC 8707, binding a token to the canonical URI of the resource it is meant for. A token minted for server A cannot be replayed against server B, because it carries its intended audience.
+- **No token passthrough.** A server making upstream requests MUST NOT "pass through the token it received from the MCP client."<Tag kind="official" /><Citation src="mcp-spec-authorization" /> When it needs upstream access it acts as a separate OAuth client with its own token — the client's token never travels further than the server it was issued for.
+- **Mandatory PKCE.** Clients MUST implement PKCE, which "helps prevent authorization code interception and injection attacks by requiring clients to create a secret verifier-challenge pair"<Tag kind="official" /><Citation src="mcp-spec-authorization" /> (with the S256 method when capable), so only the original requestor can exchange an authorization code for a token.
+
+<InsightBox title="A posture, not a threat model">
+Audience-bound tokens, no-passthrough, and PKCE compose a coherent least-privilege defense — but they are the *posture you implement*, not a catalogue of the attacks they blunt. The confused-deputy problem, token reuse, and code interception that motivate these rules belong to the operations-and-security material in a later volume. Conflating "here is what to build" with "here is the threat model" is the most common framing error around MCP. This chapter is the build side; design to these requirements, and study the attacks where the threat model lives.
+</InsightBox>
+
+There are **four** key principles in the spec's overview — user consent and control, data privacy, tool safety, and sampling controls — and the same caveat governs all of them: the protocol asks implementers to honor them; it does not enforce them on the wire.<Tag kind="official" /><Citation src="mcp-spec" />
+
+## MCP is mid-transition — and that is the design problem
+
+The current authoritative revision is `2025-11-25`, and it is genuinely current. But MCP is at a dated inflection point, and a responsible design accounts for it rather than pretending the spec is static.
+
+Today the protocol is **stateful**. The lifecycle opens with an `initialize` handshake that MUST "be the first interaction between client and server,"<Tag kind="official" /><Citation src="mcp-spec-lifecycle" /> inside which client and server negotiate a protocol version. The transport layer defines two standards — stdio, which clients SHOULD "support stdio whenever possible,"<Tag kind="official" /><Citation src="mcp-spec-transports" /> and Streamable HTTP, where the server MAY "assign a session ID at initialization time"<Tag kind="official" /><Citation src="mcp-spec-transports" /> via an `Mcp-Session-Id` header the client then echoes on every request. That session ID is the protocol-level session.
+
+The announced **2026-07-28 release candidate** prunes much of this toward a **stateless core** — applying the volume's subtract-first instinct to the protocol itself. The following are *announced for 2026-07-28, not current*; recheck each after that date:
+
+- The `initialize`/`initialized` handshake is removed (SEP-2575).<Tag kind="official" /><Citation src="mcp-rc-2026" />
+- The `Mcp-Session-Id` header and the protocol-level session are removed (SEP-2567).<Tag kind="official" /><Citation src="mcp-rc-2026" />
+- A formal feature-lifecycle policy deprecates Roots, Sampling, and Logging with "at least twelve months between deprecation and the earliest possible removal."<Tag kind="official" /><Citation src="mcp-rc-2026" />
+- Tasks becomes a server-directed extension and `tasks/list` "is removed because it can't be scoped safely without sessions."<Tag kind="official" /><Citation src="mcp-rc-2026" /> (Tasks exists today as an in-core experimental feature, added in the current revision "to enable tracking durable requests with polling and deferred result retrieval."<Tag kind="official" /><Citation src="mcp-changelog" />)
+- A new MCP Apps extension "lets servers ship interactive HTML interfaces that hosts render in a sandboxed iframe" (SEP-1865).<Tag kind="official" /><Citation src="mcp-rc-2026" />
+- An Extensions framework where "extensions are identified by reverse-DNS IDs, negotiated through an extensions map on client and server capabilities, live in their own ext-* repositories with delegated maintainers, and version independently of the specification" (SEP-2133).<Tag kind="official" /><Citation src="mcp-rc-2026" />
+
+<MarginNote variant="warning" label="Caveat">
+Every release-candidate item above is **announced, not shipped** — the RC was locked in mid-2026 and the final publishes 2026-07-28. Treat these as the direction of travel, and re-verify the mechanisms (stateless core, the Tasks extension, MCP Apps) against the final spec after that date. This chapter's `feature-surface` volatility tag exists for exactly this section.
+</MarginNote>
+
+## Governance moved out of Anthropic — which is why dual-layer reading is the honest default
+
+The reason "current plus announced-coming" is the right way to hold MCP, rather than a quirk, is that the protocol no longer has a single vendor steering it. In December 2025, "Anthropic is donating the Model Context Protocol to the Linux Foundation,"<Tag kind="official" /><Citation src="anthropic-mcp-donation" /> establishing the Agentic AI Foundation. The donation came with a continuity assurance: the governance model "will remain unchanged: the project's maintainers will continue to prioritize community input and transparent decision-making."<Tag kind="official" /><Citation src="anthropic-mcp-donation" />
+
+Development now runs through an open process. The current revision moved to "Formalize Working Groups and Interest Groups in MCP governance" (SEP-1302),<Tag kind="official" /><Citation src="mcp-changelog" /> and the 2026 roadmap confirms that "Working and Interest Groups are now the primary vehicle for protocol development."<Tag kind="official" /><Citation src="mcp-roadmap-2026" /> The maintainers are candid about what that means for predictability: "A release-oriented roadmap implies a level of predictability that open-standards work rarely has."<Tag kind="official" /><Citation src="mcp-roadmap-2026" />
+
+<KeyIdea>
+Because MCP evolves through a public SEP process under open-standards governance, the changes are **trackable, not surprising** — but they are also not on a fixed schedule a vendor controls. The honest way to represent the spec to yourself and to a codebase is the dual layer: *what is authoritative now* and *what is announced coming, with a recheck date*. Designing against the spec means designing against that pair, not against a frozen snapshot.
+</KeyIdea>
+
+## Designing against a moving target
+
+Put the two halves together — a stable conceptual core, a churning transport-and-feature surface — and the design rule writes itself: **build to the stable core, isolate what the RC changes behind adapters.**
+
+The durable parts are the conceptual ones: the host/client/server architecture<Citation src="mcp-spec-architecture" /> and the three-primitive control model<Citation src="mcp-spec-tools" /> are not what the RC touches. Design your integration's *shape* against those and it survives the transition. The parts in motion are the mechanical ones — the transport and lifecycle (the handshake, the session ID)<Citation src="mcp-spec-transports" /><Citation src="mcp-spec-lifecycle" /> heading toward a stateless core, and Tasks<Citation src="mcp-changelog" /> heading out of core into an extension. Wrap exactly those behind a thin adapter so the migration, when it lands, is contained to one seam instead of smeared across the codebase.
+
+<InsightBox title="The dossier convention is the design advice">
+The discipline this chapter models — separate what *is* from what's *announced coming*, and date the recheck — is not a presentational tic. It is the actual design move: a stateful assumption baked diffusely through your code is a migration you will pay for at the RC; the same assumption isolated behind an adapter is a one-file change. Designing against a known moving target means making the moving parts *findable*. Build to the core; quarantine the churn.
+</InsightBox>
+
+<Figure
+  src="/figures/mcp-architecture/mcp-architecture.svg"
+  caption="MCP's host/client/server split with capability negotiation and the three primitives. The host runs the model and holds the full conversation; each client is bound one-to-one to a server, declaring and respecting negotiated capabilities for the session. Servers do not see into one another. Each server exposes capability through three primitives that encode three control modes: tools (model-controlled), resources (application-driven), prompts (user-controlled). The isolation shown is a design-time obligation the spec asks implementers to honor, not a property the protocol enforces."
+  alt="On the left, a gray 'Host (runs the model)' box containing client A and client B, annotated 'full conversation stays here'. Two double-headed arrows labelled 'capability negotiation' link client A to Server A and client B to Server B (teal boxes) one-to-one, with a dashed line between the servers annotated 'servers do not see into each other'. On the right, three orange primitive boxes branch off a server: tools (model-controlled), resources (app-driven), prompts (user-controlled), annotated 'three primitives = three control modes'."
+  width="100%"
+  id="fig-mcp-architecture"
+/>
+
+<WorkedExample id="ch15-wiring-an-internal-service" title="Wiring an internal service over MCP">
+
+A team wants to expose an internal incident-management service to its agent over MCP: list incidents, open one, post an update, and a "run the weekly incident report" workflow the on-call engineer triggers by hand. How should this be designed?
+
+Walk the chapter:
+
+- **Primitives by control authority.** "Post an update" and "open an incident" are actions the agent should take in context — **tools** (model-controlled).<Citation src="mcp-spec-tools" /> The incident records the agent should read are URI-addressable read context the application decides to surface — **resources**, parameterized with a template like `incident://{id}`.<Citation src="mcp-spec-resources" /> The weekly report is something the engineer invokes deliberately — a **prompt** (user-controlled), not a tool the model can fire on its own.<Citation src="mcp-spec-prompts" />
+- **Auth posture.** The server authorizes over OAuth 2.1 with audience-bound tokens (RFC 8707) so a token minted for it cannot be replayed elsewhere; when it calls the upstream incident API it uses its *own* token, never passing through the client's; PKCE is mandatory.<Citation src="mcp-spec-authorization" />
+- **Error model.** A "post update" that fails business validation returns an `isError` result with the reason, so the agent can self-correct — not a JSON-RPC protocol error.<Citation src="mcp-spec-tools" />
+- **Isolation is on you.** The host keeps the full conversation and routes only the relevant slice to this server; that boundary is a design obligation, because the protocol does not enforce it.<Citation src="mcp-spec" />
+- **Design for the move.** Put the transport/lifecycle wiring behind an adapter so the announced stateless-core change<Citation src="mcp-rc-2026" /> is a one-seam migration.
+
+The wrong design makes everything a model-controlled tool — including the report — handing the model initiative the engineer meant to keep, and forwards the client's token upstream, breaking the no-passthrough rule.
+
+</WorkedExample>
+
+## Patterns
+
+**Pick the primitive by control authority.** *Sketch:* map each capability to tool / resource / prompt by *who* should trigger it. *When to use:* designing any server's surface.<Citation src="mcp-spec-tools" /> *Mechanics:* model-initiated → tool; app-placed read context → resource (template it); user-selected → prompt. *Remember:* a model-controlled tool hands the model initiative — if the user should decide, that is the wrong primitive.
+
+**Design to least-privilege auth.** *Sketch:* OAuth 2.1 with audience-bound tokens, no passthrough, mandatory PKCE. *When to use:* any remote MCP server.<Citation src="mcp-spec-authorization" /> *Mechanics:* RFC 8707 resource indicators bind the token; the server uses its own upstream token; PKCE (S256) on every client. *Remember:* it is the posture you implement, not the threat model — and the protocol does not enforce it for you.
+
+**Return self-correctable errors.** *Sketch:* report business-logic failures inside the result, not as protocol errors. *When to use:* any tool that can fail on bad input.<Citation src="mcp-spec-tools" /> *Mechanics:* set `isError` true and include actionable feedback; reserve JSON-RPC errors for malformed/unknown requests. *Remember:* an `isError` result is something the model can read and retry; a protocol error usually is not.
+
+**Isolate by design, host-side.** *Sketch:* keep the full conversation in the host; route only the relevant slice to each server. *When to use:* always — especially with multiple servers.<Citation src="mcp-spec-architecture" /> *Mechanics:* one client per server, capabilities negotiated and respected; no cross-server visibility. *Remember:* the spec "cannot enforce these security principles at the protocol level" — isolation is your obligation.
+
+**Build to the core, wrap the churn.** *Sketch:* design the shape against the stable architecture/primitives; adapter-wrap transport, lifecycle, and Tasks. *When to use:* any integration meant to outlive the 2026-07-28 RC.<Citation src="mcp-rc-2026" /> *Mechanics:* one seam for the stateful-vs-stateless transition; recheck the RC mechanisms after 2026-07-28. *Remember:* a diffuse stateful assumption is a migration; an isolated one is a one-file change.
+
+## Quick reference
+
+- **What MCP is:** an open, JSON-RPC, capability-negotiated client–host–server protocol for connecting agents to external data and tools.<Citation src="mcp-spec" /><Citation src="mcp-spec-architecture" />
+- **The honesty:** the spec "cannot enforce these security principles at the protocol level" — isolation, negotiation, and auth are **design-time obligations**, not runtime guarantees.<Citation src="mcp-spec" />
+- **Three primitives = three control modes:** tools (model-controlled), resources (app-driven), prompts (user-controlled) — choose by who holds the trigger.<Citation src="mcp-spec-tools" /><Citation src="mcp-spec-resources" /><Citation src="mcp-spec-prompts" />
+- **Tool interface:** `isError` results carry self-correctable feedback (distinct from protocol errors); annotations are untrusted unless the server is.<Citation src="mcp-spec-tools" />
+- **Auth posture (four principles):** OAuth 2.1 + RFC 8707 resource indicators + no token passthrough + mandatory PKCE — the posture, not the threat model.<Citation src="mcp-spec-authorization" />
+- **Mid-transition:** today stateful (initialize handshake, `Mcp-Session-Id`); the 2026-07-28 RC announces a stateless core, deprecation policy, Tasks-as-extension, MCP Apps, and an Extensions framework — announced, recheck after 2026-07-28.<Citation src="mcp-rc-2026" />
+- **Governance:** donated to the Linux Foundation (Agentic AI Foundation, Dec 2025); developed through Working Groups — trackable, not vendor-scheduled.<Citation src="anthropic-mcp-donation" /><Citation src="mcp-roadmap-2026" />
+- **Design rule:** build to the stable core; isolate what the RC changes behind an adapter.
+
+## Practice
+
+<Exercise id="ch15-ex-1">
+The chapter insists MCP's isolation, capability negotiation, and auth posture are "design-time obligations, not runtime guarantees." Quote the spec line that justifies that framing, and explain in two sentences what changes about how you build an MCP integration once you accept it — versus treating the protocol as if it enforced isolation for you.
+</Exercise>
+
+<Practice id="ch15-pr-1" difficulty="3">
+You are designing an MCP server for a code-review service with three capabilities: (a) fetch the diff for a pull request, (b) post an inline review comment, (c) a "summarize this PR for the release notes" action a human editor runs deliberately. Assign each to a primitive (tool / resource / prompt) and justify the assignment by control authority, not by data shape. Then name the one OAuth requirement that most directly stops a token issued to this server from being replayed against a different internal service, and say why.
+</Practice>
+
+<Practice id="ch15-pr-2" difficulty="4">
+The 2026-07-28 release candidate removes the `initialize` handshake and the `Mcp-Session-Id` session. Suppose your codebase already calls a live MCP server in production. Describe, in three or four sentences, how you would structure the integration *today* so that the announced stateless-core change is a contained migration rather than a sprawling one — and state explicitly which parts of MCP you would treat as stable and design directly against, versus which parts you would wrap. Tie your answer to why the dual-layer (current + announced-coming) reading is the honest default given MCP's governance.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch15-ex-1">
+The justifying line is the spec's own: "While MCP itself cannot enforce these security principles at the protocol level," — the protocol acknowledges it cannot guarantee the consent, isolation, and authorization properties on the wire, and shifts responsibility to the implementer. Once you accept that, you stop assuming the protocol isolates servers or scopes tokens *for* you and start building those properties yourself: the host must actually keep the full conversation and route only the relevant slice to each server, the server must actually implement audience-bound tokens and no-passthrough, and you treat any "the protocol does X" claim as "I must build X." Treating the protocol as self-enforcing is the failure mode — it leaves the isolation and auth you assumed were present simply unbuilt.
+</Solution>
+
+<Solution for="ch15-pr-1">
+**(a) Fetch the diff → resource.** It is URI-addressable read context the application decides to surface (e.g. a template like `pr://{id}/diff`); the model does not "act," it reads context the host places. **(b) Post an inline review comment → tool.** It is an action the agent should take in context based on its understanding of the diff — model-controlled is exactly right. **(c) Summarize for the release notes → prompt.** The human editor invokes it deliberately; making it a model-controlled tool would hand the model an initiative meant to stay with the user. The assignment is by *who holds the trigger* (application / model / user), not by whether the payload is text or structured. The OAuth requirement that most directly stops token replay is **RFC 8707 resource indicators**: they bind the token to the canonical URI of *this* server as its intended audience, so a token minted here carries an audience that a different internal service will reject — replay fails because the token says who it is for. (No-passthrough is the complementary rule, but it governs the server's *upstream* calls rather than replay of the token issued to this server.)
+</Solution>
+
+<Solution for="ch15-pr-2">
+Design the integration's *shape* against MCP's stable conceptual core — the host/client/server architecture and the three-primitive control model — because those are not what the RC touches; an integration whose structure rests on them survives the transition unchanged. Wrap the *mechanical, in-motion* parts behind a single thin adapter: the transport and lifecycle (the `initialize` handshake and `Mcp-Session-Id` session) and Tasks, which are exactly what the stateless core and the Tasks-extension graduation change. With that seam in place, the announced stateless-core change is a one-file swap behind the adapter rather than a stateful assumption you have to chase through the whole codebase. The dual-layer reading is the honest default precisely because MCP is now an open-standards protocol developed through Working Groups rather than a vendor-scheduled product — the maintainers themselves note "a release-oriented roadmap implies a level of predictability that open-standards work rarely has," so the responsible stance is to hold *what is authoritative now* and *what is announced coming with a recheck date* together, and to make the moving parts findable rather than assume a frozen spec.
+</Solution>
+
+</ExerciseSolutions>

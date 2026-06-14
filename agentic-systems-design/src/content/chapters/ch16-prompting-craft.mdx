@@ -1,0 +1,169 @@
+---
+title: "Shaping Input — The Prompting Craft"
+part: 2
+chapter: 16
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [4, 2]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-13
+last_verified: 2026-06-13
+sources:
+  - anthropic-prompting-best-practices
+  - anthropic-prompt-eng-overview
+  - anthropic-prompt-eng-tutorial
+  - anthropic-xml-tags
+  - building-effective-agents
+description: The craft that shapes what goes into the agent — five moves in the source's own order (be clear, show examples, elicit reasoning, structure with XML and roles, chain). The lead mental model is the brilliant-but-new employee; examples are the most reliable lever; two techniques changed under newer models (manual chain-of-thought is now a fallback, prefill on the last assistant turn is deprecated); and chaining is single-thread decomposition, not orchestration.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+
+<YouWillLearn prerequisites="The spine chapter's capability axis (a tool is a slice of the context budget). Vol 1's context-as-budget framing helps but is not required. This chapter is about the agent's text *input*; forcing its machine-readable *output* is the next chapter's subject.">
+- The **five-move prompting craft** in the source's own order — be clear, show examples, elicit reasoning, structure, chain — and the one **mental model** that makes the rest self-deriving
+- Why **examples are the most reliable single lever**, and the one anchored number the craft actually quotes (3–5)
+- **What changed under newer models** — manual chain-of-thought is now a *fallback*, and prefilling the last assistant turn is *deprecated*
+- The boundary that keeps the next half of the volume clean: **chaining is single-thread decomposition, not orchestration**
+</YouWillLearn>
+
+_The spine framed every tool as a slice of the context budget. This chapter turns to the other thing you put in the window: the prompt itself — the text that shapes what the agent reasons over. Anthropic documents the craft as five moves, and it documents them in an order that is itself a teaching device: clarity first, then examples, then reasoning, then structure, then chaining. This is single-vendor, authoritative-by-construction guidance — Anthropic's own prompt-engineering docs — so the honest tier is `official`, not `convergence`. Two of the five moves have shifted under newer models, and the chapter renders them as the current state, not the technique they once were._
+
+## The order is the lesson: five moves on one surface
+
+Anthropic's prompt-engineering hub lists the techniques as one ordered set — they run "from clarity and examples to XML structuring, role prompting, thinking, and prompt chaining."<Tag kind="official" /><Citation src="anthropic-prompt-eng-overview" /> That ordering is not a table of contents; it is a gradient of effort. You reach for the cheap, high-leverage move first (say what you want clearly), and you escalate to the expensive, structural moves (chain several prompts) only when the cheaper ones do not carry the task.
+
+<KeyIdea>
+The craft is five moves in a deliberate order — **be clear → show examples → elicit reasoning → structure with XML and roles → chain**. Read it as an escalation ladder, not a checklist: each rung is more work and more structure than the last, so you climb only as far as the task forces you. Most prompts never leave the first two rungs.
+</KeyIdea>
+
+This matters for an agent system specifically. The prompt is context, and context is the budget the whole volume is about. A prompt that achieves its effect with clarity and three examples spends far less of the window than one that leans on elaborate structure and a multi-step chain — and it leaves more room for the tools, the conversation history, and the work itself.
+
+## Clarity is the foundation — brief the brilliant new employee
+
+The single highest-leverage idea in the craft is to be explicit, because the model does not share your context. Anthropic's mental model is the one to lead with: "Think of Claude as a brilliant but new employee who lacks context on your norms and workflows."<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> The metaphor does real work — almost every other clarity technique is a corollary of "brief the new hire properly."
+
+Two such corollaries are documented directly. Sequence the instruction when order matters: "Provide instructions as sequential steps using numbered lists or bullet points when the order or completeness of steps matters."<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> And supply the *why*, not just the *what* — "providing context or motivation behind your instructions, such as explaining to Claude why such behavior is important"<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> lets the model generalize the instruction to cases you did not enumerate.
+
+<ConceptBox title="The brilliant-but-new-employee model">
+The organizing metaphor for clarity: the model is capable but uninformed about your norms, so under-specification reads as a gap to be filled with a plausible default — rarely the one you wanted. The fix is the same as onboarding a strong hire: be explicit about the goal, give the steps in order when order matters, and explain the motivation so they can extend it correctly. State the metaphor first and most of the clarity advice derives itself.
+</ConceptBox>
+
+## Examples are the most reliable lever — and they come with a dosage
+
+Among the five moves, examples carry the strongest reliability claim in the source. Anthropic states that examples are "one of the most reliable ways to steer Claude's output format, tone, and structure."<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> For an agent, that is the cheapest way to pin down a shape you care about — a response format, a tone, a decision boundary — without writing a paragraph of rules the model then has to interpret.
+
+Unusually for prompting guidance, this move comes with a concrete dosage and a selection rule. The dosage is the one verbatim number anchored anywhere in the underlying research: "Include 3–5 examples for best results."<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> The selection rule is relevance — make examples that "mirror your actual use case closely"<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> (the same guidance adds *diverse*, covering edge cases, and *structured*, wrapped in tags). Anthropic's own interactive tutorial independently treats examples as a named foundational technique, dedicating its "Using Examples" chapter to it — corroboration that this is core craft, though as a teaching artifact rather than the normative guidance.<Tag kind="official" /><Citation src="anthropic-prompt-eng-tutorial" />
+
+<MarginNote variant="tip" label="Tip">
+The "3–5 examples" figure is the only number this craft actually quotes — and it is a *dosage* guideline, not a measured effect size. There is no source figure for "how much accuracy examples buy"; the docs make a reliability claim, not a quantified one.
+</MarginNote>
+
+<InsightBox title="A few good examples beat a long rulebook">
+When you want a specific output shape, the instinct is to describe it in prose — every field, every edge case. Examples short-circuit that: three to five that mirror the real use case demonstrate the shape instead of describing it, and demonstration is both shorter in the window and less ambiguous than a rulebook the model must interpret. This is the same context-frugality the volume's spine applies to tools, applied to the prompt.
+</InsightBox>
+
+## What changed: reasoning is now elicited by the model, not the prompt
+
+The third move — eliciting step-by-step reasoning — is the first of two that have shifted under newer models, and the shift is a role-reversal. Manual chain-of-thought (telling the model to "think step by step") used to be the default reasoning lever. It is now documented as a *fallback*: "When thinking is off, you can still encourage step-by-step reasoning by asking Claude to think through the problem."<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> The conditional — *when thinking is off* — is the whole point. Adaptive thinking now handles most multi-step reasoning internally as a model feature, so the prompting technique survives mainly for the case where that capability is unavailable.
+
+<MarginNote variant="warning" label="Caveat">
+This is **official-but-volatile**, current as of the Claude Opus 4.7-era docs — recheck it per model release. As thinking becomes more default-on, the "when thinking is off" condition narrows, and the manual technique may shrink further. Keep the *prompting* technique (ask the model to reason) cleanly separate from the *model feature* (the extended-thinking budget); the latter is an API-surface deep-dive, not this chapter's subject.
+</MarginNote>
+
+The practical instruction for an agent builder: do not reach reflexively for "think step by step" in the system prompt. If thinking is available, it is doing that work already, and the manual instruction is redundant context. Reserve the prompting technique for the case it is now documented for.
+
+## Structure and roles — durable craft, with one deprecation inside it
+
+The fourth move is the most stable part of the craft — except for one technique that has been retired outright.
+
+Two of the three structuring techniques are documented-once, durable craft. XML tags "help Claude parse complex prompts unambiguously,"<Tag kind="official" /><Citation src="anthropic-xml-tags" /> which matters most when a prompt mixes instructions, context, examples, and variable inputs — wrap each content type in its own tag so the model never has to guess where one ends and the next begins. And a role assignment in the system prompt is a one-line steering tool: "setting a role in the system prompt focuses Claude's behavior and tone for your use case,"<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> where even a single sentence makes a difference.
+
+The third technique — **prefilling the last assistant turn** to steer format or skip a preamble — has been deprecated, not refined. On Claude 4.6+ models, "prefilled responses on the last assistant turn are no longer supported,"<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> and a request that includes a prefilled assistant message now returns a 400 error. This is a former best-practice that became an error, and it must be rendered as the deprecation it is. The documented migration is to **structured outputs** for format control and to direct system-prompt instructions for skipping preambles.
+
+<Pitfall title="Teaching prefill as a current technique">
+Older prompting material recommends prefilling the assistant turn — opening the model's response yourself to force a JSON object or strip a preamble. On current models this is not a weaker technique; it is a 400. If you find a guide that teaches "start the assistant message with `{` to force JSON," treat it as stale: the format-control job now belongs to structured outputs (the next chapter), and the skip-the-preamble job belongs to a plain system-prompt instruction. Migrate it; do not carry it forward.
+</Pitfall>
+
+<MarginNote variant="warning" label="Caveat">
+Both the deprecation and the model gate are **official-but-volatile** — current as of the Claude Opus 4.7-era docs; recheck per model release. The deprecation is scoped to the *last assistant turn* on 4.6+; assistant messages elsewhere in a conversation are unaffected.
+</MarginNote>
+
+## Chaining is the escape hatch — and it is not orchestration
+
+The fifth and most expensive move is to stop trying to do the job in one prompt and decompose it. Prompt chaining "decomposes a task into a sequence of steps, where each LLM call processes the output of the previous one,"<Tag kind="official" /><Citation src="building-effective-agents" /> and the workflow "is ideal for situations where the task can be easily and cleanly decomposed into fixed subtasks."<Tag kind="official" /><Citation src="building-effective-agents" /> Explicit chaining stays worthwhile "when you need to inspect intermediate outputs or enforce a specific pipeline structure,"<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" /> and its canonical shape is self-correction — generate a draft, have the model review it against criteria, have it refine based on the review.<Tag kind="official" /><Citation src="anthropic-prompting-best-practices" />
+
+Here is the boundary the rest of the volume depends on. Chaining is **single-thread prompt decomposition**: one conversation, a fixed sequence of calls, each feeding the next. It is *not* multi-agent orchestration — there is no second isolated window, no delegation, no runtime-chosen control flow. Reaching for sub-agents when a sequential pipeline would do is exactly the additive reflex the spine warned against, applied to coordination.
+
+<KeyIdea>
+**Chaining ≠ orchestration.** A prompt chain is a predefined sequence of calls on one thread — the craft's escape hatch for a task too big for a single prompt. An orchestration is many *isolated windows* coordinating. If the task decomposes into fixed steps you can lay out in advance, chain it; you do not need another agent. The coordination half of this volume is where the *other* case — genuinely independent or quarantined work — gets its primitive.
+</KeyIdea>
+
+## Where this connects
+
+Two threads run out of this chapter. The first is the prefill deprecation: its migration target is **structured outputs**, the subject of the next chapter, which takes up forcing reliable machine-readable output where prefill used to. The second is the chaining boundary: the moment a task stops being a fixed sequence on one thread and becomes independent or quarantined work across windows, you have crossed from the prompting craft into coordination — the later, orchestration half of this volume, where the sub-agent and multi-agent patterns live. This chapter shapes the *input* to a single agent thread; those are the two places its edges hand off.
+
+## Patterns
+
+**Brief the new hire.** *Sketch:* state the goal explicitly, give steps in order when order matters, and explain the motivation. *When to use:* first — always, before any heavier move.<Citation src="anthropic-prompting-best-practices" /> *Mechanics:* numbered/bulleted steps for ordered work; one sentence of *why* behind each non-obvious instruction. *Remember:* under-specification gets filled with a plausible default, rarely the one you wanted.
+
+**Show, don't describe.** *Sketch:* demonstrate the output shape with 3–5 examples instead of a prose rulebook. *When to use:* whenever you care about a specific format, tone, or decision boundary.<Citation src="anthropic-prompting-best-practices" /> *Mechanics:* mirror the real use case closely; cover edge cases; wrap each example in a tag. *Remember:* examples are the most reliable steering lever, and 3–5 is the documented dosage.
+
+**Structure the messy prompt.** *Sketch:* tag distinct content types and assign a role. *When to use:* when a prompt mixes instructions, context, examples, and variable input.<Citation src="anthropic-xml-tags" /> *Mechanics:* `<instructions>`/`<context>`/`<input>` tags; a one-line role in the system prompt.<Citation src="anthropic-prompting-best-practices" /> *Remember:* tags remove parsing ambiguity; a role focuses behavior and tone — durable craft, unlike prefill.
+
+**Chain only fixed sequences.** *Sketch:* decompose a too-big task into a predefined sequence of calls, each feeding the next. *When to use:* the task cleanly decomposes into fixed subtasks, or you must inspect intermediate output.<Citation src="building-effective-agents" /> *Mechanics:* the self-correction shape — generate, review against criteria, refine — as separate calls.<Citation src="anthropic-prompting-best-practices" /> *Remember:* this is single-thread; if the work is independent or needs isolation, that is orchestration, not chaining.
+
+## Quick reference
+
+- **The order is the ladder:** clarity → examples → reasoning → structure/roles → chaining; climb only as far as the task forces you.<Citation src="anthropic-prompt-eng-overview" />
+- **Lead with clarity:** the brilliant-but-new-employee model — be explicit, sequence when order matters, give the *why*.<Citation src="anthropic-prompting-best-practices" />
+- **Examples are the most reliable lever:** mirror the use case; documented dosage is **3–5** (the one anchored number).<Citation src="anthropic-prompting-best-practices" />
+- **Changed — CoT:** manual "think step by step" is now a *fallback* for when thinking is off; adaptive thinking does it by default (volatile; recheck per model release).<Citation src="anthropic-prompting-best-practices" />
+- **Changed — prefill:** prefilling the last assistant turn is **deprecated** on 4.6+ (returns a 400); migrate format control to structured outputs (volatile; recheck per model release).<Citation src="anthropic-prompting-best-practices" />
+- **Durable structure:** XML tags remove parsing ambiguity;<Citation src="anthropic-xml-tags" /> a role in the system prompt focuses behavior.<Citation src="anthropic-prompting-best-practices" />
+- **Boundary:** chaining is single-thread decomposition, **not** orchestration.<Citation src="building-effective-agents" />
+- **Tier honesty:** this is single-vendor `official` guidance (Anthropic's own docs + one corroborating tutorial), authoritative by construction — not triangulated across independent practitioners, so no convergence claim.
+
+## Practice
+
+<Exercise id="ch16-ex-1">
+The chapter calls the five-move order an "escalation ladder" rather than a checklist. Name the five moves in order, and explain in one sentence why reading them as a ladder — climb only as far as the task forces you — is the right framing *for an agent system specifically*. (Hint: what is a prompt, in the currency the volume cares about?)
+</Exercise>
+
+<Practice id="ch16-pr-1" difficulty="3">
+Two of the five moves "changed" under newer models: manual chain-of-thought and prefill. For each, state (a) what the technique used to be for, (b) what its current documented status is, and (c) what you should do instead today. Then say, in one sentence, why this chapter tags both claims *volatile* and what concrete action that tag obliges before you rely on either. The point is to practice rendering a deprecated technique as the deprecation it is, not the technique it was.
+</Practice>
+
+<Practice id="ch16-pr-2" difficulty="2">
+A teammate says: "Our agent's report-generation step is unreliable, so let's split it into a multi-agent system." The step is actually a fixed pipeline — gather data, draft the report, check it against a rubric, revise. Locate the cheaper fix on the prompting ladder, name the specific pattern, and explain why this is a chaining problem and not an orchestration one. The point is to feel the chaining-≠-orchestration boundary the chapter draws.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch16-ex-1">
+The five moves, in order, are: **be clear and direct**, **use examples (multishot)**, **elicit reasoning (chain-of-thought)**, **structure with XML tags and roles**, and **chain complex prompts**. Reading them as a ladder is right for an agent system because a prompt is *context* — the same finite window currency the volume is built around — and each rung up the ladder spends more of that window than the last (a multi-step chain costs far more than a clear instruction with three examples). So you climb only as far as the task forces you: solving it on the bottom two rungs leaves the most window for tools, history, and the actual work, which is the whole capability-axis discipline applied to the prompt rather than to the tool set.
+</Solution>
+
+<Solution for="ch16-pr-1">
+**Manual chain-of-thought.** (a) It used to be the default reasoning lever — telling the model to "think step by step" before answering to improve multi-step reasoning. (b) It is now documented as a *fallback*: "when thinking is off, you can still encourage step-by-step reasoning." (c) Today, rely on adaptive/extended thinking, which handles most multi-step reasoning internally as a model feature; reserve the manual prompt for the case where thinking is unavailable, and do not add a redundant "think step by step" when it is on.
+
+**Prefill.** (a) It used to steer output format or skip a preamble by opening the assistant's response for it. (b) It is now *deprecated* on Claude 4.6+ — prefilled responses on the last assistant turn are no longer supported, and such a request returns a 400 error. (c) Migrate format control to structured outputs and skip-the-preamble to a direct system-prompt instruction.
+
+Both claims are tagged **volatile** because they are model-version-dependent statements about a moving feature surface (current as of the Claude Opus 4.7-era docs), not durable principles — the "when thinking is off" condition narrows as thinking becomes default-on, and the prefill gate is tied to specific model versions. The tag obliges a concrete action: **recheck the source per model release** before relying on either, rather than treating the chapter's snapshot as permanent.
+</Solution>
+
+<Solution for="ch16-pr-2">
+The cheaper fix is the fifth rung of the prompting ladder — **prompt chaining**, specifically the **self-correction pattern** (generate a draft, review it against criteria/rubric, refine based on the review), run as a fixed sequence of calls so you can inspect each intermediate output. This is a chaining problem and not an orchestration one because the work is a *predefined, single-thread sequence*: gather → draft → check → revise, each step feeding the next on one conversation, with no independent or quarantined work that needs its own isolated window. Splitting it into multiple agents adds coordination cost and extra windows to paper over what is really an unstructured single prompt — the additive reflex applied to the wrong axis. Chaining ≠ orchestration: if the task decomposes into fixed steps you can lay out in advance, chain it; reach for separate agents only when the work is genuinely independent or needs context isolation, which the coordination half of the volume takes up.
+</Solution>
+
+</ExerciseSolutions>

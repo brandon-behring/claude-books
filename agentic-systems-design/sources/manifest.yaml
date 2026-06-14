@@ -737,3 +737,236 @@
   captured_at: 2026-05-27T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
+
+# --- Ch13 (Build vs. Buy) — from the harness_buildvsbuy strict-live dossier (verified 2026-05-27).
+# building-effective-agents / langgraph-overview / agent-sdk-overview / building-agents-with-the-sdk reused.
+
+- id: anthropic-managed-agents
+  url: https://www.anthropic.com/engineering/managed-agents
+  title: "Scaling Managed Agents: Decoupling the brain from the hands"
+  author: Anthropic (Lance Martin, Gabe Cemaj, Michael Cohen)
+  publish_date: 2026-04-08
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: crewai-introduction
+  url: https://docs.crewai.com/en/introduction
+  title: Introduction (What is CrewAI?)
+  author: CrewAI (documentation)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+- id: openai-agents-sdk
+  url: https://openai.github.io/openai-agents-python/
+  title: OpenAI Agents SDK
+  author: OpenAI (Agents SDK documentation)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: cross-tool
+
+# --- Ch15 (MCP) — from the mcp_design strict-live dossier (all verified 2026-05-27).
+# Dates are the 2025-11-25 spec revision / real blog dates; mcp-rc-2026 publish_date omitted
+# (its slug 2026-07-28 is the RC's announced target, not the post's publish date).
+
+- id: mcp-spec
+  url: https://modelcontextprotocol.io/specification/2025-11-25
+  title: Specification — Model Context Protocol
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-architecture
+  url: https://modelcontextprotocol.io/specification/2025-11-25/architecture
+  title: Architecture — Model Context Protocol Specification 2025-11-25
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-tools
+  url: https://modelcontextprotocol.io/specification/2025-11-25/server/tools
+  title: Tools — Model Context Protocol Specification (revision 2025-11-25)
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-resources
+  url: https://modelcontextprotocol.io/specification/2025-11-25/server/resources
+  title: Resources — Model Context Protocol Specification (revision 2025-11-25)
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-prompts
+  url: https://modelcontextprotocol.io/specification/2025-11-25/server/prompts
+  title: Prompts — Model Context Protocol Specification (revision 2025-11-25)
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-authorization
+  url: https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization
+  title: Authorization — Model Context Protocol Specification (revision 2025-11-25)
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-transports
+  url: https://modelcontextprotocol.io/specification/2025-11-25/basic/transports
+  title: Transports — Model Context Protocol Specification 2025-11-25
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-spec-lifecycle
+  url: https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle
+  title: Lifecycle — Model Context Protocol Specification 2025-11-25
+  author: Model Context Protocol contributors
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-rc-2026
+  url: https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/
+  title: The 2026-07-28 MCP Specification Release Candidate
+  author: David Soria Parra and Den Delimarsky (Lead Maintainers)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-changelog
+  url: https://modelcontextprotocol.io/specification/2025-11-25/changelog
+  title: Key Changes (Changelog) — MCP Specification 2025-11-25
+  author: Model Context Protocol maintainers
+  publish_date: 2025-11-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: anthropic-mcp-donation
+  url: https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation
+  title: Donating the Model Context Protocol and establishing the Agentic AI Foundation
+  author: Anthropic
+  publish_date: 2025-12-09
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: mcp-roadmap-2026
+  url: https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/
+  title: The 2026 MCP Roadmap
+  author: David Soria Parra (Lead Maintainer)
+  publish_date: 2026-03-09
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+# --- Ch16 (Prompting Craft) — from the prompt_engineering strict-live dossier.
+# anthropic-xml-tags (Ch9) + building-effective-agents (Ch1) reused. Undated doc pages omit publish_date.
+
+- id: anthropic-prompting-best-practices
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+  title: Prompting best practices
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-prompt-eng-overview
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview
+  title: Prompt engineering overview
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-prompt-eng-tutorial
+  url: https://github.com/anthropics/prompt-eng-interactive-tutorial
+  title: Anthropic's Prompt Engineering Interactive Tutorial
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T2-release-notes
+  tool: claude-code
+
+# --- Ch17 (Structured Output) — from the structured_output strict-live dossier.
+# Undated Anthropic doc pages omit publish_date (per existing manifest convention).
+
+- id: anthropic-tool-use-define
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools
+  title: Define tools
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-tool-use-overview
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview
+  title: Tool use with Claude
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-structured-outputs
+  url: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
+  title: Structured outputs
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-strict-tool-use
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use
+  title: Strict tool use
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-handle-tool-calls
+  url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls
+  title: Handle tool calls
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-agent-sdk-structured-outputs
+  url: https://code.claude.com/docs/en/agent-sdk/structured-outputs
+  title: Get structured output from agents
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-increase-consistency
+  url: https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency
+  title: Increase output consistency
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-json-mode-cookbook
+  url: https://platform.claude.com/cookbook/misc-how-to-enable-json-mode
+  title: Prompting Claude for JSON mode
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code

@@ -1,0 +1,189 @@
+---
+title: "Build vs. Buy: Choosing a Harness"
+part: 2
+chapter: 13
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-13
+last_verified: 2026-06-13
+sources:
+  - building-effective-agents
+  - anthropic-managed-agents
+  - langgraph-overview
+  - crewai-introduction
+  - agent-sdk-overview
+  - building-agents-with-the-sdk
+  - openai-agents-sdk
+description: The first move on the capability axis — start direct on the API and add a harness abstraction only when it earns its keep. Why a framework's convenience is bought with abstraction that obscures prompts and is harder to debug, why a custom harness is a standing maintenance liability as models improve, what the framework landscape offers per each vendor's own docs, and why the realistic answer is the configure-wrap-extend middle path rather than the build-or-buy binary.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="The spine chapter's first axis — capability is a context cost, so the default is to subtract. Vol 1's working definition of an agent as Model + Harness helps but is not required.">
+- Why the starting default is **direct on the API**, not a framework — and not a build-from-scratch harness either
+- The core tradeoff a framework forces — **abstraction cost vs. convenience** — and why the abstraction is what you pay
+- Why building your own harness is **not free either**: it is a standing maintenance liability as models improve
+- The **framework landscape** read honestly — what LangGraph, CrewAI, the Claude Agent SDK, and the OpenAI Agents SDK each *say they provide*, not a cross-vendor ranking
+- The realistic answer — the **configure / wrap / extend** middle path, and the sequenced rule that follows from it
+</YouWillLearn>
+
+_This is the first move on the volume's capability axis. The spine framed every capability — a tool, an abstraction, a framework — as a context cost paid before it is used; the build-vs-buy decision is the first place that bites. The thesis is a default: start direct on the API and let the harness earn itself. The middle path between "build it all" and "buy a framework" is **configure, wrap, extend** — and the rule that organizes the whole decision is sequenced, not one-shot: simplest thing that works first, abstraction added only when a concrete need demands it._
+
+## Start direct, start simple
+
+Begin with the recommendation and let it organize everything else. Anthropic's agent-building guidance states the default flatly: developers should "start by using LLM APIs directly," because "many patterns can be implemented in a few lines of code."<Tag kind="official" /><Citation src="building-effective-agents" /> This is not a beginner's on-ramp you graduate out of — it is the recommended *starting point* for production systems, and the evidence behind it is an aggregated cross-team observation: across the many teams Anthropic worked with, "the most successful implementations weren't using complex frameworks or specialized libraries."<Tag kind="official" /><Citation src="building-effective-agents" />
+
+So the decision does not open with "which framework?" It opens with "do I need one at all?" — and the default answer is no.
+
+<KeyIdea>
+The starting point is neither a big custom harness nor a heavy framework. It is a **thin, direct implementation** on the API, with abstraction added later and only when a concrete need justifies it. "Can I adopt a framework?" is the wrong opening question; "what does this workflow actually need that direct API calls don't give me?" is the right one.
+</KeyIdea>
+
+This is the same instinct the spine drew as the capability axis, applied to the harness layer instead of the tool set. A framework is a capability you expose to *yourself* — and like every capability, it is paid for before it is used, in the abstraction it inserts between you and the model. The default is therefore subtraction here too: the smallest harness that covers the workflow beats a feature-complete one.
+
+## The tradeoff: abstraction cost vs. convenience
+
+A framework's appeal is real — it gets you moving faster. The question is what that convenience costs. The cost is abstraction, and the specific damage is to *visibility*: frameworks can insert layers that obscure the underlying prompts and responses, "making them harder to debug."<Tag kind="official" /><Citation src="building-effective-agents" /> When the agent misbehaves, you are now debugging through the framework's abstractions instead of reading the prompt and response directly.
+
+That reframes the decision. It is not "which framework is best" — it is "is the convenience worth the lost visibility on this workflow?"
+
+<ConceptBox title="Abstraction cost">
+The price a framework charges for its convenience: layers between you and the model that obscure the prompts and responses you would otherwise read directly, making failures harder to diagnose. A framework can be *designed* to minimize this cost — but it is never zero, and it is the thing you weigh against the convenience.
+</ConceptBox>
+
+The cost is not fixed across frameworks, which is exactly why the decision is a spectrum rather than a switch. A framework can be designed to keep the prompts visible: LangGraph, for instance, describes itself as low-level and states that it "does not abstract prompts or architecture."<Tag kind="official" /><Citation src="langgraph-overview" /> That is the framework-vendor's own answer to the debuggability concern — and it reframes the axis from "framework vs. no framework" to "how much abstraction, and is it visible." Read it as LangGraph's stated design stance, not as a measured property or a ranking against other frameworks.
+
+<MarginNote variant="tip" label="Tip">
+A useful litmus test for any framework you are evaluating: when the agent does the wrong thing, how many layers must you read through to see the actual prompt and the actual response? If the answer is "more than one," you are paying abstraction cost.
+</MarginNote>
+
+## The other side: building is a standing liability
+
+It is tempting to read "don't reach for a framework" as "build your own harness." But the build side has its own recurring cost, and it is easy to underprice. A harness is not a one-time artifact: "harnesses encode assumptions that go stale as models improve."<Tag kind="official" /><Citation src="anthropic-managed-agents" /> The behaviors you tune around — how the model handles a long context, when it over-eagerly calls a tool, how it formats output — shift with each model release, and the assumptions your harness baked in decay with them.
+
+<KeyIdea>
+A custom harness is a **standing maintenance liability**, not a finished deliverable. Its assumptions about model behavior go stale as models improve, so "build" must be priced as continuous re-tuning against every model release — not as a fixed up-front cost. This is precisely what tilts many teams toward a configurable harness they do not have to re-maintain themselves.
+</KeyIdea>
+
+So both ends of the binary carry a cost. A framework charges abstraction cost (lost visibility); a from-scratch build charges ongoing maintenance (staleness as models move). Neither is free, which is why the realistic answer is rarely either extreme.
+
+## The framework landscape — read honestly
+
+If you do reach for an existing harness, four options dominate the conversation. The honest way to read this landscape is one framework at a time, against *its own documentation* — because each framework's description of itself is authoritative on what it provides and *not* on how it ranks against the others. There is no independent cross-vendor benchmark here; each line below is a vendor self-description.
+
+- **LangGraph** describes itself as "a low-level orchestration framework and runtime for building, managing, and deploying long-running, stateful agents."<Tag kind="official" /><Citation src="langgraph-overview" /> Its documented capability set centers on durable execution, streaming, human-in-the-loop, and persistence.
+- **CrewAI** describes itself as "the leading open-source framework for orchestrating autonomous AI agents and building complex workflows," organized around role-based crews.<Tag kind="official" /><Citation src="crewai-introduction" /> The word "leading" is CrewAI's own framing, not an independent ranking.
+- **The Claude Agent SDK** "gives you the same tools, agent loop, and context management that power Claude Code, programmable in Python and TypeScript."<Tag kind="official" /><Citation src="agent-sdk-overview" /> Its documented capabilities include built-in tools, hooks, subagents, MCP, permissions, and sessions.
+- **The OpenAI Agents SDK** describes itself as "a lightweight, easy-to-use package with very few abstractions," built around a small primitive set.<Tag kind="official" /><Citation src="openai-agents-sdk" /> "Very few abstractions" is the vendor's own positioning.
+
+<Pitfall title="Laundering a self-description into a ranking">
+Each `official` tag above is official *relative to that one vendor* — authoritative on what the framework provides, nothing more. The dangerous move is to collapse the four self-descriptions into a cross-vendor verdict: reading CrewAI's "leading" as "CrewAI is the best," or OpenAI's "very few abstractions" as "fewer than LangGraph's." Those are not measured comparisons — they are four vendors each describing themselves. The adoption question is "which capability set matches *my* workflow," answered from the docs, not "which framework wins," answered from adjectives.
+</Pitfall>
+
+Because these are framework docs, they move fast — each ships per release, and the self-descriptions drift. Treat the four lines above as a snapshot, not a constant.
+
+<MarginNote variant="warning" label="Caveat">
+The framework-landscape lines carry a 90-day recheck (the underlying docs were captured 2026-05-27; re-verify the verbatim positioning by ~2026-08-25). Expect renamed products, new entrants, and shifted positioning.
+</MarginNote>
+
+## The middle path: configure, wrap, extend
+
+Put the two costs together and the binary dissolves. You rarely face a clean choice between writing everything yourself and surrendering to a framework. The realistic answer is in the middle: start thin on the direct API, and where you *do* adopt, adopt something configurable that you assemble from primitives.
+
+The Claude Agent SDK is the canonical instance of this stance. It is "the agent harness that powers Claude Code,"<Tag kind="official" /><Citation src="building-agents-with-the-sdk" /> so adopting it means taking a production-proven harness rather than writing one — and at its core "the SDK gives you the primitives to build agents"<Tag kind="official" /><Citation src="building-agents-with-the-sdk" /> for whatever workflow you are automating, composed and extended through subagents and hooks. That is the configure/wrap/extend position made concrete: a configurable harness you take, shape, and extend, rather than a from-scratch build you own end-to-end or an opaque framework you cannot see into.
+
+<InsightBox title="Why the middle path dominates the binary">
+Configure/wrap/extend gets you most of what the "build" end offers — control over orchestration, tools, and workflow — without the standing maintenance liability of a from-scratch harness, *and* most of what the "buy" end offers — speed, production-proven plumbing — without surrendering visibility into the prompts. You take a harness someone else maintains against model changes, and you extend it from primitives where your workflow is specific. It is not a compromise between two good options; it is usually the better option than either pure extreme.
+</InsightBox>
+
+This is where the abstraction-cost axis pays off: the SDK route lets you adopt without going opaque, because you are assembling from primitives rather than inheriting a black box. The custom-build route's maintenance liability is also softened, because the harness's general plumbing is maintained by its vendor against new models — you only own the thin extension layer your workflow actually needs.
+
+<Figure
+  src="/figures/build-vs-buy-spectrum/build-vs-buy-spectrum.svg"
+  caption="The build-vs-buy spectrum. From left: start direct on the API (the recommended starting point), then configure / wrap / extend a configurable harness (the middle path), then build from scratch (the right end). Control rises left to right — and so does maintenance cost. The default is to start at the left and move right only as far as a concrete need pulls you."
+  alt="A horizontal spectrum of five boxes left to right: 'start direct on the API' (marked 'start here'), 'configure a harness', 'wrap a harness', 'extend from primitives' (the middle three bracketed as 'the middle path: configure / wrap / extend'), and 'build from scratch'. Below run two parallel arrows pointing right: one labeled 'less control' to 'more control', the other 'low maintenance cost' to 'high maintenance cost'."
+  width="100%"
+  id="fig-build-vs-buy-spectrum"
+/>
+
+## The sequenced rule
+
+Compose the criteria with the default and the middle path and the whole decision reduces to a sequence — not a one-shot choice, but an order you move through only as far as a real need pulls you.
+
+1. **Start without a framework.** Direct API, thin harness, because many patterns are a few lines of code.<Tag kind="official" /><Citation src="building-effective-agents" />
+2. **Adopt a configurable harness when a concrete need earns the abstraction** — preferring one that keeps prompts visible<Tag kind="official" /><Citation src="langgraph-overview" /> and that you do not have to re-tune against every model release.<Tag kind="official" /><Citation src="anthropic-managed-agents" /> The Claude Agent SDK is the canonical configure/wrap/extend option.<Tag kind="official" /><Citation src="building-agents-with-the-sdk" />
+3. **Build a fully custom harness only when no configurable option fits** — and price it as the continuous maintenance it is, because the staleness cost is now yours to carry.<Tag kind="official" /><Citation src="anthropic-managed-agents" />
+
+<KeyIdea>
+The decision is **sequenced, not one-shot**: simplest thing that works first, abstraction earned incrementally. You do not pick a point on the spectrum at the start; you start at the left end and move right exactly as far as a demonstrated need carries you — and no further.
+</KeyIdea>
+
+A note on scope: this chapter is the *decision* — when to build, buy, or take the middle path. *What* a harness actually is (the agent loop, context management, the tool interface as components) is the Model + Harness framing the foundation volume develops; the orchestration of more than one agent — sub-agents and multi-agent topologies — is the later, coordination half of this volume. Here the decision stops at the single-harness choice.
+
+## Patterns
+
+**Start direct on the API.** *Sketch:* implement the workflow with direct LLM API calls before reaching for any framework. *When to use:* always, as the opening move — most patterns are a few lines of code.<Citation src="building-effective-agents" /> *Mechanics:* write the loop yourself; add a tool call, a retry, a parse — measure whether a real need for abstraction appears. *Remember:* the default answer to "do I need a framework?" is no; the burden of proof is on the abstraction.
+
+**Weigh abstraction cost against convenience.** *Sketch:* before adopting a framework, price the visibility you lose. *When to use:* any time a framework's speed is tempting.<Citation src="building-effective-agents" /> *Mechanics:* ask how many layers stand between you and the actual prompt/response when debugging; prefer a framework that keeps prompts visible.<Citation src="langgraph-overview" /> *Remember:* convenience is bought with abstraction, and abstraction is paid in debuggability.
+
+**Price the build as maintenance, not a one-time cost.** *Sketch:* treat a custom harness as a standing liability. *When to use:* whenever "just build it ourselves" is on the table.<Citation src="anthropic-managed-agents" /> *Mechanics:* estimate re-tuning cost per model release, not just the up-front build; that recurring cost is the real comparison. *Remember:* harnesses encode assumptions that go stale as models improve.
+
+**Take the configure/wrap/extend middle path.** *Sketch:* adopt a configurable, production-proven harness and extend it from primitives. *When to use:* when a concrete need has earned abstraction but a from-scratch build is overkill.<Citation src="building-agents-with-the-sdk" /> *Mechanics:* take a harness like the Claude Agent SDK; compose subagents and hooks; own only the thin extension your workflow needs.<Citation src="agent-sdk-overview" /> *Remember:* you get control without the full maintenance burden, and adoption without going opaque.
+
+**Read the landscape per vendor, not as a ranking.** *Sketch:* evaluate each framework against its own docs and your workflow. *When to use:* the moment you decide an existing harness is warranted.<Citation src="crewai-introduction" /> *Mechanics:* match documented capability sets to your workflow's needs; treat "leading" and "few abstractions" as self-descriptions.<Citation src="openai-agents-sdk" /> *Remember:* there is no independent cross-vendor benchmark in the vendors' own marketing copy.
+
+## Quick reference
+
+- **Default:** start direct on the API — most patterns are a few lines of code; the most successful implementations weren't using complex frameworks.<Citation src="building-effective-agents" />
+- **The framework cost:** convenience is bought with abstraction that obscures prompts and responses, making them harder to debug.<Citation src="building-effective-agents" />
+- **The build cost:** a custom harness is a standing maintenance liability — its assumptions go stale as models improve.<Citation src="anthropic-managed-agents" />
+- **Landscape (per each vendor's own docs, not a ranking):** LangGraph = low-level orchestration framework + runtime;<Citation src="langgraph-overview" /> CrewAI = "leading" open-source role-based orchestration (self-described);<Citation src="crewai-introduction" /> Claude Agent SDK = the tools/agent loop/context management that power Claude Code;<Citation src="agent-sdk-overview" /> OpenAI Agents SDK = "very few abstractions" (self-described).<Citation src="openai-agents-sdk" />
+- **Middle path:** configure / wrap / extend a configurable harness — e.g. the Claude Agent SDK, built from primitives.<Citation src="building-agents-with-the-sdk" />
+- **The rule:** sequenced — start without a framework → adopt a configurable one when a need earns it → build from scratch only when nothing fits.
+- **Honesty:** vendor self-descriptions are not a cross-vendor verdict; the framework lines carry a 90-day recheck.
+
+## Practice
+
+<Exercise id="ch13-ex-1">
+The chapter says both ends of the build-vs-buy binary carry a cost. Name the cost on each end — the cost of buying a framework, and the cost of building a custom harness from scratch — and say which one is paid *continuously* rather than up front. Why does having a cost on both ends make the middle path the usual answer?
+</Exercise>
+
+<Practice id="ch13-pr-1" difficulty="3">
+You are evaluating two frameworks. One's docs say it is "the leading framework for orchestrating agents"; the other's say it offers "very few abstractions." A teammate concludes the second is more debuggable than the first and the first is more capable. Write two or three sentences explaining what is wrong with both conclusions, and state how you *would* legitimately decide between the two. The point is to practice the evidence discipline — reading vendor self-descriptions as self-descriptions, not as a cross-vendor ranking.
+</Practice>
+
+<Practice id="ch13-pr-2" difficulty="3">
+A team has built a custom agent harness over six months and it works well on the current model. Argue, in three or four sentences, why "it works well today" is not sufficient grounds to keep maintaining a from-scratch build — and what specifically they should re-examine at the next model release. Then say what the configure/wrap/extend middle path would have changed about their position. Ground your answer in the chapter's maintenance-cost claim, not in a general preference for frameworks.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch13-ex-1">
+The **buy** end's cost is **abstraction cost**: a framework's convenience is bought with layers that obscure the underlying prompts and responses, making failures harder to debug. The **build** end's cost is **ongoing maintenance**: a custom harness encodes assumptions about model behavior that go stale as models improve, so it must be continuously re-tuned. The maintenance cost is the one paid *continuously* rather than up front — it recurs with every model release, whereas the abstraction cost is a fixed property of the framework you adopted. Because neither extreme is free — one charges lost visibility, the other charges perpetual re-tuning — the realistic answer is usually the middle: take a configurable, production-proven harness (so its general plumbing is maintained against new models for you) and extend it from primitives (so you keep visibility and own only the thin layer your workflow actually needs).
+</Solution>
+
+<Solution for="ch13-pr-1">
+Both conclusions launder a vendor's self-description into a cross-vendor comparison the docs never make. "Leading" is CrewAI-style marketing framing, not an independent ranking, so it licenses no claim that one framework is "more capable" than the other; "very few abstractions" is the OpenAI-style vendor's own positioning, authoritative on what *it* says it provides but not a measured statement that it is more debuggable than some other framework. The legitimate way to decide is to read each framework against *its own* documented capability set and match those capabilities to my specific workflow — does this one's durable-execution / role-based / primitive model fit what I actually need to build? — rather than to rank the two on adjectives. If I genuinely need a debuggability comparison, I have to source it independently (or test it myself by debugging a real failure in each), not infer it from the phrase "few abstractions."
+</Solution>
+
+<Solution for="ch13-pr-2">
+"It works well today" is insufficient because a harness encodes assumptions that go stale as models improve — the behaviors the team tuned around (context handling, tool-call eagerness, output formatting) shift with each model release, so a harness that fits the current model can silently misfit the next one. The maintenance cost is therefore continuous and latent: it is real even on the day everything works, because it is a liability that comes due at the *next* release, not a problem you can see now. At that release they should re-examine exactly the assumptions baked into the harness against the new model's behavior — re-running their evals, checking whether their workarounds are now unnecessary or now wrong — and budget that re-tuning as a recurring cost, not a surprise. The configure/wrap/extend middle path would have changed their position by moving most of that staleness-prone plumbing onto a vendor-maintained harness (e.g. the Claude Agent SDK), so the general agent loop and context management are re-tuned against new models for them, and the team owns only the thin extension layer their workflow specifically required — shrinking the surface that goes stale to the part that is genuinely theirs.
+</Solution>
+
+</ExerciseSolutions>
