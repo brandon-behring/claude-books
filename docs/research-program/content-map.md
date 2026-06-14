@@ -67,7 +67,7 @@ The topic→volume rows above refine to chapter grain here, from the rich outlin
 atom→section detail stays in each dossier's `agent_index/`. Carving is the approved blueprint;
 numbers/titles are working drafts until authored.
 
-**Vol 2 — Tools & Orchestration** (`part: 2`, ch12–19)
+**Vol 2 — Tools & Orchestration** (`part: 2`, ch12–20; **ch12–17 authored 2026-06-13**, ch16 split into prompting + structured output)
 
 | Chapter | Backing dossier(s) |
 |---|---|
@@ -75,26 +75,27 @@ numbers/titles are working drafts until authored.
 | ch13 Build vs Buy | `harness_buildvsbuy` |
 | ch14 Tool Minimization | `tool_minimization` *(the one convergence chapter)* |
 | ch15 MCP: Designing External Capability | `mcp_design` |
-| ch16 Shaping I/O: Prompting & Structured Output | `prompt_engineering` + `structured_output` |
-| ch17 Sub-Agents | `sub_agents` |
-| ch18 Multi-Agent | `multi_agent` |
-| ch19 *(optional)* Composing Tools & Orchestration | authored synthesis |
+| ch16 Shaping Input — Prompting Craft | `prompt_engineering` |
+| ch17 Shaping Output — Structured & Reliable | `structured_output` |
+| ch18 Sub-Agents | `sub_agents` |
+| ch19 Multi-Agent | `multi_agent` |
+| ch20 *(optional)* Composing Tools & Orchestration | authored synthesis |
 
-**Vol 3 — Evaluation & Operations** (`part: 3`, ch20–27)
+**Vol 3 — Evaluation & Operations** (`part: 3`, ch21–28)
 
 | Chapter | Backing dossier(s) |
 |---|---|
-| ch20 Spine — Measuring & Operating Agents | cross-dossier (light) |
-| ch21 Evaluating a Prompt | `prompt_evaluation` |
-| ch22 Evaluating an Agent | `eval_harnesses` |
-| ch23 Observability | `ops_observability` |
-| ch24 Cost | `ops_cost` |
-| ch25 Human-in-the-Loop | `ops_hitl` |
-| ch26 Security | `ops_security` *(the one genuine convergence)* |
-| ch27 *(optional)* Operating the Whole | authored synthesis |
+| ch21 Spine — Measuring & Operating Agents | cross-dossier (light) |
+| ch22 Evaluating a Prompt | `prompt_evaluation` |
+| ch23 Evaluating an Agent | `eval_harnesses` |
+| ch24 Observability | `ops_observability` |
+| ch25 Cost | `ops_cost` |
+| ch26 Human-in-the-Loop | `ops_hitl` |
+| ch27 Security | `ops_security` *(the one genuine convergence)* |
+| ch28 *(optional)* Operating the Whole | authored synthesis |
 
 **Cross-book note:** `prompt_engineering` / `structured_output` / `prompt_evaluation` (Positioned
-table, marked cert-owned) now **also** back Design — ch16 (merged) + ch21. The same dossiers feed
+table, marked cert-owned) now **also** back Design — ch16 + ch17 + ch22. The same dossiers feed
 the cert book's D4 chapters and Design's chapters; each book authors its own treatment
 independently (standalone rule, no shared build dependency).
 
