@@ -106,3 +106,16 @@ that consumers overriding `/` should expect the warning. File with `consumer:cla
 > at it. Declared in all three books' `astro.config.mjs`; the `[router]` WARN is gone. No filing needed.
 > (A sibling advisory remains: handbook + design own `src/pages/chapters/[...slug].astro`, which trips
 > the analogous v4.6 chapters-route warning — pre-existing, non-blocking, revisit if Astro hardens it.)
+
+**New gap observation (2026-06-14): `<Solution for="X">` backlink anchor mismatches `<Practice>` items.**
+The `<Solution>` component renders its "back to the question" link as `href="#exercise-{for}"`, but a
+`<Practice id="X">` item renders its anchor as `id="practice-X"` (only `<Exercise id="X">` renders
+`id="exercise-X"`). So every solution written for a *Practice* item (`<Solution for="chNN-pr-N">`)
+backlinks to a `#exercise-chNN-pr-N` anchor that does not exist — the backlink is dead. Verified in the
+built HTML: `dist/chapters/ch25-cost-economics/index.html` carries `href="#exercise-ch25-pr-1"` (the
+Solution backlink) against `id="practice-ch25-pr-1"` (the Practice anchor). Non-build-breaking (a
+fragment link that fails to scroll) and **book-wide** — every chapter that solves a Practice item is
+affected (Design ch12–28, Vol-1 chapters, and the cert book's apparatus), not a Vol-3 regression. Caught
+by the final pre-push adversarial review (codex). *Suggested upstream fix:* have `<Solution>` pick the
+backlink target by the `for=` id's prefix (`-pr-` → `#practice-`, otherwise `#exercise-`), or give
+`<Practice>`/`<Exercise>` a shared anchor scheme `<Solution>` can match. File with `consumer:claude-books`.

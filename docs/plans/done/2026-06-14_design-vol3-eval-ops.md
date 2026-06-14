@@ -111,3 +111,27 @@ From the question-driven planning (5 surfaced via the one-at-a-time flow):
 **Design v1.0 content is complete (Vols 1–3, 28 ch, 34 pages).** Next: handbook Parts II–IV port
 (step 0 = clone `brandon-behring/claude-best-practices`), deployment (#14, Cloudflare), `<Term>`
 retrofit (#15), Vol-1 Round-2 polish (#17), then the problem-first applied volume (v2.0).
+
+## Final pre-push adversarial review (post-commit, 2026-06-14)
+
+A fresh `/adversarial-review` on the *committed, post-fold* state (chapters-only: the noise-filter's
+ch25/ch26 sample + a scoped ch27 run) — the kind of pass a post-fold check is for. codex found **12
+more real refinements; gemini's were all the standing false positives** (`Caveat` label, `<XRef>` in a
+standalone book). Folded (commit 3):
+
+- **ch27 (4):** the earlier fold had *over-corrected* — the convergence box called the papers "academic
+  primaries, not vendor sources," but Meta SecAlign/LlamaFirewall **are** vendor artifacts → "independent
+  research groups" (independence is the real convergence basis); the trifecta's "*every* robust defense
+  removes a leg" contradicted the model-hardening case → "the cleanest defenses remove a leg … (model
+  hardening is the weaker fallback)"; "MCP servers *and skills*" over-extended MCP-server evidence to
+  Skills → scoped to MCP servers; removed a dead `WorkedExample` import.
+- **ch25 (3):** acknowledged output tokens are individually pricier (input still dominates by volume on
+  agent loops); hedged Haiku<Sonnet<Opus as the cited *ordering*, not a fixed/complete roster (the lineup
+  evolves — Fable exists); softened "cache × batch literally stack" → batch cache-hits are best-effort.
+- **ch26 (1):** added the missing co-located `<Citation>` to the body "may not be stopping…" quote.
+- **Verified scaffold gap (logged, not patched):** `<Solution for="…pr…">` backlinks to `#exercise-…`
+  while `<Practice>` renders `#practice-…` — a dead backlink for every Practice solution, **book-wide**
+  + non-build-breaking. Logged to `docs/scaffold-gaps.md` for an upstream filing.
+
+**Lesson reinforced: a post-fold review earns its keep** — two of codex's catches were issues an
+*earlier fold* had introduced. Re-gated green (design-audit 0 FAIL, 34 pages) after the folds.
