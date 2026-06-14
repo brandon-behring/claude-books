@@ -6,7 +6,7 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 
 - **Vol 1 — Environment & Context** — **11 ch (`ch01`–`ch11`); deep-QA pass done 2026-06-13** (8 fixes across 6 ch; new `design-audit.mjs` linter + `validate:design` gate).
 - **Vol 2 — Tools & Orchestration** — **COMPLETE: all 9 ch (ch12–20) authored** (Tools half ch12–17 on 2026-06-13; Orchestration half ch18 sub-agents · ch19 multi-agent · ch20 capstone on 2026-06-14; the former merged "Shaping I/O" ch16 was split into ch16+ch17). Full Vol-1-parity apparatus + per-chapter TikZ figures; `design-audit` + build gate green.
-- **Vol 3 — Evaluation & Operations** — **rich outline done 2026-06-13 (ch21–28, renumbered +1 after the ch16 split); authoring pending** (backed by the eval + ops dossiers; see `OUTLINE.md`).
+- **Vol 3 — Evaluation & Operations** — **COMPLETE: all 8 ch (ch21–28) authored 2026-06-14** (ch21 spine · ch22 prompt-eval · ch23 agent-eval · ch24 observability · ch25 cost · ch26 HITL · ch27 security [the volume's one genuine convergence] · ch28 capstone). Full Vol-1-parity apparatus + per-chapter TikZ figures; `design-audit` 0 FAIL + build green (34 pages). **This completes Design v1.0 (Vols 1–3).**
 - **+ a problem-first applied volume** (v2.0) — re-traverses the material through real problems; carries the public "what teams did" mission (the retired Field-Guide's role).
 
 **Design v1.0 = Vols 1–3.** See [`OUTLINE.md`](./OUTLINE.md) (Vols 1–3 outline) and [`../docs/ROADMAP.md`](../docs/ROADMAP.md).

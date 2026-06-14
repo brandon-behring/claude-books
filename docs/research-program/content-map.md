@@ -81,7 +81,7 @@ numbers/titles are working drafts until authored.
 | ch19 Multi-Agent | `multi_agent` |
 | ch20 *(optional)* Composing Tools & Orchestration | authored synthesis |
 
-**Vol 3 — Evaluation & Operations** (`part: 3`, ch21–28)
+**Vol 3 — Evaluation & Operations** (`part: 3`, ch21–28) — **all authored, Vol 3 COMPLETE 2026-06-14**
 
 | Chapter | Backing dossier(s) |
 |---|---|
@@ -92,7 +92,7 @@ numbers/titles are working drafts until authored.
 | ch25 Cost | `ops_cost` |
 | ch26 Human-in-the-Loop | `ops_hitl` |
 | ch27 Security | `ops_security` *(the one genuine convergence)* |
-| ch28 *(optional)* Operating the Whole | authored synthesis |
+| ch28 Operating the Whole (capstone) | authored synthesis |
 
 **Cross-book note:** `prompt_engineering` / `structured_output` / `prompt_evaluation` (Positioned
 table, marked cert-owned) now **also** back Design — ch16 + ch17 + ch22. The same dossiers feed

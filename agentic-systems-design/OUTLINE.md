@@ -2,7 +2,7 @@
 
 > **Note (2026-06-01 reorg):** this is the standalone *Agentic Systems Design* book (formerly the env+context volume inside `architect-reference`). The cert-aligned `architect-reference` is now a sibling book that points *in* via plain-prose breadcrumbs only (no `<XRef>`). See `docs/BOOK-MAP.md` and `SPLIT.md`.
 >
-> **Vols 2–3 rich outlines appended below** (2026-06-13): **Volume 2 — Tools & Orchestration** (ch12–20, **all authored — Vol 2 COMPLETE 2026-06-14**; ch16 split into prompting + structured output) and **Volume 3 — Evaluation & Operations** (ch21–28, outlined), carved from the strict-live dossiers. This is now the book-wide outline — Vol 1 immediately below, Vols 2–3 at the end.
+> **Vols 2–3 rich outlines appended below** (2026-06-13): **Volume 2 — Tools & Orchestration** (ch12–20, **all authored — Vol 2 COMPLETE 2026-06-14**; ch16 split into prompting + structured output) and **Volume 3 — Evaluation & Operations** (ch21–28, **all authored — Vol 3 COMPLETE 2026-06-14, completing Design v1.0**), carved from the strict-live dossiers. This is now the book-wide outline — Vol 1 immediately below, Vols 2–3 at the end.
 
 **The Part's lens:** the design discipline that makes an agent *more than code autocomplete* — engineering the **environment** the model operates in and the **context** it reasons over. As a combined subject this is the hardest and most important area of using coding agents in the big picture, and the most underappreciated/newest. This Part is the deep dive into layers 1–2 of the three-layer frame established in Ch1 (`Agent = Model + Harness`): **environment → context-assembly → context**.
 
@@ -14,7 +14,7 @@
 
 **Cert-domain footprint** (floor; see `docs/cert-coverage.md`): Context chapters → **D5** primary (Context Management & Reliability, 15%); Environment chapters → **D1/D3** (architecture + Claude Code configuration). The Part is the architect/design angle on all of it.
 
-**Status legend:** ⬜ not started · 🟡 outlined (this doc) · 🟢 in rewrite · ✅ shipped. All entries below are 🟡.
+**Status legend:** ⬜ not started · ✅ authored (this doc) · 🟢 in rewrite · ✅ shipped. All entries below are 🟡.
 
 ---
 
@@ -221,7 +221,7 @@ Gaps to close before the Part is truly complete, and how each resolves:
 
 # Volume 3 — Evaluation & Operations (outline v0)
 
-> **Appended 2026-06-13.** `part: 3`; chapters continue as **ch21–ch28**. Status: all 🟡.
+> **Appended 2026-06-13** (authored 2026-06-14). `part: 3`; chapters continue as **ch21–ch28**. **Status: all authored — Vol 3 COMPLETE (completes Design v1.0).**
 
 **The Volume's lens:** you cannot operate what you cannot measure. The five operational surfaces — eval, observability, cost, oversight, security — each with a distinct mental model and (mostly) a distinct, single-vendor evidence base.
 

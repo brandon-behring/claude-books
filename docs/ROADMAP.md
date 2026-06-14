@@ -13,7 +13,7 @@
 |---|---|---|---|
 | `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | Part I shipped (4/15 ch prose); ch05–15 port pending |
 | `architect-reference/` | Cert | Self-contained CCA-F D1–D5 study guide | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
-| `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | Vol 1 (11 ch) + Vol 2 complete (ch12–20) drafted; Vol 3 (ch21–28) + applied pending |
+| `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | **Vols 1–3 all drafted — Design v1.0 COMPLETE 2026-06-14** (Vol 1 11 ch · Vol 2 ch12–20 · Vol 3 ch21–28, 28 ch / 34 pages); applied (v2.0) pending |
 | `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | v1 shipped 2026-06-13 — 70-term bank + sync infra; cert consumer live |
 
 **Agentic Systems Design — the volumes** (foundation-first):
@@ -54,7 +54,7 @@ banner + `noindex` come *off* at v1.0).
 |---|---|---|
 | Handbook | all 15 ch ported from LaTeX (Parts I–IV); labels/XRefs resolve; published | authoring time; **step 0 = clone `brandon-behring/claude-best-practices`** (sources not local) |
 | Cert | 30 ch (done) + **factual-accuracy audit (done 2026-06-08)** + **depth (Round-2, 2026-06-02)** + study apparatus; published | spine **WIRED 2026-06-09**; **upstream epic #122 COMPLETE 2026-06-10** (v4.19–v4.22); **Sprint 1 apparatus adoption DONE 2026-06-12** + **Sprint 2 bank expansion DONE 2026-06-12 (75-q bank, ≥2/ch, cert-audit 14/14)** — cert track in-repo work complete; next is deployment (#14) |
-| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); published; applied vol = v2.0 | authoring (XRef gate #96 shipped v4.16) |
+| Design | Vols 1–3 (Vol 1 polished + Vols 2–3 authored from existing dossiers); published; applied vol = v2.0 | **Vols 2–3 AUTHORED — Design v1.0 content COMPLETE 2026-06-14 (28 ch, 34 pages); next = deploy (#14) + Vol-1 polish (#17)** |
 | Glossary | infra + initial shared term set + deep-links; published | **v1 SHIPPED 2026-06-13** — canonical `glossary/terms/` (70 terms) synced into the cert book; `/glossary` + `/flashcards` live; cert-audit Check 15. Remaining: inline `<Term>` retrofit + wiring handbook/Design consumers (on their deploys) |
 
 ## Next — two horizons (adopted 2026-06-12)
@@ -96,14 +96,16 @@ banner + `noindex` come *off* at v1.0).
 4. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices, to the proven
    Part-I template. **Step 0: `git clone` `brandon-behring/claude-best-practices`** (private; the
    LaTeX sources are NOT on this machine).
-5. **Design Vol 2 COMPLETE (ch12–20); Vol 3 next** *(the largest open authoring)* — **Vol 2 done 2026-06-13/14**:
-   Tools half (ch12–17: spine · build-vs-buy · tool-min · MCP · prompting · structured output) +
-   Orchestration half (ch18 sub-agents · ch19 multi-agent · ch20 capstone), each with full Vol-1-parity
-   apparatus + a TikZ figure; gate (`design-audit` + build, 26 pages) green; ch19's Anthropic↔Cognition
-   disagreement preserved unflattened. **Remaining = author Vol 3 (ch21–28: eval + ops), from the
-   dossiers, one cluster per sprint.** Post-hoc:
+5. **Design v1.0 CONTENT COMPLETE — Vols 1–3 all authored (28 ch, 34 pages), 2026-06-14.** Vol 2 (ch12–20)
+   + **Vol 3 (ch21–28: spine · prompt-eval · agent-eval · observability · cost · HITL · security · capstone)**,
+   authored from the eval+ops dossiers with full Vol-1-parity apparatus + per-chapter TikZ figures; gate
+   (`design-audit` 0 FAIL + build) green. ch27 holds the volume's one genuine convergence
+   (design-by-construction), the lethal trifecta attributed to Willison, ASR framed reduce-not-eliminate.
+   **Remaining for Design: deploy (#14), `<Term>` retrofit (#15), Vol-1 Round-2 polish (#17), then the
+   applied volume (v2.0, item 6).** Post-hoc:
+   [`plans/done/2026-06-14_design-vol3-eval-ops.md`](./plans/done/2026-06-14_design-vol3-eval-ops.md) (Vol 3) ·
    [`plans/done/2026-06-14_design-vol2-orchestration-half.md`](./plans/done/2026-06-14_design-vol2-orchestration-half.md)
-   (orchestration) · [`plans/done/2026-06-13_design-vol2-tools-half.md`](./plans/done/2026-06-13_design-vol2-tools-half.md) (Tools half).
+   (Vol 2 orchestration) · [`plans/done/2026-06-13_design-vol2-tools-half.md`](./plans/done/2026-06-13_design-vol2-tools-half.md) (Vol 2 tools).
 6. **Applied volume** (Design v2.0).
 
 ### Deployment (decided 2026-06-12)
