@@ -70,8 +70,12 @@ function parseFrontmatter(raw) {
 // positions identical — so the match-index→line math downstream is unchanged.
 const blankNonNewline = (s) => s.replace(/[^\n]/g, ' ');
 function maskCode(body) {
+  // Masks backtick + tilde fenced blocks and single-line inline code. Deliberately NOT masked
+  // (and used by no chapter): 4+-backtick fences and 4-space-indented blocks — extend if one is
+  // ever added. A full MDX parser would be over-engineering for content this linter controls.
   return body
-    .replace(/```[\s\S]*?```/g, blankNonNewline)   // fenced blocks (incl. component examples)
+    .replace(/```[\s\S]*?```/g, blankNonNewline)   // fenced blocks (backtick)
+    .replace(/~~~[\s\S]*?~~~/g, blankNonNewline)    // fenced blocks (tilde)
     .replace(/`[^`\n]*`/g, blankNonNewline);        // inline code spans (single-line)
 }
 
