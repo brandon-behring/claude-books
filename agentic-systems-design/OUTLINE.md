@@ -2,7 +2,7 @@
 
 > **Note (2026-06-01 reorg):** this is the standalone *Agentic Systems Design* book (formerly the env+context volume inside `architect-reference`). The cert-aligned `architect-reference` is now a sibling book that points *in* via plain-prose breadcrumbs only (no `<XRef>`). See `docs/BOOK-MAP.md` and `SPLIT.md`.
 >
-> **Vols 2–3 rich outlines appended below** (2026-06-13): **Volume 2 — Tools & Orchestration** (ch12–20; ch12–17 authored, ch16 split into prompting + structured output) and **Volume 3 — Evaluation & Operations** (ch21–28), carved from the strict-live dossiers. This is now the book-wide outline — Vol 1 immediately below, Vols 2–3 at the end.
+> **Vols 2–3 rich outlines appended below** (2026-06-13): **Volume 2 — Tools & Orchestration** (ch12–20, **all authored — Vol 2 COMPLETE 2026-06-14**; ch16 split into prompting + structured output) and **Volume 3 — Evaluation & Operations** (ch21–28, outlined), carved from the strict-live dossiers. This is now the book-wide outline — Vol 1 immediately below, Vols 2–3 at the end.
 
 **The Part's lens:** the design discipline that makes an agent *more than code autocomplete* — engineering the **environment** the model operates in and the **context** it reasons over. As a combined subject this is the hardest and most important area of using coding agents in the big picture, and the most underappreciated/newest. This Part is the deep dive into layers 1–2 of the three-layer frame established in Ch1 (`Agent = Model + Harness`): **environment → context-assembly → context**.
 
@@ -142,7 +142,7 @@ Gaps to close before the Part is truly complete, and how each resolves:
 
 > **Appended 2026-06-13** (Design Vol 2–3 outline sprint). Rich blueprint carved from the
 > strict-live dossiers; same genre / pedagogy / frontmatter conventions as Vol 1. `part: 2`;
-> chapters continue the book-wide numbering (Vol 1 = ch01–11) as **ch12–ch20** (ch16 was split into ch16 prompting + ch17 structured output on 2026-06-13; the orchestration half renumbered +1). **Status:** ch12–ch17 **authored** (the Tools half); ch18–ch20 outlined 🟡.
+> chapters continue the book-wide numbering (Vol 1 = ch01–11) as **ch12–ch20** (ch16 was split into ch16 prompting + ch17 structured output on 2026-06-13; the orchestration half renumbered +1). **Status: ch12–ch20 all authored — Vol 2 COMPLETE** (Tools half ch12–17 on 2026-06-13; Orchestration half ch18–ch20 on 2026-06-14).
 
 **The Volume's lens:** a tool is a slice of the context budget and a selection risk; an agent-unit is a context-isolation primitive. **Tools** = *what capability you give the agent and how its I/O is shaped*; **Orchestration** = *how many units you run and how they coordinate*.
 

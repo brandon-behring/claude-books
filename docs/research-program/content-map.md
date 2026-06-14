@@ -67,7 +67,7 @@ The topic→volume rows above refine to chapter grain here, from the rich outlin
 atom→section detail stays in each dossier's `agent_index/`. Carving is the approved blueprint;
 numbers/titles are working drafts until authored.
 
-**Vol 2 — Tools & Orchestration** (`part: 2`, ch12–20; **ch12–17 authored 2026-06-13**, ch16 split into prompting + structured output)
+**Vol 2 — Tools & Orchestration** (`part: 2`, ch12–20; **all authored — Vol 2 COMPLETE** (Tools half 2026-06-13, Orchestration half 2026-06-14); ch16 split into prompting + structured output)
 
 | Chapter | Backing dossier(s) |
 |---|---|

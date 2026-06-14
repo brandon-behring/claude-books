@@ -13,7 +13,7 @@
 |---|---|---|---|
 | `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | Part I shipped (4/15 ch prose); ch05–15 port pending |
 | `architect-reference/` | Cert | Self-contained CCA-F D1–D5 study guide | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
-| `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | Vol 1 (11 ch) + Vol 2 Tools-half (ch12–17) drafted; Vol 2 orchestration (ch18–20) + Vol 3 (ch21–28) + applied pending |
+| `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | Vol 1 (11 ch) + Vol 2 complete (ch12–20) drafted; Vol 3 (ch21–28) + applied pending |
 | `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | v1 shipped 2026-06-13 — 70-term bank + sync infra; cert consumer live |
 
 **Agentic Systems Design — the volumes** (foundation-first):
@@ -96,15 +96,14 @@ banner + `noindex` come *off* at v1.0).
 4. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices, to the proven
    Part-I template. **Step 0: `git clone` `brandon-behring/claude-best-practices`** (private; the
    LaTeX sources are NOT on this machine).
-5. **Design Vols 2–3 authoring** *(L — the largest open authoring)* — **Vol 2 Tools-half DONE 2026-06-13**:
-   ch12–17 authored (ch12 spine · ch13 build-vs-buy · ch14 tool-min · ch15 MCP · ch16 prompting · ch17
-   structured output — the merged "Shaping I/O" ch16 split into ch16+ch17, renumbering the orchestration
-   half +1; Vol 3 → ch21–28). Each chapter has full apparatus + a TikZ figure; gate = `design-audit` +
-   build, all green. Prior prep (Vol 1 deep-QA + the rich ch12–28 blueprint) also done. **Remaining =
-   author Vol 2 orchestration (ch18 sub-agents · ch19 multi-agent · ch20 capstone) then Vol 3 (ch21–28),
-   from the dossiers, one cluster per sprint.** Post-hoc:
-   [`plans/done/2026-06-13_design-vol2-tools-half.md`](./plans/done/2026-06-13_design-vol2-tools-half.md)
-   (Tools half) · [`plans/done/2026-06-13_design-vol23-outline-vol1-polish.md`](./plans/done/2026-06-13_design-vol23-outline-vol1-polish.md) (outline + QA).
+5. **Design Vol 2 COMPLETE (ch12–20); Vol 3 next** *(the largest open authoring)* — **Vol 2 done 2026-06-13/14**:
+   Tools half (ch12–17: spine · build-vs-buy · tool-min · MCP · prompting · structured output) +
+   Orchestration half (ch18 sub-agents · ch19 multi-agent · ch20 capstone), each with full Vol-1-parity
+   apparatus + a TikZ figure; gate (`design-audit` + build, 26 pages) green; ch19's Anthropic↔Cognition
+   disagreement preserved unflattened. **Remaining = author Vol 3 (ch21–28: eval + ops), from the
+   dossiers, one cluster per sprint.** Post-hoc:
+   [`plans/done/2026-06-14_design-vol2-orchestration-half.md`](./plans/done/2026-06-14_design-vol2-orchestration-half.md)
+   (orchestration) · [`plans/done/2026-06-13_design-vol2-tools-half.md`](./plans/done/2026-06-13_design-vol2-tools-half.md) (Tools half).
 6. **Applied volume** (Design v2.0).
 
 ### Deployment (decided 2026-06-12)

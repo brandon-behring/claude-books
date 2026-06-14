@@ -5,7 +5,7 @@ This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile,
 **Status — multi-volume, foundation-first:**
 
 - **Vol 1 — Environment & Context** — **11 ch (`ch01`–`ch11`); deep-QA pass done 2026-06-13** (8 fixes across 6 ch; new `design-audit.mjs` linter + `validate:design` gate).
-- **Vol 2 — Tools & Orchestration** — **the Tools half (ch12–17) authored 2026-06-13** (ch12 spine, ch13 build-vs-buy, ch14 tool-minimization, ch15 MCP, ch16 prompting, ch17 structured output — the former merged "Shaping I/O" ch16 was split into ch16+ch17); **the Orchestration half (ch18 sub-agents · ch19 multi-agent · ch20 capstone) is outlined, authoring pending** (see `OUTLINE.md`).
+- **Vol 2 — Tools & Orchestration** — **COMPLETE: all 9 ch (ch12–20) authored** (Tools half ch12–17 on 2026-06-13; Orchestration half ch18 sub-agents · ch19 multi-agent · ch20 capstone on 2026-06-14; the former merged "Shaping I/O" ch16 was split into ch16+ch17). Full Vol-1-parity apparatus + per-chapter TikZ figures; `design-audit` + build gate green.
 - **Vol 3 — Evaluation & Operations** — **rich outline done 2026-06-13 (ch21–28, renumbered +1 after the ch16 split); authoring pending** (backed by the eval + ops dossiers; see `OUTLINE.md`).
 - **+ a problem-first applied volume** (v2.0) — re-traverses the material through real problems; carries the public "what teams did" mission (the retired Field-Guide's role).
 
