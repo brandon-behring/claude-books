@@ -1,0 +1,186 @@
+---
+title: "Human-in-the-Loop: Keeping a Human in Control"
+part: 3
+chapter: 26
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5, 1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - claude-code-user-input
+  - claude-code-auto-mode
+  - claude-code-security-docs
+  - claude-code-permission-modes
+  - how-claude-code-works
+  - claude-code-common-workflows
+  - anthropic-measuring-autonomy
+  - anthropic-trustworthy-agents
+  - claude-code-review-docs
+  - claude-code-github-actions
+  - claude-code-headless
+description: The oversight surface of the Evaluation & Operations volume. Keeping a human in control of a production agent is one move — control over the irreversible or wrong action — expressed four ways (the approval gate, plan mode, calibration, escalation in automation), all of them a workflow layered on top of Vol-1's permission model. The chapter draws the workflow-on-model line sharply, names the default-ask versus approval-fatigue trade-off as genuinely open, and treats agent self-calibration as a sparse, explicitly imperfect pattern.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="Vol 1's permission model — the Always / Ask / Never rules and permissions.deny that classify which actions an agent may take freely, ask about, or never attempt. This chapter is the oversight workflow that rides on top of that model; it restates the model in a sentence but does not re-derive it.">
+- The **one move** this chapter is about — human control over the irreversible or wrong action — and the **four ways** it shows up: the approval gate, plan mode, calibration, and escalation in automation
+- The **workflow-on-model** split: this chapter owns *when* a human is consulted and *what* they review; Vol 1's guardrails own *which* actions need consulting
+- Why the default **ask-before-acting** posture and **approval fatigue** are an *open, unsolved* trade-off, not a settled best practice
+- Why agent **self-calibration** — the agent deciding to stop and ask — is a *suggestive, explicitly imperfect* pattern on thin evidence, not a guarantee
+- How the gate **survives into automation** by failing closed when no human is present
+</YouWillLearn>
+
+_Vol 1 built the permission model: the rules that decide which actions an agent may take freely, must ask about, or must never attempt. This chapter takes what sits on top of that model — the oversight *workflow* that keeps a human in control once the agent is actually running. The thesis is that oversight is **one move** — a human's control over the irreversible or wrong action — wearing four faces. See the move once and the four faces stop looking like four separate features and start looking like four places to insert the same human decision._
+
+## One move, four expressions
+
+It is tempting to read agent oversight as a checklist of features: approval prompts, a plan mode, some uncertainty signalling, a CI gate. That framing hides the thing they share. Every one of them inserts a **human decision at a risky transition** — the moment the agent is about to do something irreversible, expensive, or wrong. The whole subject is that single move, applied at four different points in the agent's life.
+
+The four expressions are: the **approval gate** (the agent pauses before an irreversible action and waits for a human to approve), **plan mode** (the same gate moved earlier — the agent stays read-only and proposes a plan a human approves before any edit), **calibration** (the agent itself decides to stop and ask when it is uncertain), and **escalation in automation** (the human checkpoint that survives into headless and CI runs). The first two are human-initiated boundaries the operator sets; the third flips initiative to the agent; the fourth is how the gate degrades safely when no human is watching in real time.
+
+<KeyIdea>
+Oversight is not four features — it is one move expressed four ways. The move is **human control over the irreversible or wrong action**, inserted at a risky transition. The approval gate inserts it before a single tool call; plan mode inserts it before a whole change-set; calibration lets the agent insert it when it is unsure; escalation keeps it present in automation. Learn the move and the four expressions become one idea you apply in four places.
+</KeyIdea>
+
+## The approval gate: blocking, default-on, on irreversible actions
+
+The first expression is the **approval gate**. Out of the box, "Claude Code asks users for approval before running commands or modifying files."<Tag kind="official" /><Citation src="claude-code-auto-mode" /> The gate fires precisely where an action is irreversible or ambiguous — the agent "might need permission before deleting files, or need to ask which database to use for a new project."<Tag kind="official" /><Citation src="claude-code-user-input" /> When it fires, it is **synchronous and blocking**: programmatically, the approval callback fires whenever the agent needs input and "pauses execution until you return a response."<Tag kind="official" /><Citation src="claude-code-user-input" /> Interactively, when Claude wants to edit a file, run a shell command, or make a network request, "it pauses and asks you to approve the action."<Tag kind="official" /><Citation src="claude-code-permission-modes" />
+
+The security model frames the same gate as a transparency-and-control safeguard. Anthropic states that "we require approval for bash commands before executing them"<Tag kind="official" /><Citation src="claude-code-security-docs" /> — the gate sits in front of the command, not after it. And it is explicit about whose job the gate is: "Claude Code only has the permissions you grant it. You're responsible for reviewing proposed code and commands for safety before approval."<Tag kind="official" /><Citation src="claude-code-security-docs" /> The human at the gate is a *reviewer*, not a rubber stamp — the gate only does its work if the human actually reads what they are approving.
+
+<ConceptBox term="Approval gate">
+A blocking, default-on checkpoint placed in front of an irreversible or high-risk action. When it fires, the agent halts the action and waits for a human to approve or deny before proceeding — it "pauses execution until you return a response." The human's role at the gate is to review the proposed command or edit for safety, not merely to acknowledge it. The gate is the *workflow* (when the agent stops, what the human reviews); it is not the rule that decided the action was risky in the first place.
+</ConceptBox>
+
+## The default-ask posture is an open trade-off, not a solved one
+
+Here is where honesty matters more than tidiness. The default ask-before-acting posture has a well-documented cost, and the same first-party source that states the default also names the cost: asking for approval before every command or file change creates **approval fatigue**, which is exactly what motivates an auto mode that lets users *skip* permissions — Anthropic's engineering write-up is titled "How we built Claude Code auto mode: a safer way to skip permissions."<Tag kind="official" /><Citation src="claude-code-auto-mode" />
+
+So "keep a human in control" and "let the agent run" pull against each other, and the tension is real and unresolved. A gate that fires too often trains the human to approve reflexively — which is worse than no gate, because it manufactures the appearance of oversight without the substance. A gate that fires too rarely lets an irreversible action slip through unreviewed. The product ships both a default-on gate *and* a mechanism to skip it, which is the clearest possible signal that the right firing rate is not a settled question. Present the gate and the fatigue cost together; do not pretend the trade-off is closed.
+
+<InsightBox title="A gate the human ignores is not oversight">
+The failure mode of the approval gate is not that it is absent — it is that it fires so often the human stops reading and approves on reflex. At that point the gate produces *the appearance* of control without the substance, which is more dangerous than no gate, because it licenses a false sense of safety. This is why the default-ask posture is in genuine tension with autonomy: tune *which* actions are gated (a permission-model question, owned by Vol 1) so the gate is rare enough to stay meaningful, rather than gating everything and training the human to ignore it.
+</InsightBox>
+
+## Plan mode: the gate moved earlier
+
+The second expression takes the same approval move and slides it **earlier in time**. Plan mode "tells Claude to research and propose changes without making them. Claude reads files, runs shell commands to explore, and writes a plan, but does not edit your source."<Tag kind="official" /><Citation src="claude-code-permission-modes" /> The posture is read-only-until-approved: in plan mode Claude "uses read-only tools only, creating a plan you can approve before execution,"<Tag kind="official" /><Citation src="how-claude-code-works" /> and the everyday recipe is the same — Claude "reads files and proposes a plan but makes no edits until you approve."<Tag kind="official" /><Citation src="claude-code-common-workflows" />
+
+The difference from the approval gate is the *unit* being gated. The approval gate stops a single risky tool call at the moment it would execute; plan mode stops the **whole change-set up front**, before any of it is irreversible. The human reviews the proposed plan as a plan — separating the research-and-propose phase from the irreversible coding phase — and approves the direction before a single edit lands. It is the proactive form of the same human-control move: rather than catching risky actions one at a time as they arrive, you put the human's judgment in front of the entire intended change.
+
+<MarginNote variant="tip" label="Tip">
+Approval gate and plan mode are the same move at two grains: the gate stops one tool call as it fires; plan mode stops the whole change-set before any of it begins. Reach for plan mode when you want to review *direction* before edits; rely on the gate to catch individual risky calls along the way.
+</MarginNote>
+
+## Calibration: agent-initiated escalation, and imperfect
+
+The first two expressions are boundaries the *operator* sets. The third flips initiative: **calibration** is the agent deciding, on its own, when to stop and hand back. This is the thinnest-evidenced part of the chapter, and it must be read that way.
+
+Two Anthropic Research findings — and only two — point at it. The autonomy study reports that "on the most complex tasks, Claude Code asks for clarification more than twice as often as on minimal-complexity tasks, suggesting Claude has some calibration about its own uncertainty."<Citation src="anthropic-measuring-autonomy" /> The trustworthy-agents principle states the design intent behind that behavior: an agent "can only act on what users actually want if it knows when to stop and ask for clarification when it's uncertain, or when it's about to make a mistake."<Citation src="anthropic-trustworthy-agents" /> The direction is an agent that escalates *itself* — surfacing a low-confidence decision for review rather than waiting to be stopped.
+
+But the same research is candid that the calibration is imperfect: the autonomy work notes the agent "may not be stopping at the right moments." So this is a *suggestive pattern Anthropic is measuring*, not an established mechanism you can lean on. Two first-party findings, both honest about their own limits, do not make a guarantee. Treat agent self-calibration as a promising direction that *supplements* the operator-set gates — never as a substitute for them. The reason the approval gate and plan mode exist as human-initiated boundaries is precisely that you cannot yet trust the agent to know, reliably, when it is about to be wrong.
+
+<MarginNote variant="warning" label="Caveat">
+Calibration rests on exactly two Anthropic Research posts — and even one of them finds the agent "may not be stopping at the right moments." It is a measured direction, not a proven feature — do not design a system that depends on the agent reliably escalating itself.
+</MarginNote>
+
+## Escalation in automation: fail closed when no human is present
+
+The fourth expression asks what happens to the gate when there is no human watching in real time — in headless runs and CI. The answer is a deliberate design with three parts.
+
+First, the managed Code Review check is **non-blocking by default**. It always completes with a "neutral conclusion so it never blocks merging through branch protection rules."<Tag kind="official" /><Citation src="claude-code-review-docs" /> It posts findings; it does not, by itself, stop a merge. A reader could easily misread the review bot as "the thing that blocks bad merges" — it is not, unless a team wires it to be. Gating is an **explicit opt-in**: if you want to gate merges on findings, you "read the severity breakdown from the check run output in your own CI."<Tag kind="official" /><Citation src="claude-code-review-docs" /> Second, the merge itself stays a human action by design — the documented security best practice for the GitHub integration is to "review Claude's suggestions before merging."<Tag kind="official" /><Citation src="claude-code-github-actions" /> The agent opens pull requests; humans merge them.
+
+Third, and most important for safety: when there is genuinely no human to prompt, the gate **fails closed**. In a non-interactive run, a tool call not covered by the allowlist does not silently proceed — "otherwise the run aborts when one is attempted."<Tag kind="official" /><Citation src="claude-code-headless" /> The unapproved action is refused, forcing a human to widen the allowlist or re-run with approval. The principle is consistent across all three parts: **don't auto-block by default, but — short of a deliberate bypass-permissions override — never let an unapproved action proceed unattended.** The human gate does not vanish in automation; it degrades to fail-closed (unless an operator explicitly turns it off).
+
+<MarginNote variant="warning" label="Warning">
+The managed Code Review check is non-blocking by default — it posts findings but does not gate the merge unless you explicitly wire a CI gate on its severity output. Do not assume the bot stops bad merges; it does not until you make it.
+</MarginNote>
+
+## The workflow-on-model split
+
+One distinction underlies all four expressions and is the actionable takeaway of the chapter. **This chapter owns the oversight *workflow*; Vol 1 owns the permission *model*.** The workflow decides *when* a human is consulted and *what* they review — the gate, plan mode, the escalation checkpoints. The model decides *which* actions need consulting in the first place — the Always / Ask / Never rules and the `permissions.deny` list that Vol 1's guardrails established.
+
+The two layers are easy to conflate because the same documentation pages carry both: the permission-modes page describes the pause-and-ask workflow *and* the rule catalogue side by side. But they are different objects, and designing them as two layers is the whole point. You tune *which* actions are gated in the permission model — so the gate fires on the genuinely irreversible step and not on every read — and you design *how* the human is brought in here, in the workflow. Conflating them is the most common framing error in agent oversight: teams either bury control logic in the wrong layer or assume that setting permission rules is the same as designing the human's role at the gate. It is not. The model says *what is risky*; the workflow says *what the human does about it*.
+
+<Figure
+  src="/figures/hitl-gates/hitl-gates.svg"
+  caption="Human-in-the-loop oversight as one move expressed four ways, layered on the permission model. The base layer is the permission MODEL — which actions need consulting (Always / Ask / Never; permissions.deny), owned by Vol-1 guardrails. Layered on top, the oversight WORKFLOW: (1) the approval gate (blocking, default-on, on irreversible actions); (2) plan mode (the gate moved earlier — read-only, propose, approve); (3) calibration (agent-initiated escalation, imperfect); (4) escalation in automation (non-blocking by default, opt-in merge gate, fail-closed when no human). Arrows down to the base show each expression riding on the permission model; the move running across the four is human control over the irreversible or wrong action."
+  alt="A base box spanning the width labeled 'The permission MODEL — which actions need consulting: Always / Ask / Never, permissions.deny, owned by Vol-1 guardrails'. Above it, under a banner reading 'The oversight WORKFLOW — one move, four expressions (when a human is consulted, what they review)', sit four boxes left to right: '1. Approval gate — blocking, default-on, on irreversible actions'; '2. Plan mode — the gate moved earlier: read-only, propose, approve'; '3. Calibration — agent-initiated escalation (imperfect)'; '4. Escalation in automation — non-blocking by default, opt-in merge gate, fail-closed when no human'. A thick arrow drops from each of the four boxes down to the permission-model base. A horizontal arrow runs across the four boxes labeled 'one move: human control over the irreversible or wrong action'."
+  width="100%"
+  id="fig-hitl-gates"
+/>
+
+<WorkedExample id="ch26-placing-an-oversight-decision" title="Placing an oversight decision">
+
+A team says: *"Our agent keeps doing things we didn't want, but the approval prompts are so constant that everyone just hits 'yes' without reading. How do we fix oversight?"*
+
+Locate each part on the right layer before changing anything:
+
+- **"Everyone just hits 'yes'"** is **approval fatigue** — the open trade-off, not a bug to patch. The gate is firing too often, so it has stopped being oversight and become a reflex. The fix is *not* a better prompt; it is to make the gate **rare enough to stay meaningful**.
+- **Which actions fire the gate** is a **permission-model** question — Vol 1's territory. The move is to tighten the Always / Ask / Never classification so the gate fires on the genuinely irreversible step (a force-push, a `DROP TABLE`, a deploy) and *not* on every file read or safe edit. That is a model change, not a workflow change.
+- **Reviewing direction before edits land** is a **plan-mode** question — a workflow change. If the agent "keeps doing things we didn't want," moving the human decision *earlier* — review the proposed plan before any edit — catches a wrong direction up front instead of one wrong tool call at a time.
+- **The agent stopping itself when unsure** is **calibration** — and the honest answer is that you cannot rely on it. It is a sparse, imperfect pattern; it may help at the margin, but it is not the fix here.
+
+The framing turns a panicked "fix oversight" into located moves: thin the gate in the *model* so it stays meaningful, and move the human decision earlier in the *workflow*. Notice the fix lives mostly in the layer this chapter does *not* own — which is exactly why the workflow-on-model split is the load-bearing distinction.
+
+</WorkedExample>
+
+<Pitfall title="Conflating the workflow with the permission model">
+The most common oversight error is treating "set the permission rules" and "design the human's role" as one task. They are two layers. The permission *model* (Vol 1) decides *which* actions are risky — Always / Ask / Never, `permissions.deny`. The oversight *workflow* (this chapter) decides *what the human does about it* — when the agent pauses, what the reviewer reads, when it fails closed. Bury the firing logic in the wrong layer and you get either a gate that fires on everything (approval fatigue, reflexive approval) or rules with no human meaningfully in the loop. Tune *which* actions are gated in the model; design *how* the human is consulted in the workflow.
+</Pitfall>
+
+## Quick reference
+
+- **One move, four expressions:** human control over the irreversible or wrong action, inserted at a risky transition — as the approval gate, plan mode, calibration, and escalation in automation.
+- **Approval gate:** blocking, default-on; fires before irreversible actions; "pauses execution until you return a response"; the human is the *reviewer*, not a rubber stamp.<Citation src="claude-code-user-input" />
+- **Open trade-off — not solved:** the default ask-before-acting posture causes *approval fatigue*, which motivates skipping permissions; present the gate and the fatigue cost together.<Citation src="claude-code-auto-mode" />
+- **Plan mode = the gate moved earlier:** read-only, "proposes a plan but makes no edits until you approve" — gates the whole change-set, not one call.<Citation src="claude-code-common-workflows" />
+- **Calibration is sparse and imperfect:** two Anthropic Research findings suggest the agent asks for clarification "more than twice as often" on the hardest tasks, but it "may not be stopping at the right moments" — a direction, not a guarantee.<Citation src="anthropic-measuring-autonomy" />
+- **Escalation fails closed:** managed Code Review is non-blocking by default (gating is opt-in); the merge stays human; a headless run "aborts" on an unapproved tool call.<Citation src="claude-code-review-docs" /><Citation src="claude-code-headless" />
+- **Workflow-on-model:** this chapter owns *when* a human is consulted and *what* they review; Vol 1's permission model owns *which* actions need consulting. Tune the model; design the workflow.
+
+## Practice
+
+<Exercise id="ch26-ex-1">
+The chapter claims oversight is "one move expressed four ways." Name the four expressions, and state in one sentence each what point in the agent's action they insert the human decision at. Then explain the difference between the oversight *workflow* (this chapter) and the permission *model* (Vol 1) in a single sentence — and say which one decides *which* actions trip a gate.
+</Exercise>
+
+<Exercise id="ch26-ex-2">
+The chapter insists the default ask-before-acting posture is an *open trade-off*, not a solved best practice. Explain the tension in two or three sentences: what goes wrong if the approval gate fires too often, and what goes wrong if it fires too rarely? Why is the existence of an auto mode that *skips* permissions evidence that the right firing rate is unsettled?
+</Exercise>
+
+<Practice id="ch26-pr-1" difficulty="2">
+Take an agent you run or have read about. For each of the four oversight expressions, decide whether it currently applies and how: (1) Is there a blocking approval gate before its irreversible actions, and does it fire often enough to be ignored? (2) Could a read-only plan-mode review of the *whole* change-set replace catching risky calls one at a time? (3) Does the agent ever stop and ask when unsure — and would you trust it to? (4) If it runs in CI or headless, does an unapproved action fail closed or slip through? Then name the *one* change that would most improve oversight, and say whether that change lives in the workflow (this chapter) or the permission model (Vol 1).
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch26-ex-1">
+The four expressions are the **approval gate**, **plan mode**, **calibration**, and **escalation in automation**. The approval gate inserts the human decision *before a single irreversible tool call*, at the moment it would execute. Plan mode inserts it *before a whole change-set*, while the agent is still read-only and has only proposed a plan. Calibration inserts it *whenever the agent itself judges it is uncertain* — the agent, not the operator, initiates the pause. Escalation in automation inserts it *at the merge or the unapproved-tool boundary in a headless or CI run*, where it fails closed if no human is present. The difference between the two layers: the oversight **workflow** (this chapter) decides *when* a human is consulted and *what* they review, while the permission **model** (Vol 1) decides *which* actions need consulting — so it is the **model**, not the workflow, that decides which actions trip a gate. The workflow rides on top of the model: the model classifies risk, the workflow brings the human in.
+</Solution>
+
+<Solution for="ch26-ex-2">
+If the gate fires **too often**, the human is trained to approve on reflex — they stop reading the proposed command and click "yes" by habit, which produces the *appearance* of oversight without the substance and is more dangerous than no gate, because it licenses a false sense of safety. If the gate fires **too rarely**, an irreversible or wrong action slips through unreviewed, which is the exact failure the gate exists to prevent. The right firing rate sits between these, and the chapter's evidence that it is unsettled is that the product ships *both* a default-on gate *and* a documented auto mode whose explicit purpose is to skip permissions because the default causes "approval fatigue": if the default firing rate were correct, there would be no need to build a sanctioned way around it. The tension between "keep a human in control" and "let the agent run" is therefore a genuine, ongoing product trade-off — present the gate and its fatigue cost together rather than treating the default as a settled best practice. (Note the practical resolution lives mostly in the permission *model* — gating fewer, genuinely-risky actions — not in a cleverer prompt.)
+</Solution>
+
+<Solution for="ch26-pr-1">
+A worked example. Take an agent that triages incident reports and can comment on tickets, run read-only diagnostic queries, and restart a service. **(1) Approval gate:** the service restart is irreversible-enough to warrant a blocking gate; commenting on a ticket is not — if the gate currently fires on *every* comment, it is firing too often and the on-call engineer will approve restarts on the same reflex they approve comments, which is the fatigue failure. **(2) Plan mode:** for a multi-step remediation, a read-only plan ("I will restart service X, then re-run check Y") reviewed up front catches a wrong remediation *direction* before any restart happens — better than approving each step as it arrives. **(3) Calibration:** the agent might stop and ask when a diagnostic is ambiguous, but you would *not* trust it to reliably catch the case where it is about to restart the wrong service — calibration is sparse and imperfect, so it supplements the gate, it does not replace it. **(4) Headless:** if this runs unattended overnight, an un-allowlisted action must fail closed (abort) rather than restart a service no human approved. The single highest-value change: tighten the permission model so the blocking gate fires on the *restart* and not on *comments* — which makes the gate rare enough to stay meaningful. That change lives in the **permission model (Vol 1)**, not the workflow — which is exactly why the workflow-on-model split is the load-bearing distinction: the most important oversight fix here is a model change, surfaced by a workflow symptom (reflexive approval).
+</Solution>
+
+</ExerciseSolutions>

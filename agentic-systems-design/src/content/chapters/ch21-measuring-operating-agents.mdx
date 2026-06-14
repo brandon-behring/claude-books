@@ -1,0 +1,167 @@
+---
+title: "Measuring & Operating Agents: The Discipline"
+part: 3
+chapter: 21
+volatility: stable-principle
+tools_compared: [claude-code, cross-tool]
+cert_domains: [4, 5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - demystifying-evals
+  - building-effective-agents
+description: The spine of the Evaluation & Operations volume. Once an agent is built, the discipline shifts from construction to operation — and the first move is to make what counts as good measurable before scaling. The chapter maps the volume's five operational surfaces (eval, observability, cost, oversight, security) and states the volume's evidence-honesty rule up front — that five of the six rest on first-party-authoritative evidence rather than triangulation, with security the one genuine convergence.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="Vols 1–2 — the agent as Model + Harness, context as a finite budget, and the tools and orchestration the harness coordinates. This volume operates what those volumes built; no new construction is assumed.">
+- The shift from **building** an agent to **operating** one — and why measurement comes first
+- The volume's **five operational surfaces** — eval, observability, cost, oversight, security — and the one mental model each owns
+- The **evidence-honesty rule** this volume runs on: why most of operations is first-party-authoritative rather than triangulated, and where the one genuine convergence lives
+- The **map of the volume**, and what each chapter owns
+</YouWillLearn>
+
+_Vols 1 and 2 built the agent — the environment it acts in, the context it reasons over, the tools and orchestration its harness coordinates. This volume takes what is left once the thing actually runs: how you know it works, see what it did, pay for it, keep a human over it, and defend it against forged instructions. The thesis of this chapter is that all five are one discipline wearing five faces — and that the discipline begins with **measurement**, because you cannot operate what you cannot measure._
+
+## From building an agent to operating one
+
+The first two volumes were construction. Vol 1 engineered the environment and the context; Vol 2 took the harness's tools and orchestration. Both answered *how do I build this?* Once an agent is in production, the questions change shape entirely: Is it actually good? What did it just do? What is it costing? Who approves the irreversible step? Who is *really* issuing the instruction it just followed?
+
+These are operational questions, and they share a precondition. An agent, in the working definition the series uses, is a system where models "dynamically direct their own processes and tool usage"<Tag kind="official" /><Citation src="building-effective-agents" /> — which is exactly what makes operation hard. The behavior is not fixed by the spec; the agent decides at run time. So you cannot read whether it works off the source the way you read a function's contract — you have to **measure** it. Operation is the discipline of measuring a system whose behavior you deliberately did not pin down.
+
+<KeyIdea>
+You cannot operate what you cannot measure. Every operational surface in this volume is downstream of a measurable target: eval defines what "good" means, observability shows what happened against it, cost prices the run, oversight gates the risky step, and security defends the input. Skip the measurement and the other four become guesswork dressed up as dashboards.
+</KeyIdea>
+
+## Measure before you scale
+
+If operation begins with measurement, the first move is **eval** — and the *ordering* matters more than it looks. The cost of inverting it is concrete: "evals get harder to build the longer you wait."<Tag kind="official" /><Citation src="demystifying-evals" /> Once an agent already exists, any measurable target you retrofit tends to be shaped around the behavior the agent *currently* has — survivorship bias baked into the ruler. Define the target first, and let it pull the rest of the system into existence.
+
+That is why this volume opens with two evaluation chapters before any of the operational surfaces: the eval is the **target** the other surfaces serve. Observability shows runs *against* that target; cost is the price of hitting it; oversight gates the steps that could miss it expensively; security defends the inputs that could subvert it. None of them means anything until "good" is something you can run, not something you feel.
+
+<ConceptBox term="Operating an agent">
+Operating an agent is everything that happens after it is built and running: knowing whether it is good (**eval**), seeing what it did (**observability**), pricing what it cost (**cost**), keeping a human over its irreversible moves (**oversight**), and defending it against forged instructions (**security**). Each surface is downstream of a measurable target — which is why the discipline begins with eval, not with the dashboards.
+</ConceptBox>
+
+## The five operational surfaces
+
+The volume is organized as five surfaces, in the order the work naturally flows — **measure → see → spend → oversee → defend**:
+
+- **Eval — *measure.*** Define what "good" means and make it runnable: for a single prompt (ch22) and for an agent's whole trajectory (ch23).
+- **Observability — *see.*** The session log is the ground truth; tracing, attribution, and cost-surfacing all derive from it (ch24).
+- **Cost — *spend.*** Input context, not output, is the cost driver; four composable levers manage it (ch25).
+- **Oversight (human-in-the-loop) — *oversee.*** Keep a human in control of the irreversible or wrong action (ch26).
+- **Security — *defend.*** Establish who is *really* issuing the instruction — prompt injection and the lethal trifecta (ch27).
+
+<InsightBox title="One discipline, five faces">
+The surfaces are not five separate subjects bolted together — they are one loop. Eval defines the target; observability shows the run against it; cost prices it; oversight gates it; security defends it; and the failures every surface exposes flow back into the eval suite to harden it (the loop ch28 closes). The unifying move is measurement: each face turns an operational question into something you read off an instrument instead of guessing at.
+</InsightBox>
+
+<MarginNote variant="note" label="Note">
+"Measure → see → spend → oversee → defend" is this book's framing of the five surfaces, laid over the dossiers' separate treatments — a reading order, not a phrase the primary sources use.
+</MarginNote>
+
+## The evidence this volume runs on
+
+One thing must be said before the chapters begin, because it changes how every claim in them should be read. **Most of this volume rests on a different evidence base than Vol 2 did.**
+
+Vol 2 could often point to several independent voices agreeing — Anthropic, framework vendors, and third-party practitioners converging on the same move. Operations is not like that. Five of the six bodies of evidence behind these chapters are **single-vendor or first-party by construction**: Anthropic's evaluation methodology, Claude Code's observability, cost, and oversight mechanics, and the OpenTelemetry specification. These are *authoritative* — the vendor and the spec are the definitive sources for how their own systems behave. But authoritative is not the same as **triangulated**.
+
+So this volume refuses to dress first-party authority up as independent agreement. The eval, observability, cost, and oversight chapters cite official sources and **say** they are official — `<Tag kind="official">`, not `<Tag kind="convergence">`. There is exactly one exception, and it is earned: in **security** (ch27), the principle that you defend by *construction* rather than by *detection* is asserted by multiple independent research groups, and there — and only there — the book tags genuine convergence.
+
+This inversion is itself a finding worth stating up front: operations is the part of the discipline where the evidence is *most authoritative and least triangulated at the same time*. Naming that lets a reader calibrate every downstream claim by the company it keeps, rather than assuming a uniform standard of proof that does not hold.
+
+## What each chapter owns
+
+The chapters move along the five surfaces, eval first.
+
+**Eval — defining the target.**
+
+- **Evaluating a prompt** (ch22) — the four-step loop that tells you a *prompt* is good and lets you iterate it. Unit of analysis: a prompt.
+- **Evaluating an agent** (ch23) — harnesses, task suites, and the LLM judge for a *trajectory*. Unit of analysis: a run.
+
+**Operations — running against the target.**
+
+- **Observability** (ch24) — four surfaces over one session log: tracing, attribution, and cost-surfacing.
+- **Cost** (ch25) — input context as the cost driver, and the four levers that manage it.
+- **Human-in-the-loop** (ch26) — the oversight *workflow* layered on top of Vol-1's permission *model*.
+- **Security** (ch27) — the lethal trifecta as the threat model, and design-by-construction as the defense.
+
+**Closing.**
+
+- **Operating the whole** (ch28) — the five surfaces as one operate-and-improve loop, with the unsolved trade-offs stated honestly.
+
+Each chapter owns a precise slice, and the boundaries are deliberate: ch23 owns the judge's *calibration*, while ch22 only *uses* a judge; ch24 records *what ran*, while ch23 scores *whether it was correct*; ch25 models the *economics* of the numbers ch24 merely *surfaces*; ch26 is the oversight *workflow* on top of the permission *model* Vol 1 already built; and ch27 is the *authorized-but-forged* instruction, the counterpart to Vol 1's *authorized-but-risky* one. Holding those seams keeps each surface a single, measurable idea.
+
+<Figure
+  src="/figures/operating-surfaces-arc/operating-surfaces-arc.svg"
+  caption="The volume's five operational surfaces as one left-to-right arc: measure (eval) → see (observability) → spend (cost) → oversee (human-in-the-loop) → defend (security). Eval sits first because every later surface is downstream of a measurable target; the dashed return arrow shows the failures each surface exposes flowing back into the eval suite — the operate-and-improve loop ch28 closes."
+  alt="A left-to-right arc of five labeled stages. Stage 1 'Measure — Eval (ch22–23)'; stage 2 'See — Observability (ch24)'; stage 3 'Spend — Cost (ch25)'; stage 4 'Oversee — Human-in-the-loop (ch26)'; stage 5 'Defend — Security (ch27)'. A dashed arrow loops from the right end back to stage 1, labeled 'failures harden the eval suite (ch28)'. A caption strip beneath reads that you cannot operate what you cannot measure, and that every surface is downstream of a measurable target."
+  width="100%"
+  id="fig-operating-surfaces-arc"
+/>
+
+<WorkedExample id="ch21-locating-an-ops-question" title="Locating an operational question">
+
+A team says: *"Our agent feels worse since last week's prompt change, and the bill went up. What do we do?"*
+
+Locate each part on a surface before acting on any of it:
+
+- **"Feels worse"** is an **eval** question (ch22/ch23). A feeling is not a measurement. Without a suite that scores the old prompt against the new one, "worse" is a vibe — and the first move is to make the regression *measurable*, not to revert on a hunch.
+- **"What did it do differently"** is an **observability** question (ch24). The session logs of the failing runs are the ground truth; read them before theorizing about causes.
+- **"The bill went up"** is a **cost** question (ch25) — and probably a context one: a longer prompt or more verbose tool output inflates input tokens, which is the cost driver.
+- Notice what is *not* here: no irreversible action is waiting on a human gate (ch26), and nothing suggests a forged instruction (ch27) — so those two surfaces stay quiet. Naming a surface also means knowing when it does not apply.
+
+The five surfaces turned a panicked "what do we do?" into four located, instrument-able questions — and the eval one comes first, because until "worse" is measurable, everything after it is guesswork.
+
+</WorkedExample>
+
+<Pitfall title="Operating on vibes">
+The most common operational failure is acting on impressions instead of instruments: reverting a prompt because the output "feels worse," guessing at cost from a single invoice, trusting an agent's irreversible action because it "seemed fine." Every surface in this volume exists to replace a vibe with a reading. The discipline is not the dashboards themselves — it is refusing to operate on anything you have not measured, starting with the definition of "good."
+</Pitfall>
+
+## Quick reference
+
+- **The shift:** Vols 1–2 build the agent; Vol 3 operates it — eval, observability, cost, oversight, security.
+- **The premise:** you cannot operate what you cannot measure, so eval comes first; "evals get harder to build the longer you wait."<Citation src="demystifying-evals" />
+- **The arc:** measure (eval) → see (observability) → spend (cost) → oversee (HITL) → defend (security).
+- **The evidence rule:** five surfaces are first-party-authoritative, not triangulated — stated as such, never dressed as convergence; security is the one genuine convergence.
+- **Boundary discipline:** each chapter owns a precise slice — ch23 calibrates the judge ch22 only uses; ch24 records what ran, ch23 scores whether it was correct; ch25 prices what ch24 surfaces.
+- **The reflex to build:** turn every "feels worse" or "seemed fine" into "measured against what?"
+
+## Practice
+
+<Exercise id="ch21-ex-1">
+The chapter claims the five operational surfaces "are one discipline wearing five faces." Name the five surfaces in the **measure → see → spend → oversee → defend** order, and state in one sentence why eval is placed first. Then explain what specifically goes wrong if you invert the order and build the eval *after* the agent.
+</Exercise>
+
+<Practice id="ch21-pr-1" difficulty="2">
+Take an agent you run or have read about. For each of the five surfaces, write one question you cannot currently answer with an instrument — for example, "I have no suite that scores this prompt," "I can't see which tool calls actually ran," "I don't know what a typical run costs," "there's no gate before it touches main," "I've never asked whether a malicious input could redirect it." Then rank the five gaps by which unanswered question is costing you most right now. The point is to feel that operating an agent is a set of *measurable* questions — and to notice which instruments you are missing.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch21-ex-1">
+The five surfaces are **eval** (measure), **observability** (see), **cost** (spend), **oversight / human-in-the-loop** (oversee), and **security** (defend). Eval is first because every other surface is downstream of a measurable notion of "good": observability shows what ran *against* that target, cost prices it, oversight gates the steps that could miss it expensively, and security defends the inputs that could subvert it — but none of them can tell you whether the agent is actually *working* without an eval that defines working. Inverting the order — building the eval after the agent — bakes in survivorship bias, because "evals get harder to build the longer you wait": you end up retrofitting the measurable target around the agent's *current* behavior, so the ruler is shaped to pass what the agent already does instead of defining what it must achieve. The eval should pull the agent into existence, not the reverse.
+</Solution>
+
+<Solution for="ch21-pr-1">
+A worked example. Take a documentation-writing agent. **Eval (measure):** "I have no suite that scores whether a generated doc is accurate and complete — I read a few by hand and trust my impression." **Observability (see):** "When a doc comes out wrong I can't see which sources the agent actually read; the run is opaque after the fact." **Cost (spend):** "I don't know what one doc costs — the monthly bill is a single number I can't attribute to runs." **Oversight (oversee):** "The agent can open a pull request automatically, and I'm not certain there's a gate before it touches the main branch." **Security (defend):** "The agent ingests arbitrary web pages, and I've never asked whether a malicious page could redirect it." Ranking: if the agent is autonomously opening PRs, the **oversight** gap is the most expensive — an irreversible, wrong action can ship unreviewed — so close that gate first; then the **eval** gap, so "is it any good?" stops being a hand-wave; **cost** and **observability** are the diagnostics you will reach for the moment either of the first two misbehaves; **security** ranks by how exposed the ingested content is. The exercise's value is that it turns "operating the agent" from a vague responsibility into five concrete, instrument-shaped gaps — and forces a priority among them rather than a dashboard for each.
+</Solution>
+
+</ExerciseSolutions>

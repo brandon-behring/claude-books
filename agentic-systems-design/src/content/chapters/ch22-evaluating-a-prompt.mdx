@@ -1,0 +1,182 @@
+---
+title: "Evaluating a Prompt: The Four-Step Loop"
+part: 3
+chapter: 22
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - anthropic-develop-tests
+  - anthropic-prompt-eng-overview
+  - anthropic-prompt-improver
+  - anthropic-eval-tool
+  - anthropic-building-evals-cookbook
+description: How you know a prompt is good and iterate it — a four-step loop, not a one-shot check. Define measurable criteria, build a representative test set, iterate with tooling, and grade by reliability-per-effort, with criteria and tests fixed before you touch the prompt. The unit of analysis is a single prompt, and the LLM judge here is merely used — its calibration belongs to the next chapter.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="Ch21 — measurement comes first, and eval is the target every other operational surface serves. This chapter is the prompt half of that target; ch23 is the agent half.">
+- The **four-step loop** that tells you a prompt is good and lets you iterate it — define criteria, build test cases, iterate with tooling, grade outputs
+- Why **criteria and tests are preconditions** — fixed *before* you touch the prompt, so improvement is measured rather than asserted
+- How to **engineer the eval set** for the real tension — real-world fidelity against automatable volume
+- How **tool-assisted iteration** works — the prompt improver drafts the change, the Console eval tool measures the variant
+- The **grading hierarchy** ranked by reliability-per-effort — and why the LLM judge here is *used*, not calibrated (that is ch23's job)
+</YouWillLearn>
+
+_Ch21 said the discipline begins with eval, because you cannot operate what you cannot measure. This chapter is the first and smallest unit of that measurement: a single **prompt**. The question "is this prompt good?" has a deceptively simple-looking answer — run it and see — but a one-shot look is exactly the vibe ch21 warned against. The thesis here is that knowing a prompt is good is a **loop**: you commit to what "good" means, build a way to measure it, iterate, and grade — and then go round again. The unit is a prompt; ch23 will take the same shape up to a whole agent trajectory._
+
+## The four-step loop
+
+Anthropic frames building an LLM application as a cycle: first define success criteria, then build evaluations to measure against them — and "This cycle is central to prompt engineering."<Tag kind="official" /><Citation src="anthropic-develop-tests" /> That single sentence is the spine of this chapter. Evaluating a prompt is not a checkpoint you pass once; it is a feedback loop you stay inside while the prompt is alive.
+
+The loop has four steps, and they run in order:
+
+1. **Define success criteria** — pin down what "good" means for this prompt, measurably.
+2. **Build test cases** — assemble a representative set of inputs to run the prompt against, favoring automatable *volume* over a small hand-curated set (the opposite of ch23's small, expensive trajectory suites).
+3. **Iterate with tooling** — change the prompt (the prompt improver drafts a candidate) and re-run.
+4. **Grade outputs** — score each run against the criteria, with a grader matched to the criteria.
+
+Then you loop. The grade tells you whether the last change helped; if not, you iterate again. The shape is identical to how you treat code: a measurable target, a test set, an iteration tool, and a grader — looped until the bar is met. The rest of this chapter takes the four steps in turn, but the order itself carries the first lesson: steps 1 and 2 are not interchangeable with 3 and 4.
+
+<KeyIdea>
+Evaluating a prompt is a four-step loop — **define criteria → build test cases → iterate with tooling → grade outputs** — not a one-shot check. The first two steps are *preconditions* you fix before touching the prompt; the last two are the iteration cycle you run against them. Skip the preconditions and the cycle has nothing to measure against, so "better" collapses back into a feeling.
+</KeyIdea>
+
+## Criteria and tests are preconditions
+
+The reason steps 1 and 2 come first is that Anthropic's prompt-engineering overview lists them as prerequisites *before* prompt engineering begins. The first listed prerequisite is "A clear definition of the success criteria for your use case"<Tag kind="official" /><Citation src="anthropic-prompt-eng-overview" />, and the second is "Some ways to empirically test against those criteria."<Tag kind="official" /><Citation src="anthropic-prompt-eng-overview" /> (The third is a first-draft prompt to improve — the thing the loop then iterates.) The criteria and the test set are the entry gate to the loop, not artifacts you produce along the way.
+
+And the criteria have to be *measurable*. The guidance is explicit: good criteria "Use quantitative metrics or well-defined qualitative scales."<Tag kind="official" /><Citation src="anthropic-develop-tests" /> They are typically multidimensional, too — accuracy, output format, latency, and cost are different axes, and a prompt can win on one while losing on another. A criterion you cannot express as a number or a consistently applied scale is not a criterion; it is a hope.
+
+This is the **anti-vibes** move, and it is the whole reason the loop exists. If you fix "what good is" and "how to measure it" *before* you start changing the prompt, then every later change is judged against a target that does not move. Improvement becomes something you **measure**, not something you assert. Invert the order — tweak the prompt first, then decide whether you like the output — and you have no fixed reference, so "it feels better now" is the best you can honestly say. It is the same attribute-first discipline good engineering applies everywhere: name the target, then chase it.
+
+<ConceptBox term="Success criteria (for a prompt)">
+The measurable definition of "good" for a single prompt, fixed before iteration begins. Criteria are expressed as quantitative metrics or well-defined qualitative scales — not impressions — and are usually multidimensional (accuracy, format, latency, cost). They are a *precondition* of the loop, alongside an empirical test set: together they are the fixed reference every later change is measured against, which is what lets "better" mean something other than "feels better."
+</ConceptBox>
+
+## Engineering the eval set
+
+The test set is the second precondition, and it is *engineered*, not merely collected. Two design principles do most of the work, and they pull against each other.
+
+The first is **fidelity**: be task-specific. "Design evals that mirror your real-world task distribution"<Tag kind="official" /><Citation src="anthropic-develop-tests" /> — the set should look like the inputs the prompt will actually see in production, weighted the way they actually occur. And it must deliberately include edge cases: irrelevant or nonexistent input, overly long input, harmful input, ambiguous cases. A test set that only contains the happy path tells you nothing about the inputs that break things.
+
+The second is **throughput**, and it is where most teams flinch: "More questions with slightly lower signal automated grading is better than fewer questions with high-quality human hand-graded evals."<Tag kind="official" /><Citation src="anthropic-develop-tests" /> A large set you can grade automatically beats a small set you grade by hand — even though each automated grade is individually noisier. Volume buys statistical signal; hand-grading caps volume at whatever a human can sustain. So you structure the questions to be machine-gradable where possible (multiple-choice, string match, code-graded, or LLM-graded), and you prioritize covering the distribution over polishing a handful of items.
+
+The tension between these two — real-world fidelity against automatable volume — is the central design problem of the eval set. You want it representative *and* large enough to grade cheaply at scale, and those goals trade against each other at the margin. Resolving that tension is exactly why the *grading* step matters so much, which is where the loop is heading.
+
+<InsightBox title="Volume over polish, automation over hand-grading">
+The instinct to hand-curate a small, pristine eval set is the wrong default. A representative set graded mostly by machine beats a tiny hand-graded one, because the noise of automated grading averages out over volume while the ceiling on hand-grading does not move. This is why "engineer the eval set" and "choose the grader" are the same decision viewed twice: you design the test cases to be *automatically gradable* so you can afford enough of them to mirror the real distribution. Fidelity and volume both depend on grading being cheap.
+</InsightBox>
+
+## Tool-assisted iteration
+
+With the preconditions fixed, the loop's third step is iteration — and Anthropic ships two complementary tools for it, one to *draft* the change and one to *measure* it.
+
+The drafting tool is the **prompt improver**, which "helps you quickly iterate and improve your prompts through automated analysis and enhancement."<Tag kind="official" /><Citation src="anthropic-prompt-improver" /> It proposes the next version of the prompt — it is reported to excel at making prompts more robust for complex, high-accuracy tasks, enhancing a prompt in steps (identifying examples, drafting, chain-of-thought refinement, example enhancement). Its companion on the same page, the prompt generator, drafts a first prompt from a task description. The improver is the *generate* half of iteration: it gives you a candidate to test.
+
+The measuring tool is the **Console Evaluation tool**, which closes the loop on variants. Its prompt-versioning affordance lets you "Create new versions of your prompt and re-run the test suite to quickly iterate and improve results"<Tag kind="official" /><Citation src="anthropic-eval-tool" />, and it offers side-by-side comparison as the A/B mechanism — you put two or more prompt versions next to each other on the same test cases and read which one scores better. That is the *measure* half: the eval set plus versioning decides whether the candidate is actually an improvement.
+
+So iteration is **generate-then-measure**. A tool drafts the candidate; the test set and the version comparison decide whether it earns the change. Neither half is optional — a draft you do not measure is a guess, and a measurement with no candidate to score is idle.
+
+<MarginNote variant="warning" label="Caveat">
+The prompt improver and the Console Evaluation tool are product surfaces that ship per release; the exact tool names, the versioning UI, and the side-by-side affordance can change. Verify the current Console UI before relying on a specific button — recheck after 2026-08-25.
+</MarginNote>
+
+## Grading by reliability-per-effort
+
+The fourth step is grading: turning each run into a score against the criteria. The guidance for *which* grader to use is a single optimization — when deciding how to grade, "choose the fastest, most reliable, most scalable method."<Tag kind="official" /><Citation src="anthropic-develop-tests" /> The score itself is "A score, generated by one of the grading methods discussed below"<Tag kind="official" /><Citation src="anthropic-building-evals-cookbook" /> — one part of an eval's four-part anatomy (input prompt, output, golden answer, score), produced by comparing the output to the golden answer.
+
+The methods rank by reliability-per-effort:
+
+- **Code-based grading** comes first. It "is by far the best grading method if you can design an eval that allows for it"<Tag kind="official" /><Citation src="anthropic-building-evals-cookbook" /> — exact match, string-contains, or a regex over the output — because it is fast and highly reliable. If the criterion can be checked by code, check it by code; nothing else is cheaper or more dependable.
+- **Human grading** comes next, for quality that code cannot capture. In the Console, this is concrete: quality grading lets you "Grade response quality on a 5-point scale to track improvements in response quality per prompt."<Tag kind="official" /><Citation src="anthropic-eval-tool" /> It is reliable but does not scale — a human caps the volume.
+- **LLM-based grading** comes last, for judgement at scale. Its profile is "Fast and flexible, scalable and suitable for complex judgement. Test to ensure reliability first then scale."<Tag kind="official" /><Citation src="anthropic-develop-tests" /> It can grade nuanced quality that code cannot express, across far more items than a human can — once you trust it.
+
+That final clause — **"Test to ensure reliability first then scale"** — is the seam between this chapter and the next, and it is worth being precise about what it does and does not say. Here, the LLM judge is *used*: you pick it because the criterion needs judgement, you sanity-check that it agrees with you on a sample, and then you scale it across the set. That is the prompt-grading **use** of a judge. It is emphatically *not* a calibration project. Measuring the judge as an instrument — its agreement rate against human graders, its biases, the error bars on its scores — is a different and heavier discipline. This chapter only borrows the judge; ch23 calibrates it.
+
+<MarginNote variant="note" label="Note">
+"Reliability-per-effort" is this book's framing of the source's grader ranking (code-based, then human, then LLM-based) — a lens for reading why the order is what it is, not a phrase the primary uses.
+</MarginNote>
+
+<Figure
+  src="/figures/prompt-eval-loop/prompt-eval-loop.svg"
+  caption="The four-step prompt-evaluation loop. Two fixed preconditions — (1) define criteria (measurable: metrics or scales) and (2) build test cases (mirror the real distribution) — gate entry into a two-step iterate/grade cycle: (3) iterate with tooling (the prompt improver drafts; the Console eval measures) produces a variant, (4) grade outputs by reliability-per-effort returns a measured result, and the cycle repeats. A dashed return arrow carries findings back to revise the criteria and tests. A caption strip reads that criteria and tests are fixed before you touch the prompt, so improvement is measured, not asserted."
+  alt="A diagram in two zones. On the left, two blue boxes stacked and joined by a brace labeled 'fixed preconditions': box 1 'Define criteria — measurable: metrics or scales' and box 2 'Build test cases — mirror the real distribution'. Arrows labeled 'gate' lead right into a two-step cycle of teal boxes: box 3 'Iterate with tooling — prompt improver drafts; Console eval measures' and box 4 'Grade outputs — by reliability-per-effort'. An arrow labeled 'variant' runs from box 3 down to box 4, and an arrow labeled 'measured' loops box 4 back to box 3. A dashed orange arrow runs from box 3 back to box 1, labeled 'findings revise criteria + tests'. A caption strip beneath reads that criteria and tests are fixed before you touch the prompt, so improvement is measured, not asserted."
+  width="100%"
+  id="fig-prompt-eval-loop"
+/>
+
+<WorkedExample id="ch22-iterating-a-classifier-prompt" title="Iterating a support-ticket classifier prompt">
+
+A team has a prompt that classifies an incoming support ticket into one of eight categories. Someone says: *"I rewrote the prompt and the outputs look sharper — ship it?"* Run the four-step loop instead of trusting "looks sharper."
+
+- **Define criteria (precondition).** "Good" here is mostly measurable in numbers: top-1 accuracy against the correct category, plus an output-format constraint (the answer must be exactly one of the eight category strings, nothing else). Both are measurable — a metric and a well-defined constraint — so the criteria are real, not a vibe.
+- **Build test cases (precondition).** Assemble several hundred real tickets, *weighted the way they actually arrive* (mostly billing and login, rarely the obscure categories), and deliberately seed edge cases: empty tickets, a 5,000-word rant, a ticket in the wrong language, an ambiguous one that could be two categories. The set mirrors the real distribution and stresses the corners. It is large because the next step lets it be graded automatically.
+- **Iterate with tooling.** Keep the old prompt as version A and the rewrite as version B. Run *both* over the same test set and compare side by side; if neither clearly wins, let the prompt improver draft a version C and add it to the comparison.
+- **Grade by reliability-per-effort.** Top-1 accuracy and the format constraint are perfect for **code-based grading** — exact string match against the golden category and a membership check — fast and highly reliable, no judgement needed. Only if you later add a fuzzy criterion ("did it pick a *reasonable* category for a genuinely ambiguous ticket?") do you reach for an LLM judge, and then you sanity-check that judge on a sample before trusting it across the set.
+
+The result is a *number*: version B is two points more accurate but violates the format constraint on long inputs three percent of the time, while version C is even on accuracy and clean on format. "Looks sharper" never enters it. Notice that the grader was decided by the criteria — a code check, because the criteria were code-checkable — which is the reliability-per-effort rule doing its job.
+
+</WorkedExample>
+
+<Pitfall title="Iterating before the criteria and tests exist">
+The most common way to break this loop is to start at step 3 — change the prompt, look at a few outputs, and decide by eye whether it improved. Without fixed criteria and a representative test set, there is no reference, so "better" is just the last output you happened to like, and you are tuning toward a moving target shaped by whatever you looked at most recently. The discipline is non-negotiable order: criteria and tests *before* the first edit. A second, subtler failure is over-claiming the LLM judge — treating its score as ground truth before sanity-checking it. Here the judge is only *used*; its calibration is a separate job (ch23). Trusting an unchecked judge is just vibes wearing a number.
+</Pitfall>
+
+## Quick reference
+
+- **The loop:** define criteria → build test cases → iterate with tooling → grade outputs — then repeat. "This cycle is central to prompt engineering."<Citation src="anthropic-develop-tests" />
+- **Preconditions:** criteria and tests are fixed *before* iterating — they are prerequisites, not by-products.<Citation src="anthropic-prompt-eng-overview" />
+- **Measurable criteria:** "Use quantitative metrics or well-defined qualitative scales"<Citation src="anthropic-develop-tests" /> — multidimensional (accuracy, format, latency, cost).
+- **Eval-set tension:** mirror the real distribution<Citation src="anthropic-develop-tests" /> *and* prioritize automatable volume — "More questions with slightly lower signal automated grading is better than fewer questions with high-quality human hand-graded evals."<Citation src="anthropic-develop-tests" />
+- **Iterate = generate-then-measure:** the prompt improver drafts the candidate<Citation src="anthropic-prompt-improver" />; the Console eval tool versions and compares it.<Citation src="anthropic-eval-tool" /> *(Console UI is volatile — recheck after 2026-08-25.)*
+- **Grading hierarchy:** code-based first (the "best grading method if you can design an eval that allows for it"<Citation src="anthropic-building-evals-cookbook" />), then human (5-point scale<Citation src="anthropic-eval-tool" />), then LLM-based ("Test to ensure reliability first then scale"<Citation src="anthropic-develop-tests" />).
+- **The ch23 seam:** the LLM judge here is *used*, not calibrated — calibrating the judge as an instrument is the next chapter.
+- **Unit of analysis:** a prompt. Switch to ch23 the moment the thing under test is an agent's behavior over a task suite.
+
+## Practice
+
+<Exercise id="ch22-ex-1">
+The chapter insists the four steps run in a fixed order — criteria and tests *before* iteration and grading. Name the four steps in order, state which two are the "preconditions," and explain in one or two sentences what specifically goes wrong if you start at step 3 (iterate) before steps 1 and 2 exist.
+</Exercise>
+
+<Exercise id="ch22-ex-2">
+The chapter says the LLM judge in this chapter is "used, not calibrated," and that calibration belongs to ch23. In your own words, distinguish *using* an LLM judge to grade a prompt's outputs from *calibrating* it as an instrument. Why is it dishonest to report an LLM judge's score as ground truth on the strength of this chapter alone?
+</Exercise>
+
+<Practice id="ch22-pr-1" difficulty="2">
+Take a prompt you run or have read about — a classifier, a summarizer, an extraction prompt, anything. Write down (a) two *measurable* success criteria for it (a metric or a well-defined scale, not "good output"); (b) what its test set would need to look like to mirror the real input distribution, plus two edge cases you would deliberately include; and (c) for each of your two criteria, which grading method fits — code-based, human, or LLM-based — and why. The point is to feel the reliability-per-effort rule fall out of the criteria: a code-checkable criterion wants a code grader, a judgement criterion wants a sanity-checked LLM grader.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch22-ex-1">
+The four steps in order are **(1) define success criteria → (2) build test cases → (3) iterate with tooling → (4) grade outputs**, then loop. The two *preconditions* are steps 1 and 2 — they are fixed before you touch the prompt, because Anthropic's prompt-engineering overview lists "a clear definition of the success criteria" and "some ways to empirically test against those criteria" as prerequisites *before* prompt engineering begins. If you start at step 3 (iterate) before 1 and 2 exist, you have no fixed reference against which to judge the change, so "better" reduces to whichever output you happened to like most recently — you are tuning toward a moving target shaped by what you looked at, which is exactly the vibes-driven failure the loop is designed to prevent. Improvement can only be *measured* once the target and the measurement are pinned down first.
+</Solution>
+
+<Solution for="ch22-ex-2">
+*Using* an LLM judge means treating it as a convenient grader for this prompt: you pick it because the criterion needs judgement code cannot express, you sanity-check that it agrees with you on a sample of outputs, and then you scale it across the test set — the source's "Test to ensure reliability first then scale." *Calibrating* it means treating the judge itself as the object of measurement: quantifying its agreement rate against human graders, characterizing its biases, and putting error bars on its scores so you know how much to trust the number it produces. This chapter only does the former; it never establishes how reliable the judge actually is, only that you should sanity-check it before scaling. Reporting the judge's score as ground truth on that basis is dishonest because the sanity check confirms the judge is *plausible*, not that it is *accurate* — without the calibration work (ch23's job), an unchecked judge's number is a vibe dressed up as a measurement, which is precisely what the discipline forbids.
+</Solution>
+
+<Solution for="ch22-pr-1">
+A worked example. Take a meeting-notes summarizer prompt. **(a) Two measurable criteria.** (1) *Action-item recall:* the fraction of action items present in the transcript that appear in the summary — a metric, gradable as a number against a golden list. (2) *Format conformance:* the summary must contain exactly the three required sections (Decisions, Action items, Open questions) with no others — a well-defined constraint. Neither is "good summary"; both are checkable. **(b) Test set.** Several dozen real transcripts weighted the way meetings actually occur (mostly short stand-ups, occasionally a long planning session), with golden summaries written once by hand. Two deliberate edge cases: a transcript with *no* action items at all (does the summary correctly produce an empty Action-items section rather than inventing one?), and an extremely long, rambling transcript (does recall collapse when the input is huge?). **(c) Grader per criterion.** Format conformance is pure **code-based grading** — a structural check for exactly the three section headers — fast and highly reliable, no judgement. Action-item recall is trickier: matching a summarized action to a transcript action involves paraphrase, so a strict string match under-counts; this is the **LLM-based** case — have a model judge whether each golden action item is covered, *after* you sanity-check the judge against your own labels on a sample. The reliability-per-effort rule falls straight out of the criteria: the structural criterion got a code grader because it was code-checkable, and the semantic criterion got a sanity-checked LLM grader because it needed judgement — and you would only trust that judge's aggregate number after the calibration work the next chapter covers.
+</Solution>
+
+</ExerciseSolutions>

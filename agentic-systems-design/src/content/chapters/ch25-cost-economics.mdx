@@ -1,0 +1,188 @@
+---
+title: "Cost: The Economics of Running Agents"
+part: 3
+chapter: 25
+volatility: feature-surface
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - effective-context-engineering
+  - anthropic-prompt-caching
+  - anthropic-pricing
+  - claude-code-prompt-caching
+  - anthropic-multi-agent-research
+  - anthropic-batch-processing
+description: The economics of running an agent, on one premise — context is compute, so the input context an agent reprocesses each turn is the dominant cost driver, not output generation. Four composable levers manage that spend — reduce input context, cache the stable prefix, route by model tier, and batch the non-urgent work — and they stack rather than compete. Cache economics are stated as ratios and the model ladder qualitatively, because the underlying pricing surface is volatile.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="ch21's framing of cost as one of five operational surfaces, and Vol 1's account of context as a finite budget. ch24's observability surfaces the cost numbers; this chapter models their economics.">
+- Why **input context, not output generation, is the cost driver** — the "context is compute" premise the whole chapter rests on
+- **Prompt-cache economics** as a read-vs-write asymmetry — why a one-time write premium buys order-of-magnitude-cheaper reads, and why a high read-to-creation ratio means caching is working
+- The **multi-agent token multiplier** as a cost-*modeling* input, not a flat anti-pattern — Anthropic's own ~15× measurement, and why spend can be the rational choice
+- The two **cheapen-the-spend levers** — model-tier routing and the Batch API — and how all four levers **compose** into one playbook
+</YouWillLearn>
+
+_ch24 surfaced the numbers; this chapter asks what they mean. Cost is the third operational surface, and it has a single organizing premise: the money is in the **input**. An agent does not spend its budget mostly on what it writes — it spends it on the context it reprocesses every turn. Once you see that, four levers fall out, and they are not rivals competing for the same fix — they stack. This chapter states the premise, then each lever, then composes them into one cost discipline._
+
+## Context is compute
+
+Start with where the money actually goes, because the intuition is usually wrong. It is tempting to picture an agent's cost as the text it produces — the long answer, the generated code, the written report. But generation is the small side of the ledger. The dominant cost is the **input**: the context the model has to read and re-read on every turn.
+
+The premise has a first-party name. Context is "a critical but finite resource for AI agents"<Tag kind="official" /><Citation src="effective-context-engineering" /> — a budget, not a free input slot. The reason is mechanical: like a person with limited working memory, an LLM has a finite attention budget "that they draw on when parsing large volumes of context."<Tag kind="official" /><Citation src="effective-context-engineering" /> Every token in the window is a token the model spends attention parsing, and every token parsed is billed.
+
+What makes this *the* cost story for agents — rather than for a one-shot prompt — is accumulation. An agent runs a loop: it calls a tool, the result lands in the context, it reasons over the now-larger context, calls another tool, and so on. The conversation history, the tool outputs, the system instructions — all of it is reprocessed each turn. So the input the agent pays for **grows as the run goes on**, and on a long trajectory the input side dwarfs anything the model writes back. That is the sense in which "context is compute": the tokens you feed the model are the spend you engineer down.
+
+<KeyIdea>
+The input context an agent reprocesses each turn — not the output it generates — is the dominant cost driver. Context is a finite resource, billed by the attention spent parsing it, and it accumulates across an agent's loop. Every lever in this chapter is therefore a move on the **input** side of the bill; none is about generating less output, because for the context-heavy agent loops this volume concerns, the reprocessed input dominates the bill.
+</KeyIdea>
+
+<MarginNote variant="note" label="Caveat">
+The source asserts no first-party numeric input-to-output ratio, so this chapter states none. "Context is compute" is a qualitative pattern — input dominates — not a fixed multiple. A concrete ratio is a property of one workload, not a universal constant.
+</MarginNote>
+
+<ConceptBox term="Context is compute">
+A framing of agent cost in which the input context the model parses each turn is treated as the spend — because context is a finite resource billed by the attention spent on it, and an agent's loop makes that input accumulate. The design question shifts from "how much will it write?" to "how much context am I making it reprocess, and how do I make that cheaper?"
+</ConceptBox>
+
+## Prompt-cache economics: a read-vs-write asymmetry
+
+If input context is the spend, the first lever is the one that makes *repeated* input cheap. Prompt caching stores a prefix of the context server-side so it does not have to be reprocessed from scratch on the next turn — and its economics are a sharp **asymmetry** between writing the cache and reading it.
+
+The two figures are first-party and worth stating exactly. Writing the 5-minute cache costs about **1.25×** the base input price<Tag kind="official" /><Citation src="anthropic-prompt-caching" /> — a one-time premium you pay to populate it. Reading from the cache (a cache hit) costs about **0.1×** the base input price<Tag kind="official" /><Citation src="anthropic-prompt-caching" /> — roughly a tenth. And the cache "has a 5-minute lifetime" that "is refreshed for no additional cost each time the cached content is used,"<Tag kind="official" /><Citation src="anthropic-prompt-caching" /> so under sustained traffic the timer keeps resetting and the prefix stays warm for free.
+
+The break-even falls straight out of those numbers. Because a hit costs roughly a tenth of the input price, "caching pays off after just one cache read for the 5-minute duration."<Tag kind="official" /><Citation src="anthropic-pricing" /> You pay the 1.25× write once; the very first reuse already comes back at 0.1×, and every reuse after that is gravy. The design move this licenses is structural: **stabilize a long shared prefix** — system instructions, tool definitions, a fixed document set — so it is written to the cache once and then read many times across the run.
+
+<InsightBox title="A high read-to-creation ratio means caching is working">
+The cache turns a per-run health metric into a cost signal. Claude Code surfaces per-turn cache reads "billed at roughly 10% of the standard input rate"<Tag kind="official" /><Citation src="claude-code-prompt-caching" /> — the harness-side restatement of the 0.1× read multiplier. And the signal to watch is the ratio between them: "A high read-to-creation ratio means caching is working well."<Tag kind="official" /><Citation src="claude-code-prompt-caching" /> Lots of reads per write means a stable prefix the cache can amortize; persistently high *creation* means the prefix is changing turn after turn, so you keep paying the write premium and never collect the 0.1× reads. The cost lever and the health metric are the same number read two ways.
+</InsightBox>
+
+<MarginNote variant="warning" label="Warning">
+The cache ratios (write ~1.25×, read ~0.1×) and the break-even are stated as multiples of the base input price, never as dollars. The pricing surface they sit on is volatile — recheck after 2026-06-26 — so the ~10× cached-versus-uncached *gap* is the durable takeaway, not any absolute figure.
+</MarginNote>
+
+The ~10× gap between a cold read (full input price) and a warm read (0.1× of it) is the economic core of "context is compute." It is what makes carrying a large, stable context affordable at all: the first turn pays to write it, and every turn after rides at a tenth of the price.
+
+## The multi-agent token multiplier — a modeling input, not a verdict
+
+The second thing the cost surface has to handle is the one the orchestration chapters deferred: multi-agent systems are *expensive*, and the honest question is when that expense is worth paying. Anthropic's first-party measurement on its own research system is concrete: "agents typically use about 4× more tokens than chat interactions, and multi-agent systems use about 15× more tokens than chats."<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> A multi-agent topology burns through tokens fast, because each sub-agent runs its own context window — and on the cost surface, that ~15× is a number you have to plan around.
+
+But the same measurement reframes the burn. On their benchmark, "token usage by itself explains 80% of the variance"<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> in performance — token spend was the single dominant driver of how well the system did. Read together, the two findings turn the multiplier from an indictment into a **lever**: if spending more tokens is the strongest predictor of doing better, then on a high-value, genuinely parallelizable task the 15× spend can be the rational choice, not waste. The cost-modeling question is not "is multi-agent wasteful?" — it is "**does this task's value clear the 15× multiplier?**"
+
+<Pitfall title="Reading the 15× as a universal anti-pattern">
+The ~15× is one first-party datapoint, measured on Anthropic's own multi-agent research system, and the "80% of the variance" is on the BrowseComp benchmark specifically — both are *measurements on one workload*, not constants you can carry to yours. Reading "15×" as a flat verdict ("multi-agent is wasteful, avoid it") misuses it in one direction; reading "80% of variance" as "always spend more tokens" misuses it in the other. The right use is as a cost-*modeling* input: it tells you the burn is large *and* that the burn buys performance, so you size the spend against the task's value rather than reaching for a rule. A different topology or task mix will have different multipliers — gather your own before betting on a number.
+</Pitfall>
+
+This is also why this chapter, not the orchestration ones, is the honest home for the ~15×. Whether to *build* a multi-agent topology is an orchestration question; what it *costs* and when that cost is justified is an economics question — and economics is the surface that can hold "expensive" and "worth it" in the same hand without collapsing into a slogan either way.
+
+## Cheapening the spend: model tiers and the Batch API
+
+The first two levers reduce *how much input you pay for*. The last two reduce the *price* of what you do spend — without touching the architecture at all.
+
+The first is **model-tier routing**. Anthropic's guidance is to "Choose Haiku for simple tasks, Sonnet for most production workloads, and Opus for the most complex reasoning."<Tag kind="official" /><Citation src="anthropic-pricing" /> The tiers form a cost-and-capability ladder — Haiku < Sonnet < Opus, cheapest and least capable up to most capable and most expensive — and the lever is to **route the cheapest model that clears each subtask**. A classification step, a quick extraction, a routine summarization does not need the top tier; reserve Opus for the reasoning that genuinely requires it. The point is per-subtask: one agent run can dispatch cheap work to a cheap model and keep the expensive model for the part that earns it.
+
+<MarginNote variant="tip" label="Tip">
+Render the tier ladder as an ordering, not a price list. This chapter prints Haiku &lt; Sonnet &lt; Opus and no per-MTok dollars on purpose — the pricing page is volatile (recheck after 2026-06-26). If you need absolute prices, fetch them live; do not carry a remembered figure into a cost model.
+</MarginNote>
+
+The second is the **Batch API**, for work that is not time-sensitive. It "allows asynchronous processing of large volumes of requests with a 50% discount on both input and output tokens"<Tag kind="official" /><Citation src="anthropic-pricing" /> — corroborated on the feature's own documentation, which describes processing large volumes "while reducing costs by 50% and increasing throughput."<Tag kind="official" /><Citation src="anthropic-batch-processing" /> The trade is latency for price: you give up real-time response and get half off. An overnight evaluation run, a bulk re-classification, a backfill — none of these needs to answer in seconds, and all of them halve in cost by going through the batch path.
+
+The two levers are orthogonal to caching and to each other: tier-routing changes *which model* parses the input, batching changes *when* the work runs, caching changes *how much of the input is reprocessed*. That orthogonality is what lets them stack.
+
+## The four levers, composed
+
+The chapter's payoff is that these are not four competing fixes you choose between — they are four moves you apply **together**, each on a different part of the spend.
+
+- **Reduce the input context** (the driver). Spend less to begin with: trim the prompt, keep tool outputs lean, do not carry context the turn does not need. This is the lever that attacks the premise directly.
+- **Cache the stable prefix.** Make the input you *do* carry cheap to reprocess — write it once at ~1.25×, read it at ~0.1× thereafter, and watch the read-to-creation ratio to confirm it is amortizing.
+- **Model the multi-agent burn against value.** Decide *whether* to spend the ~15× at all — pay it only when the task's value clears the multiplier.
+- **Route and batch to cheapen what's left.** Send each subtask to the cheapest model that clears it (Haiku < Sonnet < Opus), and push non-urgent work through the 50% Batch API.
+
+They compose because they act on different variables — tier-routing per subtask, caching on repeated context, batch on deferrable work. One boundary is worth stating: the Batch API is a 50%-off *asynchronous* path, so it applies to work you can defer (offline evals, bulk jobs), not to a live interactive turn. A cost-disciplined agent runs every *applicable* lever against one bill — caching and tier-routing on its live turns, batch on whatever can go async.
+
+<Figure
+  src="/figures/cost-levers/cost-levers.svg"
+  caption="Four composable cost levers feeding one bill, over the 'context is compute' base. The base reads that input context is the spend, not output generation. Four levers stack onto it: (1) reduce input context — the driver; (2) prompt caching — write ~1.25× / read ~0.1×; (3) model-tier routing — Haiku < Sonnet < Opus; (4) Batch API — 50% discount, async. A note marks them as composable, not competing, and the base feeds one bill — the token spend you pay. No dollar figures appear; ratios and qualitative ordering only."
+  alt="A base bar labeled 'Context is compute — input context is the spend (not output generation)'. Four boxes sit above it and feed into it with arrows: box 1 'Reduce input context — the driver, spend less to begin with'; box 2 'Prompt caching — write ~1.25x / read ~0.1x'; box 3 'Model-tier routing — Haiku < Sonnet < Opus'; box 4 'Batch API — 50% discount (async)'. A note above the four reads 'four composable levers — they stack, they do not compete'. An arrow runs down from the base to a box labeled 'one bill — the token spend you pay'. No dollar amounts appear anywhere."
+  width="100%"
+  id="fig-cost-levers"
+/>
+
+<WorkedExample id="ch25-modeling-an-agent-bill" title="Modeling an agent's bill with the four levers">
+
+A team says: *"Our research agent's bill tripled this month and we don't know why. Do we kill the multi-agent design?"*
+
+Walk the four levers in order before touching the architecture:
+
+- **Reduce input context (the driver).** First ask what is in the window each turn. If the agent is now carrying larger tool outputs or a longer history than last month, the *input* it reprocesses every turn has grown — and since input is the cost driver, that alone can triple a bill without any change to the design. Trim here first; it is the cheapest fix.
+- **Cache the stable prefix.** Check the read-to-creation ratio. If creation is persistently high, the cached prefix is changing turn after turn — so the agent keeps paying the ~1.25× write premium and rarely collects the ~0.1× reads. A prompt or tool-set change that destabilized the prefix would show up exactly as a cost spike. Re-stabilize the prefix and the reads come back cheap.
+- **Model the multi-agent burn against value.** *Now* weigh the topology. The ~15× multiplier is real, but it is not automatically the culprit — and the team's own data says token spend strongly predicts performance, so cutting agents to save tokens may cut quality with it. Ask whether the research task's value clears the 15× before killing the design; the answer might be "the design is fine, the prefix regressed."
+- **Route and batch to cheapen what's left.** If some sub-agents are doing routine extraction on the top model tier, route them down to Haiku/Sonnet. If any of the work is a non-urgent backfill, send it through the 50% Batch API.
+
+Notice the architecture question came *last*. The cost surface turned "do we kill multi-agent?" into four located moves — and three of them are cheaper than a redesign. The four levers compose into a diagnosis, not a single guess.
+
+</WorkedExample>
+
+## Quick reference
+
+- **The premise:** input context, not output, is the cost driver — context is a finite resource billed by the attention spent parsing it, and it accumulates across an agent's loop.<Citation src="effective-context-engineering" />
+- **Cache asymmetry:** a write costs ~1.25× base input, a read ~0.1×, with a 5-minute free-refresh TTL — so "caching pays off after just one cache read."<Citation src="anthropic-prompt-caching" /><Citation src="anthropic-pricing" />
+- **Cache health = cost signal:** a high read-to-creation ratio means caching is working; persistently high creation means you keep paying the write premium.<Citation src="claude-code-prompt-caching" />
+- **Multi-agent burn:** Anthropic measured ~4× (single agent) and ~15× (multi-agent) the tokens of a chat, with "token usage by itself explains 80% of the variance" — a cost-modeling input on *their* workload, not a universal constant or a flat anti-pattern.<Citation src="anthropic-multi-agent-research" />
+- **Cheapen-the-spend levers:** route the cheapest model that clears each subtask (Haiku < Sonnet < Opus, qualitative — no dollars, recheck after 2026-06-26) and push non-urgent work through the 50% Batch API.<Citation src="anthropic-pricing" /><Citation src="anthropic-batch-processing" />
+- **The playbook:** reduce input → cache the stable prefix → model the burn against value → route and batch — four levers that **stack**, all against the input side of one bill.
+
+## Practice
+
+<Exercise id="ch25-ex-1">
+The chapter claims the four cost levers "stack rather than compete." Name the four levers, state in one sentence which variable each one acts on, and explain why acting on different variables is what lets them compose. Then say which single lever attacks the "context is compute" premise most directly, and why.
+</Exercise>
+
+<Exercise id="ch25-ex-2">
+The chapter calls the ~15× multi-agent multiplier "a cost-modeling input, not a verdict." Explain what the "80% of the variance" finding adds to the bare ~15× figure, and why the two together turn the multiplier into a lever rather than an indictment. Then state one way a reader could *misuse* each of the two numbers, and name the honest qualifier the chapter attaches to both.
+</Exercise>
+
+<Practice id="ch25-pr-1" difficulty="2">
+Take an agent you run or have read about. Estimate, qualitatively, where its bill goes: roughly how much of each turn's tokens are *input* it reprocesses (history, tool outputs, instructions) versus *output* it generates. Then identify, for each of the four levers, one concrete move you could make on that agent — what input you would trim, what prefix you would stabilize for caching, whether (and why) the topology's spend is justified, and which subtasks could drop a model tier or move to the Batch API. The point is to feel the bill as an *input* problem, and to size each lever before reaching for any one.
+</Practice>
+
+<Practice id="ch25-pr-2" difficulty="3">
+The chapter states cache economics as ratios (~1.25× write, ~0.1× read) and the model ladder qualitatively (Haiku < Sonnet < Opus), and prints no dollar figures — with a "recheck after 2026-06-26" note. Argue *for* this editorial discipline: what would go wrong if the chapter hard-coded per-MTok dollar prices and a precise input-to-output ratio instead? Then argue the other side — what does a reader lose by getting ratios and an ordering rather than absolute numbers, and how would you responsibly recover the absolute figures when a real cost model needs them?
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch25-ex-1">
+The four levers are **(1) reduce input context**, **(2) prompt caching**, **(3) model-tier routing**, and **(4) the Batch API**. Each acts on a different variable: lever 1 reduces *how much input* is reprocessed each turn (it attacks the spend at the source); lever 2 reduces the *price of reprocessing* the input you do carry (write once at ~1.25×, read at ~0.1×); lever 3 changes *which model* parses the input, per subtask (route the cheapest tier that clears the task); lever 4 changes *when* the work runs (non-urgent work goes async for a 50% discount). Because they act on different variables — quantity of input, price-per-reprocess, model, and timing — they do not contend for the same fix; they multiply through independently, and some literally stack (the cache read multiplier and the batch discount apply to the same tokens, with tier-routing underneath both). The lever that attacks the "context is compute" premise most directly is **reduce input context**: the premise says input is the dominant cost, and trimming the input lowers the very quantity the other three only make cheaper to carry, route, or schedule. It is the cheapest move precisely because it removes spend rather than discounting it.
+</Solution>
+
+<Solution for="ch25-ex-2">
+The bare ~15× figure tells you only that a multi-agent system is *expensive* — it burns roughly fifteen times the tokens of a chat. On its own that reads as an indictment ("multi-agent is wasteful"). The "token usage by itself explains 80% of the variance" finding adds the missing half: on that benchmark, how much a system spent was the single strongest predictor of how well it *performed*. Put together, the two say the burn is large **and** that the burn buys performance — so the spend is not waste but a lever you pull when a task's value justifies it; the modeling question becomes "does this task clear the 15×?" rather than "avoid multi-agent." A reader could misuse the ~15× by treating it as a flat verdict that multi-agent should always be avoided; and could misuse the "80%" by concluding one should *always* spend more tokens. The honest qualifier the chapter attaches to both is that they are **measurements on one workload** — the ~15× is one first-party datapoint from Anthropic's own multi-agent research system, and the "80%" is specific to the BrowseComp benchmark — so neither is a universal constant, and a different topology or task mix will have different numbers. The right move is to gather your own before betting on a figure.
+</Solution>
+
+<Solution for="ch25-pr-1">
+A worked example. Take a customer-support triage agent that reads a ticket, searches a knowledge base over several tool calls, and drafts a reply. **Where the bill goes:** the drafted reply is a few hundred output tokens, but each turn re-feeds the system prompt, the tool definitions, the growing tool-result history, and the ticket — so the *input* it reprocesses dominates, and it grows as the search deepens. That is the bill as an input problem. **Lever 1 — reduce input:** stop carrying full knowledge-base articles in the window once they have been read; keep only the extracted snippet the draft needs. **Lever 2 — cache:** the system prompt and tool definitions are a stable prefix — write them to the cache once and collect ~0.1× reads on every subsequent turn; confirm via a high read-to-creation ratio. **Lever 3 — model the burn:** if this is a single agent (~4×), there is no multi-agent topology to justify — but if triage fanned out into parallel sub-agents per knowledge source, ask whether the support volume's value clears the ~15× before keeping it. **Lever 4 — route and batch:** the initial "which category is this ticket?" classification can run on Haiku, reserving the top tier for the draft; and any overnight bulk re-tagging of old tickets goes through the 50% Batch API. The value of the exercise is seeing that the largest, cheapest win (trimming carried articles, caching the prefix) sits on the input side — exactly where the premise says the money is — long before any architecture change.
+</Solution>
+
+<Solution for="ch25-pr-2">
+*For the discipline.* Hard-coded per-MTok dollar prices would go stale the moment the pricing page changes — and the chapter's own sourcing flags that page as volatile (recheck after 2026-06-26). A printed dollar figure in a reference book becomes a quietly-wrong number that readers trust precisely because it looks precise; worse, a stale absolute price corrupts any cost model built on it. A precise input-to-output ratio has the same defect with an added one: no first-party source asserts such a ratio, so printing one would be *inventing* a constant and laundering it as fact — and any real ratio is a property of one workload, not a universal. Ratios and an ordering, by contrast, are the *durable* part: the ~10× cached-versus-uncached gap and the Haiku < Sonnet < Opus ladder survive a pricing change, because a repricing typically moves the absolute levels while preserving the asymmetry and the ordering. *The other side.* A reader genuinely loses the ability to compute an *absolute* budget from the chapter alone — "ratios" cannot tell you whether next month's bill is \$40 or \$4,000, only how the levers move it. The responsible recovery is explicit in the chapter's own discipline: when a real cost model needs absolute figures, **fetch them live** from the pricing surface at the moment you build the model, treat them as that-day's volatile numbers, and re-verify on the cadence the volatility implies — rather than carrying a remembered or book-printed price into a decision. The book's job is to teach the *shape* of the economics that survives repricing; the live pricing page's job is to supply the day's absolute numbers.
+</Solution>
+
+</ExerciseSolutions>

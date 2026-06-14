@@ -1,0 +1,169 @@
+---
+title: "Security: The Adversarial-Input Layer"
+part: 3
+chapter: 27
+volatility: architectural-pattern
+tools_compared: [claude-code, cross-tool]
+cert_domains: [5, 1]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - owasp-llm01
+  - willison-trifecta
+  - nvd-cve-2025-32711
+  - echoleak-catonetworks
+  - comet-brave
+  - anthropic-claude-chrome
+  - owasp-llm03
+  - claude-code-security-docs
+  - zhao-mcp-attack
+  - shadowprompt-koi
+  - rehberger-markdown-exfil
+  - camel-debenedetti
+  - design-patterns-beurer-kellner
+  - llamafirewall
+  - meta-secalign
+  - kad-dataflip-choudhary
+  - guardrail-evasion-hackett
+  - wasp-evtimov
+description: The adversarial-input layer — who is really issuing the instruction. Prompt injection and Willison's lethal trifecta as the necessary-conditions threat model; the incidents (EchoLeak, Comet, ShadowPrompt) as one attack shape; why detection-only fails by construction and design-by-construction is this volume's one genuine convergence; the honest residual that defenses reduce, not eliminate; and a supply chain whose trust the registry delegates to you. The authorized-but-forged counterpart to Vol 1's authorized-but-risky guardrails.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="Vol 1's guardrails — the permission model that decides which actions an agent may attempt (Always / Ask / Never, the deny-list). This chapter is its counterpart: not what the agent is authorized to do, but whether an attacker can forge the instruction it follows.">
+- Why prompt injection is a **structural** problem, not a bug to be patched — the agent cannot reliably tell its principal's instructions from untrusted content
+- The **lethal trifecta** as the necessary-conditions threat model, and why every robust defense cuts one of its three legs
+- Why the real incidents (EchoLeak, Comet, ShadowPrompt) are **one attack shape**, not three
+- Why **detection-only fails by construction**, and why **design-by-construction** is the one place this volume finds genuine convergence
+- The honest residual: defenses **reduce, not eliminate** — and a supply chain whose trust the registry hands to you
+</YouWillLearn>
+
+_Vol 1's guardrails answered "what may this agent attempt?" — the *authorized-but-risky* question, governed by the permission model. This chapter answers a different one: "who is **really** issuing the instruction the agent just followed?" That is the *authorized-but-forged* question. When an agent reads a web page, an email, or a tool result, it ingests text an attacker may control — and the thesis of this chapter is that the agent cannot, by construction, reliably tell that text apart from its operator's commands. Security here is the discipline of defending a system that trusts its inputs more than it should._
+
+## The authorized-but-forged problem
+
+Start with the definition. A prompt-injection vulnerability "occurs when user prompts alter the LLM's behavior or output in unintended ways."<Tag kind="practitioner" /><Citation src="owasp-llm01" /> The community standard splits it in two: a *direct* injection is supplied by the user, while an *indirect* injection "occur[s] when an LLM accepts input from external sources, such as websites or files."<Tag kind="practitioner" /><Citation src="owasp-llm01" /> The indirect case is this chapter's threat model, because it is the one the operator did not type: the dangerous content arrives through a web page the agent browses, a document it retrieves, or a tool result it reads back.
+
+The reason this is not "just a bug to be patched" is structural. The model receives one undifferentiated stream of tokens; the operator's instructions and the ingested content are the same kind of thing to it. There is no reliable, built-in channel that says *this half is my principal and that half is data*. Patching one injection string does not change that — the next phrasing slips through. This is why the rest of the chapter is about cutting the attack's *preconditions* by design rather than spotting its *signature* after the fact.
+
+<KeyIdea>
+Prompt injection is not a string to blocklist; it is a consequence of the agent treating untrusted input as trusted instruction. So the question that organizes all of agent security is not "how do I detect the attack?" but "which of the conditions that make the attack catastrophic can I remove?"
+</KeyIdea>
+
+## The lethal trifecta
+
+The sharpest statement of those conditions is Simon Willison's **lethal trifecta**.<Tag kind="practitioner" /><Citation src="willison-trifecta" /> An agent becomes exfiltratable when it simultaneously has three capabilities: access to **private data**, exposure to **untrusted content** — "any mechanism by which text (or images) controlled by a malicious attacker could become available to your LLM"<Tag kind="practitioner" /><Citation src="willison-trifecta" /> — and a path for **external communication**. With all three present, an attacker can trick the agent "into accessing your private data and sending it to that attacker."<Tag kind="practitioner" /><Citation src="willison-trifecta" />
+
+The framing is load-bearing for the whole chapter because it is a *necessary-conditions* model: the catastrophe needs all three legs at once. That has a direct design consequence — **every robust defense works by removing one leg**: deny the private data, isolate the untrusted content so it cannot become instruction, or block the exfiltration path. It also makes the incident landscape legible, because every real case below is the same three legs in a different costume.
+
+<ConceptBox term="The lethal trifecta">
+A coinage of Simon Willison's (a practitioner framing, not a vendor or standards definition): an AI agent is dangerous to expose when it combines (1) access to private data, (2) exposure to attacker-controllable content, and (3) the ability to communicate externally. Any one leg alone is survivable; all three together let injected content read secrets and ship them out. Defenses are best understood as cutting a specific leg.
+</ConceptBox>
+
+<Figure
+  src="/figures/lethal-trifecta/lethal-trifecta.svg"
+  caption="The lethal trifecta (Willison, a practitioner coinage). Three legs — private-data access, exposure to untrusted content, and an external-communication path — converge on catastrophic exfiltration only when all three are present. Each robust defense cuts one leg: deny the data, isolate the untrusted content, or block the exfiltration channel. Any single leg removed defuses the combination."
+  alt="A triangle with three corner nodes labeled 'Private-data access', 'Untrusted content (attacker-controllable)', and 'External-communication path'. Edges from all three converge on a central red node 'Catastrophic exfiltration', annotated 'needs all three legs'. Each corner carries a dashed 'cut here' label naming the defense that removes that leg: 'deny / scope the data', 'isolate — never let it become instruction', and 'block the exfiltration channel'. A footer reads 'remove any one leg and the combination is defused'."
+  width="100%"
+  id="fig-lethal-trifecta"
+/>
+
+## The incidents are one attack shape
+
+Indirect injection is not hypothetical, and the public incidents are best read as one attack instantiated three ways. **EchoLeak** is the keystone: its authoritative record describes an "Ai command injection in M365 Copilot [that] allows an unauthorized attacker to disclose information over a network,"<Citation src="nvd-cve-2025-32711" /> and the disclosing researchers reported that the chains "automatically exfiltrate sensitive and proprietary information from M365 Copilot context, without the user's awareness or relying on any specific victim behavior"<Tag kind="practitioner" /><Citation src="echoleak-catonetworks" /> — a zero-click realization of all three legs. **Comet**, an agentic browser, on a "summarize this page" action fed page content to its model "without distinguishing between the user's instructions and untrusted content from the webpage,"<Tag kind="practitioner" /><Citation src="comet-brave" /> the instruction/data confusion made concrete. **ShadowPrompt** disclosed "a vulnerability that allowed any website to silently inject prompts into [Claude's Chrome extension] as if the user wrote them."<Tag kind="practitioner" /><Citation src="shadowprompt-koi" /> And the generic exfiltration leg is old: the markdown-image channel, where "the individual controlling the data a plugin retrieves can exfiltrate chat history due to ChatGPT's rendering of markdown images,"<Tag kind="practitioner" /><Citation src="rehberger-markdown-exfil" /> shows the "external communication" leg needs nothing more exotic than an auto-rendered image URL.
+
+<MarginNote variant="note" label="Note">
+Sourcing is deliberately tiered here. EchoLeak's CVE identifier comes only from the NVD primary; the "zero-click" narrative is the disclosing security vendor. The published severity *score* is unsettled across sources, so this book quotes the description and omits the number.
+</MarginNote>
+
+Read together they are not a zoo of exotic exploits; they are the trifecta, again and again — private context plus attacker-controllable content plus a way out.
+
+## Why detection-only fails by construction
+
+The tempting response is to add a classifier that flags malicious input. The literature is blunt that this is the wrong primary control. A formal analysis of known-answer detection "uncover[s] a structural vulnerability that invalidates its core security premise,"<Citation src="kad-dataflip-choudhary" /> and the authors build an adaptive attack, DataFlip, that "consistently evades KAD defenses."<Citation src="kad-dataflip-choudhary" /> Independent empirical work against deployed commercial detectors reaches, "in some instances[,] up to 100% evasion success."<Citation src="guardrail-evasion-hackett" /> The lesson is not that detectors are merely imperfect in practice — it is that they are **evadable by construction**: a classifier that can be probed can be defeated, because the attacker optimizes against exactly the signal the classifier reads.
+
+## Design-by-construction is the backbone
+
+If you cannot reliably *spot* the attack, you must build the defense in *by construction* — so that untrusted content cannot reliably act as instruction in the first place. This is the one place in this volume where multiple independent research groups converge on the same principle, so it is the one place the book tags genuine convergence.
+
+<Convergence>
+Independent research lines — academic primaries, not vendor sources — agree that prompt injection is defended by **construction, not detection**: CaMeL separates control flow from data flow so "the untrusted data retrieved by the LLM can never impact the program flow"<Citation src="camel-debenedetti" /> and secures the agent "even when underlying models are susceptible to attacks"<Citation src="camel-debenedetti" />; Beurer-Kellner et al. propose "principled design patterns for building AI agents with provable resistance to prompt injection"<Citation src="design-patterns-beurer-kellner" />; and Meta SecAlign pushes the same idea to the model itself, "the first fully open-source LLM with built-in model-level defense."<Citation src="meta-secalign" /> Three independent groups, three layers — system, pattern, model — one principle: build the defense in (cut a trifecta leg architecturally, or harden the model itself) rather than classify the input after the fact.
+</Convergence>
+
+The actionable form is a single rule, and it is genuine convergence, not one vendor's house style: <Tag kind="convergence" /><Citation src="camel-debenedetti" /><Citation src="design-patterns-beurer-kellner" /><Citation src="meta-secalign" /> **do not buy a prompt-injection "detector" as your primary control — defend by construction, whether by cutting a trifecta leg architecturally or hardening the model itself.** Runtime monitors still have a place, but as one layer among several: LlamaFirewall is described by its authors as "a final layer of defense,"<Citation src="llamafirewall" /> not a solution. The honest counterweight even from the design side is that the patterns "discuss their trade-offs in terms of utility and security"<Citation src="design-patterns-beurer-kellner" /> — cutting a leg constrains what the agent can do, so security here is bought with capability, not for free.
+
+## Defenses reduce, not eliminate
+
+No control in this chapter takes the risk to zero, and the most honest reading is that today's safety margin is partly accidental. Anthropic's own browser red-team is the cleanest illustration: "Browser use without our safety mitigations showed a 23.6% attack success rate when deliberately targeted by malicious actors,"<Tag kind="official" /><Citation src="anthropic-claude-chrome" /> and with mitigations "we reduced the attack success rate of 23.6% to 11.2%."<Tag kind="official" /><Citation src="anthropic-claude-chrome" /> Those are first-party, self-reported figures, and the load-bearing fact is the *residual*: 11.2% is a large reduction, but it is not zero. A benchmark of web-agent security states the point even more starkly — "attacks partially succeed in up to 86% of the case[s], even [as] state-of-the-art agents often struggle to fully complete the attacker goals," which the authors name "security by incompetence."<Citation src="wasp-evtimov" /> In other words, part of why agents are not catastrophically exploited today is that they are not yet good enough at completing an attacker's goal — a margin that erodes as agents improve. Treat prompt-injection defense as risk reduction and defense-in-depth, never as solved.
+
+<InsightBox title="The honest tiering is itself the finding">
+This chapter's evidence is deliberately mixed, and saying so is part of the result. The **design-by-construction** principle is genuine convergence across independent academic primaries — the strongest claim here. The **incidents** are illustrative secondary write-ups, with EchoLeak's identifier anchored to the NVD primary. Anthropic's **attack-success-rate** figures are first-party and **self-reported**, not an independent benchmark. And the **lethal trifecta** is an attributed practitioner coinage, not a vendor or standards definition. A reader should weight each claim by the tier it carries, not assume one uniform standard of proof.
+</InsightBox>
+
+## The supply chain delegates trust to you
+
+The last surface is the components an agent depends on. OWASP frames the integrity risk across "training data, models, and deployment platforms,"<Tag kind="practitioner" /><Citation src="owasp-llm03" /> and the modern instance is third-party MCP servers and skills. The load-bearing fact is first-party and candid: Anthropic reviews connectors against listing criteria "but does not security-audit or manage any MCP server,"<Tag kind="official" /><Citation src="claude-code-security-docs" /> so the recommended posture is to write "your own MCP servers or [use] MCP servers from providers that you trust."<Tag kind="official" /><Citation src="claude-code-security-docs" /> Academic work corroborates the gap: malicious MCP servers are "easy to implement, difficult to detect with current tools, and capable of causing concrete damage."<Citation src="zhao-mcp-attack" /> The conclusion is sharp — **listing in a registry is not vetting.** Install-time trust is the operator's responsibility, and allowlisting by provenance is the control, not the marketplace.
+
+<MarginNote variant="warning" label="Caveat">
+A figure of "~12–20% of skills are malicious" circulates in some discussions. This book does **not** assert it — no reliable primary supports that band. The honest, citable claim is qualitative: the registry does not audit, and malicious servers are hard to detect.
+</MarginNote>
+
+<Pitfall title="Buying a detector and calling it solved">
+Two failures travel together. The first is making a prompt-injection classifier your primary defense — it is evadable by construction, so an attacker who can probe it can pass it. The second is treating any mitigation as a solution: the residual is non-zero (11.2% in Anthropic's own browser numbers), and part of today's safety is "security by incompetence" that improving agents will erode. The defensible posture is design-by-construction (cut a trifecta leg) plus defense-in-depth (layer the imperfect controls), held with the explicit knowledge that the risk is reduced, not removed.
+</Pitfall>
+
+## Quick reference
+
+- **Threat model:** prompt injection is structural — the agent cannot reliably separate its principal's instructions from ingested content;<Citation src="owasp-llm01" /> the *indirect* (external-content) case is the danger.
+- **The hinge — the lethal trifecta:** private data + untrusted content + an exfiltration path; all three are needed, so cut one leg.<Citation src="willison-trifecta" />
+- **One attack shape:** EchoLeak,<Citation src="nvd-cve-2025-32711" /> Comet,<Citation src="comet-brave" /> ShadowPrompt,<Citation src="shadowprompt-koi" /> and the markdown-image channel<Citation src="rehberger-markdown-exfil" /> are the same three legs.
+- **Detection fails by construction:** known-answer detection is structurally evadable;<Citation src="kad-dataflip-choudhary" /> deployed detectors hit "up to 100%" evasion in some instances.<Citation src="guardrail-evasion-hackett" />
+- **The one convergence — design-by-construction:** cut a leg architecturally (CaMeL / design patterns / model-level)<Citation src="camel-debenedetti" /><Citation src="design-patterns-beurer-kellner" /><Citation src="meta-secalign" /> — don't buy a detector as your primary control. *(The convergence tag sits on this claim in the body.)*
+- **Reduce, not eliminate:** Anthropic's browser ASR fell 23.6% → 11.2%, not to zero;<Citation src="anthropic-claude-chrome" /> WASP's "security by incompetence" is a margin that erodes as agents improve.<Citation src="wasp-evtimov" />
+- **Supply chain:** the registry "does not security-audit … any MCP server"<Citation src="claude-code-security-docs" /> — listing is not vetting; allowlist by provenance.
+
+## Practice
+
+<Exercise id="ch27-ex-1">
+State the lethal trifecta's three legs, and explain why it is a *necessary-conditions* model rather than a list of three separate risks. Then take one incident from the chapter (EchoLeak, Comet, or ShadowPrompt) and name which leg each part of it supplies.
+</Exercise>
+
+<Exercise id="ch27-ex-2">
+The chapter says detection-only defenses fail "by construction," not merely "in practice." Explain the difference, and why it implies design-by-construction must carry the load. Why is it still defensible to run a detector like a runtime monitor at all?
+</Exercise>
+
+<Practice id="ch27-pr-1" difficulty="3">
+Take an agent you run or have read about that browses the web or reads external documents. Locate it on the lethal trifecta: does it have (1) access to private data, (2) exposure to attacker-controllable content, and (3) an external-communication path? For whichever legs are present, write down the single most practical leg you could *cut by design* (not detect) — and state honestly what capability you would lose by cutting it. If all three legs are present and you cannot cut any, say so: that is the finding.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch27-ex-1">
+The three legs are **access to private data**, **exposure to untrusted (attacker-controllable) content**, and **a path for external communication**. It is a necessary-conditions model because the catastrophe — an attacker reading your secrets and shipping them out — requires *all three at once*: private data with no untrusted content has nothing to hijack it; untrusted content with no private-data access has nothing to steal; either of those with no exfiltration path cannot get the data out. That is exactly why the defensive move is to *remove one leg* rather than to harden all three. Mapping EchoLeak: the **private data** is the M365 Copilot context; the **untrusted content** is the attacker's email/content that Copilot ingests; the **exfiltration path** is the network disclosure the CVE describes ("disclose information over a network"). The same trio appears in Comet (page content as untrusted input, browser tools as the exfiltration path) and ShadowPrompt (any website injecting prompts "as if the user wrote them," with the extension's reach as the data/exfiltration surface).
+</Solution>
+
+<Solution for="ch27-ex-2">
+"Fails in practice" would mean a detector that is merely imperfect — catches most attacks, misses some, and improves with more training. "Fails by construction" is stronger: the *design* of a detection-only defense contains the vulnerability, independent of how good the classifier is. Known-answer detection has a "structural vulnerability that invalidates its core security premise," and an adaptive attacker who can probe the classifier optimizes directly against the signal it reads — DataFlip "consistently evades" it, and deployed detectors have been evaded "up to 100%" in some instances. Because the failure is structural, throwing a better classifier at it does not close the hole; you must instead make untrusted content structurally unable to act as instruction (cut a trifecta leg) — design-by-construction. A detector is still defensible as *one layer* of defense-in-depth — a runtime monitor that raises the attacker's cost and catches the unsophisticated cases — exactly as LlamaFirewall positions itself as "a final layer of defense." What is indefensible is making that evadable layer your *primary* control.
+</Solution>
+
+<Solution for="ch27-pr-1">
+A worked example. Take a research agent that browses the web and can post to an internal Slack. Trifecta audit: (1) **private data** — yes, it has the team's internal context and Slack history; (2) **untrusted content** — yes, it reads arbitrary web pages; (3) **external communication** — yes, web fetches and Slack posts can both carry data out. All three legs are present, so it is exfiltratable. The most practical leg to *cut by design* is usually (2)→instruction: run the browsing in a mode where retrieved page text is structurally treated as data, never as instruction (e.g., a control/data-flow separation so fetched content cannot trigger tool calls), which is the CaMeL-style move. The capability cost is real and must be named: the agent can no longer act on instructions it finds on a page — including legitimate ones like "see the linked doc for the full spec" — so some autonomy is lost. If your harness cannot enforce that separation, the honest fallbacks are to cut leg (1) (scope the agent's data access so a successful injection steals little) or leg (3) (remove the outbound channel — no Slack post, no arbitrary fetch — so exfiltration has nowhere to go). If you genuinely cannot cut any leg, the correct output of this exercise is to say so plainly: the agent is exposed, and the residual risk must be accepted, escalated to a human gate (ch26), or the deployment reconsidered — not papered over with a detector.
+</Solution>
+
+</ExerciseSolutions>

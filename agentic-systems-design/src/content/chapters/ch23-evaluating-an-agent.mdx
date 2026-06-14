@@ -1,0 +1,165 @@
+---
+title: "Evaluating an Agent: Harnesses, Suites & the Judge"
+part: 3
+chapter: 23
+volatility: stable-principle
+tools_compared: [claude-code, cross-tool]
+cert_domains: [4]
+introduced_in_version: "0.1.0"
+last_updated: 2026-06-14
+last_verified: 2026-06-14
+sources:
+  - demystifying-evals
+  - anthropic-statistical-evals
+  - aisi-inspect-options
+  - zheng-judging-llm-judge
+description: Evaluating a whole agent rather than a single prompt — the unit of analysis is a trajectory, a run. The chapter builds the eval before the harness, keeps the task suite small and failure-derived, reads every result as a measurement with uncertainty rather than a point score, and treats the LLM judge as a calibrated instrument with known error rather than an oracle.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import ConceptBox from '@brandon_m_behring/book-scaffold-astro/components/ConceptBox.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Tag from '@brandon_m_behring/book-scaffold-astro/components/Tag.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+<YouWillLearn prerequisites="ch21's premise — you cannot operate what you cannot measure, and eval comes first. ch22 evaluated a single prompt; this chapter evaluates a whole agent. No statistics background assumed beyond the idea that a measurement can be noisy.">
+- Why **evals come before harnesses** — the ordering is the discipline, and inverting it bakes in survivorship bias
+- What a **good task suite** looks like — small, discriminating, drawn from real failures — and why the grader is half the design
+- Why an eval result is a **measurement with uncertainty**, not a point score — resample, put error bars on it, test whether a difference is real
+- How to treat the **LLM judge as a calibrated instrument with known error**, not an oracle — and where the eval ends and the harness begins
+</YouWillLearn>
+
+_ch22 scored a single prompt; this chapter scores a whole agent. The unit of analysis changes from a prompt to a **trajectory** — one complete run, with its tool calls, its detours, and its final state. Evaluating a trajectory is harder than grading a prompt's output, because the thing under measurement decides its own steps. The thesis of this chapter is that you tame that with discipline in a fixed order: define what "good" means and make it runnable **first**, keep the suite small and drawn from real failures, read every number as a measurement that carries uncertainty, and treat the judge as an instrument you have calibrated — never as an oracle._
+
+## Evals before harnesses: the ordering is the discipline
+
+The chapter's title lists three things — harnesses, suites, the judge — but the first lesson is about none of them. It is about *sequence*. An **evaluation harness** "is the infrastructure that runs evals end-to-end"<Tag kind="official" /><Citation src="demystifying-evals" /> — it provides the instructions and tools, runs tasks, records steps, grades outputs, and aggregates results. That definition contains the ordering: the harness *runs* evals, so the eval is the **target** and the harness is built *toward* it. Reverse the two and you have built a beautiful runner with nothing well-defined to run.
+
+The actionable form of the principle is eval-driven development: "build evals to define planned capabilities before agents can fulfill them."<Tag kind="official" /><Citation src="demystifying-evals" /> Write the measurable target for a capability the agent does not yet have, and let it pull the agent into existence. The cost of doing it the other way is concrete and stated plainly: **"evals get harder to build the longer you wait."**<Tag kind="official" /><Citation src="demystifying-evals" /> The reason is survivorship bias. Once the agent already runs, any target you retrofit is shaped — consciously or not — around the behavior the agent *currently* produces. The ruler ends up calibrated to pass what already happens, instead of defining what must happen. Build the eval first and the ruler is honest.
+
+<KeyIdea>
+The eval is the target; the harness is built toward it, never the reverse. Define what "good" means and make it runnable **before** the agent can satisfy it — because evals get harder to build the longer you wait, and an eval retrofitted to a running agent measures what the agent already does instead of what it should do.
+</KeyIdea>
+
+This is also where the unit of analysis shifts. ch22 measured a *prompt* — one input, one output, graded. Here the unit is a **trajectory**: the full run an agent takes from a task to a final state, including the tool calls it chose and the order it chose them in. A trajectory can reach the right answer by a wrong path, or a defensible path to a wrong answer, and a serious agent eval has to be able to say which. That is the harder measurement, and it is why the rest of this chapter is about keeping it disciplined.
+
+## A good suite is small, discriminating, and failure-derived — and the grader is half the design
+
+The instinct when building an eval suite is to chase coverage — hundreds of tasks spanning everything the agent might meet. That instinct is wrong, and the corrective is specific: **"20–50 simple tasks drawn from real failures is a great start."**<Tag kind="official" /><Citation src="demystifying-evals" /> Two words in that sentence carry the weight. *Real failures* — the tasks come from behavior you have actually observed going wrong, not from imagined coverage; each task earns its place by having caught a bug. *Simple* — a small, discriminating suite that separates good runs from bad ones beats a large redundant one that mostly re-tests what already passes.
+
+The quality bar for an individual task is **inter-rater reproducibility**. A well-posed task is one where "two domain experts would independently reach the same pass/fail verdict."<Tag kind="official" /><Citation src="demystifying-evals" /> This is the test for whether a task is discriminating or merely vague. If two experts who both understand the domain disagree on whether a run passed, the task is underspecified — the fault is in the task, not the model. Tightening it until the verdict is unambiguous is most of the work of suite design, and it is what makes the resulting number trustworthy rather than just available.
+
+The other half of the design is the **grader** — and it is genuinely half, not an afterthought. "An essential component of effective evaluation design is to choose the right graders for the job."<Tag kind="official" /><Citation src="demystifying-evals" /> A task is the case; a grader is *how that case is scored*; and the two are separate design decisions. Checkable outcomes — did the function compile, did the test pass, does the JSON parse — call for a **programmatic grader**, which is deterministic and free. Open-ended outcomes — is this summary faithful, is this explanation clear — call for a **model-based grader**, an LLM judge (the subject of the section after next). Some call for a human. Picking the wrong grader is how a suite produces numbers nobody should trust: a programmatic exact-match grader on an open-ended task fails correct answers for trivial wording differences, and a judge on a task with a checkable answer adds cost and noise where a string comparison would have been exact.
+
+<ConceptBox term="Task, grader, and harness">
+Three layers a serious agent eval keeps distinct. The **task** is the case — a specific scenario, ideally drawn from a real failure, posed so two domain experts would reach the same pass/fail verdict. The **grader** is how that one case is scored — programmatic for checkable outcomes, a model-based judge for open-ended ones, a human where neither reaches. The **harness** is the runner — the infrastructure that runs the tasks end-to-end, records each trajectory, applies the graders, and aggregates the results. Confusing the three is how teams build a runner with no well-posed tasks, or score good tasks with the wrong grader.
+</ConceptBox>
+
+## Results are measurements with uncertainty, not point scores
+
+A single run of an agent is a *noisy sample*, not a fact. The agent is stochastic; rerun the same task and you may get a different trajectory and a different verdict. So an eval result is a measurement with uncertainty, and reading it as a bare point score is the most common statistical error in the whole discipline. The corrective is a three-move loop, and Anthropic's statistical guidance states each move.
+
+**Resample.** Do not run each task once. For evals that use chain-of-thought reasoning, the recommendation is to "resampl[e] answers from the same model several times, and using the question-level averages as the question scores fed into the Central Limit Theorem."<Tag kind="official" /><Citation src="anthropic-statistical-evals" /> Run each task several times, average per task, and the averages behave well enough statistically to reason about. **Report error bars.** When you compare two agents, report "mean differences, standard errors, confidence intervals, and correlations"<Tag kind="official" /><Citation src="anthropic-statistical-evals" /> — not bare percentages. **Test whether the difference is real.** Before believing "B beats A," ask the question the guidance poses directly: "could a measured difference between two models be due to the specific choice of questions in the eval, and randomness in the models' answers?"<Tag kind="official" /><Citation src="anthropic-statistical-evals" /> If a two-point gap sits inside the noise floor, it is not a result — it is a coin flip you mistook for a finding.
+
+None of this is exotic, and it is not hand-built either: a production eval framework exposes the resampling step as a first-class knob. Inspect's `--epochs` option is "Number of times to repeat each sample (defaults to 1)"<Tag kind="official" /><Citation src="aisi-inspect-options" /> — set it above one and the framework runs each task that many times so you can average and quantify. The mechanism is right there in the runner; the discipline is choosing to use it instead of trusting a single pass.
+
+<MarginNote variant="warning" label="Warning">
+The default is the trap. Inspect's `epochs` defaults to **1** — one run per task — so the out-of-the-box behavior produces exactly the bare point scores this section warns against. Resampling is a deliberate choice you have to make, not a thing the runner does for you.
+</MarginNote>
+
+<InsightBox title="A score without an error bar is not a result">
+"Agent B scored 84%, Agent A scored 82%" is not a finding — it is two numbers with no stated uncertainty. Until you know the noise floor, you cannot tell whether B is better or whether you reran a coin flip and it landed differently. The discipline is to treat every eval number as a value *with* a confidence interval, and to refuse to act on a difference you have not shown is larger than the noise. Resample to estimate the noise; report the interval; test the gap. A point score that hides its own uncertainty is worse than no score, because it invites a confident decision the data does not support.
+</InsightBox>
+
+## The LLM judge is a calibrated instrument, not an oracle
+
+When the outcome is open-ended — faithfulness, helpfulness, tone — no programmatic grader reaches it, and the grader has to be a model: an LLM judge. The encouraging evidence is real and worth stating precisely. A peer-reviewed study of LLM-as-a-judge found that "strong LLM judges like GPT-4 can match both controlled and crowdsourced human preferences well, achieving over 80% agreement, the same level of agreement between humans."<Citation src="zheng-judging-llm-judge" /> Read that figure for exactly what it is. It is a *measured result* from one study — GPT-4 on the MT-Bench and Chatbot Arena benchmarks — not an Anthropic-stated guarantee and not a universal law about every judge on every task. It says an LLM judge can be *good enough to use*. It does not say the judge is right.
+
+<MarginNote variant="note" label="Caveat">
+The ">80% agreement" figure is Zheng et al.'s own result for GPT-4 on MT-Bench and Chatbot Arena — a peer-reviewed academic finding, not an Anthropic-official statement and not a property of every judge. Cited here as evidence that a judge can be useful, never as a guarantee that one is correct.
+</MarginNote>
+
+The framing that follows is the whole point of the section: 80% agreement describes **an instrument with known error**, not an oracle. An instrument you trust blindly is a liability; an instrument whose error you have measured is a tool. And that is precisely why the judge must be wrapped in the statistical discipline of the previous section. The judge is itself a stochastic measurement, so its verdicts get the same treatment as any other noisy reading: resample them across epochs and report confidence intervals on the *judge's* pass-rate, not a single judged number.<Tag kind="official" /><Citation src="anthropic-statistical-evals" /> But resampling only quantifies the judge's *consistency* — how stable its verdicts are — not whether they are *correct*; accuracy is a separate question, and only calibration against ground truth answers it. So the practical obligation is to calibrate: score a sample of trajectories with both the judge and human labels, measure the judge's agreement rate on *your* task, and report it alongside the judge's verdicts — so a reader can discount the score by the instrument's known error rather than assuming it is truth.
+
+This is also the chapter that *owns* the judge's calibration. ch22 used a judge to grade a prompt; it did not have to ask how reliable the judge was. Here the judge is the instrument under examination — its agreement rate is the thing you measure and report — which is why the calibration discipline lives in this chapter and not the last one.
+
+<Figure
+  src="/figures/eval-harness-discipline/eval-harness-discipline.svg"
+  caption="The eval-first ordering and the measurement-with-uncertainty discipline, left to right. Stage 1 'Define the target — the eval (what good means)'; stage 2 'Build the harness — toward the target (the runner)', with a dashed back-arrow labeled 'built toward, not the reverse' running from the harness to the target; stage 3 'Small task suite — 20–50 tasks from real failures'; stage 4 'Resample — multiple epochs per task'; stage 5 'Report with error bar — value ± CI, not a point score', drawn with a value-and-error-bar glyph. A caption strip beneath reads that a score without an error bar is not a result, and that the unit measured is a trajectory (a run)."
+  alt="A left-to-right flow of five stages. Stage 1 'Define the target — the eval (what good means)'; stage 2 'Build the harness — toward the target (the runner)'; stage 3 'Small task suite — 20–50 tasks from real failures'; stage 4 'Resample — multiple epochs per task'; stage 5 'Report with error bar — value ± CI, not a point score'. A dashed orange back-arrow loops from stage 2 to stage 1 labeled 'built toward, not the reverse'. Below stage 5 is a small glyph of a dot with a vertical error bar through it. A dashed caption strip beneath reads that a score without an error bar is not a result, and that the unit measured is a trajectory, a run."
+  width="100%"
+  id="fig-eval-harness-discipline"
+/>
+
+## The eval/harness boundary
+
+It is worth holding the seam between the two words in the title, because conflating them is a real source of confusion. The **harness** is the runner — it runs tasks, records trajectories, applies graders, aggregates results.<Tag kind="official" /><Citation src="demystifying-evals" /> The **eval** is the measurement — the tasks, the graders, the statistical reading. The harness is plumbing you can reuse across projects; the eval is the judgment about what "good" means for *this* agent, and it cannot be reused, because it is specific to the capability you are building. When a team says "our evals are weak," the fix is almost never a better runner — it is better-posed tasks, the right graders, and error bars on the numbers. Build the eval first, and the harness is the easy part.
+
+A note on how strong this guidance is, so you can calibrate it. The spine here is Anthropic's first-party evaluation methodology — authoritative for how Anthropic recommends evaluating agents, and tagged as official because that is what it is. But authoritative is not the same as independently triangulated: the eval-first ordering and the small-suite heuristic are first-party guidance, **not yet** corroborated by independent practitioner or academic studies of the methodology itself. This book does not dress that up as agreement-across-sources. The one genuinely external result in the chapter — the judge's >80% human agreement — is a peer-reviewed academic finding, cited as such, and never laundered into an official endorsement. Naming the difference lets you weight each claim by the evidence behind it.
+
+<WorkedExample id="ch23-reading-an-eval-result" title="Reading an agent eval result honestly">
+
+A team reports: *"We swapped the agent's model. On our 30-task suite, the new model scored 87% and the old one 84%. Ship the new one?"*
+
+Walk the discipline before answering:
+
+- **Is the suite the right shape?** Thirty tasks is in the 20–50 range, and the question to ask is whether they are *failure-derived* and *discriminating* — would two domain experts agree on every pass/fail verdict? If some tasks are vague, those points are noise before any statistics enter.
+- **How many runs per task?** If each task ran **once**, 87% and 84% are two single noisy samples — possibly the runner's `epochs` default of 1. There is no error bar, so there is no result yet. Resample: run each task several times, average per task.
+- **Is the three-point gap real?** With error bars in hand, ask the load-bearing question — could the gap be due to the specific tasks chosen and the randomness in the models' answers? If the confidence intervals overlap heavily, "87 beats 84" is inside the noise floor and the honest answer is "we cannot tell yet," not "ship it."
+- **Were any tasks judge-graded?** If open-ended tasks used an LLM judge, the judge is itself a noisy instrument. Has its agreement with human labels been measured on *these* tasks? An unbenchmarked judge's verdicts carry an unknown error that propagates straight into the 87/84 comparison.
+
+The disciplined answer is not yes or no — it is *"that is not a result yet."* Resample, put intervals on both numbers, test the gap, and confirm any judge is calibrated. Only then does "ship it" become a decision the data can support, rather than a coin flip dressed as a finding.
+
+</WorkedExample>
+
+<Pitfall title="Trusting the judge as an oracle">
+The seductive failure in agent eval is treating the LLM judge's pass/fail as ground truth. The judge agrees with humans *most* of the time — over 80% in one study — which means it is wrong a meaningful fraction of the time, and you do not know which fraction unless you have measured it on your tasks. Trusting it blindly imports that unmeasured error straight into every decision you make from the score. The discipline is the opposite: calibrate the judge against human labels, report its agreement rate, resample its verdicts, and read its output as an instrument with known error — never as an oracle.
+</Pitfall>
+
+## Quick reference
+
+- **Unit of analysis:** a **trajectory** — one full run, not a single prompt (that was ch22).
+- **Ordering is the discipline:** build the eval first, the harness toward it; "evals get harder to build the longer you wait."<Citation src="demystifying-evals" />
+- **Suite shape:** small, discriminating, failure-derived — "20–50 simple tasks drawn from real failures"; a good task is one two experts would score the same.<Citation src="demystifying-evals" />
+- **The grader is half the design:** programmatic for checkable outcomes, a model judge for open-ended ones — choosing the right grader is essential, not an afterthought.<Citation src="demystifying-evals" />
+- **Results carry uncertainty:** resample (Inspect `--epochs`), report confidence intervals, test significance — a score without an error bar is not a result.<Citation src="anthropic-statistical-evals" /><Citation src="aisi-inspect-options" />
+- **The judge is a calibrated instrument:** over 80% human agreement is *known error*, not an oracle — calibrate it, report its agreement rate, wrap it in the statistics.<Citation src="zheng-judging-llm-judge" />
+
+## Practice
+
+<Exercise id="ch23-ex-1">
+The chapter insists you "build evals before harnesses" and that the unit of analysis is a **trajectory**. In one sentence each: (a) state what the harness *is* and why the eval has to come first, and (b) explain what specifically goes wrong if you build the eval *after* the agent already runs. Then say in one sentence how a trajectory differs from the prompt that ch22 evaluated.
+</Exercise>
+
+<Exercise id="ch23-ex-2">
+A colleague says: *"Agent B got 84% on our suite and Agent A got 82%, so B is better — let's switch."* Using only this chapter, give the two questions you must answer before accepting "B is better," and explain why "84 beats 82" is not yet a result.
+</Exercise>
+
+<Practice id="ch23-pr-1" difficulty="2">
+Take an agent you run or have read about. Sketch a **5-task** eval suite for it where every task is drawn from a real (or plausible) failure you have seen. For each task, write the one-sentence scenario and decide whether its grader should be **programmatic** (a checkable outcome) or a **model judge** (an open-ended outcome), and justify the choice. Then, for any task you assigned to a judge, state how you would calibrate that judge — what you would measure and report before trusting its verdicts. The point is to feel the three layers (task, grader, harness) come apart, and to see that the grader choice is a real design decision, not a default.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch23-ex-1">
+(a) The harness is the runner — the infrastructure that runs evals end-to-end, recording each trajectory, applying the graders, and aggregating results — and the eval has to come first because the harness *runs* the eval, so the eval is the target the harness is built toward, not the other way around. (b) Building the eval after the agent runs bakes in survivorship bias: because "evals get harder to build the longer you wait," any target you retrofit is shaped around the behavior the agent *currently* produces, so the ruler is calibrated to pass what already happens instead of defining what should happen. A trajectory differs from ch22's prompt in that it is a *whole run* — the sequence of tool calls and steps the agent chose on the way to a final state — so it can reach the right answer by a wrong path (or a defensible path to a wrong answer), which a single prompt's input-output pair cannot express.
+</Solution>
+
+<Solution for="ch23-ex-2">
+The two questions are: (1) **How many runs produced each number?** If each task ran once, 84% and 82% are two single noisy samples with no error bars — quite possibly the runner's default of one epoch per task — so the first move is to resample each task several times and average per task. (2) **Is the gap larger than the noise floor?** With confidence intervals in hand, ask whether the two-point difference could be due to the specific tasks chosen and the randomness in the models' answers; if the intervals overlap, the gap is inside the noise. "84 beats 82" is not yet a result because a single run of a stochastic agent is a sample, not a fact — until you have resampled, reported intervals, and shown the gap exceeds the uncertainty, switching agents on a two-point difference is acting on a coin flip you have mistaken for a finding. (If any tasks were judge-graded, a third question follows: has the judge's agreement with human labels been measured on these tasks, since its unmeasured error propagates into the comparison too.)
+</Solution>
+
+<Solution for="ch23-pr-1">
+A worked example. Take a documentation-writing agent that turns a code module into a reference page. **Five failure-derived tasks.** (1) *"Module exports a function the agent omitted from the docs last time"* — grader: **programmatic**, assert every exported symbol appears in the output (checkable). (2) *"A function whose signature changed; the agent documented the old signature"* — grader: **programmatic**, diff documented signatures against the source (checkable). (3) *"Code block in the generated doc didn't compile"* — grader: **programmatic**, extract and compile every code block (checkable). (4) *"The overview paragraph was technically correct but unreadable"* — grader: **model judge**, score clarity for a target reader (open-ended, no string match reaches it). (5) *"The doc described behavior the code doesn't have — a hallucinated guarantee"* — grader: **model judge** for faithfulness against the source, since "is this claim supported by the code?" is a judgment, not an exact match. **Calibrating the judges (tasks 4 and 5):** before trusting either judge, hand-label a sample of, say, 30 generated docs as clear/unclear and faithful/unfaithful, run the judge on the same sample, and compute its agreement rate with my labels; I report that agreement rate alongside the judge's verdicts and resample the judge across several epochs so its pass-rate carries a confidence interval — so a reader discounts the score by the judge's known error rather than treating it as truth. The exercise's value is that it forces the task/grader split into the open: three tasks have checkable outcomes a programmatic grader nails for free, two are genuinely open-ended and need a *calibrated* judge — and choosing wrong (a judge on task 1, or exact-match on task 4) would produce numbers nobody should trust.
+</Solution>
+
+</ExerciseSolutions>

@@ -1072,3 +1072,374 @@
   captured_at: 2026-05-27T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
+
+# --- Vol 3 (Evaluation & Operations) sources ---
+
+- id: demystifying-evals
+  url: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+  title: Demystifying evals for AI agents
+  author: Grace, Hadfield, Olivares and De Jonghe (Anthropic)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+# ch22 — prompt evaluation
+- id: anthropic-develop-tests
+  url: https://platform.claude.com/docs/en/test-and-evaluate/develop-tests
+  title: Define success criteria and build evaluations
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-prompt-improver
+  url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompt-improver
+  title: Console prompting tools
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-eval-tool
+  url: https://platform.claude.com/docs/en/test-and-evaluate/eval-tool
+  title: Using the Evaluation Tool
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-building-evals-cookbook
+  url: https://platform.claude.com/cookbook/misc-building-evals
+  title: Building evals
+  author: Anthropic
+  publish_date: 2024-03-03
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# ch23 — eval harnesses
+- id: anthropic-statistical-evals
+  url: https://www.anthropic.com/research/statistical-approach-to-model-evals
+  title: A statistical approach to model evaluations
+  author: Anthropic
+  publish_date: 2024-11-19
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: aisi-inspect-options
+  url: https://inspect.aisi.org.uk/options.html
+  title: "Inspect — Options"
+  author: UK AI Security Institute
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: zheng-judging-llm-judge
+  url: https://arxiv.org/abs/2306.05685
+  title: Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena
+  author: Zheng et al.
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+# ch24 — observability
+- id: claude-code-claude-directory
+  url: https://code.claude.com/docs/en/claude-directory
+  title: Explore the .claude directory
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-session-storage
+  url: https://code.claude.com/docs/en/agent-sdk/session-storage
+  title: Persist sessions to external storage
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-monitoring
+  url: https://code.claude.com/docs/en/monitoring-usage
+  title: Monitoring
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: otel-genai-metrics
+  url: https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-metrics/
+  title: Semantic conventions for generative AI metrics
+  author: OpenTelemetry Authors
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: otel-genai-agent-spans
+  url: https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/
+  title: Semantic Conventions for GenAI agent and framework spans
+  author: OpenTelemetry Authors
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: claude-code-github-actions
+  url: https://code.claude.com/docs/en/github-actions
+  title: Claude Code GitHub Actions
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-costs
+  url: https://code.claude.com/docs/en/costs
+  title: Manage costs effectively
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-analytics
+  url: https://code.claude.com/docs/en/analytics
+  title: Track team usage with analytics
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# ch25 — cost economics
+- id: anthropic-pricing
+  url: https://platform.claude.com/docs/en/about-claude/pricing
+  title: "Pricing - Claude API Docs"
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-prompt-caching
+  url: https://code.claude.com/docs/en/prompt-caching
+  title: "How Claude Code uses prompt caching - Claude Code Docs"
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-batch-processing
+  url: https://platform.claude.com/docs/en/build-with-claude/batch-processing
+  title: "Batch processing — Claude Docs"
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# ch26 — human-in-the-loop (claude-code-github-actions shared with ch24, above)
+- id: claude-code-user-input
+  url: https://code.claude.com/docs/en/agent-sdk/user-input
+  title: Handle approvals and user input
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-auto-mode
+  url: https://www.anthropic.com/engineering/claude-code-auto-mode
+  title: "How we built Claude Code auto mode: a safer way to skip permissions"
+  author: John Hughes (Anthropic)
+  publish_date: 2026-03-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-security-docs
+  url: https://code.claude.com/docs/en/security
+  title: Security
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-permission-modes
+  url: https://code.claude.com/docs/en/permission-modes
+  title: Choose a permission mode
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-common-workflows
+  url: https://code.claude.com/docs/en/common-workflows
+  title: Common workflows
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-measuring-autonomy
+  url: https://www.anthropic.com/research/measuring-agent-autonomy
+  title: Measuring AI agent autonomy in practice
+  author: McCain, Millar, Huang et al. (Anthropic)
+  publish_date: 2026-02-18
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-trustworthy-agents
+  url: https://www.anthropic.com/research/trustworthy-agents
+  title: Trustworthy agents in practice
+  author: Anthropic
+  publish_date: 2026-04-09
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-headless
+  url: https://code.claude.com/docs/en/headless
+  title: Run Claude Code programmatically
+  author: Anthropic
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# ch27 — security / the adversarial-input layer (claude-code-security-docs reused from ch26)
+- id: owasp-llm01
+  url: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
+  title: "LLM01:2025 Prompt Injection"
+  author: OWASP Gen AI Security Project
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: willison-trifecta
+  url: https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
+  title: "The lethal trifecta for AI agents: private data, untrusted content, and external communication"
+  author: Simon Willison
+  publish_date: 2025-06-16
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: nvd-cve-2025-32711
+  url: https://nvd.nist.gov/vuln/detail/CVE-2025-32711
+  title: CVE-2025-32711
+  author: NVD (NIST National Vulnerability Database)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: echoleak-catonetworks
+  url: https://www.catonetworks.com/blog/breaking-down-echoleak/
+  title: "Breaking down 'EchoLeak', the First Zero-Click AI Vulnerability Enabling Data Exfiltration from Microsoft 365 Copilot"
+  author: Itay Ravia (Cato Networks / Aim Labs)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: comet-brave
+  url: https://brave.com/blog/comet-prompt-injection/
+  title: "Agentic Browser Security: Indirect Prompt Injection in Perplexity Comet"
+  author: Artem Chaikin and Shivan Kaul Sahib (Brave)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: anthropic-claude-chrome
+  url: https://claude.com/blog/claude-for-chrome
+  title: Piloting Claude in Chrome
+  author: Anthropic
+  publish_date: 2025-08-25
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: owasp-llm03
+  url: https://genai.owasp.org/llmrisk/llm032025-supply-chain/
+  title: "LLM03:2025 Supply Chain"
+  author: OWASP Gen AI Security Project
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: zhao-mcp-attack
+  url: https://arxiv.org/abs/2509.24272
+  title: "When MCP Servers Attack: Taxonomy, Feasibility, and Mitigation"
+  author: Zhao, Liu, Ruan, Li, Liang
+  publish_date: 2025-09-29
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: shadowprompt-koi
+  url: https://www.koi.ai/blog/shadowprompt-how-any-website-could-have-hijacked-anthropic-claude-chrome-extension
+  title: "ShadowPrompt: How Any Website Could Have Hijacked Claude's Chrome Extension"
+  author: Oren Yomtov (Koi Research)
+  publish_date: 2026-03-26
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: rehberger-markdown-exfil
+  url: https://embracethered.com/blog/posts/2023/chatgpt-webpilot-data-exfil-via-markdown-injection/
+  title: "ChatGPT Plugins: Data Exfiltration via Images and Cross Plugin Request Forgery"
+  author: Johann Rehberger (wunderwuzzi)
+  publish_date: 2023-05-16
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: camel-debenedetti
+  url: https://arxiv.org/abs/2503.18813
+  title: Defeating Prompt Injections by Design
+  author: Debenedetti, Shumailov, Fan, Hayes, Carlini, et al.
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: design-patterns-beurer-kellner
+  url: https://arxiv.org/abs/2506.08837
+  title: Design Patterns for Securing LLM Agents against Prompt Injections
+  author: Beurer-Kellner, Buesser, Creţu, Debenedetti, et al.
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: llamafirewall
+  url: https://arxiv.org/abs/2505.03574
+  title: "LlamaFirewall: An open source guardrail system for building secure AI agents"
+  author: Chennabasappa, Nikolaidis, Song, et al. (Meta)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: meta-secalign
+  url: https://arxiv.org/abs/2507.02735
+  title: "Meta SecAlign: A Secure Foundation LLM Against Prompt Injection Attacks"
+  author: Chen, Zharmagambetov, Wagner, Guo (Meta)
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: kad-dataflip-choudhary
+  url: https://arxiv.org/abs/2507.05630
+  title: How Not to Detect Prompt Injections with an LLM
+  author: Choudhary, Anshumaan, Palumbo, Jha
+  publish_date: 2025-07-08
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: guardrail-evasion-hackett
+  url: https://arxiv.org/abs/2504.11168
+  title: "Bypassing LLM Guardrails: An Empirical Analysis of Evasion Attacks against Prompt Injection and Jailbreak Detection Systems"
+  author: Hackett, Birch, Trawicki, Suri, Garraghan
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
+
+- id: wasp-evtimov
+  url: https://arxiv.org/abs/2504.18575
+  title: "WASP: Benchmarking Web Agent Security Against Prompt Injection Attacks"
+  author: Evtimov, Zharmagambetov, Grattafiori, Guo, Chaudhuri
+  captured_at: 2026-05-27T00:00:00Z
+  tier: T3-practitioner
+  tool: cross-tool
