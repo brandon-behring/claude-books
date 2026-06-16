@@ -108,20 +108,29 @@ banner + `noindex` come *off* at v1.0).
    (Vol 2 orchestration) · [`plans/done/2026-06-13_design-vol2-tools-half.md`](./plans/done/2026-06-13_design-vol2-tools-half.md) (Vol 2 tools).
 6. **Applied volume** (Design v2.0).
 
-### Deployment (decided 2026-06-12)
-**Host = Cloudflare Pages** (the `brandon-behring.dev` DNS already lives on Cloudflare — one
-dashboard, one-click subdomains later). One Pages project per book, deployed **early, from the
-private repo**, with **`noindex` + a visible draft banner until each book's v1.0**.
+### Deployment (decided 2026-06-16 — supersedes the 2026-06-12 Pages/subdomain plan)
+**Host = Cloudflare Workers (static assets); apex + subroutes via combined-dist.** One Worker
+serves `claude-books.brandon-behring.dev` with each book at `/architect/`, `/design/`,
+`/agentic-coding/`, `/handbook/` and a hub landing at the root. `scripts/assemble-hub.mjs` (run by
+the root `build`) builds each book into `dist/<subroute>/`; `wrangler.toml` serves `./dist`. **No
+per-book Workers, no service-binding proxy** — one Worker for the whole apex.
 
-- Stand-up tasks *(S, ~1 session + dashboard steps)*: create the per-book Pages projects (host-native
-  build or CI artifact) → set per-book `site` in `astro.config.mjs` → fill the `siblingBooks`
-  origin registry → **BookLink/cross-book XRef gate lifts** (#96 shipped v4.16).
-- **Domain migration (soon):** `cert.` / `handbook.` / `design.brandon-behring.dev` **subdomains** —
-  these keep every book at root base. *Path-style hosting under the apex is gated on upstream #140*
-  (base-unaware absolute links); subdomains make #140 irrelevant.
+- **Why this supersedes the per-subdomain plan:** the only blocker for path-style apex hosting was
+  upstream **#140** (base-unaware absolute links); that is **fixed in scaffold v4.25** (#140/#141),
+  so links are base-aware and subroutes work. Apex+subroutes keeps the series under one coherent
+  home (and one Worker) instead of scattered `cert./design./handbook.` subdomains.
+- Each book sets `base: '/<subroute>/'` + `site: https://claude-books.brandon-behring.dev` in
+  `astro.config.mjs`; all books are on scaffold **^4.25**. The **Agentic Coding** book (cross-tool
+  "Use") was folded in from `book-template-astro` (v3→v4) as the `agentic-coding/` workspace.
+- **Drafts deployed, noindex:** the Handbook ships served-but-noindex (`dist/robots.txt` →
+  `Disallow: /handbook/`) until its v1.0; it's omitted from the hub landing.
+- **User-side go-live (the gate):** add `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets
+  (for deploy-workflows), make the repo public (after the secret/licensing sweep), disconnect the
+  stray Workers Builds project, merge → Actions deploys the `brandon-behring-claude-books` Worker,
+  then bind `claude-books.brandon-behring.dev` in the dashboard. See `docs/deploy-cloudflare.md`.
 - **Gated items:** (a) **repo-public** — a deliberate visibility flip + full-history secret/leak
   sweep; unlocks the dormant edit-this-page links + per-chapter Discussions; (b) **per-book v1.0
-  flip** — noindex off, draft banner off, domain final.
+  flip** — noindex off, draft banner off.
 
 ### Ops lane (each on its own trigger)
 - Revive the weekly **cert-tracking agent** (dormant; diff log stops at the 2026-05-22 baseline) —
@@ -133,8 +142,8 @@ private repo**, with **`noindex` + a visible draft banner until each book's v1.0
 - **Figures pipeline** — TikZ→SVG via the scaffold's `build-figures` (shipped v4.2); *trigger: the
   first chapter needing a new diagram — expected during the handbook port.*
 - Upstream **#83** — roll the v4.8.0 provenance backfill out to the consumer books (P3).
-- Upstream **#140** (base-unaware absolute links) — only blocks *path-style* hosting; the subdomain
-  deployment plan above makes it non-blocking. Watch for the fix anyway.
+- Upstream **#140/#141** (base-unaware absolute links) — **fixed in scaffold v4.25**; unblocks the
+  apex+subroutes deployment above (book links are now base-aware).
 
 ## Known debt (tracked, with triggers)
 - **Cert apparatus — DONE end-to-end (upstream + adoption + bank).** Upstream epic #122 closed
@@ -175,7 +184,7 @@ private repo**, with **`noindex` + a visible draft banner until each book's v1.0
   Design Vols 2–3 → applied. Rationale: glossary is S-sized post-#115 and compounds with early
   deploys; the handbook port is template-proven mechanical work one `git clone` from unblocked;
   the freshness loop keeps the Design dossiers warm, so sequencing them last costs no accuracy.
-- **Deployment decided (2026-06-12):** Cloudflare Pages (DNS colocation with `brandon-behring.dev`),
+- **Deployment decided (2026-06-12; SUPERSEDED 2026-06-16 → Workers apex+subroutes, see Deployment §):** Cloudflare Pages (DNS colocation with `brandon-behring.dev`),
   one project per book, drafts deployed early **from the private repo**, `noindex` + draft banner
   until each v1.0; domain target = `*.brandon-behring.dev` **subdomains** (root base — paths under
   the apex stay gated on upstream #140). **Repo-public is a separate gated decision** (deliberate

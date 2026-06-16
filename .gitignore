@@ -48,3 +48,7 @@ claude-books-continuity/
 # reorg (was loose at the repo root).
 /docs/research-program/launchpad/
 /docs/environment-engineering-context-assembly-critique.md
+
+# Source-archive fetch cache — runtime artifacts, never published
+agentic-coding/sources/cache/*
+!agentic-coding/sources/cache/.gitkeep

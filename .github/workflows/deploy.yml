@@ -1,0 +1,15 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  deployments: write
+  actions: read
+
+jobs:
+  deploy:
+    uses: brandon-behring/deploy-workflows/.github/workflows/deploy-astro-worker.yml@v1
+    secrets: inherit
