@@ -7,7 +7,8 @@ import { defineBookConfig, toolsStyle } from '@brandon_m_behring/book-scaffold-a
 
 export default await defineBookConfig({
   styles: [toolsStyle],
-  site: 'https://example.invalid',
+  site: 'https://claude-books.brandon-behring.dev',
+  base: '/handbook/',
   // Sidebar brand (scaffold v4.23, #135) — mirrors the landing page's h1; the
   // subtitle is BOOK-MAP.md's one-line lens for the Use book.
   title: 'Best Practices for Using Claude',

@@ -11,7 +11,8 @@ export default await defineBookConfig({
   title: 'Agentic Systems Design',
   subtitle: 'Volume 1 · Environment & Context Engineering',
   styles: [toolsStyle],
-  site: 'https://example.invalid',
+  site: 'https://claude-books.brandon-behring.dev',
+  base: '/design/',
   // landing: false (v4.20, #129): we own src/pages/index.astro; silences the
   // shadow warning before Astro makes the collision a hard error.
   routes: { landing: false },
