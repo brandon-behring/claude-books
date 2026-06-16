@@ -1,104 +1,87 @@
-# Deploy runbook — `claude-books.brandon-behring.dev` (Cloudflare Worker)
+# Deploy runbook — `claude-books.brandon-behring.dev`
 
-**Model:** apex + subroutes via **combined-dist, one Worker**. `scripts/assemble-hub.mjs`
-builds each book into `dist/<subroute>/` (`/architect/`, `/design/`, `/agentic-coding/`,
-`/handbook/`) plus a hub landing at the root; `wrangler.toml` (`name = "claude-books"`,
-`[assets] directory = "./dist"`) serves it. CI is `.github/workflows/deploy.yml` →
-`brandon-behring/deploy-workflows` (`npm ci` + `npm run build` + `wrangler deploy`) on push to
-`main`.
+**Mechanism: GitHub Actions → `brandon-behring/deploy-workflows`** (the *book* pattern — same as
+ssm-foundations, double_ml_time_series, dlai-study-notes). **Not** Cloudflare Workers Builds (that's
+the *guides* pattern). `.github/workflows/deploy.yml` runs `npm ci` + `npm run build` +
+`wrangler deploy` on push to `main`.
 
-> The repo is deploy-ready and the build is validated locally. Everything below is the
-> **user-side go-live** that can't be done from code (Cloudflare account + DNS).
+**Model:** apex + subroutes via **combined-dist, one Worker** (`brandon-behring-claude-books`).
+`scripts/assemble-hub.mjs` (run by the root `build`) builds each book into `dist/<subroute>/`
+(`/architect/`, `/design/`, `/agentic-coding/`, `/handbook/`) + a hub landing; `wrangler.jsonc`
+(`assets.directory = ./dist`) serves it.
 
-**Build command:** `npm run build` (root → `./dist`). **Deploy:** `npx wrangler deploy`.
-Both run **in GitHub Actions** (`deploy.yml` → `deploy-workflows`) — **not** in Cloudflare.
+> **Build command:** `npm run build` → `./dist`. It runs **in GitHub Actions**, not Cloudflare.
 
-> ⚠️ If the Cloudflare dashboard is *asking you for a build command*, you're in the **Workers
-> Builds / Connect-to-Git wizard — don't use it.** The build is Actions-owned; a Git-connected
-> Workers Build creates a *competing* pipeline (known foot-gun, `brandon-behring.dev/CLAUDE.md`).
-> Correct path: let the Actions deploy create the `claude-books` Worker (§2 Option A), then only
-> **bind the domain**. Leave the build/deploy commands to CI.
+> ⚠️ **You connected a Cloudflare Workers Builds project for this repo — disconnect/delete it.** Books
+> deploy via Actions; a Git-connected Workers Build is a *competing* pipeline (it's what produced the
+> `Missing script: "build"` error — it was building `main`, which doesn't have the build script until
+> PR #18 merges). Do **not** enter a build command in the CF dashboard.
 
 ---
 
-## 1. Cloudflare credentials (one-time)
+## 1. Add the Cloudflare secrets (one-time)
 
-`deploy.yml` uses `secrets: inherit`, so the reusable workflow needs:
-
-| Secret | What | Scope |
-|---|---|---|
-| `CLOUDFLARE_API_TOKEN` | API token | **Workers Scripts: Edit** (+ **Zone: Edit** on `brandon-behring.dev` only if you bind the domain via wrangler — Option B below) |
-| `CLOUDFLARE_ACCOUNT_ID` | account id | account `brandon-m-behring` |
-
-As of 2026-06-16 `claude-books` has **no `CLOUDFLARE_*` repo secrets**. Add them (or confirm
-org-level secrets already cover this repo):
+`deploy.yml` uses `secrets: inherit`; the reusable workflow needs (per-repo, like ssm-foundations):
 
 ```bash
-gh secret set CLOUDFLARE_API_TOKEN  -R brandon-behring/claude-books
-gh secret set CLOUDFLARE_ACCOUNT_ID -R brandon-behring/claude-books
+gh secret set CLOUDFLARE_ACCOUNT_ID -R brandon-behring/claude-books   # account brandon-m-behring
+gh secret set CLOUDFLARE_API_TOKEN  -R brandon-behring/claude-books   # Workers Scripts: Edit
 ```
 
-> ⚠️ **Foot-gun:** `gh secret set NAME` reads the **value from stdin** at the prompt — the
-> argument is the *name*, not the value. Paste the value when prompted (don't put it on the
-> command line, or the secret's *name* becomes your credential).
+Reuse ssm-foundations' values or mint a fresh token (your call). claude-books currently has **none**.
 
----
+> ⚠️ `gh secret set NAME` reads the **value from stdin** at the prompt — the argument is the *name*,
+> not the value. Paste the value when prompted.
 
-## 2. Create + attach the Worker
+## 2. Make the repo public (after the sweep)
 
-### Option A — CI creates it, you bind the domain in the dashboard *(recommended; matches the guides-hub flow)*
+Gate: a full-history secret scan (`gitleaks detect`) is clean **and** no licensed/third-party content
+is in the history (confirm the Manning bundle was only ever in the gitignored
+`~/Claude/claude-books-research-inputs/`, never committed; confirm rights to publish the
+research-program dossiers). Then flip visibility:
 
-1. Merge **PR #18** (or push the branch to `main`). The Actions deploy runs `wrangler deploy`,
-   which **creates the Worker `claude-books`** from `wrangler.toml`.
-2. Cloudflare dashboard → **Workers & Pages → `claude-books` → Settings → Domains & Routes →
-   Add → Custom Domain** → `claude-books.brandon-behring.dev`. DNS is already on this account,
-   so the record + TLS cert provision automatically.
-3. *(optional)* Add the Cloudflare **Web Analytics** token for hub analytics.
-
-### Option B — bind the domain via wrangler (no dashboard)
-
-Add to `wrangler.toml`, then redeploy:
-
-```toml
-[[routes]]
-pattern = "claude-books.brandon-behring.dev"
-custom_domain = true
+```bash
+gh repo edit brandon-behring/claude-books --visibility public --accept-visibility-change-consequences
 ```
 
-Requires the API token to also have **Zone: Edit** on `brandon-behring.dev`. Skip if you
-prefer the dashboard step in Option A.
+Public → matches every other book, free Actions CI, and lets the portfolio card carry a `repo_url`.
 
----
+## 3. Deploy
 
-## 3. Verify go-live
+Merge **PR #18** to `main`. The Actions deploy runs `npm run build` → `./dist` → `wrangler deploy`,
+creating the `brandon-behring-claude-books` Worker.
+
+## 4. Bind the domain
+
+Cloudflare dashboard → **Workers & Pages → `brandon-behring-claude-books` → Settings → Domains &
+Routes → Add → Custom Domain** → `claude-books.brandon-behring.dev`. DNS + cert provision
+automatically (the zone is already on this account).
+
+## 5. Verify
 
 ```bash
 for s in architect design agentic-coding; do
   curl -s -o /dev/null -w "%{http_code}  /$s/\n" -L https://claude-books.brandon-behring.dev/$s/
-done
-# expect: 200 for each
+done   # expect 200 each
 ```
 
-`/handbook/` is served but **`noindex`** (`dist/robots.txt` → `Disallow: /handbook/`) and is
-omitted from the hub landing until its v1.0.
+`/handbook/` is served but **noindex** (`dist/robots.txt` → `Disallow: /handbook/`) and is omitted
+from the hub landing until its v1.0.
 
----
+## 6. After go-live
 
-## 4. After go-live
-
-- **Archive the sunset LaTeX repos:** `claude-code-field-guide` (retired from the public
-  lineup) now; `claude-best-practices` on *its* own gate ("once the Handbook ships v1.0").
-  `gh repo archive brandon-behring/<repo>`.
-- **Flip the `claude-books` card live** on brandon-behring.dev: `draft: false`, add
-  `site_url: https://claude-books.brandon-behring.dev` + 1–2 subroute deep-links.
+- **Archive the retired repos:** `book-template-astro` (its Agentic Coding content is now canonical in
+  `claude-books/agentic-coding`) and `claude-code-field-guide`. `claude-best-practices` archives on
+  *its* gate ("once the Handbook ships v1.0"). `gh repo archive brandon-behring/<repo>`.
+- **Flip the `claude-books` card live** on brandon-behring.dev: `draft: false`, `site_url`, `repo_url`
+  (public now), + 1–2 subroute deep-links.
 
 ---
 
 ## Reference — how it's wired
 
-- Each book: `base: '/<subroute>/'` + `site: 'https://claude-books.brandon-behring.dev'` in its
-  `astro.config.mjs`; all books on scaffold **`^4.25`** (base-aware links, #140/#141 fixed).
-- Root `npm run build` → builds every workspace, then `scripts/assemble-hub.mjs` assembles
-  `dist/`.
-- One Worker serves `./dist`. No per-book Workers, no service-binding proxy.
+- Each book: `base: '/<subroute>/'` + `site: 'https://claude-books.brandon-behring.dev'`; all on
+  scaffold `^4.25` (base-aware links, #140/#141 fixed).
+- Root `npm run build` → builds every workspace, then `scripts/assemble-hub.mjs` assembles `dist/`.
+- One Worker (`brandon-behring-claude-books`) serves `./dist`. No per-book Workers, no proxy.
 - Supersedes the 2026-06-12 Pages/per-subdomain plan — see `docs/ROADMAP.md` → Deployment.

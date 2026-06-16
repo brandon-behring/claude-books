@@ -1,0 +1,15 @@
+// wrangler.jsonc — Cloudflare Workers + Static Assets, claude-books.brandon-behring.dev (hub).
+//
+// Deployed via GitHub Actions (.github/workflows/deploy.yml → brandon-behring/deploy-workflows),
+// the BOOK pattern — same as ssm-foundations and dml's monorepo Worker. NOT Workers Builds.
+//
+// Combined-dist: scripts/assemble-hub.mjs (run by the root `npm run build`) builds each book
+// into dist/<subroute>/ (/architect/, /design/, /agentic-coding/, /handbook/) + a hub landing
+// at dist/index.html; ONE Worker serves ./dist. No per-book Workers, no service-binding proxy.
+// Person-prefixed name per the portfolio convention. Custom domain bound in the CF dashboard.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "brandon-behring-claude-books",
+  "compatibility_date": "2026-05-19",
+  "assets": { "directory": "./dist" }
+}

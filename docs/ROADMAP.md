@@ -124,9 +124,10 @@ per-book Workers, no service-binding proxy** — one Worker for the whole apex.
   "Use") was folded in from `book-template-astro` (v3→v4) as the `agentic-coding/` workspace.
 - **Drafts deployed, noindex:** the Handbook ships served-but-noindex (`dist/robots.txt` →
   `Disallow: /handbook/`) until its v1.0; it's omitted from the hub landing.
-- **User-side go-live (the gate):** create the `claude-books` Worker, bind
-  `claude-books.brandon-behring.dev`, ensure the repo's Actions have `CLOUDFLARE_API_TOKEN` /
-  `CLOUDFLARE_ACCOUNT_ID` (for deploy-workflows), and supply the analytics token.
+- **User-side go-live (the gate):** add `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets
+  (for deploy-workflows), make the repo public (after the secret/licensing sweep), disconnect the
+  stray Workers Builds project, merge → Actions deploys the `brandon-behring-claude-books` Worker,
+  then bind `claude-books.brandon-behring.dev` in the dashboard. See `docs/deploy-cloudflare.md`.
 - **Gated items:** (a) **repo-public** — a deliberate visibility flip + full-history secret/leak
   sweep; unlocks the dormant edit-this-page links + per-chapter Discussions; (b) **per-book v1.0
   flip** — noindex off, draft banner off.
