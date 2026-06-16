@@ -10,6 +10,15 @@ builds each book into `dist/<subroute>/` (`/architect/`, `/design/`, `/agentic-c
 > The repo is deploy-ready and the build is validated locally. Everything below is the
 > **user-side go-live** that can't be done from code (Cloudflare account + DNS).
 
+**Build command:** `npm run build` (root → `./dist`). **Deploy:** `npx wrangler deploy`.
+Both run **in GitHub Actions** (`deploy.yml` → `deploy-workflows`) — **not** in Cloudflare.
+
+> ⚠️ If the Cloudflare dashboard is *asking you for a build command*, you're in the **Workers
+> Builds / Connect-to-Git wizard — don't use it.** The build is Actions-owned; a Git-connected
+> Workers Build creates a *competing* pipeline (known foot-gun, `brandon-behring.dev/CLAUDE.md`).
+> Correct path: let the Actions deploy create the `claude-books` Worker (§2 Option A), then only
+> **bind the domain**. Leave the build/deploy commands to CI.
+
 ---
 
 ## 1. Cloudflare credentials (one-time)
