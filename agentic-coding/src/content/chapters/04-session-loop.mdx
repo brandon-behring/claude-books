@@ -18,7 +18,6 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *Your briefing doc is in place, your precision vocabulary is building, your scope instincts are right. You open the agent and… where do you start? How do you know when a session is going well versus slowly going off the rails? When do you course-correct, and when do you start fresh? This chapter is about the rhythm of a working session — the four-phase loop that turns a single prompt into durable output.*
 
@@ -32,7 +31,7 @@ An agentic coding session is not a conversation. It is a **repeating four-phase 
 
 The phases are not ceremonial — each has a role:
 
-**Prompt** is where you spend your precision budget. The specification levers from [Ch 3](/03-prompting-as-specification/) — precision vocabulary, scope, structure, depth, verification — all live here. A sloppy prompt guarantees sloppy output; a well-structured prompt usually gets what you wanted on the first pass.
+**Prompt** is where you spend your precision budget. The specification levers from [Ch 3](/agentic-coding/03-prompting-as-specification/) — precision vocabulary, scope, structure, depth, verification — all live here. A sloppy prompt guarantees sloppy output; a well-structured prompt usually gets what you wanted on the first pass.
 
 **Observe** is where you resist the temptation to skim. The agent produced a diff; your job is to look at it, not nod at it. Run the tests the prompt promised to run. Check that only the files you allowed got modified. If something feels off even slightly, name it. Over-trusting the observe phase is the single most common failure mode in the loop.
 
@@ -48,7 +47,7 @@ The phases are not ceremonial — each has a role:
 
 Each phase has a context cost, and the phases compound. A prompt is ~200 tokens; a file read is ~1,000–3,000; a tool-and-observe cycle is ~500–1,000 per iteration. A debugging session that loops a few times can fill 30% of a 200K window with accumulated noise — most of it encoding *failure patterns* rather than progress. The session loop is the mechanism that keeps context expenditure proportional to real work.
 
-The corollary is the **two-failure rule** — after two failed corrections on the same issue, clear context and restart with a better prompt. The arithmetic (covered in [Ch 2](/02-context-as-currency/)) favors restart over a third correction by roughly an order of magnitude.
+The corollary is the **two-failure rule** — after two failed corrections on the same issue, clear context and restart with a better prompt. The arithmetic (covered in [Ch 2](/agentic-coding/02-context-as-currency/)) favors restart over a third correction by roughly an order of magnitude.
 
 ### The plan-mode extension
 
@@ -71,7 +70,7 @@ The session loop is tool-agnostic, but each CLI-agent exposes the phase transiti
 | Start with PR context | `claude --from-pr 123` | manual `@` to PR file | manual |
 
 <SkillBox title="Spend your precision budget in the prompt phase">
-  The five-part prompt template from [Ch 3 Prompting](/03-prompting-as-specification/) — context, task, constraints, files, verification — is the concrete shape of a prompt that won't need correction rounds. Don't re-derive it per prompt; reach for the template. The precision you spend up front is paid back in every phase that follows.
+  The five-part prompt template from [Ch 3 Prompting](/agentic-coding/03-prompting-as-specification/) — context, task, constraints, files, verification — is the concrete shape of a prompt that won't need correction rounds. Don't re-derive it per prompt; reach for the template. The precision you spend up front is paid back in every phase that follows.
 </SkillBox>
 
 <SkillBox title="Observe deliberately, not reflexively">
@@ -141,7 +140,7 @@ The session-loop shape has converged faster than almost any other pattern in age
   Claude Code's `--continue` / `--resume` / `--from-pr` trio gives the clearest session-management story. `--from-pr 123` pre-loads a full PR diff + metadata — particularly powerful for code review. Gemini has `--continue` but no PR-aware equivalent. Codex leans on shell history + explicit file references. For teams who work across many parallel PRs, this matters daily.
 </Divergence>
 
-**Emerging: horizontal scaling of sessions.** Running 10–15 parallel short sessions instead of one long one is a Claude-community-first practice enabled by `claude --worktree` (git worktree isolation per session). Gemini and Codex have the primitives in pieces but not as a polished workflow. Expect full convergence within 12–18 months; in the meantime the *pattern* is portable (covered in [Ch 2](/02-context-as-currency/)) even if the tooling isn't.
+**Emerging: horizontal scaling of sessions.** Running 10–15 parallel short sessions instead of one long one is a Claude-community-first practice enabled by `claude --worktree` (git worktree isolation per session). Gemini and Codex have the primitives in pieces but not as a polished workflow. Expect full convergence within 12–18 months; in the meantime the *pattern* is portable (covered in [Ch 2](/agentic-coding/02-context-as-currency/)) even if the tooling isn't.
 
 <CaseStudy date="2026-02">
   A team instrumented their Claude Code sessions to count loop iterations per task and correlate with outcome quality. Post-commit revert rates rose sharply with iteration count — tasks that took two rounds or fewer reverted rarely; tasks at three rounds reverted substantially more often; tasks at four or more rounds reverted at many multiples of the two-round baseline. The pattern held across task size and developer. They adopted a team habit of clearing context after the third iteration — pure discipline, zero tooling — and the high-iteration bucket shrank over the following month. Pattern signal: the two-failure rule is a quality-preservation rule, not just a context-hygiene one.

@@ -32,7 +32,7 @@ Every modern CLI-agent — Claude Code, Gemini CLI, Codex CLI — implements the
 
 Three system properties are universal across the category:
 
-**Context window.** Everything the agent knows about your task — your prompt, files it has read, tool results, conversation history — occupies a finite token window. When the window fills, older information fades. This is not infinite memory; it is a working budget. The implications run deep enough to warrant their own chapter ([Ch 2 Context as Currency](/02-context-as-currency/)).
+**Context window.** Everything the agent knows about your task — your prompt, files it has read, tool results, conversation history — occupies a finite token window. When the window fills, older information fades. This is not infinite memory; it is a working budget. The implications run deep enough to warrant their own chapter ([Ch 2 Context as Currency](/agentic-coding/02-context-as-currency/)).
 
 **Tool use.** The agent does not type code into a file. It calls tools: `Read`, `Edit`, `Write`, `Bash`, `Glob`, `Grep`, and a varying set of specialized helpers. Each tool call costs context (the request + the result) and produces observable effects. Understanding this matters because every operation has a token price, and the agent's strategy is shaped by that price.
 

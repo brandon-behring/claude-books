@@ -18,7 +18,6 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *Three hours in, the agent is hallucinating function names and ignoring rules that were working fine at session start. What went wrong? More importantly: how do you escape? This chapter is reactive — the catalog of characteristic failures every practitioner eventually hits, with a concrete recovery guide for each.*
 
@@ -42,7 +41,7 @@ When the agent keeps failing on the same problem across sessions, the temptation
 
 2. **The briefing doc** (CLAUDE.md / GEMINI.md / AGENTS.md). Is there a conflicting rule? A rule too vague to enforce? A rule the agent interprets differently than you intended? *Test:* temporarily move the briefing doc aside (`mv .claude/CLAUDE.md .claude/CLAUDE.md.bak`) and retry. If the problem disappears, a rule is interfering. Add rules back incrementally to isolate.
 
-3. **The codebase.** Does the existing code teach the wrong patterns? The [codebase-is-the-curriculum principle](/01-agent-mental-model/) applies in reverse here: if 50 existing functions use pattern A and you want pattern B, the agent will default to A regardless of instructions. *Test:* ask the agent *why* it chose its approach. If it cites existing code, the codebase is teaching patterns your instruction is supposed to override — make the instruction explicit about the exception.
+3. **The codebase.** Does the existing code teach the wrong patterns? The [codebase-is-the-curriculum principle](/agentic-coding/01-agent-mental-model/) applies in reverse here: if 50 existing functions use pattern A and you want pattern B, the agent will default to A regardless of instructions. *Test:* ask the agent *why* it chose its approach. If it cites existing code, the codebase is teaching patterns your instruction is supposed to override — make the instruction explicit about the exception.
 
 4. **The model.** Genuine limitations exist — certain reasoning patterns, mathematical computations, or domain-specific conventions the model gets wrong consistently. *Test:* try max reasoning depth; try a different model; if all fail the same way, accept the limitation and design a workaround (verification step, hook, or manual review).
 
@@ -71,7 +70,7 @@ The catalog. Eight common anti-patterns, each with a Recovery box you can apply 
 
 **Symptom:** performance degrades midway through a session. The agent repeats itself, forgets earlier decisions, or produces lower-quality output.
 
-**Root cause:** multiple unrelated tasks in a single session. Each task's context remains, consuming tokens that contribute nothing to the current task. Covered in depth in [Ch 2 Context as Currency](/02-context-as-currency/).
+**Root cause:** multiple unrelated tasks in a single session. Each task's context remains, consuming tokens that contribute nothing to the current task. Covered in depth in [Ch 2 Context as Currency](/agentic-coding/02-context-as-currency/).
 
 <Recovery
   pattern="Kitchen-sink session"
@@ -86,7 +85,7 @@ The catalog. Eight common anti-patterns, each with a Recovery box you can apply 
 
 **Root cause:** each correction adds noise — the original error, your correction, the agent's acknowledgment, its retry. After three rounds, the context is dominated by failure patterns.
 
-**Prevention:** the two-failure rule (covered in [Ch 4 Session Loop](/04-session-loop/)). After two failed corrections, clear and re-prompt with precision.
+**Prevention:** the two-failure rule (covered in [Ch 4 Session Loop](/agentic-coding/04-session-loop/)). After two failed corrections, clear and re-prompt with precision.
 
 <Recovery
   pattern="Over-correcting"
@@ -101,7 +100,7 @@ The catalog. Eight common anti-patterns, each with a Recovery box you can apply 
 
 **Root cause:** the exploration phase has no defined exit criteria. Without an explicit transition, the code accumulates users and dependencies while remaining at prototype quality.
 
-**Prevention:** explicit phase transitions in the briefing doc, with graduation checklists and target dates. Covered in [Ch 5 Edit-Test-Commit](/05-edit-test-commit/).
+**Prevention:** explicit phase transitions in the briefing doc, with graduation checklists and target dates. Covered in [Ch 5 Edit-Test-Commit](/agentic-coding/05-edit-test-commit/).
 
 <Recovery
   pattern="Permanent prototype"
@@ -116,7 +115,7 @@ The catalog. Eight common anti-patterns, each with a Recovery box you can apply 
 
 **Root cause:** AI-generated code *looks* correct. The syntax is clean, variable names reasonable, logic reads well. This appearance of correctness is precisely why verification is essential — the bugs are subtle, not obvious.
 
-**Prevention:** always provide verification criteria in the prompt, tests with code (not after), hook-enforced test requirements. Full treatment in [Ch 5 Edit-Test-Commit](/05-edit-test-commit/).
+**Prevention:** always provide verification criteria in the prompt, tests with code (not after), hook-enforced test requirements. Full treatment in [Ch 5 Edit-Test-Commit](/agentic-coding/05-edit-test-commit/).
 
 <Recovery
   pattern="Verification gap"
@@ -146,7 +145,7 @@ The catalog. Eight common anti-patterns, each with a Recovery box you can apply 
 
 **Root cause:** the scope of the rewrite exceeds what can be held in context. The agent loses track of the original behavior and introduces regressions.
 
-**Prevention:** incremental refactoring — extract one function, write characterization tests, refactor, verify, commit. Each step independently shippable. Characterization-test mechanics are covered in [Ch 5 Edit-Test-Commit](/05-edit-test-commit/); the full four-step refactoring protocol (extract → test → harden → promote) is covered in [Ch 10 Starting and Refactoring Projects](/10-starting-and-refactoring/).
+**Prevention:** incremental refactoring — extract one function, write characterization tests, refactor, verify, commit. Each step independently shippable. Characterization-test mechanics are covered in [Ch 5 Edit-Test-Commit](/agentic-coding/05-edit-test-commit/); the full four-step refactoring protocol (extract → test → harden → promote) is covered in [Ch 10 Starting and Refactoring Projects](/agentic-coding/10-starting-and-refactoring/).
 
 <Recovery
   pattern="Big-bang refactoring"

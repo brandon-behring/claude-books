@@ -18,13 +18,12 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *There is a ceiling on how much work a single session can do before context rot sets in. The instinct is to push the ceiling higher — use the 1M window, compact aggressively, add more discipline. The insight is the opposite: stop trying to scale the single session and scale the number of sessions instead. This chapter is about the two mechanics that make horizontal scaling practical — delegating within a session to a subagent, and running sessions side-by-side across isolated worktrees.*
 
 ## Representation
 
-[Context as Currency](/02-context-as-currency/) made the case that context decays non-linearly. The consequence — understated there, fleshed out here — is that the best response to "this task is too big for one session" is almost never "make the session bigger." It is "make the tasks smaller and run more of them."
+[Context as Currency](/agentic-coding/02-context-as-currency/) made the case that context decays non-linearly. The consequence — understated there, fleshed out here — is that the best response to "this task is too big for one session" is almost never "make the session bigger." It is "make the tasks smaller and run more of them."
 
 <ConceptBox term="Horizontal scaling">
   Running many short, focused sessions in parallel or sequence rather than one long session. Each short session starts with a clean attention budget, a focused context, and a specific deliverable. Durable artifacts (briefing doc, handoff files, git commits) bridge between sessions; the conversations themselves stay bounded.

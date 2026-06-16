@@ -18,7 +18,6 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *A stateless agent needs a frame. It has no memory of your project, no training on your conventions, no sense of what the current phase is or why this repo is shaped the way it is. The briefing doc is how you give it one — on every single turn, at the top of context, where attention is strongest. This chapter is about what goes in it, what shouldn't, and how to structure it so every line earns its place.*
 
@@ -42,7 +41,7 @@ A briefing doc plays three roles. Confusing them produces bloated, vague, or ine
 
 **Role 2: Rules.** What the agent *must* or *must not* do. Non-negotiable constraints: never log secrets, always run tests before commit, never modify generated files by hand. Rules should be specific enough that compliance is observable. Vague rules ("write clean code") don't rule anything out.
 
-**Role 3: Vocabulary.** Precise terms that map to specific actions. "Validate" means `pytest tests/ && ruff check src/`. "Ship" means commit, push, open PR. This is the precision vocabulary from [Ch 3 Prompting](/03-prompting-as-specification/) made stable across sessions.
+**Role 3: Vocabulary.** Precise terms that map to specific actions. "Validate" means `pytest tests/ && ruff check src/`. "Ship" means commit, push, open PR. This is the precision vocabulary from [Ch 3 Prompting](/agentic-coding/03-prompting-as-specification/) made stable across sessions.
 
 ### What doesn't belong
 
@@ -56,7 +55,7 @@ The briefing doc is not a kitchen sink. These go elsewhere:
 
 ### Size discipline
 
-Anthropic's published guidance on Claude Code suggests individual briefing docs stay under ~200 lines, with the combined total across all briefing-doc layers (global + project + enterprise + user) under ~500 lines. Those numbers are Claude-specific but the principle generalizes: **every briefing doc has a budget**, because it's a fixed tax on every turn. Over-budget briefing docs trigger the `Context overload` anti-pattern from [Ch 11](/11-antipatterns-recovery/) — rules get diluted across too much text and the agent starts picking and choosing which to follow.
+Anthropic's published guidance on Claude Code suggests individual briefing docs stay under ~200 lines, with the combined total across all briefing-doc layers (global + project + enterprise + user) under ~500 lines. Those numbers are Claude-specific but the principle generalizes: **every briefing doc has a budget**, because it's a fixed tax on every turn. Over-budget briefing docs trigger the `Context overload` anti-pattern from [Ch 11](/agentic-coding/11-antipatterns-recovery/) — rules get diluted across too much text and the agent starts picking and choosing which to follow.
 
 <KeyIdea>
   If your briefing doc is growing past 200 lines, the question is not "how do I compress this?" but "which of these lines earns its tax every turn?" Anything that only matters for one submodule belongs in a path-scoped rule file. Anything that only matters for one decision belongs in an ADR. What survives in the hub is the content every agent turn of every session benefits from.

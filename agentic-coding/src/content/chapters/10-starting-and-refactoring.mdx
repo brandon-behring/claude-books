@@ -18,7 +18,6 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *Projects have ages. A week-old greenfield repo, a two-year-old codebase in stabilization, a ten-year-old legacy system with accumulated patterns — each demands a different collaboration strategy with the agent. The practices that work at inception break at scale; the practices that work on legacy code suffocate a prototype. This chapter is about matching the protocol to the phase.*
 
@@ -83,7 +82,7 @@ Three protocols, each with a specific goal and a specific failure mode.
    - Sets the agent's example for tone.
 ```
 
-What you *don't* do on day one: coverage thresholds, exhaustive type hints, production-grade error handling. Inception phase is for shape-finding, not rigor. The anti-pattern from [Ch 11](/11-antipatterns-recovery/) — premature rigor killing exploration — is specifically warning against front-loading this.
+What you *don't* do on day one: coverage thresholds, exhaustive type hints, production-grade error handling. Inception phase is for shape-finding, not rigor. The anti-pattern from [Ch 11](/agentic-coding/11-antipatterns-recovery/) — premature rigor killing exploration — is specifically warning against front-loading this.
 
 <SkillBox title="Day one greenfield — 60 minutes of setup">
   Create the briefing doc with explicit phase declaration. Configure two hooks (lint-on-commit, format-on-write). Make the first commit. Only then start the first real feature. Teams that skip this 60 minutes often spend the first month without them — and then discover at month 3 that their codebase taught the agent a dozen habits they now need to un-teach. The 60 minutes is the cheapest investment you will make in the project's entire lifespan.
@@ -93,7 +92,7 @@ What you *don't* do on day one: coverage thresholds, exhaustive type hints, prod
 
 **Goal**: agent learns the codebase *before* editing it.
 
-The single biggest brownfield failure mode: the agent edits according to conventions that don't match the actual code, because nobody told it what the actual conventions are. The codebase-is-the-curriculum principle from [Ch 1](/01-agent-mental-model/) means the agent *will* learn from the codebase — either from your guided tour, or from whatever files it happens to read first. A guided tour is cheaper.
+The single biggest brownfield failure mode: the agent edits according to conventions that don't match the actual code, because nobody told it what the actual conventions are. The codebase-is-the-curriculum principle from [Ch 1](/agentic-coding/01-agent-mental-model/) means the agent *will* learn from the codebase — either from your guided tour, or from whatever files it happens to read first. A guided tour is cheaper.
 
 ```text
 Session 1 — Discovery (plan mode; read-only).
@@ -132,7 +131,7 @@ This three-session onboarding feels expensive. It's not — it's three sessions 
 
 **Goal**: each step commit-sized, always-working, reversible.
 
-The big-bang refactoring anti-pattern from [Ch 11](/11-antipatterns-recovery/) is the specific failure this protocol prevents. The counterpattern is four steps, applied repeatedly to small scopes:
+The big-bang refactoring anti-pattern from [Ch 11](/agentic-coding/11-antipatterns-recovery/) is the specific failure this protocol prevents. The counterpattern is four steps, applied repeatedly to small scopes:
 
 **Extract.** Pull one function or one module out of the existing shape. Same behavior, new location. Run tests; confirm nothing broke. Commit.
 
@@ -146,7 +145,7 @@ Four steps, four commits, always-shippable state. If step 3 or 4 goes wrong, ste
 
 ### Four failure layers of a refactor
 
-When a refactor goes sideways, diagnose by layer — same pattern as the four-layer diagnosis from [Ch 11](/11-antipatterns-recovery/), applied to refactoring specifically:
+When a refactor goes sideways, diagnose by layer — same pattern as the four-layer diagnosis from [Ch 11](/agentic-coding/11-antipatterns-recovery/), applied to refactoring specifically:
 
 1. **Scope.** Is the refactor too big? If the change touches more than ~5 files in a single step, it's almost certainly not going to land cleanly. Decompose.
 2. **Dependencies.** Do the changed files have un-characterized downstream consumers? Run `grep -r` for the public interface; write characterization tests for each consumer before editing.
@@ -164,7 +163,7 @@ When a refactor goes sideways, diagnose by layer — same pattern as the four-la
   pattern="Refactor scope creep"
   symptom="You asked for a clean refactor of one module. The diff touches fifteen files. Some are 'drive-by improvements' you didn't request."
 >
-  The scope constraints from [Ch 3](/03-prompting-as-specification/) weren't applied. Revert the unsolicited changes (don't just accept the extras as bonus improvements — they weren't reviewed for the original refactor's contract). Re-prompt with explicit file list and "don't touch other files without asking" constraint. If the agent did identify a real problem in a different file, capture it as a follow-up task rather than bundling it into the current change.
+  The scope constraints from [Ch 3](/agentic-coding/03-prompting-as-specification/) weren't applied. Revert the unsolicited changes (don't just accept the extras as bonus improvements — they weren't reviewed for the original refactor's contract). Re-prompt with explicit file list and "don't touch other files without asking" constraint. If the agent did identify a real problem in a different file, capture it as a follow-up task rather than bundling it into the current change.
 </Recovery>
 
 <TryThis title="Phase-audit your most active project">
@@ -213,5 +212,5 @@ Edge cases worth naming:
 - Incremental refactoring: four steps — extract, test, harden, promote. Each commit-sized, always-working, reversible.
 - Four failure layers of a refactor: scope, dependencies, test coverage, rollback. Diagnose by layer.
 - Characterization tests pin *current* behavior. Write before refactoring, not after. They catch the unintended behavior changes agent-helpful "improvements" introduce.
-- Phase-appropriate rigor: every failure recipe in [Ch 11](/11-antipatterns-recovery/) maps to a phase-mismatch.
+- Phase-appropriate rigor: every failure recipe in [Ch 11](/agentic-coding/11-antipatterns-recovery/) maps to a phase-mismatch.
 - Premature rigor kills exploration; missing rigor kills production. The phase declaration in the briefing doc is how you avoid both.

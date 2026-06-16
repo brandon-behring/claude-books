@@ -18,13 +18,12 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *The agent just produced 200 lines of code that looks correct. The syntax is clean, the variable names are reasonable, the logic reads well. How do you know it actually works? AI-generated code has a specific failure mode human-written code does not: it *looks* correct. The appearance of correctness is precisely why verification is essential — the bugs are subtle, not obvious.*
 
 ## Representation
 
-The edit-test-commit loop is the quality-preservation layer around the session loop. Where the [session loop](/04-session-loop/) handles *what does the agent do next*, this loop handles *how do we know the agent's output is correct*. The answer, overwhelmingly, is: the agent verifies its own work against criteria you specified, and you verify the criteria were adequate.
+The edit-test-commit loop is the quality-preservation layer around the session loop. Where the [session loop](/agentic-coding/04-session-loop/) handles *what does the agent do next*, this loop handles *how do we know the agent's output is correct*. The answer, overwhelmingly, is: the agent verifies its own work against criteria you specified, and you verify the criteria were adequate.
 
 <ConceptBox term="The verification principle">
   An agent's output is untrusted by default. The developer's job is to specify verification criteria *before* code is generated, and the agent's job is to run those criteria *as part of* producing output. Verification is not a manual gate applied after the fact — it is a precondition the agent checks on every iteration. "Give the agent a way to verify its own work" is the single highest-leverage practice in agentic coding.
@@ -35,7 +34,7 @@ The edit-test-commit loop is the quality-preservation layer around the session l
 Not all verification is the same. A robust project layers defenses so that no single failure mode goes undetected:
 
 1. **Type safety** — static checking at compile time (mypy, TypeScript, Go's type checker, Rust's type system and borrow checker). The cheapest layer.
-2. **Input validation** — preconditions at function entry. Fail fast with explicit errors (the fail-fast principle from [Ch 1](/01-agent-mental-model/)).
+2. **Input validation** — preconditions at function entry. Fail fast with explicit errors (the fail-fast principle from [Ch 1](/agentic-coding/01-agent-mental-model/)).
 3. **Unit tests** — each function in isolation; happy path + error cases + edge cases.
 4. **Integration tests** — multi-function workflows with realistic data.
 5. **End-to-end tests** — complete user workflows from input to output.

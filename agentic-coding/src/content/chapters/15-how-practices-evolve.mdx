@@ -18,7 +18,6 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
-import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 
 *Every chapter in this book is a bet that some part of what it says will still be true in three years. Most bets will land; some will not. The difference between a book that ages well and one that becomes embarrassing fast is not the quality of the original writing — it is the methodology applied continuously after publication. This chapter is that methodology, named explicitly.*
 
@@ -61,7 +60,7 @@ Each class needs a different review cadence. `stable-principle` chapters can be 
 
 Specific tool claims date unpredictably. *Patterns across tools* date much more slowly. When three CLI-agents converge on a pattern (e.g. briefing doc at project root), the pattern is signaling that it's close to an architectural minimum — practitioners can safely bet on it. When they diverge (e.g. hook system depth), the divergence is signaling an open design space — practitioners should assume continued movement.
 
-Convergence/divergence tracking turns a disorganized shelf of tool releases into a signal-extraction problem. The signal: which primitives have settled? Which are still contested? The book's own [changelog data](/08-extending-agents/) is a concrete instance of this methodology — per-tool release timelines joined against a shared pattern registry to surface when multiple tools land the same primitive.
+Convergence/divergence tracking turns a disorganized shelf of tool releases into a signal-extraction problem. The signal: which primitives have settled? Which are still contested? The book's own [changelog data](/agentic-coding/08-extending-agents/) is a concrete instance of this methodology — per-tool release timelines joined against a shared pattern registry to surface when multiple tools land the same primitive.
 
 <KeyIdea>
   Durability in a fast-moving field comes from tiering your claims, not from betting on a tool. Practices that are written to stable principles and tracked against volatility classifications age well; practices that pin every claim to a specific tool's specific command date as fast as that tool's fastest release cycle. The meta-discipline matters more than the specific tools.
