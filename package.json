@@ -6,7 +6,8 @@
   "workspaces": [
     "handbook",
     "agentic-systems-design",
-    "architect-reference"
+    "architect-reference",
+    "agentic-coding"
   ],
   "license": "CC-BY-4.0"
 }
