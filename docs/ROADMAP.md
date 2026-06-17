@@ -3,7 +3,7 @@
 > Canonical forward plan + current state. **What each companion owns:** [`BOOK-MAP.md`](./BOOK-MAP.md)
 > = the book model & scopes · [`REPO-MAP.md`](./REPO-MAP.md) = git topology · [`cert-coverage.md`](./cert-coverage.md)
 > = cert-book status (authority) · [`scaffold-gaps.md`](./scaffold-gaps.md) = scaffold epics ·
-> [`research-program/`](./research-program/) = the strict-live dossiers. Last updated 2026-06-12.
+> [`research-program/`](./research-program/) = the strict-live dossiers. Last updated 2026-06-17.
 
 ## The series (model + status)
 
@@ -44,6 +44,7 @@ eval + ops dossiers). Scaffold: consumes `book-scaffold-astro ^4.18.0`.
 - **Deferred-debt batch** — research-lint green (matcher fix) + scaffold → 4.18 (#96 cross-book XRef) + cert-coverage Design column (2026-06-08).
 - **Cert factual-accuracy audit + freshness pipeline** — 13 ch re-verified vs live docs (Opus 4.7→4.8 cutover + count/citation drift); a curriculum→live-dossier freshness loop: cert-audit **Check 12** (staleness) + **Check 13** (correctness-currency) + a factored-CoVe gate + `last_reviewed` marker (2026-06-08).
 - **Cert study-apparatus spine wired** — consumed the scaffold v4.17 spine: `examDomains` + the `questions` collection + the static `/practice-exam` route + `<ObjectiveMap>` (landing page), seeded 10-question bank (2/domain, chapter-grounded); build green in-workspace (2026-06-09).
+- **YouTube-talks source pool + guide-impact + source watch-map (2026-06-17)** — new external `youtube_talks` dossier (134 talks, 103 indexed, `synthesis.md` = 12 trend claims; **tri-engine audited** Codex+Gemini+Claude). In-repo bridge: [`research-program/youtube-talks-guide-impact.md`](./research-program/youtube-talks-guide-impact.md) (the 12 claims mapped to chapter impact — staleness / framing / gaps / convergence / directional; tri-engine audited) + [`research-program/source-registry.md`](./research-program/source-registry.md) (the source-first **watch-map** — standing feeds + code/samples + discovery method + cadence; **decisions.md D8**; tri-engine audited, dead-link-checked). **Deferred next phases:** the recurring **change-digest** (what's new · what changed · new samples · impact on the books) and a **scheduled freshness/automation agent** (wire the `[feed]` sources + revive the cert-tracking agent + the freshness heartbeat).
 
 ## v1.0 targets (what "done" means; ordering committed under Next)
 
@@ -138,7 +139,9 @@ per-book Workers, no service-binding proxy** — one Worker for the whole apex.
 - **Freshness-loop heartbeat** re-run — *per model release or quarterly* (recipe in
   [`design/2026-06-08_curriculum-live-dossier-loop.md`](./design/2026-06-08_curriculum-live-dossier-loop.md) §3);
   the same heartbeat **re-verifies the 23 external dossiers** (`bib_ledger` `stale_after` radar),
-  not just the cert chapters.
+  not just the cert chapters. Now also sweep the **`youtube_talks` source pool** (cache+index+on-cite,
+  external) and apply its [`youtube-talks-guide-impact.md`](./research-program/youtube-talks-guide-impact.md)
+  staleness items (the D5.6 model-name table; the effort-dial / MCP-ladder framing refreshes).
 - **Figures pipeline** — TikZ→SVG via the scaffold's `build-figures` (shipped v4.2); *trigger: the
   first chapter needing a new diagram — expected during the handbook port.*
 - Upstream **#83** — roll the v4.8.0 provenance backfill out to the consumer books (P3).
@@ -155,6 +158,25 @@ per-book Workers, no service-binding proxy** — one Worker for the whole apex.
   the deck derives from the `glossary` collection).
 - **`research-program/content-map.md` topic→book map predates multi-volume Design** — rows still map
   to the old book set. *Trigger:* when authoring a Design volume needs the precise atom→section map.
+- **YouTube-talks → guide impact (2026-06-16)** — the `youtube_talks` source pool's 12 trend claims
+  mapped to current chapters; prioritized report:
+  [`research-program/youtube-talks-guide-impact.md`](./research-program/youtube-talks-guide-impact.md).
+  **One correctness item** — the D5.6 model-name/cutoff table (Fable 5 / Mythos 5 generation now out →
+  re-anchor vs `anthropic-models-overview`, not the conference talk). **Two framing refreshes that are
+  also citation wins** — the effort-dial model (cert D2.3 + Design ch16) and the explicit
+  primitives→custom→MCP ladder (cert D2.4 + Design ch15). Sizing **S**. The **new-primitive gaps**
+  (Managed Agents, evals-as-engine, auto-mode/Routines, memory+dreaming, skills-governance,
+  spec-writing + 7 glossary terms) **create no new work** — they route to already-planned authoring
+  (handbook ch05–15 port = Horizon-2 item 4; Design applied vol = item 6; glossary `<Term>` retrofit).
+  *Trigger:* the staleness items ride the **freshness heartbeat** (Ops lane; Checks 12/13); the gaps +
+  convergence citations land **as each owning chapter is next authored/edited**. Honest-tiering caveat
+  in the report: ch26 (auto-mode) + ch10 (memory) stay *directional notes*, not corrections — the talks
+  are Anthropic's product direction, and those chapters' caution may be more correct.
+  *Independently audited 2026-06-17 (Codex + Gemini + Claude tri-engine review →
+  `~/Claude/research_agent_youtube_talks/external_audit_report.md`): grounding / methodology (103/103
+  sha256) / citations / honest-tiering all clean, **0 surviving P1**. Unanimous correction — the "one
+  correctness item" above re-tiers to a **freshness-UPDATE** (the model table isn't wrong); plus 2 backing
+  timestamps to tighten. Fixes proposed, not yet applied.*
 
 ## Authority map (who owns which truth — prevents re-drift)
 - **ROADMAP** = forward plan + current snapshot + decisions log.
