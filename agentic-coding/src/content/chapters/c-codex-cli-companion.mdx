@@ -38,15 +38,16 @@ Key defaults at time of capture:
 ## Approval modes: the distinctive permission surface
 
 <Divergence axis="permission mental model">
-  Claude and Gemini express permissions as allow/deny lists at tool-name granularity. Codex expresses permissions as **approval modes**<Citation src="codex-cli-sandbox" /> — a small fixed set of levels ranging from "ask on every action" to "never ask." The nomenclature maps to overlapping territory in different vocabulary; the *model* is meaningfully different. Allow/deny says *which tools the agent may use*; approval modes say *how much autonomy the agent has*. For some workflows the approval-mode framing is cleaner; for others it's less expressive because it controls trust depth rather than tool scope.
+  Claude and Gemini express permissions as allow/deny lists at tool-name granularity. Codex expresses permissions as **approval modes**<Citation src="codex-cli-sandbox" /> — a small fixed set of levels ranging from "ask before each untrusted command" to "never ask." The nomenclature maps to overlapping territory in different vocabulary; the *model* is meaningfully different. Allow/deny says *which tools the agent may use*; approval modes say *how much autonomy the agent has*. For some workflows the approval-mode framing is cleaner; for others it's less expressive because it controls trust depth rather than tool scope.
 </Divergence>
 
-The approval-mode levels, at time of capture, span roughly:
+The approval-mode levels (`--ask-for-approval`, `-a`), at time of capture:
 
-- **Ask on every action** — maximum human oversight. The agent proposes, the human approves each step.
-- **Ask on request** (`-a on-request`) — the agent works autonomously on reads and analysis, asks before any write or destructive action.<Citation src="codex-cli-noninteractive" />
-- **Ask on failure** — run without prompting unless a command fails; then surface for human judgment.
-- **Never ask** — full autonomy, equivalent to Gemini's `--yolo` in trust level.
+- **`untrusted`** — the strictest current mode: Codex auto-runs known-safe commands but asks for approval before any *untrusted* command. Maximum practical human oversight.
+- **`on-request`** (`-a on-request`) — the agent works autonomously on reads and analysis, asks before any write or destructive action.<Citation src="codex-cli-noninteractive" />
+- **`never`** (`-a never`) — full autonomy, no approval prompts (it relies on the sandbox boundary); the docs' choice for non-interactive / CI runs. Equivalent to Gemini's `--yolo` in trust level.
+
+An earlier `on-failure` level is deprecated. Each level pairs with a `--sandbox` policy (`read-only` / `workspace-write` / `danger-full-access`) — see the sandbox section below.
 
 For automated pipelines the approval-mode flag is the primary configuration. The discipline from Ch 12 applies: pick the most restrictive mode that still lets the workflow complete, not the most permissive one that always works.
 
@@ -99,7 +100,7 @@ Situations where another tool may fit better:
 
 ## Quick reference
 
-- Binary: `codex`; approval-mode flags (`-a on-request`, `--full-auto`, etc.) configure autonomy for non-interactive use
+- Binary: `codex`; approval-mode flags (`-a on-request`, `-a never`, etc.) configure autonomy for non-interactive use
 - Briefing doc: `AGENTS.md` at repo root (part of the cross-tool convergence on top-level briefing docs)<Citation src="codex-cli-agents-md" />
 - Backend: OpenAI API or Azure OpenAI; configurable via env; OpenAI-compatible proxies work
 - Permissions: approval-mode model, not allow/deny lists — controls trust depth rather than tool scope

@@ -69,7 +69,7 @@ The tri-tool map of what's supported where:
 | User commands | `.claude/skills/<name>/SKILL.md` (or a single `.md`) → `/name` | `.gemini/commands/<name>.toml` → `/name` | slash commands via config / plugins |
 | Reusable skills | merged with commands — a skill-with-a-directory is the richer form of a command | via extensions | via MCP server + registered tools |
 | Hooks | 9+ events: `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Notification`, `Stop`, `SubagentStop`, `PreCompact`, `SessionStart`, `SessionEnd` | lighter; pre/post tool callbacks | command-approval config in `~/.codex/config.toml` |
-| Permissions | `settings.json` with allow-list / deny-rules; enforced by harness | tool-level allow-lists | approval modes (`-a on-request` / `--full-auto`) |
+| Permissions | `settings.json` with allow-list / deny-rules; enforced by harness | tool-level allow-lists | approval modes (`-a on-request` / `-a never`) |
 | MCP support | first-class; shipped with Claude Code from early | first-class (2025+); 200+ extension ecosystem | first-class; `codex mcp` CLI + `~/.codex/config.toml` |
 | MCP transports | stdio + HTTP/SSE | stdio + HTTP | stdio + streamable HTTP |
 

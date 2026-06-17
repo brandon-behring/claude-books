@@ -56,7 +56,7 @@ The simplest case — a script or Makefile target invokes the agent non-interact
   | --- | --- | --- |
   | Claude Code | `claude -p "<prompt>"` (print mode) | Settings file declares allowed tools; prompt runs with that static allowlist |
   | Gemini CLI | Non-interactive mode via `-p` / piped stdin | `settings.json` declares tool permissions; `--yolo` bypasses all approvals (dangerous) |
-  | Codex CLI | Approval mode flags (e.g. `--approval-mode` / `-a`) | Scoped approval levels: on-request, on-failure, never — chosen per invocation |
+  | Codex CLI | `codex exec` (non-interactive subcommand) | Scoped approval levels (`-a`): untrusted, on-request, never — paired with a `--sandbox` policy, chosen per invocation |
 </Divergence>
 
 The three tools converge on a `-p` / print / prompt flag for non-interactive mode and diverge on how permissions are granted. The underlying question each tool answers in its own vocabulary: *what is the agent allowed to do without asking, given no one is here to ask?*
