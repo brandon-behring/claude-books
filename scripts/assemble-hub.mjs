@@ -45,6 +45,7 @@ writeFileSync(join(OUT, 'index.html'), `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>claude-books — a Claude Code / agentic-coding book series</title>
   <meta name="description" content="A multi-book series on building with Claude Code and agentic systems, on book-scaffold-astro." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
     :root { color-scheme: light dark; --fg: #1a1a1a; --muted: #666; --bg: #fafafa; --accent: #5a4fcf; }
     @media (prefers-color-scheme: dark) { :root { --fg: #e8e8e8; --muted: #9a9a9a; --bg: #14141a; } }
@@ -77,4 +78,8 @@ ${live}
 `);
 
 writeFileSync(join(OUT, 'robots.txt'), 'User-agent: *\nDisallow: /handbook/\n');
-console.log('  wrote dist/index.html (hub landing) + dist/robots.txt (handbook noindex)');
+
+// Apex favicon: the hand-written hub landing links /favicon.svg — copy the series mark
+// (the Claude logo) from an assembled book so the root tab icon resolves (no /favicon.ico 404).
+cpSync(join(OUT, 'agentic-coding', 'favicon.svg'), join(OUT, 'favicon.svg'));
+console.log('  wrote dist/index.html (hub landing) + dist/robots.txt (handbook noindex) + dist/favicon.svg');

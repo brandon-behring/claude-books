@@ -119,3 +119,14 @@ affected (Design ch12–28, Vol-1 chapters, and the cert book's apparatus), not 
 by the final pre-push adversarial review (codex). *Suggested upstream fix:* have `<Solution>` pick the
 backlink target by the `for=` id's prefix (`-pr-` → `#practice-`, otherwise `#exercise-`), or give
 `<Practice>`/`<Exercise>` a shared anchor scheme `<Solution>` can match. File with `consumer:claude-books`.
+
+**New gap observation (2026-06-17): scaffold `Base.astro` links `/favicon.svg` but ships no default
+favicon.** `layouts/Base.astro` unconditionally emits `<link rel="icon" type="image/svg+xml"
+href="{base}favicon.svg" />`, but the package ships no default favicon — so every consumer book whose
+`public/` lacks a `favicon.svg` 404s on it (console error + no browser tab icon) on **every page**.
+Verified in the assembled hub: `/architect/favicon.svg`, `/design/favicon.svg`, `/handbook/favicon.svg`
+all 404'd (only `agentic-coding` shipped one); the apex hub also had no `/favicon.ico`. Non-build-breaking
+but **book-wide** and reader-visible. *Worked around here* by copying the series mark (the Claude logo
+`favicon.svg`) into all four books' `public/` + the apex `dist/` root (via `scripts/assemble-hub.mjs`).
+*Suggested upstream fix:* ship a neutral default `favicon.svg` in the package and have `Base.astro` fall
+back to it, or only emit the link when the consumer provides one. File with `consumer:claude-books`.
