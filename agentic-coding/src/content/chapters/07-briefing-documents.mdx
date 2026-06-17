@@ -5,7 +5,7 @@ chapter: 7
 volatility: architectural-pattern
 tools_compared: [claude-code, gemini-cli, codex-cli]
 last_verified: 2026-04-17
-sources: []
+sources: [claude-code-memory, gemini-cli-gemini-md, codex-cli-agents-md]
 description: "CLAUDE.md / GEMINI.md / AGENTS.md — the industry has converged on a project-root briefing doc the agent re-reads on every turn. This chapter is about what goes in it, what doesn't, and how to structure it so every token has leverage."
 draft: false
 ---
@@ -18,6 +18,7 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
 
 *A stateless agent needs a frame. It has no memory of your project, no training on your conventions, no sense of what the current phase is or why this repo is shaped the way it is. The briefing doc is how you give it one — on every single turn, at the top of context, where attention is strongest. This chapter is about what goes in it, what shouldn't, and how to structure it so every line earns its place.*
 
@@ -65,7 +66,7 @@ Anthropic's published guidance on Claude Code suggests individual briefing docs 
 
 At scale, a single file is not enough. A large project naturally accumulates specialized rules: the backend uses Django conventions that don't apply to the frontend; the mobile client has Swift conventions irrelevant to both; the ML pipeline has verification requirements specific to that domain. Stuffing all of this into one briefing doc violates the every-line-earns-its-tax rule.
 
-The solution is *hub-and-spoke*: a lean core briefing doc (the hub) plus path-scoped rule files (spokes) that load only when the agent is working in the relevant directory. Claude Code implements this natively via `.claude/rules/*.md` with `paths:` frontmatter; Gemini CLI supports hierarchical `GEMINI.md` files (nested per directory); Codex CLI's model is flatter but improving.
+The solution is *hub-and-spoke*: a lean core briefing doc (the hub) plus path-scoped rule files (spokes) that load only when the agent is working in the relevant directory. Claude Code implements this natively via `.claude/rules/*.md` with `paths:` frontmatter<Citation src="claude-code-memory" />; Gemini CLI supports hierarchical `GEMINI.md` files (nested per directory)<Citation src="gemini-cli-gemini-md" />; Codex CLI's model is flatter but improving<Citation src="codex-cli-agents-md" />.
 
 ## Operation
 

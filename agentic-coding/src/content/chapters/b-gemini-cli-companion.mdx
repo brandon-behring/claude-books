@@ -5,7 +5,7 @@ chapter: 2
 volatility: feature-surface
 tools_compared: [gemini-cli]
 last_verified: 2026-04-17
-sources: []
+sources: [gemini-cli-readme, gemini-cli-commands-reference, gemini-cli-configuration, gemini-cli-mcp-server, gemini-cli-authentication, gemini-cli-run-action]
 description: "What's different about Gemini CLI: the parts of its surface that diverge from the Claude-centric defaults in the body chapters. Kept brief on purpose — comparative pedagogy, not exhaustive documentation. Where Gemini is genuinely the better fit, that is named."
 draft: false
 ---
@@ -16,12 +16,13 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
 
 *This appendix is explicitly scoped to the parts of Gemini CLI that diverge from Claude's defaults or that make Gemini a better fit for a particular workload. Convergent primitives (briefing doc at repo root, slash commands, headless mode, MCP integration) are covered in the body chapters and not repeated here. The intent is a reference that helps a practitioner who already read the book translate its concepts to Gemini specifically, not a standalone tutorial.*
 
 ## What Gemini CLI is
 
-Gemini CLI is Google's open-source command-line agent, integrating the Gemini model family with local tooling. Its natural home is workflows where the developer already operates inside Google Cloud — existing Vertex AI contracts, existing ADC (Application Default Credentials) setup, existing BigQuery / GCS / Cloud Run infrastructure. In those contexts the credential chain, billing, and deployment path are ergonomic rather than adversarial.
+Gemini CLI is Google's open-source command-line agent, integrating the Gemini model family with local tooling.<Citation src="gemini-cli-readme" /> Its natural home is workflows where the developer already operates inside Google Cloud — existing Vertex AI contracts, existing ADC (Application Default Credentials) setup, existing BigQuery / GCS / Cloud Run infrastructure. In those contexts the credential chain, billing, and deployment path are ergonomic rather than adversarial.
 
 Key defaults at time of capture:
 
@@ -33,12 +34,12 @@ Key defaults at time of capture:
 | Briefing doc | `GEMINI.md` at repo root |
 | Slash commands | `.gemini/commands/` (project) or `~/.gemini/commands/` (user) |
 | Extension model | Primarily MCP servers |
-| Auth | Google Cloud ADC chain by default |
+| Auth | OAuth (Sign in with Google); ADC for Vertex/GCP |
 
 ## What's different about context
 
 <Divergence axis="context window size">
-  Gemini's long-context capability is the clearest single axis of divergence. Gemini's production models ship multi-hundred-thousand to multi-million-token context windows, substantially above Claude's and OpenAI/Codex's. The *practical* consequence is not that you should stuff more into context (Ch 2's warnings about context rot apply regardless of window size) but that certain workload shapes — large-repo code review, whole-monorepo reasoning, long-document synthesis — are genuinely more tractable in Gemini. This is Gemini's sharpest capability advantage as of the chapter's last-verified date.
+  Gemini's long-context capability is the clearest single axis of divergence. Gemini's production models ship multi-hundred-thousand to multi-million-token context windows, substantially above Claude's and OpenAI/Codex's.<Citation src="gemini-cli-readme" /> The *practical* consequence is not that you should stuff more into context (Ch 2's warnings about context rot apply regardless of window size) but that certain workload shapes — large-repo code review, whole-monorepo reasoning, long-document synthesis — are genuinely more tractable in Gemini. This is Gemini's sharpest capability advantage as of the chapter's last-verified date.
 </Divergence>
 
 The corollary is discipline. A long-context model tempts the anti-pattern Ch 2 warns about: *adding more because the budget allows it*. The right use of Gemini's context is to *reduce pre-processing* (less forced summarization, less aggressive chunking) when the task genuinely needs many files in view at once, not to make context hygiene optional.
@@ -48,12 +49,12 @@ The corollary is discipline. A long-context model tempts the anti-pattern Ch 2 w
 Gemini CLI leans heavily on MCP as its extension surface. Where Claude exposes skills, hooks, and MCP as three distinct surfaces, Gemini unifies most of that territory around MCP servers. The upside: a cleaner mental model — *all tool extension is an MCP server*. The downside: more setup cost for tasks where Claude's skill-as-directory or command-as-Markdown would be lighter-weight.
 
 <SkillBox title="Adding capability via MCP in Gemini">
-  Identify or author an MCP server that exposes the tools you need; register it in the Gemini CLI settings file; restart the session. The server's tools appear in the agent's tool list. For common integrations (GitHub, Slack, databases) third-party MCP servers exist; for project-specific helpers you author a small server that wraps your scripts. The server pattern has a higher floor than writing a slash command but a higher ceiling — MCP servers can be shared across tools, across teammates, across projects in ways a single-tool skill cannot.
+  Identify or author an MCP server that exposes the tools you need; register it in the Gemini CLI settings file; restart the session. The server's tools appear in the agent's tool list.<Citation src="gemini-cli-mcp-server" /> For common integrations (GitHub, Slack, databases) third-party MCP servers exist; for project-specific helpers you author a small server that wraps your scripts. The server pattern has a higher floor than writing a slash command but a higher ceiling — MCP servers can be shared across tools, across teammates, across projects in ways a single-tool skill cannot.
 </SkillBox>
 
 ## Memory and session commands
 
-Gemini CLI's built-in session commands include `/memory` with subcommands (`refresh`, `add`, `show`) that manage the persistent memory surface — GEMINI.md-derived context plus any memory updates made during a session. `/memory refresh` re-reads the briefing doc when it's been edited mid-session; `/chat` manages conversation state.
+Gemini CLI's built-in session commands include `/memory` with subcommands (`refresh`, `show`, `list`) that manage the persistent memory surface — GEMINI.md-derived context plus any memory updates made during a session. `/memory refresh` re-reads the briefing doc when it's been edited mid-session; `/chat` manages conversation state.<Citation src="gemini-cli-commands-reference" />
 
 <Recovery
   pattern="GEMINI.md edits don't seem to take effect"
@@ -64,19 +65,19 @@ Gemini CLI's built-in session commands include `/memory` with subcommands (`refr
 
 ## The `--yolo` flag hazard
 
-Gemini CLI ships a flag — `--yolo` — that disables all approval prompts, letting the agent run destructive actions without pausing. For ephemeral experimentation in a throwaway environment it is convenient; for CI, for production repositories, for anything that matters, it is dangerous.
+Gemini CLI ships a flag — `--yolo` — that disables all approval prompts, letting the agent run destructive actions without pausing.<Citation src="gemini-cli-configuration" /> For ephemeral experimentation in a throwaway environment it is convenient; for CI, for production repositories, for anything that matters, it is dangerous.
 
 The failure mode: a well-intentioned engineer uses `--yolo` to unblock a specific workflow, commits the invocation to a repo script, and months later the script runs in a context where the safety it skipped was load-bearing. The fix — and it applies to similar broad-authorization flags in any tool — is to treat `--yolo` as a local-session affordance only, never commit invocations that include it, and audit scripts for its presence as part of the team's governance practice (Ch 13).
 
 ## Authentication chains
 
-Gemini CLI's default auth path is Google Cloud ADC — the same credential chain that `gcloud`, Cloud Run deploys, and other Google Cloud tools use. Running `gcloud auth application-default login` once sets the credential; subsequent Gemini invocations inherit it. For Vertex AI–backed usage this is particularly smooth because the CLI, the model endpoint, and any downstream GCP services all resolve identity through the same chain.
+Gemini CLI's recommended sign-in is OAuth (*Sign in with Google*); for Google Cloud–backed usage it authenticates through Application Default Credentials (ADC) — the same credential chain that `gcloud`, Cloud Run deploys, and other Google Cloud tools use. Running `gcloud auth application-default login` once sets the ADC credential; subsequent Gemini invocations inherit it.<Citation src="gemini-cli-authentication" /> For Vertex AI–backed usage this is particularly smooth because the CLI, the model endpoint, and any downstream GCP services all resolve identity through the same chain.
 
 For teams not already in Google Cloud, the auth setup cost is real (a GCP project, ADC, Vertex access). This is one of the tradeoffs that pushes some workloads toward other tools despite Gemini's capability advantages.
 
 ## GitHub Action
 
-Google ships an official `google-gemini/gemini-cli-action` for GitHub Actions. The integration pattern is convergent with Claude and Codex (Ch 12): `@mention`-triggered agent runs on PRs and issues, agent outputs posted as comments or inline suggestions. Configuration lives in `.github/workflows/`; the action exposes inputs for prompt, allowed tools, credentials, output format.
+Google ships an official `google-github-actions/run-gemini-cli` action for GitHub Actions.<Citation src="gemini-cli-run-action" /> The integration pattern is convergent with Claude and Codex (Ch 12): `@mention`-triggered agent runs on PRs and issues, agent outputs posted as comments or inline suggestions. Configuration lives in `.github/workflows/`; the action exposes inputs for prompt, allowed tools, credentials, output format.
 
 ## When Gemini CLI is the right fit
 
@@ -98,9 +99,9 @@ Situations where another tool may fit better:
 - Briefing doc: `GEMINI.md` at repo root; re-read mid-session with `/memory refresh`
 - Slash commands: `.gemini/commands/` (project) or `~/.gemini/commands/` (user)
 - Extension: MCP-primary — most tool extension is an MCP server
-- Auth: Google Cloud ADC chain; Vertex AI is the ergonomic backend
+- Auth: OAuth (Sign in with Google) default; Google Cloud ADC for Vertex/GCP-backed; Vertex AI is the ergonomic backend
 - Hazard: `--yolo` disables all approvals; treat as local-only; audit scripts for its presence
-- GitHub Action: `google-gemini/gemini-cli-action`
+- GitHub Action: `google-github-actions/run-gemini-cli`
 - Context: multi-hundred-K to multi-million tokens; use the window to reduce pre-processing, not to skip context hygiene
 - Best fit: Google-Cloud-native teams, large-context workloads, MCP-standardized extension ecosystems
 - Volatility: feature-surface; audit quarterly.

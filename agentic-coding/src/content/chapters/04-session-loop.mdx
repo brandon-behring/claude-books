@@ -5,7 +5,7 @@ chapter: 4
 volatility: stable-principle
 tools_compared: [claude-code, gemini-cli, codex-cli]
 last_verified: 2026-04-17
-sources: []
+sources: [claude-code-cli-reference, claude-code-permission-modes]
 description: "The atomic unit of agentic work is the session loop — prompt, observe, refine, commit. Each phase has a purpose; skipping any produces a specific failure mode. This chapter makes the rhythm explicit."
 draft: false
 ---
@@ -18,6 +18,7 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
 
 *Your briefing doc is in place, your precision vocabulary is building, your scope instincts are right. You open the agent and… where do you start? How do you know when a session is going well versus slowly going off the rails? When do you course-correct, and when do you start fresh? This chapter is about the rhythm of a working session — the four-phase loop that turns a single prompt into durable output.*
 
@@ -63,7 +64,7 @@ The session loop is tool-agnostic, but each CLI-agent exposes the phase transiti
 | Open rewind menu | `Esc+Esc` or `/rewind` | `/undo` (partial) | manual via git |
 | Discard conversation | `/clear` | `/chat clear` | new session |
 | Compact in place | `/compact` (+ focus) | `/compress` | `/compact` |
-| Enter plan mode | `Shift+Tab` → plan | `/plan` | approval modes (`--suggest`, `-a on-request`) |
+| Enter plan mode | `Shift+Tab` → plan | `/plan` | approval modes (`-a on-request`) |
 | Accept-edits auto mode | `Shift+Tab` → acceptEdits | prompt per-tool | per-command approval |
 | Resume last session | `claude --continue` | `gemini --continue` | `codex resume` |
 | Pick from prior | `claude --resume` | (history in `~/.gemini/`) | `codex history` |
@@ -125,12 +126,12 @@ The structure: the initial prompt specified what, how (strategy), and verificati
 The session-loop shape has converged faster than almost any other pattern in agentic coding — the four-phase rhythm was already present in pair-programming and TDD literature before AI entered the loop. What's still diverging is the *course-correction* toolkit and the *multi-session* orchestration surface.
 
 <Convergence tools={['claude-code', 'gemini-cli', 'codex-cli']}>
-  All three CLIs support the core loop actions: interrupt mid-action, discard context, compact in place, enter a plan-before-act phase, and resume a prior session. The exact commands differ; the workflow is identical. Practices written to the loop-phases (not to the commands) port cleanly across tools.
+  All three CLIs support the core loop actions: interrupt mid-action, discard context, compact in place, enter a plan-before-act phase, and resume a prior session.<Citation src="claude-code-cli-reference" /> The exact commands differ; the workflow is identical. Practices written to the loop-phases (not to the commands) port cleanly across tools.
 </Convergence>
 
-**Convergence: plan-first workflows.** Plan mode was a Claude-first feature in 2025; Gemini shipped explicit plan mode later. Codex's approval-mode flow (`--suggest`, `-a on-request`) achieves functional equivalence — the agent proposes each action and waits for approval before executing. Recommending "start in plan mode for unfamiliar code" is now tool-independent advice; the specific command differs.
+**Convergence: plan-first workflows.** Plan mode was a Claude-first feature in 2025; Gemini shipped explicit plan mode later. Codex's approval-mode flow (`-a on-request`) achieves functional equivalence — the agent proposes each action and waits for approval before executing. Recommending "start in plan mode for unfamiliar code" is now tool-independent advice; the specific command differs.
 
-**Convergence: auto-accept modes.** All three tools expose some form of "let the agent run a sequence of tool calls without per-step approval." Claude's `acceptEdits` / `bypassPermissions`, Gemini's tool-level allowlists, Codex's command-approval config all serve the same need: once trust is established for a specific kind of operation, stop gating it. The safety envelope differs; the mechanism is the same.
+**Convergence: auto-accept modes.** All three tools expose some form of "let the agent run a sequence of tool calls without per-step approval." Claude's `acceptEdits` / `bypassPermissions`<Citation src="claude-code-permission-modes" />, Gemini's tool-level allowlists, Codex's command-approval config all serve the same need: once trust is established for a specific kind of operation, stop gating it. The safety envelope differs; the mechanism is the same.
 
 <Divergence axis="course-correction primitives">
   Claude Code has the richest correction surface — `Esc` pauses mid-action, `Esc+Esc` opens a full checkpoint rewind menu (restore conversation, code, or both to any prior turn), every tool call auto-creates a checkpoint, checkpoints persist across sessions. Gemini CLI's `/undo` handles partial rewind. Codex CLI relies on git as the rewind mechanism. If your workflow leans on fine-grained undo, Claude's surface is decisively ahead; if you're already git-disciplined, Codex's simplicity is fine.

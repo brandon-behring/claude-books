@@ -5,7 +5,7 @@ chapter: 2
 volatility: architectural-pattern
 tools_compared: [claude-code, gemini-cli, codex-cli]
 last_verified: 2026-04-17
-sources: [gwern-sidenote]
+sources: [gwern-sidenote, claude-code-memory, gemini-cli-gemini-md, codex-cli-agents-md]
 description: Context is a finite, decaying resource. This chapter explains why context degrades non-linearly, gives you a vocabulary for managing it across three CLI agents, and tracks where practices have converged and where they diverge.
 draft: false
 ---
@@ -129,7 +129,7 @@ Context management is the most convergent area of agentic-coding practice — an
   All three CLI agents treat context as a budgeted, decaying resource. Each ships an explicit compaction command that summarizes the conversation in place; each supports a top-level briefing doc re-injected on every turn. Practices written today can safely assume these primitives exist.
 </Convergence>
 
-**Convergence: the briefing-document pattern.** Claude Code established `CLAUDE.md` as a project-root convention; Gemini CLI followed with `GEMINI.md`, and Codex CLI adopted `AGENTS.md`. All three work the same way: markdown in the project root, re-injected on every turn, hierarchical loading from global → project → sub-directory. This is no longer a contested design choice — it is the standard shape.
+**Convergence: the briefing-document pattern.** Claude Code established `CLAUDE.md` as a project-root convention<Citation src="claude-code-memory" />; Gemini CLI followed with `GEMINI.md`<Citation src="gemini-cli-gemini-md" />, and Codex CLI adopted `AGENTS.md`<Citation src="codex-cli-agents-md" />. All three work the same way: markdown in the project root, re-injected on every turn, hierarchical loading from global → project → sub-directory. This is no longer a contested design choice — it is the standard shape.
 
 **Convergence: compaction as a primitive.** Claude's `/compact`, Gemini's `/compress`, and Codex's `/compact` all solve the same problem with broadly the same technique (summarize the history, replace it with the summary, keep the briefing doc intact). Auto-compaction thresholds vary but the mechanism converges.
 
