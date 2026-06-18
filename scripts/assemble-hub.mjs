@@ -16,7 +16,7 @@ import { join } from 'node:path';
 const BOOKS = [
   { dir: 'architect-reference', slug: 'architect', title: "The Claude Architect's Reference", lens: 'Cert', blurb: 'Self-contained CCA-F (D1–D5) study guide' },
   { dir: 'agentic-systems-design', slug: 'design', title: 'Agentic Systems Design', lens: 'Design', blurb: 'Engineering agentic systems (multi-volume)' },
-  { dir: 'agentic-coding', slug: 'agentic-coding', title: 'Agentic Coding', lens: 'Use', blurb: 'Cross-tool — Claude Code · Gemini CLI · Codex CLI' },
+  { dir: 'agentic-coding', slug: 'agentic-coding', title: 'Agentic Coding', lens: 'Use', blurb: 'Cross-tool principles — Claude Code, with Gemini CLI and Codex CLI as context' },
   { dir: 'handbook', slug: 'handbook', title: 'Handbook', lens: 'Use', blurb: 'Claude Code in daily practice', draft: true },
 ];
 
@@ -43,8 +43,8 @@ writeFileSync(join(OUT, 'index.html'), `<!doctype html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>claude-books — a Claude Code / agentic-coding book series</title>
-  <meta name="description" content="A multi-book series on building with Claude Code and agentic systems, on book-scaffold-astro." />
+  <title>claude-books — a Claude-centered book series (Use · Cert · Design)</title>
+  <meta name="description" content="A Claude-centered, four-book series on building with Claude Code and engineering agentic systems — on book-scaffold-astro." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
     :root { color-scheme: light dark; --fg: #1a1a1a; --muted: #666; --bg: #fafafa; --accent: #5a4fcf; }
@@ -54,6 +54,7 @@ writeFileSync(join(OUT, 'index.html'), `<!doctype html>
     main { max-width: 44rem; margin: 0 auto; padding: 4rem 1.5rem; }
     h1 { font-size: 1.9rem; margin: 0 0 .25rem; }
     .tagline { color: var(--muted); margin: 0 0 2.5rem; }
+    .note { color: var(--muted); font-size: .9rem; margin: 2rem 0 0; }
     ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
     li { border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent); border-radius: 10px; padding: 1.1rem 1.25rem; }
     li a { font-size: 1.15rem; font-weight: 600; text-decoration: none; color: var(--fg); }
@@ -67,10 +68,11 @@ writeFileSync(join(OUT, 'index.html'), `<!doctype html>
 <body>
   <main>
     <h1>claude-books</h1>
-    <p class="tagline">A series on building with Claude Code &amp; agentic systems — on <a href="https://github.com/brandon-behring/book-scaffold-astro">book-scaffold-astro</a>.</p>
+    <p class="tagline">A Claude-centered series on building with Claude Code and engineering agentic systems — on <a href="https://github.com/brandon-behring/book-scaffold-astro">book-scaffold-astro</a>.</p>
     <ul>
 ${live}
     </ul>
+    <p class="note">Two <strong>Use</strong> books: <em>Agentic Coding</em> (above) is the cross-tool principles layer — Claude Code as the home lens. The <strong>Handbook</strong> — Claude Code, day to day — is in active draft (Part I live) and joins the lineup at its v1.0.</p>
     <footer><a href="https://brandon-behring.dev">brandon-behring.dev</a></footer>
   </main>
 </body>
