@@ -7,7 +7,7 @@ The handbook's lens: **how to *use* Claude effectively day-to-day.** Architectur
 - D4 — Prompt Engineering & Structured Output (20%) ← prompting basics; advanced/structured output goes to architect-reference
 - D5 — Context Management & Reliability (15%) ← shared cross-cut
 
-**Structure**: 1 landing page + 15 chapters across 4 parts + 3 appendices.
+**Structure**: 1 landing page + 16 chapters across 4 parts + 3 appendices. *(Grew 15→16 on 2026-06-18: the Ch 10 "paradigm gap" was split into Ch 10 Agents & Parallel Work + a new Ch 11 Orchestration — see the fan-out roadmap `../docs/plans/active/2026-06-18_handbook-fanout.md`.)*
 
 **Status convention** (for tracking through the rewrite):
 - ⬜ not started
@@ -135,14 +135,24 @@ Most entries are 🟡 (outlined). **Ch 1-4 (Part I) are ✅ shipped in v1.0** as
 **MDX-native**: Delegation decision flowchart. Worktree `<BeforeAfter>` diagram. `<Scenario>` block — the Multi-Agent Research scenario can ground worked examples.
 **Boundary note**: This is "use subagents as a developer." Designing multi-agent systems with the SDK, `fork_session`, `AgentDefinition` orchestration → Architect's Reference.
 
-### Ch 11. Project Lifecycle
+### Ch 11. Orchestration
+
+**Source**: NEW (no direct `.tex`) — the use-side material splits from `09_agents_parallel.tex`; the rest is live research on the June-2026 multi-agent layer.
+**Theme**: The orchestration surface that postdates the LaTeX source — Agent View (`claude agents`), `/goal`, `/workflows`, nested subagents (depth limits), Agent Teams. When to reach for orchestration vs. a single subagent; observing + steering multi-agent runs; the cost/latency of fan-out.
+**Cert domains**: D1 (multi-agent use-side), D3 (workflows/config), D5 (reliability of orchestrated runs).
+**Stale signals — HIGH**: the fastest-moving surface in the book; APIs/commands are new in 2026. `volatility: fast-moving`. Author from the verified currency brief (`docs/currency-brief-2026-06.md`) + live docs.
+**MDX-native**: orchestration decision flowchart (single subagent → parallel → nested → teams); a `<BeforeAfter>` of a serial vs. orchestrated workflow.
+**Boundary note**: This is "*use* the orchestration features as a developer." Designing multi-agent *systems* with the SDK (coordinator patterns, `fork_session`, error propagation) → Architect's Reference.
+**Origin**: split from Ch 10 per the 2026-06-18 fan-out roadmap (the audit's "paradigm gap"); the OUTLINE grows 15→16 here. Hand-authored (research-first).
+
+### Ch 12. Project Lifecycle
 **Source**: `10_projects.tex` (273 lines) → ~280 lines.
 **Theme**: Greenfield (day 1 → week 1 → month 1). Brownfield (introducing Claude to legacy code). Incremental refactoring protocol (extract → test → harden → promote). Characterization tests. Golden-master testing.
 **Cert domains**: D3 (lifecycle, phases), D4 (characterization test prompts), D5 (small sessions).
 **Stale signals**: None.
 **MDX-native**: Greenfield progression as an interactive timeline. Refactoring-cycle animation. Golden-master tolerance calculator.
 
-### Ch 12. Headless & Automation
+### Ch 13. Headless & Automation
 **Source**: `12_automation.tex` (472 lines) → ~250 lines (significantly trimmed; SDK material removed).
 **Theme**: Headless mode (`claude -p`). Fan-out pattern. `--allowedTools` / `--output-format json` for pipeline consumption. Bare mode. Scheduled tasks (cloud, desktop, `/loop`). GitHub Actions integration. Remote Control.
 **Cert domains**: D3 (headless CLI, scheduled tasks).
@@ -151,7 +161,7 @@ Most entries are 🟡 (outlined). **Ch 1-4 (Part I) are ✅ shipped in v1.0** as
 **Moved out of handbook entirely → Architect's Reference**: Claude Agent SDK (Python/TypeScript) deep-dive. Custom tools via SDK. Programmatic hooks. `/batch` design internals. Pipeline traffic-light dashboards (architecture).
 **Boundary note**: This chapter is "automating *your own* Claude Code workflows." Architect's Reference covers "building Claude-powered systems with the SDK."
 
-### Ch 13. Antipatterns & Recovery
+### Ch 14. Antipatterns & Recovery
 **Source**: `11_antipatterns.tex` (397 lines) → ~400 lines (minimal trim).
 **Theme**: Eight common anti-patterns + recovery guides. Four-layer failure diagnosis (prompt → CLAUDE.md → codebase → model). Testing CLAUDE.md (smoke + adversarial).
 **Cert domains**: D5 (diagnosis), D3 (context overload), D4 (over-correcting).
@@ -162,14 +172,14 @@ Most entries are 🟡 (outlined). **Ch 1-4 (Part I) are ✅ shipped in v1.0** as
 
 ## Part IV — Team & Enterprise
 
-### Ch 14. Team Patterns & Governance
+### Ch 15. Team Patterns & Governance
 **Source**: `13_team.tex` (242 lines) → ~270 lines.
 **Theme**: Shared CLAUDE.md in git. Managed settings (IT enforcement: `allowManagedPermissionRulesOnly`, `availableModels`, `companyAnnouncements`). Onboarding new members. Shared extensions (skills with `context: fork`, hooks). Code review patterns (pre-PR self-review, reviewer-assist).
 **Cert domains**: D3 (shared config), D1 (team coordination).
 **Stale signals**: None.
 **MDX-native**: Onboarding interactive checklist (check off each step). Managed-settings IT checklist. Code review `<BeforeAfter>` simulated PRs.
 
-### Ch 15. Enterprise Deployment
+### Ch 16. Enterprise Deployment
 **Source**: `14_enterprise.tex` (259 lines) → ~280 lines + versioned content callouts.
 **Theme**: Certifications (SOC 2 Type II, ISO 27001, ISO/IEC 42001, HIPAA BAA, FedRAMP High, IL5). IAM (SAML, OIDC, SCIM, RBAC). Data protection + ZDR. 50-person rollout. Cost optimization at scale. Decision matrix.
 **Cert domains**: D1–D5 all touched (enterprise scaling); D5 primary (reliability + compliance).
@@ -222,15 +232,16 @@ Each handbook chapter that touches these links out via a plain prose breadcrumb 
 | 06_testing | 331 | Ch 7 | ~330 | Minimal changes |
 | 07_extending | 822 | Ch 8 + App C | ~450 + ~250 | Substantial split |
 | 08_claude_md_architecture | 260 | Ch 9 | ~280 | Minimal changes |
-| 09_agents_parallel | 407 | Ch 10 | ~400 | Boundary: use-side only; design → Architect's Ref |
-| 10_projects | 273 | Ch 11 | ~280 | Minimal changes |
-| 11_antipatterns | 397 | Ch 13 | ~400 | Minimal changes |
-| 12_automation | 472 | Ch 12 (partial) | ~250 | SDK material → Architect's Ref |
-| 13_team | 242 | Ch 14 | ~270 | Minimal changes |
-| 14_enterprise | 259 | Ch 15 | ~280 | Versioned; pricing/certs need refresh policy |
+| 09_agents_parallel | 407 | Ch 10 (use-side) | ~400 | Boundary: use-side only; orchestration layer → new Ch 11 |
+| (new — live research) | — | **Ch 11 Orchestration** | ~350 | Agent View / /goal / /workflows / nested subagents / Agent Teams; split from Ch 10 (2026-06-18) |
+| 10_projects | 273 | Ch 12 | ~280 | Minimal changes |
+| 11_antipatterns | 397 | Ch 14 | ~400 | Minimal changes |
+| 12_automation | 472 | Ch 13 (partial) | ~250 | SDK material → Architect's Ref |
+| 13_team | 242 | Ch 15 | ~270 | Minimal changes |
+| 14_enterprise | 259 | Ch 16 | ~280 | Versioned; pricing/certs need refresh policy |
 
 **Source totals**: 6,461 lines.
-**Target totals**: ~5,140 lines main chapters + ~650 lines appendices = ~5,790 lines.
+**Target totals**: ~5,490 lines main chapters (incl. ~350 new for Ch 11 Orchestration) + ~650 lines appendices = ~6,140 lines.
 
 ---
 
@@ -252,4 +263,4 @@ Each handbook chapter that touches these links out via a plain prose breadcrumb 
 - Manual read-through against the source `.tex` to confirm no major content loss except where intentionally cut.
 - Scaffold validator clean.
 
-Once all 15 chapters + 3 appendices + landing page hit ✅, the handbook ships v1.0.
+Once all 16 chapters + 3 appendices + landing page hit ✅, the handbook ships v1.0.
