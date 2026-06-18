@@ -39,15 +39,18 @@ into Design's problem-first applied volume; a private self-audit may use its LaT
 
 Paths below are for the **Linux clone**; a Mac clone differs.
 
-- **Strict-live research dossiers (23):** external at `~/Claude/research_agent_*/` — *not*
-  committed, by design. Composed KB: `~/Claude/research-kb/`.
+- **Research-dossier corpus (67 dossiers):** canonical home is the **private repo
+  [`brandon-behring/research-dossiers`](https://github.com/brandon-behring/research-dossiers)**, cloned
+  to `~/Claude/research-dossiers/` (`research_*/` per topic) — *not* committed here, by design (it
+  excerpts copyright-adjacent material). Composed KB: `~/Claude/research-kb/`. Cross-machine sync
+  (Mac + Linux) is tracked in [`lever_of_archimedes#24`](https://github.com/brandon-behring/lever_of_archimedes/issues/24);
+  the old `~/Claude/research_agent_*` symlinks were removed (RS7).
 - **Reorg-relocated scratch:** the loose launchpad seeds moved out of the repo root —
   `.md` seeds → gitignored `docs/research-program/launchpad/`; the external Manning bundle →
   `~/Claude/claude-books-research-inputs/`.
-- **Referenced by `CLAUDE.md` but NOT on this Linux box:** the LaTeX drafts
-  `~/claude-best-practices` (handbook) and `~/claude-code-field-guide` (the retired Field-Guide). The
-  **Field-Guide LaTeX source lives on another machine** — it now feeds only the optional *private*
-  self-audit (its public mission folded into Design), not a public book.
+- **LaTeX source drafts (on disk as git clones, verified 2026-06-18):** `~/claude-best-practices`
+  (handbook source) and `~/claude-code-field-guide` (retired Field-Guide). Field-Guide now feeds only
+  the optional *private* self-audit (its public mission folded into Design), not a public book.
 
 ## How to work in it
 
