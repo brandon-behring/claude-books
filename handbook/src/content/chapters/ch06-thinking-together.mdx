@@ -1,0 +1,451 @@
+---
+title: Thinking Together
+part: 2
+chapter: 6
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+sources:
+  - anthropic-claude-code-best-practices
+description: Move from delegating to thinking with Claude — the interview frame, hypothesis-driven debugging, anti-sycophancy techniques, tests as thinking tools, and ADRs that capture why.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–4: you can write a precise prompt, configure CLAUDE.md, and run a verification loop. This chapter changes *how* you prompt, not *what* you prompt for.">
+- The **third frame** — _interview_ — that sits between delegating to Claude and pair-programming with it
+- Four named patterns — **hypothesis debugging**, **pre-mortem**, **Feynman**, **interview** — that turn a confident pattern-matcher into a thinking partner
+- How to recognize and structure around **sycophancy** before it costs you a bad decision
+- Using **tests as thinking tools** and **ADRs** to make the reasoning durable
+</YouWillLearn>
+
+_Your prompts are precise, your `CLAUDE.md` is configured, and your tests pass. But every interaction follows the same shape: you delegate, Claude executes, you verify. Something is missing — you are using Claude as a tool you configure, not a collaborator you think with. The earlier chapters answered "how do I tell Claude what to do?" This one answers a different question: how do I_ think together _with Claude?_
+
+## Claude as a thinking mirror
+
+The core metaphor: Claude reflects your codebase back to you. Where the reflection is clear, your code is clear. Where it is distorted — where Claude misunderstands, guesses, or asks for clarification — you have found a documentation gap, a hidden assumption, or an unclear interface.
+
+<InsightBox title="An honest caveat">
+  Claude is a thinking partner with no memory across sessions, a tendency to agree, and occasional confident wrongness. The techniques in this chapter work _because_ they structure the collaboration to counteract these weaknesses — not despite them.
+</InsightBox>
+
+<KeyIdea>
+Most developers oscillate between two modes: **delegate** (hand off a task, accept what comes back) and **collaborate** (pair-program in real time). Both are about _who does the work_. **Interview is a third frame, and it is about who does the thinking.** The default failure mode of an LLM is to produce a fluent answer that looks right; the cure is to make the model surface its reasoning, its uncertainty, and its alternatives before you commit.
+</KeyIdea>
+
+{/* Tip numbers 9–11 are provisional: Part I used 1–8, and Ch 6 is ported out of reading order (before Ch 5). Finalize the global sequence at the fan-out — see handbook/docs/port-recipe.md. */}
+
+<Tip n="9" title="Interview is the third frame.">
+Between delegating a task and pair-programming it lies a third mode: have Claude interview you — or interview Claude — so the _thinking_, not just the work, is shared.
+</Tip>
+
+## A debugging session that starts wrong
+
+Here is a real-shaped session. The pasted error is on top; Claude's response follows. Watch what happens.
+
+<WorkedExample id="sycophancy-interview" title="Claude pattern-matches a sycophantic timezone hypothesis — the interview pattern recovers">
+
+```text
+You: Tests are failing in CI but pass locally. Here's the failure:
+
+  AssertionError: expected 1717027200000 to equal 1717023600000
+  at tests/billing.spec.ts:84
+
+How do I fix this?
+
+Claude: This is a timezone issue. CI runs in UTC and your local
+machine is probably in a different timezone, so the expected
+timestamp is shifted by one hour. Wrap the assertion in a
+timezone-normalized comparison:
+
+  expect(toUTC(actual)).toEqual(toUTC(expected))
+
+Would you like me to apply this change to billing.spec.ts?
+```
+
+The answer looks confident, names a plausible cause, and offers a one-line fix. Most readers would say "yes, apply it." That is the failure.
+
+<MarginNote variant="warning" label="Warning">
+  Confidence is not evidence. The fluency of a fix is uncorrelated with its correctness.
+</MarginNote>
+
+Look at the numbers: `1717027200000 - 1717023600000 = 3600000` milliseconds = exactly one hour. The timezone hypothesis matches _the pattern of the numbers_, but Claude has not read `billing.spec.ts:84` to see how the timestamp was constructed. It pattern-matched and proposed. If the real cause is a DST boundary, a frozen-clock mock that differs between environments, or a fixture generated in the wrong timezone, the proposed fix papers over the symptom and the bug returns.
+
+Instead of accepting, switch mode:
+
+```text
+You: Before applying anything, interview me about this failure.
+What would you need to see in the codebase to be confident in
+your diagnosis, and what are 2-3 alternative hypotheses for why
+this specific pair of timestamps differs by exactly 3,600,000 ms?
+
+Claude: Questions I'd need answered:
+  1. How is the expected timestamp constructed? (Hardcoded?
+     Computed from `new Date()`? Read from a fixture?)
+  2. How is the actual timestamp produced in the code under test —
+     system clock, a clock abstraction, or a fixture?
+  3. Is there a clock-mocking library (`vi.useFakeTimers`) in this suite?
+
+Alternative hypotheses, ranked by confidence:
+  A. DST boundary — near a spring-forward date the local-to-UTC
+     offset shifts by exactly 1h during the test window.
+  B. Frozen-clock mock with a hardcoded UTC value the code-under-test
+     bypasses (reading `Date.now()` directly).
+  C. The fixture was generated on a machine assuming EST but the test
+     runs in EDT. The 1h delta is the EST/EDT difference, not a UTC offset.
+
+To distinguish: read billing.spec.ts:84 and look at how `expected`
+is constructed.
+```
+
+Now there is something to verify. You read the test file, find `expected` is hardcoded from a fixture generated months ago in EST, and the test runs in EDT in CI. Hypothesis C wins. The fix computes the expected value from the same clock the code uses — not a `toUTC()` wrapper that would have silently masked the fixture rot.
+
+<InsightBox title="What changed in the second exchange">
+  The first prompt asked for a solution; Claude produced a plausible one and you had no way to evaluate it. The second asked Claude to enumerate what it would need to know and to rank alternatives — handing you a _decision procedure_: read the file, check which hypothesis matches the evidence, apply the matching fix. The interview pattern moved the thinking from Claude's first guess to your evidence.
+</InsightBox>
+
+</WorkedExample>
+
+<Figure
+  src="/figures/collaboration-flowchart/collaboration-flowchart.svg"
+  alt="Vertical decision tree with 4 yes/no questions in orange diamonds. Each 'yes' branches right to a teal pattern node. Top: 'Is Claude about to act on a fluent but unverified proposal?' → Interview pattern. Below: 'Debugging a symptom that just appeared?' → Hypothesis Debugging. Below: 'About to commit to a costly architectural choice?' → Pre-mortem. Bottom: 'Want to test your own understanding of something complex?' → Feynman."
+  caption="Which collaboration pattern to reach for. Stop at the first 'yes'. Same stop-at-first-match shape Chapter 8's extension-decision tree uses."
+  width="100%"
+/>
+
+<Exercise id="ch6-ex-1">
+In the timezone session, the second prompt produced a verifiable answer where the first did not. Name the _mechanism_ that made the difference — not just "it asked questions." What did the second prompt give you that the first withheld?
+</Exercise>
+
+## Delegate, collaborate, interview
+
+<BeforeAfter>
+<div slot="before">
+
+```text
+Fix the failing test in billing.spec.ts.
+```
+
+</div>
+<div slot="after">
+
+```text
+Interview me about the failing test in billing.spec.ts before
+proposing a fix. What would you need to read or know to be
+confident in a diagnosis? Then list 2-3 alternative hypotheses
+with the evidence that would distinguish them.
+```
+
+</div>
+</BeforeAfter>
+
+<MarginNote variant="tip" label="Tip">
+  "Interview me" is a load-bearing phrase. It flips the conversational role from answerer to questioner.
+</MarginNote>
+
+The "before" delegates. Claude will fix something — possibly the right thing, possibly not, and you will not know which. The "after" interviews. Claude surfaces what it does not know, you decide what to investigate, and the fix lands on evidence rather than pattern match.
+
+## The four collaboration patterns
+
+These patterns share one shape: **make Claude do work that is harder to fake than producing a fluent answer.** Each fits a different stage of a task. The flowchart above says _which_ to reach for; the quadrant below says _how they relate_ — by direction of inquiry (who probes whom) and workflow stage (before action vs. after a symptom).
+
+<Figure
+  src="/figures/collaboration-quadrant/collaboration-quadrant.svg"
+  alt="2x2 axis. X-axis: Pre-action on left, Post-symptom on right. Y-axis: You probe Claude on top, Claude probes you on bottom. Four patterns plotted as teal nodes: top-left Feynman (you teach; Claude critiques), top-right Hypothesis Debugging (you ask; Claude enumerates), bottom-left Pre-mortem (Claude asks; you imagine failure), bottom-right Interview (Claude asks; you supply evidence)."
+  caption="The same four patterns by direction of inquiry and workflow stage."
+  width="100%"
+/>
+
+### Hypothesis debugging
+
+**When**: a test fails, a service errors, a metric drifts — anything where the visible symptom under-determines the cause.
+
+**Shape**: ask Claude to enumerate 2–4 hypotheses ranked by confidence, with the single cheapest piece of evidence that would confirm or rule out each. Then gather that evidence before accepting any fix.
+
+```text
+Symptom: <paste error, log, stack trace, or metric anomaly>
+
+Don't fix this yet. List 3 hypotheses for the root cause, ranked
+by your confidence. For each, name the single piece of evidence
+that would confirm or rule it out. Identify the cheapest evidence
+to gather first.
+```
+
+The "cheapest evidence first" clause matters: without it Claude proposes investigations that read half the codebase; with it, it scopes to the one log line or test that resolves the question fastest.
+
+<KeyIdea>
+Rubber-duck debugging works because articulating the problem reveals the gap. Claude-as-duck works better because the duck talks back — it asks the questions you would not ask yourself, because you already "know" the answer. (Sometimes you are wrong about what you know.)
+</KeyIdea>
+
+### Pre-mortem
+
+**When**: you are about to make a hard-to-reverse decision — pick a database, deprecate an API, restructure a directory, lock in a vendor.
+
+**Shape**: ask Claude to imagine the project six months out, _after_ the decision has failed badly, and to describe what went wrong. Inversion surfaces risks that forward planning misses.
+
+```text
+Imagine it is six months from now. We adopted <decision> and it
+failed badly. Write the post-mortem: what specifically went wrong,
+what signals we missed, and what we should have asked at decision
+time. Be concrete and harsh — name the specific failure mode, not
+"scaling problems."
+```
+
+The same move surfaces _hidden assumptions_. State them, then ask which breaks first:
+
+<BeforeAfter>
+<div slot="before">
+
+```text
+Review my database schema.
+```
+
+</div>
+<div slot="after">
+
+```text
+Here is my feature-store schema. I designed it assuming:
+(1) features are computed daily in batch, not real-time,
+(2) training and serving share the same computation,
+(3) drift is monitored externally.
+Which assumption is most likely wrong in 6 months, and what
+breaks when it does?
+```
+
+</div>
+</BeforeAfter>
+
+The "after" is not code review — it is _assumption_ review. The how-to companion to this chapter walks one pre-mortem end-to-end and produces a draft ADR.
+
+### Feynman
+
+**When**: you suspect you understand something less well than it feels — a regex, a SQL query, an algorithm, an auth flow.
+
+**Shape**: explain it to Claude as if Claude were a smart newcomer, then ask Claude to mark the parts that are vague, hand-wavy, or unjustified.
+
+```text
+Explain my auth flow as if I just joined the team and need to
+modify it. Where did you have to guess because the code doesn't
+make intent clear?
+```
+
+Gaps in Claude's explanation are gaps in your documentation: what Claude cannot explain, a new hire cannot either. The mistake to avoid is reversing it — asking Claude to summarize the topic _for_ you is delegation, not Feynman. The value is in surfacing _your own_ gaps.
+
+### Interview
+
+**When**: at the start of any non-trivial task — implementing a feature, writing a migration, designing an API.
+
+**Shape**: have Claude interview _you_ before producing anything, then write the result to a spec and implement in a fresh session.<Citation src="anthropic-claude-code-best-practices" />
+
+```text
+I want to build a feature-drift monitoring system. Interview me
+in detail — ask about technical implementation, data sources and
+schemas, edge cases and failure modes, and tradeoffs I might not
+have considered. Keep interviewing until we've covered everything,
+then write a complete spec to SPEC.md.
+```
+
+Once the spec is complete, start a fresh session to implement it: the new session has clean context focused entirely on implementation, and you have a written spec to reference.
+
+<InsightBox title="Why interviews beat requirements documents">
+  You do not know what you do not know. When you write requirements, you state only what you have already thought of. When Claude interviews you, it asks about the edge cases, failure modes, and constraints you have not considered — more complete requirements with less effort.
+</InsightBox>
+
+## Tests as thinking tools
+
+In Chapter 7, tests serve verification: does the code do what it claims? Here they serve a different purpose — exploration: _what should the code do at all?_
+
+<BeforeAfter>
+<div slot="before">
+
+```text
+Write tests for this function.
+```
+
+</div>
+<div slot="after">
+
+```text
+I'm not sure what should happen at the boundary. Write 5 test
+cases exploring: empty input, single element, duplicates,
+negatives, overflow. Which behaviors surprise me?
+```
+
+</div>
+</BeforeAfter>
+
+Writing test cases forces you to articulate expectations you have not stated. When a case surprises you — the function does something you did not expect — you have discovered a requirement that was implicit. The test did not verify your code; it interrogated your assumptions.
+
+**Property-based tests** are the sharpest version. Instead of specific inputs, they assert _invariants_ that must hold for all inputs ("output length equals input length"; "output is a permutation of input"). When one fails on a randomly generated input, it has found an edge case neither you nor Claude anticipated — a boundary in your understanding, not just your code. (These are the same property-based tests that form the sixth layer of Chapter 7's validation architecture, used here as a thinking tool rather than a gate.)
+
+<Exercise id="ch6-ex-2">
+You ask Claude to "write tests for `parse_date()`." If you are _not_ sure what the function should do at the boundaries, what is the higher-leverage version of that request — and what is it you are actually trying to learn?
+</Exercise>
+
+## Getting genuine comparisons, not validation
+
+Claude has a well-documented tendency to validate whatever approach you present first. Say "I'm thinking about using Redis for caching" and Claude explains why Redis is a good choice; say "Memcached" instead and it explains why Memcached is. This sycophancy is the biggest obstacle to using Claude as a genuine thinking partner — and the fix is structural, not attitudinal. You cannot ask Claude to "be honest." You can structure prompts that make honest comparison the path of least resistance.
+
+<Tip n="10" title="Make honesty the path of least resistance.">
+You can't ask Claude to "be honest." Strip the load-bearing preference from your prompt and ask Claude to reach the conclusion from the evidence — so the honest comparison is the easy answer, not the brave one.
+</Tip>
+
+**Present options without a preference.** Replace "I think we should use Redis — what do you think?" with: "We need a caching layer. Options: Redis, Memcached, in-process LRU. For each, list what it handles well, what it handles poorly, and one scenario where it's the wrong choice. Then recommend one, with the specific tradeoff that decides it." The first prompt has a correct answer (agree with you); the second has no obvious right answer, so Claude must actually reason.
+
+**Argue the other side.** After Claude recommends an approach: "Now argue against your recommendation. What's the strongest case for _not_ doing this? What would have to be true about our workload for the alternative to win?" If the counterargument is weak, the recommendation is probably sound; if it is strong, you have found a genuine tradeoff.
+
+**The devil's-advocate session.** For critical decisions, start a _separate_ session with an explicit adversarial role: "You are a senior engineer who believes our Redis caching decision is wrong. Make the strongest possible case against it." The separate session matters — the original has accumulated context that biases toward the decision; a fresh adversarial frame produces genuinely different analysis.
+
+<KeyIdea>
+The pattern generalizes: generate the recommendation in one session and the critique in another. The divergence between them measures decision quality. If both agree, proceed with confidence. If they disagree sharply, you have found the crux of the decision.
+</KeyIdea>
+
+Three quick red flags that you are being agreed with rather than informed:
+
+- **"You're absolutely right"** in response to a claim you have not actually verified.
+- **A fix proposed before any `Read` tool call** — pattern, not diagnosis.
+- **Exactly one diagnosis with no alternatives mentioned** — premature closure.
+
+The rewording fix is mechanical: take the load-bearing claim out of your prompt and ask Claude to reach it from evidence. Instead of "the cache layer is broken — fix it," try "something is producing stale reads in this endpoint; list the components in the request path and rank which is most likely the source."
+
+<Exercise id="ch6-ex-3">
+You catch yourself about to send: "I'm going to use Postgres for the events table — sound good?" Rewrite it so honest comparison is the path of least resistance. What, specifically, did you have to remove?
+</Exercise>
+
+## Quick wins that compound
+
+The metaphor: Claude reads your codebase like a developer who just joined the team. Good onboarding materials help Claude the same way they help humans — and each of these takes minutes to add but improves every subsequent interaction.
+
+- **Docstrings as triple-duty documentation.** A docstring serves you (in six months), Claude (right now), and your teammates (always). The highest-value line is a `Note:` explaining a design decision that would otherwise look like a bug — for example, that skipping `None` scores is intentional, not an oversight. Claude will not "fix" the intentional behavior because the intent is documented.
+- **Type hints as contracts.** `window: int = 30` tells Claude the type, the default, and the name in five characters. Without the hint, Claude may pass a string, a float, or a `timedelta`.
+- **Error messages that debug themselves.** This is Principle 4 from Chapter 1 (fail fast with diagnostics): a message that names what went wrong, what was expected, and what to do about it saves Claude the same investigation it saves you.
+- **Code archaeology.** For brownfield work, ask "_why_ might the original author have written this as a nested loop instead of a join? What constraint explains the choice?" — instead of assuming the code is wrong.
+- **README-driven development.** Write the README first, then ask "what questions does a new developer still have after reading this?"
+
+<Tip n="11" title="Assume intent before assuming error.">
+Before "fix this old code," ask why it was written that way. Claude often finds the constraint — a legacy API, a performance limit, a database quirk — that makes the original design rational.
+</Tip>
+
+## Architecture Decision Records
+
+When you make an architecture decision _with_ Claude, the conversation captures not just _what_ you decided but _why_, and what alternatives you weighed. An **Architecture Decision Record** preserves that reasoning for your future self — and for a future Claude session, which otherwise starts from zero. Each ADR has three sections plus the trip-wires that make it falsifiable:
+
+```markdown
+# ADR-007: Offline Feature Computation
+
+## Context
+Feature computation runs in nightly batch; some features are
+stale by 12 hours at serving time.
+
+## Decision
+Keep batch for training features. Add streaming for 3 real-time
+features (last-login recency, cart value, session count).
+
+## Alternatives Considered
+1. All streaming (rejected: ~10x infra cost)
+2. Faster, hourly batch (rejected: still stale)
+3. Feature caching with TTL (rejected: invalidation complexity)
+
+## Consequences
+- Two computation paths to maintain
+- Real-time features need drift monitoring
+- Signals we chose wrong: training/serving skew alert fires on
+  the 3 streaming features → revisit the split
+```
+
+<KeyIdea>
+The most valuable ADR section is **Alternatives Considered**. Claude suggests alternatives you would not — not because it is smarter, but because it has no investment in your preferred approach. A human colleague might hesitate to challenge your solution; Claude does not.
+</KeyIdea>
+
+## Where this goes next
+
+The patterns here recur, each at greater depth:
+
+- **Chapter 5 — Context as currency** — the interview pattern is highest-leverage early in a session, before context fills.
+- **Chapter 7 — Testing & verification** — hypothesis-debugging output is verifiable where a delegated fix is not; property-based tests return there as gates.
+- **Chapter 8 — Extending Claude** — once a prompt pattern saves you time three sessions running, promote it from terminal history to a shared command or skill. Start personal, then share.
+- **Chapter 11 — Project lifecycle** — ADRs feed the project's decision provenance.
+- **Chapter 14 — Team patterns** — the pre-mortem prompt becomes a line in a shared `CLAUDE.md`; the ADR template becomes a team skill.
+
+## Common pitfalls
+
+<Pitfall title="Asking the interview question, then ignoring the questions">
+Claude lists seven things it would need to know and you answer one and ask for the code anyway. The questions _are_ the deliverable; treat them as a checklist, not conversational noise to push through.
+</Pitfall>
+
+<Pitfall title="Pre-mortem with a vague decision">
+"We will use microservices" is too vague to pre-mortem — Claude can only enumerate generic risks. "Split the billing module into its own service with its own database by Q3, all writes through a new transactional API" is concrete enough to imagine specific failures. Specificity in the decision unlocks specificity in the failure.
+</Pitfall>
+
+<Pitfall title="Feynman as a summarization shortcut">
+Asking "explain X to me" is delegation, not Feynman. Feynman is _you_ explaining the concept in your own words and Claude critiquing what you got wrong. Reverse the direction and you defeat the pattern — the value is surfacing your own gaps, not receiving a fluent summary.
+</Pitfall>
+
+## Quick reference
+
+- Claude is a thinking mirror: distortions in its reflection reveal gaps in your code.
+- Delegate and collaborate are about _who works_; **interview** is about _who thinks_.
+- The four patterns — all making Claude do work harder to fake than a fluent answer:
+
+| Pattern | Reach for it when | It produces |
+|---|---|---|
+| **Hypothesis debugging** | A symptom under-determines its cause | Ranked hypotheses + the cheapest disambiguating evidence |
+| **Pre-mortem** | Before a hard-to-reverse decision | Specific failure modes, signals, mitigations |
+| **Feynman** | You suspect your understanding is thin | The vague/undefended parts of your own explanation |
+| **Interview** | The start of any non-trivial task | Decision-shaping questions answered before any code |
+
+- Anti-sycophancy red flags: "you're absolutely right" before verification; a fix before any `Read`; one diagnosis, no alternatives. Fix: strip the load-bearing claim; ask Claude to reach it from evidence.
+- Generate the recommendation in one session, the critique in another — divergence measures decision quality.
+- ADRs capture _alternatives considered_, not just the decision.
+
+## Practice
+
+<Practice id="ch6-pr-1" difficulty="2">
+Pick one function Claude reads often in your project. Add a docstring with `Args`, `Returns`, and one `Note:` explaining a non-obvious design decision. Run a comparable task that touches it before and after the docstring; note whether Claude's output improves.
+</Practice>
+
+<Practice id="ch6-pr-2" difficulty="3">
+Take a real decision you are about to make. Run the pre-mortem pattern (imagine it failed in six months; get three specific failure modes, the signals you missed, and the question you should have asked). Draft a three-section ADR whose Consequences include those failure modes as falsifiable trip-wires — a measurable signal plus the action it triggers.
+</Practice>
+
+<Practice id="ch6-pr-3" difficulty="4">
+Run the full arc on one decision this week. (1) Interview: ask Claude to ask you 5–7 decision-shaping questions; answer them in writing. (2) Pre-mortem the resulting design; record the three most concrete failure modes. (3) Draft an ADR whose Consequences incorporate them. ~30 minutes; output is one ADR, one prompt history, and a substantially better-evidenced decision than delegation would have produced.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch6-ex-1">
+The mechanism is that the second prompt asked Claude to enumerate _what it would need to know_ and to _rank alternatives with distinguishing evidence_ — which handed you a decision procedure (read the file, match the evidence to a hypothesis, apply the matching fix). The first prompt produced a single fluent answer with no attached way to evaluate it. The difference is not "questions" in the abstract; it is that the second prompt relocated the thinking from Claude's first guess onto evidence you could check.
+</Solution>
+
+<Solution for="ch6-ex-2">
+Ask Claude to _explore the boundaries_ rather than test the current behavior: "Write cases for empty input, a malformed string, timezone-aware vs. naive datetimes, a leap day, and a far-future date — and tell me which results surprise you." What you are actually trying to learn is the _specification_: tests-as-exploration surfaces the implicit requirements you never wrote down, whereas "write tests" would only pin in place whatever the function happens to do today (bugs included).
+</Solution>
+
+<Solution for="ch6-ex-3">
+Strip the load-bearing preference — the named choice and the "sound good?" that invites agreement. For example: _"We need a datastore for a high-write, append-heavy events table queried by time range. List three candidates; for each give what it handles well, what it handles poorly, and one scenario where it's the wrong choice; then recommend one with the specific tradeoff that decides it."_ What you removed is the answer you had already planted. Once the prompt names no preferred option and asks Claude to reach one from the workload, agreeing with you is no longer the path of least resistance.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={6} />
