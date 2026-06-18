@@ -6,7 +6,7 @@ volatility: stable-principle
 tools_compared: [cross-tool]
 last_verified: 2026-04-17
 sources: [gwern-sidenote, tufte-css]
-description: A meta-chapter used during Stage 0 to exercise every component. Also a reader's guide to the book's pedagogical structure, sidenote mechanics, and freshness discipline.
+description: The reader's guide to the book's pedagogical structure — the chapter skeleton, typed callouts, sidenote mechanics, and freshness discipline.
 draft: false
 ---
 
@@ -21,7 +21,7 @@ import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Diverg
 import Sidenote from '@brandon_m_behring/book-scaffold-astro/components/Sidenote.astro';
 import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
 
-This chapter is a reader's guide to the book's structure — and, during Stage 0 of the scaffold build, a working example that exercises every component through the routing pipeline. If something on this page looks wrong on your device, it's a bug in the scaffold, not in the chapter.
+This chapter is the reader's guide to the book's structure — and a working example of every component you'll meet, exercised through the routing pipeline. If something on this page looks wrong on your device, it's a bug in the scaffold, not in the chapter.
 
 The book uses a uniform three-section decomposition for every chapter, a bounded vocabulary of typed callouts, always-visible sidenotes with a mobile reflow, and visible freshness stamps. The rest of this chapter explains each of those.
 
@@ -106,9 +106,9 @@ The book itself evolves over time. Three mechanisms make that visible:
 
 **Freshness stamps.** The chapter header shows `Last verified 2026-04-17`. When a reader sees an older date on a volatile claim, they know to double-check against current tool docs before relying on it.
 
-**Version branches.** Every published version stays live at its own URL (`/v1.0/`, `/v1.1/`). Readers can browse history; a version selector in the header lets them switch. Practices documented in v1.0 don't disappear when v1.1 ships — they become historical reference.
+**Version branches (planned).** When multi-version deploys land, each published version will stay live at its own URL (`/v1.0/`, `/v1.1/`) and a version selector in the header will let readers switch — so practices documented in one version don't disappear when the next ships; they become historical reference. *(Not yet live — the header's version selector currently shows placeholder entries.)*
 
-**The convergence dashboard.** A dedicated page reads from `changelog/tools/*.yaml` + `changelog/patterns.yaml` and renders a timeline: when did each tool adopt each pattern? Patterns that all three have landed become **Convergence** boxes in chapters.<Sidenote>See the Divergence box above for an open example: context window size has diverged sharply. When or if it converges is itself evolving data.</Sidenote>
+**The convergence dashboard.** [A dedicated page](/agentic-coding/convergence/) reads from `changelog/tools/*.yaml` + `changelog/patterns.yaml` and renders a timeline: when did each tool adopt each pattern? Patterns that all three have landed become **Convergence** boxes in chapters.<Sidenote>See the Divergence box above for an open example: context window size has diverged sharply. When or if it converges is itself evolving data.</Sidenote>
 
 ### How to read stale chapters
 
@@ -125,8 +125,6 @@ The volatility badge in the header signals how likely a chapter is to date:
   Skim the principle narrative (Representation section) — that layer is designed to age well. Treat the Operation section as evidence for the principle, not a current recipe. Check the tool's own release notes for specifics.
 </Recovery>
 
-## Meta-status
+## A note on the scaffold
 
-This chapter exists as the Stage 0 demo — a working instance of every component through the full routing pipeline. It will be replaced (or retitled and demoted to an appendix) when Stage 1 ports the first real chapter, *Context as Currency*.
-
-If you're reading this in a deployed version of the scaffold, the scaffold is working. The scaffold is separable from any one book — see the plan file at `~/.claude/plans/i-believe-this-project-generic-sphinx.md` for the staged roadmap.
+This book renders on `@brandon_m_behring/book-scaffold-astro` — the chapter layout, typed callouts, sidenotes, code theme, and freshness stamps all come from there, separable from any one book's content. If a component looks wrong on your device, that's a scaffold bug, not a chapter error.
