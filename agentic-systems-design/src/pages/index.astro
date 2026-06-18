@@ -4,37 +4,56 @@ import { getCollection } from 'astro:content';
 
 const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
 chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
+
+const VOLS = [
+  { n: 1, title: 'Environment & Context', lo: 1, hi: 11 },
+  { n: 2, title: 'Tools & Orchestration', lo: 12, hi: 20 },
+  { n: 3, title: 'Evaluation & Operations', lo: 21, hi: 28 },
+];
+const inVol = (v) => chapters.filter((c) => (c.data.chapter ?? 0) >= v.lo && (c.data.chapter ?? 0) <= v.hi);
+const grouped = new Set(VOLS.flatMap((v) => inVol(v)).map((c) => c.id));
+const rest = chapters.filter((c) => !grouped.has(c.id));
 ---
-<Base title="Agentic Systems Design — Volume 1: Environment & Context Engineering" description="Volume 1 of the Agentic Systems Design series: engineering the two layers around the model — the environment an agent acts in, and the context it reasons over. Authored from strict-live research.">
+<Base title="Agentic Systems Design — engineering agentic systems (Volumes 1–3)" description="The broad, multi-volume discipline of engineering agentic systems: the environment an agent acts in, the context it reasons over, then tools, orchestration, evaluation, and operations. Volumes 1–3 complete; authored from strict-live research.">
   <article class="prose">
     <h1>Agentic Systems Design</h1>
-    <p class="subtitle"><em>Volume 1 · Environment &amp; Context Engineering</em></p>
+    <p class="subtitle"><em>Engineering agentic systems · Volumes 1–3</em></p>
 
-    <p>This volume is about the discipline that turns a model into an agent: engineering the <strong>environment</strong> it acts in and the <strong>context</strong> it reasons over. It is self-contained — it assumes a capable model and a harness, and develops the two layers around them.</p>
+    <p>The broad discipline of engineering the system around a capable model — the <strong>environment</strong> an agent acts in and the <strong>context</strong> it reasons over, then the <strong>tools</strong> it uses, how those are <strong>orchestrated</strong>, and how the whole is <strong>evaluated and operated</strong>. Delivered foundation-first across three volumes.</p>
 
-    <h2>Scope</h2>
-    <p><strong>Covered here (Volume 1):</strong> the environment (repo &amp; doc design, the instruction layer, skills, guardrails, working at scale) and the context (why windows degrade, how to assemble them, how to persist them across sessions).</p>
-    <p><strong>Adjacent — planned companion volumes, not yet available:</strong> <strong>Volume 2 — Tools &amp; Orchestration</strong> (tool &amp; MCP design, tool minimization, sub-agents, multi-agent, build-vs-buy a harness) and <strong>Volume 3 — Evaluation &amp; Operations</strong> (evals / validation, observability, cost, oversight / HITL, security). This book points outward to them where its scope ends; it does not depend on them. (Prompting is covered in the <em>Handbook</em> and the <em>Architect's Reference</em>, not a Design volume.)</p>
-
-    <h2>Where this sits in the series</h2>
-    <p><em>Agentic Systems Design</em> is delivered foundation-first across volumes:</p>
+    <h2>The volumes <small>(Design v1.0 — all complete)</small></h2>
     <ol>
-      <li><strong>Volume 1 — Environment &amp; Context</strong> &nbsp;←&nbsp; <em>you are here</em></li>
-      <li><strong>Volume 2 — Tools &amp; Orchestration</strong> <small>(planned)</small></li>
-      <li><strong>Volume 3 — Evaluation &amp; Operations</strong> <small>(planned)</small></li>
+      <li><strong>Volume 1 — Environment &amp; Context</strong> — the environment an agent acts in + the context it reasons over.</li>
+      <li><strong>Volume 2 — Tools &amp; Orchestration</strong> — tool &amp; MCP design, tool minimization, sub-agents, multi-agent, build-vs-buy a harness.</li>
+      <li><strong>Volume 3 — Evaluation &amp; Operations</strong> — evals &amp; validation, observability, cost, oversight / HITL, security.</li>
     </ol>
-    <p>A later problem-first applied volume re-traverses the material through real problems.</p>
+    <p><strong>Design v1.0 = Volumes 1–3</strong> (28 chapters, all complete). A later <strong>problem-first applied volume (v2.0)</strong> will re-traverse the material through real problems. (Prompting lives in the <em>Handbook</em> and the <em>Architect's Reference</em>, not a Design volume.)</p>
 
     <h2>Chapters</h2>
-    <ul>
-      {chapters.map((c) => (
-        <li>
-          <a href={`/chapters/${c.id}/`}>
-            {c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}
-          </a>
-        </li>
-      ))}
-    </ul>
+    {VOLS.map((v) => (
+      <section>
+        <h3>Volume {v.n} · {v.title}</h3>
+        <ul>
+          {inVol(v).map((c) => (
+            <li>
+              <a href={`/chapters/${c.id}/`}>
+                {c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+    {rest.length > 0 && (
+      <section>
+        <h3>Additional</h3>
+        <ul>
+          {rest.map((c) => (
+            <li><a href={`/chapters/${c.id}/`}>{c.data.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     <h2>Other pages</h2>
     <ul>

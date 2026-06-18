@@ -56,7 +56,7 @@ The simplest case — a script or Makefile target invokes the agent non-interact
   | --- | --- | --- |
   | Claude Code | `claude -p "<prompt>"` (print mode) | Settings file declares allowed tools; prompt runs with that static allowlist |
   | Gemini CLI | Non-interactive mode via `-p` / piped stdin | `settings.json` declares tool permissions; `--yolo` bypasses all approvals (dangerous) |
-  | Codex CLI | Approval mode flags (e.g. `--approval-mode` / `-a`) | Scoped approval levels: on-request, on-failure, never — chosen per invocation |
+  | Codex CLI | `codex exec` (non-interactive subcommand) | Scoped approval levels (`-a`): untrusted, on-request, never — paired with a `--sandbox` policy, chosen per invocation |
 </Divergence>
 
 The three tools converge on a `-p` / print / prompt flag for non-interactive mode and diverge on how permissions are granted. The underlying question each tool answers in its own vocabulary: *what is the agent allowed to do without asking, given no one is here to ask?*
@@ -125,7 +125,7 @@ Automation is where the field is changing fastest. Three axes worth tracking.
 </Divergence>
 
 <Divergence axis="CI integration depth">
-  Claude's `anthropics/claude-code-action` and Google's `google-gemini/gemini-cli-action` are purpose-built GitHub Actions with their own input/output schemas and opinionated defaults. Codex's story relies more on general-purpose non-interactive invocation from a standard Actions `run` step — less purpose-built, more flexible, more DIY. The *need* for CI integration is universal; the *shape* of integration — purpose-built action vs. composable building-block — is where the tools diverge.
+  Claude's `anthropics/claude-code-action` and Google's `google-github-actions/run-gemini-cli` are purpose-built GitHub Actions with their own input/output schemas and opinionated defaults. Codex's story relies more on general-purpose non-interactive invocation from a standard Actions `run` step — less purpose-built, more flexible, more DIY. The *need* for CI integration is universal; the *shape* of integration — purpose-built action vs. composable building-block — is where the tools diverge.
 </Divergence>
 
 **Emerging: agent-as-service deployment.** Several practitioners are running agents as long-lived services rather than one-shot invocations: a daemon that receives queued tasks, executes them, and posts results. This blurs the line between "automation pipeline" and "internal platform." Expect purpose-built deployment patterns (containerized agents, IAM-scoped service accounts, per-agent telemetry) to crystallize over the next 12 months. The current DIY patterns work; a convergent shape has not yet formed.

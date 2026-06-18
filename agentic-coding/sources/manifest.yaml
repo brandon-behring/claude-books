@@ -36,3 +36,221 @@
   tool: cross-tool
   perma_cc: null
   local_cache: null
+
+# === Claude Code (Appendix A + cross-tool body claims) ===
+# Harvested from the architect-reference dossier-verified pool (docs/research-program
+# strict-live cache); every URL re-confirmed live (HTTP 200) on 2026-06-17.
+
+- id: claude-code-cli-reference
+  url: https://code.claude.com/docs/en/cli-reference
+  title: CLI reference
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-headless
+  url: https://code.claude.com/docs/en/headless
+  title: Run Claude Code programmatically
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-memory
+  url: https://code.claude.com/docs/en/memory
+  title: How Claude remembers your project
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-commands
+  url: https://code.claude.com/docs/en/commands
+  title: Commands
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-skills
+  url: https://code.claude.com/docs/en/skills
+  title: Extend Claude with skills
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-hooks
+  url: https://code.claude.com/docs/en/hooks
+  title: Hooks reference
+  author: Anthropic
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-permission-modes
+  url: https://code.claude.com/docs/en/permission-modes
+  title: Choose a permission mode
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: agent-sdk-subagents
+  url: https://code.claude.com/docs/en/agent-sdk/subagents
+  title: Subagents in the SDK
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-mcp
+  url: https://code.claude.com/docs/en/mcp
+  title: Connect Claude Code to tools via MCP
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: claude-code-settings
+  url: https://code.claude.com/docs/en/settings
+  title: Claude Code Settings
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: agent-sdk-sessions
+  url: https://code.claude.com/docs/en/agent-sdk/sessions
+  title: Work with sessions
+  author: Anthropic
+  captured_at: 2026-05-22T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# === Gemini CLI (Appendix B + cross-tool body claims) ===
+# Official google-gemini/gemini-cli repo + docs; every URL curl-verified live (HTTP 200) on 2026-06-17.
+
+- id: gemini-cli-readme
+  url: https://github.com/google-gemini/gemini-cli/blob/main/README.md
+  title: "Gemini CLI — open-source terminal agent (README)"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-gemini-md
+  url: https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/gemini-md.md
+  title: "Gemini CLI — GEMINI.md context files"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-commands-reference
+  url: https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/commands.md
+  title: "Gemini CLI — Commands reference"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-configuration
+  url: https://github.com/google-gemini/gemini-cli/blob/main/docs/reference/configuration.md
+  title: "Gemini CLI — Configuration reference"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-mcp-server
+  url: https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md
+  title: "Gemini CLI — MCP servers"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-custom-commands
+  url: https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/custom-commands.md
+  title: "Gemini CLI — Custom commands (TOML)"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-authentication
+  url: https://github.com/google-gemini/gemini-cli/blob/main/docs/get-started/authentication.mdx
+  title: "Gemini CLI — Authentication"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+- id: gemini-cli-run-action
+  url: https://github.com/google-github-actions/run-gemini-cli
+  title: "Gemini CLI GitHub Action (google-github-actions/run-gemini-cli)"
+  author: Google
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: gemini-cli
+
+# === Codex CLI (Appendix C + cross-tool body claims) ===
+# Official openai/codex repo + developers.openai.com/codex docs; every URL curl-verified live (HTTP 200) on 2026-06-17.
+
+- id: codex-cli-repo
+  url: https://github.com/openai/codex
+  title: "OpenAI Codex CLI — lightweight coding agent for the terminal (repository)"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli
+
+- id: codex-cli-sandbox
+  url: https://developers.openai.com/codex/sandbox
+  title: "Codex CLI — Agent approvals & security (sandbox)"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli
+
+- id: codex-cli-noninteractive
+  url: https://developers.openai.com/codex/noninteractive
+  title: "Codex CLI — Non-interactive mode"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli
+
+- id: codex-cli-config-advanced
+  url: https://developers.openai.com/codex/config-advanced
+  title: "Codex CLI — Advanced configuration"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli
+
+- id: codex-cli-auth
+  url: https://developers.openai.com/codex/auth
+  title: "Codex CLI — Authentication"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli
+
+- id: codex-cli-config-reference
+  url: https://developers.openai.com/codex/config-reference
+  title: "Codex CLI — Configuration reference"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli
+
+- id: codex-cli-agents-md
+  url: https://developers.openai.com/codex/guides/agents-md
+  title: "Codex CLI — Custom instructions with AGENTS.md"
+  author: OpenAI
+  captured_at: 2026-06-17T00:00:00Z
+  tier: T1-official
+  tool: codex-cli

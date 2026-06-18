@@ -81,7 +81,7 @@ The three CLI-agents this book covers all run the agent loop. The surface area d
 | File edit | `Edit` / `Write` | `edit_file` / `write_file` | native edit |
 | Shell execution | `Bash` tool | `run_shell_command` | native exec |
 | Search | `Grep` / `Glob` | `search_file_content` | native grep |
-| Plan-mode entry | Shift+Tab | `/plan` | approval modes (`--suggest`, `-a on-request`) |
+| Plan-mode entry | Shift+Tab | `/plan` | approval modes (`-a on-request`) |
 | Configuration scope | layered (global / project / local / enterprise / user) | global + project (GEMINI.md) | global + project (`~/.codex/config.toml`) |
 
 <SkillBox title="Build the mental model actively on day one">
@@ -127,7 +127,7 @@ The agent-loop abstraction has converged across the CLI-agent category faster th
   Claude Code ships a five-layer configuration stack (global CLAUDE.md → project CLAUDE.md → project-local → enterprise → user). Gemini CLI and Codex CLI use flatter schemes (global + project). For solo projects, the depth is unused overhead; for team + enterprise scenarios, Claude's stack maps cleanly to real organizational boundaries. The divergence reflects different target user profiles, not different philosophies.
 </Divergence>
 
-**Emerging: plan-mode as a primitive.** All three tools have shipped (or committed to) an explicit planning phase where the agent reads and proposes without writing. Claude's was first-class first; Gemini shipped an explicit `/plan` command later. Codex approximates the same behavior through its approval-mode flow (`--suggest` / `-a on-request`): the agent proposes each action, waits for operator approval before executing. Not the same framing but functionally equivalent for review-before-edit workflows. Expect full first-class convergence within a year.
+**Emerging: plan-mode as a primitive.** All three tools have shipped (or committed to) an explicit planning phase where the agent reads and proposes without writing. Claude's was first-class first; Gemini shipped an explicit `/plan` command later. Codex approximates the same behavior through its approval-mode flow (`-a on-request`): the agent proposes each action, waits for operator approval before executing. Not the same framing but functionally equivalent for review-before-edit workflows. Expect full first-class convergence within a year.
 
 **Emerging: delegation / subagents.** Spawning a child agent with its own context for a bounded sub-task exists in Claude Code today and is signalled-but-not-shipped in Gemini. Codex has not yet. The pattern is a natural fit once the agent-loop model is internalized, but the engineering to do it safely (context isolation, result summarization, permission propagation) is non-trivial. Expect partial convergence in 2026, full convergence in 2027.
 

@@ -1,0 +1,5 @@
+# Generated data — rebuilt by the prebuild `build:labels` hook (book-scaffold).
+# Matches the per-book convention in handbook/ · architect-reference/ · agentic-systems-design/.
+# (node_modules/, dist/, .astro/, pagefind, glossary copies, etc. are covered by the repo-root .gitignore.)
+src/data/*.json
+!src/data/.gitkeep

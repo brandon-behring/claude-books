@@ -35,6 +35,7 @@ lives **externally** as strict-live dossiers in `~/Claude/` and bridges in (see 
 | [`trajectories.md`](./trajectories.md) | The living **momentum dashboard** — one row per topic (heating / stable / cooling / dormant / revived), last-checked, notable shifts. Lists *every* topic from day one (even stubs) so gaps + staleness are visible. |
 | [`content-map.md`](./content-map.md) | The **research → book** mapping (which topics/atoms back which planned chapters/sections), cert-coverage-matrix style. Versioned/living — atoms grow and mappings change. |
 | [`topic-backlog.yml`](./topic-backlog.yml) | Append-only **emerging sub-topic** candidates surfaced during research (the `/topic-discovery` output). |
+| [`source-registry.md`](./source-registry.md) | The **source-first watch-map** — the standing sources worth monitoring (Anthropic feeds, **code/samples repos**, channels, partner/ecosystem, practitioner), each with how-to-monitor · cadence · last-checked, plus a **method for finding new sources**. Complements the topic-first files above; per-source freshness stays in the dossiers' `bib_ledger.yml`. (decisions.md D8) |
 
 ## How the external strict-live dossiers bridge in
 

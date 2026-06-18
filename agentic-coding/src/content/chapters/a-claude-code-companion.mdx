@@ -5,7 +5,7 @@ chapter: 1
 volatility: feature-surface
 tools_compared: [claude-code]
 last_verified: 2026-04-17
-sources: []
+sources: [claude-code-cli-reference, claude-code-headless, claude-code-memory, claude-code-commands, claude-code-skills, claude-code-hooks, claude-code-permission-modes, agent-sdk-subagents, claude-code-mcp, claude-code-settings, agent-sdk-sessions]
 description: "A deep reference for Claude Code specifically. Organized around the book's concepts rather than as a feature catalogue: how the primitives the book discusses (briefing docs, plan mode, skills, hooks, subagents, MCP) actually map to Claude Code's surfaces, with their current flags and file paths. Where the main chapters kept Claude-specific detail bounded for comparative fairness, this appendix lets it flow."
 draft: false
 ---
@@ -16,6 +16,7 @@ import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.a
 import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.astro';
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
 
 *The main chapters kept Claude-specific detail bounded because comparative pedagogy demands it. This appendix is where the bound comes off: concrete paths, specific flags, the exact primitives as they exist in Claude Code as of the chapter's last-verified date. Nothing here is a principle — principles are in the body chapters. Everything here is current feature surface, classified explicitly as volatile, audited quarterly.*
 
@@ -33,7 +34,7 @@ The appendix assumes you have Claude Code installed and a basic session-loop fam
 
 ## Invocation modes
 
-Claude Code ships one binary (`claude`) with several invocation modes.
+Claude Code ships one binary (`claude`) with several invocation modes.<Citation src="claude-code-cli-reference" />
 
 | Mode | Command | Purpose |
 | --- | --- | --- |
@@ -42,7 +43,7 @@ Claude Code ships one binary (`claude`) with several invocation modes.
 | Resume | `claude --resume` or `claude --continue` | Reattach to prior session |
 | Stream | JSON-stream output for piping to other tools | Scriptable integrations |
 
-The print mode (`-p`) is the primary surface for CI integration and scripted batches (see Ch 12). Output shape is controlled by `--output-format` (`text`, `json`, `stream-json`). Scripting against a stable machine-readable output is more durable than scripting against the interactive text format, which has drifted between releases.
+The print mode (`-p`) is the primary surface for CI integration and scripted batches (see Ch 12). Output shape is controlled by `--output-format` (`text`, `json`, `stream-json`). Scripting against a stable machine-readable output is more durable than scripting against the interactive text format, which has drifted between releases.<Citation src="claude-code-headless" />
 
 <SkillBox title="One-shot print-mode pattern">
   The shape is `claude -p "<prompt>" --output-format json --allowed-tools "Read,Grep,Glob"`. Scoping `--allowed-tools` to the minimum the task needs is the single most important flag in a print-mode invocation; without it, the print mode inherits broad defaults from your user settings, which is usually wrong for an automated context. Pair with `--cwd` to pin the working directory explicitly rather than relying on caller context.
@@ -50,7 +51,7 @@ The print mode (`-p`) is the primary surface for CI integration and scripted bat
 
 ## Briefing documents (Ch 7)
 
-Claude's briefing-doc convention is a file named `CLAUDE.md` at the repo root, resolved up from the working directory. Nested `CLAUDE.md` files closer to the working directory are concatenated; the closest wins on conflict. The file is re-injected on every turn — budget-sensitive claims from Ch 2 apply directly.
+Claude's briefing-doc convention is a file named `CLAUDE.md` at the repo root, resolved up from the working directory. Nested `CLAUDE.md` files closer to the working directory are concatenated; the closest wins on conflict. The file is re-injected on every turn — budget-sensitive claims from Ch 2 apply directly.<Citation src="claude-code-memory" />
 
 The supported locations, in precedence order:
 - `./CLAUDE.md` (project-local, highest precedence for its directory)
@@ -63,9 +64,9 @@ A user-level `CLAUDE.md` is the right place for preferences that apply to all yo
 
 Claude Code exposes two extension surfaces.
 
-**Slash commands** live in `.claude/commands/` (project-level) or `~/.claude/commands/` (user-level). Each command is a Markdown file with optional frontmatter; the filename minus extension becomes the slash-command name. The body is used as a prompt template, with `{{args}}` substitution for arguments passed on the command line.
+**Slash commands** live in `.claude/commands/` (project-level) or `~/.claude/commands/` (user-level). Each command is a Markdown file with optional frontmatter; the filename minus extension becomes the slash-command name. The body is used as a prompt template, with `{{args}}` substitution for arguments passed on the command line.<Citation src="claude-code-commands" />
 
-**Skills** live in `.claude/skills/` (project) or `~/.claude/skills/` (user). A skill is a directory containing a `SKILL.md` with frontmatter describing when Claude should invoke it; the directory can also contain scripts, templates, and reference material the skill uses. Skills are autonomously invoked when Claude judges them relevant, rather than explicitly called like slash commands.
+**Skills** live in `.claude/skills/` (project) or `~/.claude/skills/` (user). A skill is a directory containing a `SKILL.md` with frontmatter describing when Claude should invoke it; the directory can also contain scripts, templates, and reference material the skill uses. Skills are autonomously invoked when Claude judges them relevant, rather than explicitly called like slash commands.<Citation src="claude-code-skills" />
 
 <Divergence axis="when to use commands vs skills (Claude-internal)">
   A **slash command** is the right shape when the user must explicitly trigger the action — a user-visible verb in the CLI ("post-review", "deploy-preview"). A **skill** is the right shape when Claude should autonomously reach for a capability when a situation matches ("whenever working on migrations, first check the migration-safety checklist"). Confusing the two — skills written as user-triggered commands, or commands expected to auto-fire — is the most common extension-design mistake.
@@ -73,7 +74,7 @@ Claude Code exposes two extension surfaces.
 
 ## Hooks (Ch 8)
 
-Hooks are user-defined shell commands that run in response to agent lifecycle events. Configured in `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Each hook entry binds an event name to a command string.
+Hooks are user-defined shell commands that run in response to agent lifecycle events. Configured in `.claude/settings.json` (project) or `~/.claude/settings.json` (user). Each hook entry binds an event name to a command string.<Citation src="claude-code-hooks" />
 
 Event names, at time of capture:
 
@@ -98,7 +99,7 @@ Hooks have a significant power/risk ratio. A well-scoped hook adds strong guardr
 
 ## Plan mode (Ch 6)
 
-Plan mode is Claude Code's read-only planning phase. Enter with a keyboard shortcut (typically `Shift+Tab` cycling through auto-accept / plan / normal) or via CLI flag on startup. In plan mode the agent reads files, searches, analyzes — but cannot write files or execute mutating commands. Its output is a plan artifact written to a known path (`~/.claude/plans/<name>.md`) for review.
+Plan mode is Claude Code's read-only planning phase. Enter with a keyboard shortcut (typically `Shift+Tab` cycling through auto-accept / plan / normal) or via CLI flag on startup. In plan mode the agent reads files, searches, analyzes — but cannot write files or execute mutating commands. Its output is a plan artifact written to a known path (`~/.claude/plans/<name>.md`) for review.<Citation src="claude-code-permission-modes" />
 
 The workflow: enter plan mode → describe the goal → the agent proposes a plan file → you review and iterate → exit plan mode → the agent implements against the approved plan.
 
@@ -108,7 +109,7 @@ The workflow: enter plan mode → describe the goal → the agent proposes a pla
 
 ## Subagents (Ch 9)
 
-Claude Code's delegation primitive is the `Task` tool, which spawns a child agent with its own context window, tool access, and prompt. The child runs to completion and returns a single summary message to the parent. The parent's context grows by the summary, not by the child's full transcript — this is the compression mechanism that makes delegation valuable.
+Claude Code's delegation primitive is the `Task` tool, which spawns a child agent with its own context window, tool access, and prompt. The child runs to completion and returns a single summary message to the parent. The parent's context grows by the summary, not by the child's full transcript — this is the compression mechanism that makes delegation valuable.<Citation src="agent-sdk-subagents" />
 
 Subagent type definitions live in `.claude/agents/` (project) or `~/.claude/agents/` (user). Each is a Markdown file with frontmatter describing the agent's purpose, tool access, and any system prompt customizations. Predefined subagent types (e.g. `general-purpose`, `Explore`, `Plan`) ship with Claude Code; custom types extend them.
 
@@ -116,7 +117,7 @@ The decision to delegate vs. stay in the main thread comes down to Ch 9's princi
 
 ## MCP integration (Ch 8)
 
-Claude Code is an MCP client. Servers are configured in `.mcp.json` at the repo root (project-level) or in user settings. Each server declares a command to launch and an optional environment; Claude connects on session start and exposes the server's tools to the agent.
+Claude Code is an MCP client. Servers are configured in `.mcp.json` at the repo root (project-level) or in user settings. Each server declares a command to launch and an optional environment; Claude connects on session start and exposes the server's tools to the agent.<Citation src="claude-code-mcp" />
 
 <SkillBox title="Adding an MCP server">
   The steps: (1) identify the server you need — Anthropic ships a registry at `docs.anthropic.com`, and the broader MCP ecosystem has third-party servers for common tools (GitHub, Slack, databases). (2) Install or locate the server binary. (3) Add an entry to `.mcp.json` with the server's launch command and any required env vars. (4) Restart the session; the server's tools appear in the agent's tool list. Scope permissions narrowly — an MCP server with broad access to your Slack or database is a credential the agent can exercise, and permissions should reflect that.
@@ -141,11 +142,11 @@ Key fields, at time of capture:
 | `hooks` | Hook bindings (see Hooks above) |
 | `subagents.disabledTypes` | Block specific subagent types from being spawned |
 
-Permissions strings support globs (`Bash(git:*)` allows all `git` subcommands) and path scoping (`Edit(src/**)` allows edits only under `src/`). The expressive power is what makes Claude's permission model work for both personal and enterprise deployment.
+Permissions strings support globs (`Bash(git:*)` allows all `git` subcommands) and path scoping (`Edit(src/**)` allows edits only under `src/`). The expressive power is what makes Claude's permission model work for both personal and enterprise deployment.<Citation src="claude-code-settings" />
 
 ## Session state and memory
 
-Session transcripts are stored locally (typically under `~/.claude/projects/<project-hash>/`). The `--resume` flag reattaches to prior sessions; `--continue` picks up the last session automatically.
+Session transcripts are stored locally (typically under `~/.claude/projects/<project-hash>/`). The `--resume` flag reattaches to prior sessions; `--continue` picks up the last session automatically.<Citation src="agent-sdk-sessions" />
 
 The memory system — distinct from session transcripts — stores persistent notes the agent has written about the user, the project, or past interactions. Memory files live in user-level config and are loaded into every session's context. The memory system has its own audit discipline: stale memories are active misinformation and should be pruned on the same cadences Ch 16 describes.
 

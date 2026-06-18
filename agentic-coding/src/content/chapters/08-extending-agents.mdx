@@ -5,7 +5,7 @@ chapter: 8
 volatility: feature-surface
 tools_compared: [claude-code, gemini-cli, codex-cli]
 last_verified: 2026-04-17
-sources: []
+sources: [claude-code-skills, gemini-cli-custom-commands, claude-code-mcp, claude-code-hooks]
 description: "Commands, skills, hooks, MCP — the four axes by which an agent becomes more than the defaults it ships with. This is the most divergent surface in the category; get the mental model right and the command names become secondary."
 draft: false
 ---
@@ -18,6 +18,7 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
 
 *Out of the box, every CLI-agent is just a general-purpose shell for a model. That's where it stops being useful. The agent that ships with defaults is the agent that loses to the agent with your repo's conventions wired in, your team's verification gates running automatically, your private knowledge base reachable as a tool. This chapter is about the four axes on which agents become extended — and why extensibility is also the surface where tools diverge most sharply.*
 
@@ -68,19 +69,19 @@ The tri-tool map of what's supported where:
 | User commands | `.claude/skills/<name>/SKILL.md` (or a single `.md`) → `/name` | `.gemini/commands/<name>.toml` → `/name` | slash commands via config / plugins |
 | Reusable skills | merged with commands — a skill-with-a-directory is the richer form of a command | via extensions | via MCP server + registered tools |
 | Hooks | 9+ events: `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Notification`, `Stop`, `SubagentStop`, `PreCompact`, `SessionStart`, `SessionEnd` | lighter; pre/post tool callbacks | command-approval config in `~/.codex/config.toml` |
-| Permissions | `settings.json` with allow-list / deny-rules; enforced by harness | tool-level allow-lists | approval modes (`--suggest` / `-a on-request` / `--full-auto`) |
+| Permissions | `settings.json` with allow-list / deny-rules; enforced by harness | tool-level allow-lists | approval modes (`-a on-request` / `-a never`) |
 | MCP support | first-class; shipped with Claude Code from early | first-class (2025+); 200+ extension ecosystem | first-class; `codex mcp` CLI + `~/.codex/config.toml` |
 | MCP transports | stdio + HTTP/SSE | stdio + HTTP | stdio + streamable HTTP |
 
 Two observations before the details:
 
-1. **MCP is convergent.** All three tools support the protocol with interoperable server implementations. An MCP server written for one client works for all three, modulo tiny transport-config differences. This is the single biggest extensibility story of 2025–2026.
+1. **MCP is convergent.** All three tools support the protocol with interoperable server implementations.<Citation src="claude-code-mcp" /> An MCP server written for one client works for all three, modulo tiny transport-config differences. This is the single biggest extensibility story of 2025–2026.
 
 2. **Everything non-MCP diverges.** Skills, command authoring, hooks — each tool's surface is incompatible with the others. Practices that lean on specific command-file formats or hook-event names do not port; practices that lean on "what the extension does" do.
 
 ### Commands and skills: the invoked layer
 
-A command is the simplest extension. You write a markdown file describing a workflow; the agent reads it when invoked. Claude Code recently merged its `commands/` and `skills/` directories — both now produce the same `/slash-command` interface. A "skill" is just the richer form: a directory with a `SKILL.md` entry point plus supporting reference files.
+A command is the simplest extension. You write a markdown file describing a workflow; the agent reads it when invoked. Claude Code recently merged its `commands/` and `skills/` directories — both now produce the same `/slash-command` interface.<Citation src="claude-code-skills" /> A "skill" is just the richer form: a directory with a `SKILL.md` entry point plus supporting reference files.
 
 ```text
 # Claude Code — simple command form
@@ -102,7 +103,7 @@ A command is the simplest extension. You write a markdown file describing a work
   examples/            # sample outputs
 ```
 
-Gemini CLI uses TOML-based custom commands in `.gemini/commands/`; Codex CLI ships a built-in slash-command set and leans on MCP servers to add custom verbs. The mental model is the same everywhere: a named, invocable workflow.
+Gemini CLI uses TOML-based custom commands in `.gemini/commands/`<Citation src="gemini-cli-custom-commands" />; Codex CLI ships a built-in slash-command set and leans on MCP servers to add custom verbs. The mental model is the same everywhere: a named, invocable workflow.
 
 <SkillBox title="Write a command the first time a workflow repeats">
   The marginal cost of a command is a markdown file; the cumulative benefit is every future invocation. Rule of thumb: the second time you type the same multi-step workflow by hand, it should become a command. Name it as a verb (`/deploy`, `/review`, `/port-chapter`). Keep the body short and structured — describe the steps, not the prose. Use the briefing doc's precision vocabulary inside so the command's outputs match the project's voice.
@@ -112,7 +113,7 @@ Gemini CLI uses TOML-based custom commands in `.gemini/commands/`; Codex CLI shi
 
 A hook is a script that runs automatically at a specific lifecycle point, regardless of what the user or agent is doing. Hooks are how you make a standard *non-negotiable*: "always run tests before commit" is an advisory line in the briefing doc that the agent may forget in a long session; as a `PreToolUse` hook matching `Bash` commands that contain `git commit`, it fires every time.
 
-Claude Code has the richest hook surface — nine lifecycle events covering prompt submission, tool invocation (before/after), compaction, session start/end, sub-agent lifecycle, and generic notifications. Each hook can match specific tool names or patterns and run arbitrary shell commands. Gemini CLI has a lighter set focused on pre/post tool invocation. Codex CLI's model is command-approval configuration — the agent's operations are gated by approval policy rather than by event hooks.
+Claude Code has the richest hook surface — nine lifecycle events covering prompt submission, tool invocation (before/after), compaction, session start/end, sub-agent lifecycle, and generic notifications.<Citation src="claude-code-hooks" /> Each hook can match specific tool names or patterns and run arbitrary shell commands. Gemini CLI has a lighter set focused on pre/post tool invocation. Codex CLI's model is command-approval configuration — the agent's operations are gated by approval policy rather than by event hooks.
 
 ```json
 {

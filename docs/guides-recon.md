@@ -3,6 +3,8 @@
 **Date**: 2026-05-24
 **Purpose**: Compare `~/guides/` + `~/guides-experimentation/` (sibling consumers of the same `@brandon_m_behring/book-scaffold-astro` v4.2.0 scaffold) against `~/claude-books/` to surface **decision categories that claude-books has not yet addressed**. This is a working memo, not an adoption plan. Each category articulates what guides chose, why, what claude-books currently has, what claude-books *could* do given its different audience and register, and (where recommended) a concrete adoption path.
 
+> **Status note (2026-06-18):** this is a dated working memo — some snapshots below predate the current model (e.g. "3 volumes", Field-Guide as a planned book, "only handbook exists"). The live model is **4 books + glossary infra** — see [`BOOK-MAP.md`](./BOOK-MAP.md) and [`ROADMAP.md`](./ROADMAP.md).
+
 **Why guides as the reference**: both repos use the same scaffold; guides has run further down the consumer path (multi-volume hub, design-doc discipline, friction logs, CI workflows, schema extensions, deploy patterns). It has surfaced decision categories empirically that claude-books would otherwise discover one at a time.
 
 **Audience divergence to keep in mind**:
@@ -11,7 +13,7 @@
 |---|---|---|
 | **Audience** | Interview-prep learners (DS / ML / AI engineering candidates) | Claude Code practitioners + AI engineering architects |
 | **Register** | Tutorial / pedagogical (transfer + retention focus) | Practitioner reference + design reference |
-| **Volume mix** | 1 hub + N per-guide sibling repos | 1 workspace, planned 3 volumes (handbook + architect-ref + field-guide) + glossary |
+| **Volume mix** | 1 hub + N per-guide sibling repos | 1 workspace, 4 books (handbook + agentic-coding + architect-ref + agentic-systems-design) + glossary infra |
 | **Verification model** | Capstone + portfolio | Citation tier + research cache |
 | **Content shape** | Chapter MDX with chapter-companion code + capstone artifact | Long-form chapters + supplements + PoCs + figure library |
 | **Scaffold preset** | `research-portfolio` (academic register) | `tools` (practitioner register) |
