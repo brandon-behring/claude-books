@@ -3,8 +3,9 @@
 A multi-book series + shared glossary. Each book covers Claude from a different angle (canonical scopes: [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md)):
 
 - **handbook/** — the **Use** book: how to *use* Claude Code effectively, day to day
+- **agentic-coding/** — the cross-tool **Use** book: building software with AI coding agents across Claude Code, Gemini CLI, and Codex CLI (principle-first; distinct from the Claude-Code-specific handbook)
 - **architect-reference/** — the **Cert** book: self-contained study guide, cert-aligned to *Claude Certified Architect — Foundations* (D1–D5)
-- **agentic-systems-design/** — the **Design** book: the broad, **multi-volume** book on engineering agentic systems (Vol 1 Environment & Context drafted)
+- **agentic-systems-design/** — the **Design** book: the broad, **multi-volume** book on engineering agentic systems (Vols 1–3 drafted — v1.0 complete 2026-06-14; applied vol pending)
 - **glossary/** — shared term layer (v1 shipped 2026-06-13: canonical `glossary/terms/` synced into each book; not a read-through book)
 
 Current project roadmap + status lives at [`docs/ROADMAP.md`](./docs/ROADMAP.md) (canonical).

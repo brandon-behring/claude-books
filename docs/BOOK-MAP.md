@@ -2,9 +2,9 @@
 
 > The single answer to "what is each book, and what goes where." Companion to
 > [`REPO-MAP.md`](./REPO-MAP.md) (git/branch topology) and [`ROADMAP.md`](./ROADMAP.md) (forward
-> plan + status). Last updated: **2026-06-08**.
+> plan + status). Last updated: **2026-06-17**.
 
-`claude-books` is a multi-book Astro/MDX workspace: **3 public books + a shared glossary layer**.
+`claude-books` is a multi-book Astro/MDX workspace: **4 public books + a shared glossary layer**.
 Each book is a distinct **scope** with a one-word **lens** — the question it answers. All consume
 `@brandon_m_behring/book-scaffold-astro`.
 
@@ -15,8 +15,9 @@ Each book is a distinct **scope** with a one-word **lens** — the question it a
 | Book | Slug | Lens | Question it answers | Cert relation | Status |
 |---|---|---|---|---|---|
 | Handbook | `handbook/` | **Use** | How do I use Claude Code effectively, day to day? | use-side; D3 primary owner | Part I prose (4 ch, ch01–04); ch05–15 outline |
+| Agentic Coding | `agentic-coding/` | **Use** | How do I build software with AI coding agents — across tools? | use-side; cross-tool (D1/D3) | 17 ch + 6 appendices (Claude Code · Gemini CLI · Codex CLI); folded in via PR #18 |
 | The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I design to (and pass) the CCA-F domains D1–D5? | **is** the cert map | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
-| Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | Vol 1 drafted (11 ch); Vols 2–3 + applied pending |
+| Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | **Vols 1–3 drafted — Design v1.0 COMPLETE 2026-06-14** (28 ch); applied (v2.0) pending |
 | Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | v1 shipped 2026-06-13 (cert consumer) — **not a read-through book** |
 
 ## Handbook = Use
@@ -24,6 +25,15 @@ Each book is a distinct **scope** with a one-word **lens** — the question it a
 Claude Code in **daily practice** — sessions, CLAUDE.md, workflows, config, productivity. How-to
 altitude, scoped to the CLI/agent tool (not the API or claude.ai). The rewrite of the
 `claude-best-practices` draft (16 ch).
+
+## Agentic Coding = Use (cross-tool)
+
+Building software with AI coding agents as a **single cross-tool practice** — Claude Code, Gemini CLI,
+and Codex CLI side by side. Principle-first: each chapter uses a uniform Representation / Operation /
+Evolution skeleton and tracks where the tools **converge** (stable practice) and **diverge** (open
+design space). 17 chapters + 6 appendices (per-tool companions, a source archive, glossary, maturity
+model). Distinct from the Handbook, which is Claude-Code-specific daily practice; this is the
+tool-agnostic layer. Folded into the series via PR #18 (which also added the Cloudflare deploy hub).
 
 ## Architect's Reference = Cert
 
@@ -40,9 +50,9 @@ across volumes**:
 - **Vol 1 — Environment & Context** *(drafted, 11 ch)* — the agent's world (repo / CLAUDE.md /
   skills / guardrails / cross-domain) + what it reasons over (context-rot / assembly / memory),
   opened by the harness frame.
-- **Vol 2 — Tools & Orchestration** — tool/MCP design, tool minimization, sub-agents, multi-agent,
-  build-vs-buy a harness.
-- **Vol 3 — Evaluation & Operations** — evals/validation, observability, cost, oversight/HITL, security.
+- **Vol 2 — Tools & Orchestration** *(drafted, ch12–20)* — tool/MCP design, tool minimization,
+  sub-agents, multi-agent, build-vs-buy a harness.
+- **Vol 3 — Evaluation & Operations** *(drafted, ch21–28)* — evals/validation, observability, cost, oversight/HITL, security.
 - **+ a problem-first applied volume** — re-traverses the material through real problems (reviews +
   breadcrumbs back to Vols 1–3). This carries the **public** "what teams actually did" mission (the
   retired Field-Guide's role).
