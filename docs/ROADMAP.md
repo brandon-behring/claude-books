@@ -18,7 +18,7 @@ applied volume (see [Next](#next--re-set-2026-06-17)).
 
 | Book | Lens | Identity | Status |
 |---|---|---|---|
-| `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | **Live (served-`noindex`)** — Part I = 4 ch prose; ch05–15 port pending |
+| `handbook/` | Use | Claude Code, daily practice (not API / claude.ai) | **Live (served-`noindex`)** — Part I (4 ch) + Ch 6 (Part II pilot) prose; ch05, 07–15 port pending |
 | `agentic-coding/` | Use | Building software with AI coding agents — cross-tool (Claude Code · Gemini CLI · Codex CLI) | **Live** — 17 ch + 6 appendices; folded in via PR #18 |
 | `architect-reference/` | Cert | Self-contained CCA-F D1–D5 study guide | **Live** — 30 ch, Round-2 study-guide COMPLETE (2026-06-02); apparatus + 75-q bank wired |
 | `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | **Live** — Vols 1–3 drafted, **Design v1.0 COMPLETE 2026-06-14** (28 ch / 34 pages); applied (v2.0) pending |
@@ -62,7 +62,7 @@ ops dossiers). A cross-cutting `youtube_talks` source pool feeds many topics on-
   (`<Diagnostic>`×30 / `<PartReview>` / scored ExamRunner / `/answers`) + **75-q bank** (≥2/ch, Check 14) (2026-06-12).
 - **Design v1.0 content complete** — Vols 1–3 authored, 28 ch / 34 pages (2026-06-14); Vol 1 first draft 2026-05-30.
 - **Glossary v1** — canonical `glossary/terms/` (70 terms) + sync infra; cert `/glossary` + `/flashcards` live (2026-06-13).
-- **Handbook Part I** — ch01–04 prose (2026-05-25).
+- **Handbook Part I** — ch01–04 prose (2026-05-25). **Ch 6 (Thinking Together)** ported as the Parts II–IV pilot (2026-06-18, tutorial-first; recipe at `handbook/docs/port-recipe.md`).
 - **Model re-architecture** — 5 books → 3 + glossary; books un-fused → single trunk; this roadmap (2026-06-01/08).
 - **Deferred-debt batch** — research-lint green + scaffold→4.18 (#96) + cert-coverage Design column (2026-06-08).
 - **Research program complete** — 23 strict-live dossiers, Waves 1–7, all D1–D5 (2026-05-27).
@@ -76,7 +76,7 @@ content is complete and its **draft banner + `noindex` come off**.
 
 | Book | v1.0 = | Gated on |
 |---|---|---|
-| Handbook | all 15 ch (Parts I–IV); labels/XRefs resolve; banner+`noindex` off | the ch05–15 port; **step 0 = clone `brandon-behring/claude-best-practices`** (sources not local) |
+| Handbook | all 15 ch (Parts I–IV); labels/XRefs resolve; banner+`noindex` off | the ch05, 07–15 port (Ch 6 pilot done); sources on disk at `~/claude-best-practices/` (clone if absent) |
 | Agentic Coding | content (17 ch + 6 app, done) + the ch00-promised version-branch infra; banner off | **live/published (v0.2.0)**; content-complete, convergence dashboard live (2026-06-17 honesty pass); **v1.0 gated on version-branches — deferred (Stage 3), no live trigger yet** |
 | Cert | 30 ch + audit + depth + study apparatus (all done) | **in-repo complete + live**; v1.0 = drop draft banner |
 | Design | Vols 1–3 (done) + Vol-1 Round-2 polish; live | **content COMPLETE 2026-06-14**; v1.0 = Vol-1 polish (#17) + drop banner; applied vol = v2.0 |
@@ -95,9 +95,10 @@ Shipped; records in [`plans/done/`](./plans/done/)). Now that the books are live
    Discussions** (unblocked by repo-public); confirm per-book draft-banner/`noindex` flips. *(Agentic Coding
    had its review + honesty pass 2026-06-17 — content-complete + dashboard live; version-branches deferred to Stage 3.)*
 2. **Keep-current program (committed build)** — see [Keep-current](#keep-current-committed--whats-watched--cadence--automation).
-3. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05–15 + 3 appendices to the proven Part-I
-   template, then flip `noindex`→v1.0. **Step 0 (blocking): `git clone brandon-behring/claude-best-practices`**
-   — the LaTeX sources are NOT on this machine.
+3. **Handbook Parts II–IV port** *(M–L, ~4–6 sessions)* — ch05, 07–15 + 3 appendices to the proven Part-I
+   template (**Ch 6 ported as the pilot 2026-06-18**; tutorial-first recipe + fan-out spec at
+   `handbook/docs/port-recipe.md`), then flip `noindex`→v1.0. Sources are on disk at
+   `~/claude-best-practices/` (clone `brandon-behring/claude-best-practices` if absent).
 4. **Applied volume (Design v2.0)** *(L)* — the problem-first re-traversal (absorbs the retired
    Field-Guide's "what teams did" mission); reviews + breadcrumbs back to Vols 1–3.
 

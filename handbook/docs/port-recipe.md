@@ -78,7 +78,8 @@ Promote a supplement only if the chapter genuinely can't absorb it:
 - Net promoted surface ≈ **2 supplements/chapter**. `<ChapterSupplements>` auto-surfaces the non-draft
   supplements for the chapter — nothing to wire by hand; orphaning can't recur.
 - Link hygiene in promoted supplements: chapter → `/chapters/chN-slug`; sibling → `/supplements/chN-kind`;
-  unported chapter → bare prose + _(forthcoming)_.
+  unported chapter → bare prose + _(forthcoming)_ (this applies to the chapter's own "Where this goes next" list too, not just supplements).
+- Moved tutorial routes (`/supplements/chN-tutorial`) 404 after the `git mv`. Harmless pre-deploy (draft/noindex, unlinked); at deploy (#14) add redirects `/supplements/chN-tutorial` → `/chapters/chN-slug` so any shared preview links resolve.
 
 ## 6. Verification bar (per chapter)
 

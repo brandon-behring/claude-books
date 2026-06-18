@@ -115,7 +115,7 @@ evidence that would distinguish them.
 | "Is this a good design?" | "Critique this design. What are the 3 most likely failure modes in production? What would a reviewer skeptical of it ask first?" |
 | "Was that the right fix?" | "Walk through what that fix actually changes and what could still be broken. What test would catch a regression of the original symptom?" |
 
-## ADR template (3-section)
+## ADR template (4-section)
 
 ```markdown
 # ADR NNNN: <Short decision title>
@@ -126,15 +126,19 @@ Status: Proposed | Accepted | Superseded by NNNN
 ## Context
 
 - What was true at decision time
-- What alternatives existed (name 2-3, with one-line rejection reasons)
 - What constraints applied (technical, organizational, time)
-- ~5 bullets
+- ~4 bullets
 
 ## Decision
 
 We will <one-sentence statement of what was chosen>.
 
 We chose this over <named alternative> because <1-2 reasons>.
+
+## Alternatives Considered
+
+- <alt 1> — rejected because <reason>
+- <alt 2> — rejected because <reason>
 
 ## Consequences
 

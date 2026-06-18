@@ -304,7 +304,7 @@ You ask Claude to "write tests for `parse_date()`." If you are _not_ sure what t
 
 ## Getting genuine comparisons, not validation
 
-Claude has a well-documented tendency to validate whatever approach you present first. Say "I'm thinking about using Redis for caching" and Claude explains why Redis is a good choice; say "Memcached" instead and it explains why Memcached is. This sycophancy is the biggest obstacle to using Claude as a genuine thinking partner — and the fix is structural, not attitudinal. You cannot ask Claude to "be honest." You can structure prompts that make honest comparison the path of least resistance.
+Claude has a strong tendency to validate whatever approach you present first. Say "I'm thinking about using Redis for caching" and Claude explains why Redis is a good choice; say "Memcached" instead and it explains why Memcached is. This sycophancy is the biggest obstacle to using Claude as a genuine thinking partner — and the fix is structural, not attitudinal. You cannot ask Claude to "be honest." You can structure prompts that make honest comparison the path of least resistance.
 
 <Tip n="10" title="Make honesty the path of least resistance.">
 You can't ask Claude to "be honest." Strip the load-bearing preference from your prompt and ask Claude to reach the conclusion from the evidence — so the honest comparison is the easy answer, not the brave one.
@@ -348,7 +348,7 @@ Before "fix this old code," ask why it was written that way. Claude often finds 
 
 ## Architecture Decision Records
 
-When you make an architecture decision _with_ Claude, the conversation captures not just _what_ you decided but _why_, and what alternatives you weighed. An **Architecture Decision Record** preserves that reasoning for your future self — and for a future Claude session, which otherwise starts from zero. Each ADR has three sections plus the trip-wires that make it falsifiable:
+When you make an architecture decision _with_ Claude, the conversation captures not just _what_ you decided but _why_, and what alternatives you weighed. An **Architecture Decision Record** preserves that reasoning for your future self — and for a future Claude session, which otherwise starts from zero. Each ADR has four short sections — Context, Decision, Alternatives Considered, and Consequences — with the trip-wires that make it falsifiable living in the last:
 
 ```markdown
 # ADR-007: Offline Feature Computation
@@ -381,11 +381,11 @@ The most valuable ADR section is **Alternatives Considered**. Claude suggests al
 
 The patterns here recur, each at greater depth:
 
-- **Chapter 5 — Context as currency** — the interview pattern is highest-leverage early in a session, before context fills.
-- **Chapter 7 — Testing & verification** — hypothesis-debugging output is verifiable where a delegated fix is not; property-based tests return there as gates.
-- **Chapter 8 — Extending Claude** — once a prompt pattern saves you time three sessions running, promote it from terminal history to a shared command or skill. Start personal, then share.
-- **Chapter 11 — Project lifecycle** — ADRs feed the project's decision provenance.
-- **Chapter 14 — Team patterns** — the pre-mortem prompt becomes a line in a shared `CLAUDE.md`; the ADR template becomes a team skill.
+- **Chapter 5 — Context as currency** _(forthcoming)_ — the interview pattern is highest-leverage early in a session, before context fills.
+- **Chapter 7 — Testing & verification** _(forthcoming)_ — hypothesis-debugging output is verifiable where a delegated fix is not; property-based tests return there as gates.
+- **Chapter 8 — Extending Claude** _(forthcoming)_ — once a prompt pattern saves you time three sessions running, promote it from terminal history to a shared command or skill. Start personal, then share.
+- **Chapter 11 — Project lifecycle** _(forthcoming)_ — ADRs feed the project's decision provenance.
+- **Chapter 14 — Team patterns** _(forthcoming)_ — the pre-mortem prompt becomes a line in a shared `CLAUDE.md`; the ADR template becomes a team skill.
 
 ## Common pitfalls
 
@@ -439,7 +439,7 @@ The mechanism is that the second prompt asked Claude to enumerate _what it would
 </Solution>
 
 <Solution for="ch6-ex-2">
-Ask Claude to _explore the boundaries_ rather than test the current behavior: "Write cases for empty input, a malformed string, timezone-aware vs. naive datetimes, a leap day, and a far-future date — and tell me which results surprise you." What you are actually trying to learn is the _specification_: tests-as-exploration surfaces the implicit requirements you never wrote down, whereas "write tests" would only pin in place whatever the function happens to do today (bugs included).
+Ask Claude to _explore the boundaries_ rather than test the current behavior: _"Write cases for empty input, a malformed string, timezone-aware vs. naive datetimes, a leap day, and a far-future date — and tell me which results surprise you."_ What you are actually trying to learn is the _specification_: tests-as-exploration surfaces the implicit requirements you never wrote down, whereas "write tests" would only pin in place whatever the function happens to do today (bugs included).
 </Solution>
 
 <Solution for="ch6-ex-3">
