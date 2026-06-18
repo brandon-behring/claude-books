@@ -47,7 +47,7 @@ _Two situations, two protocols: a blank directory for a new project, and a 50,00
 Three investments on **Day 1** compound into dramatically better outcomes over a project's lifetime — and none of them takes more than a few minutes.
 
 1. **Run `/init`** to generate a starter `CLAUDE.md`. Claude examines your structure and proposes conventions it can actually see.
-2. **Set permissions** in `.claude/settings.json` — deny access to `.env*` and `secrets/` before Claude ever reads them.
+2. **Set permissions** in `.claude/settings.json` — deny `Read`/`Write` on `.env*` and `secrets/**` as a first layer. (A single `.env*` deny doesn't close the whole secret surface — nested env files and `Bash` reads like `cat .env` slip past it; Chapter 2's deny-rule procedure has the fuller pattern.)
 3. **Add one hook**: `PostToolUse` matching `Edit|Write` → auto-format. This prevents style drift from the very first file.
 
 By **Week 1**, patterns emerge — invest where the repetition is:
@@ -122,7 +122,7 @@ Never attempt a big-bang rewrite (that is antipattern #7, **Chapter 14** _(forth
 
 Each step fits a ~25-minute focused session, and you **commit after each one** — so if you're interrupted, the project is always in a working state.
 
-<Tip n="14" title="Never big-bang — Extract → Test → Harden → Promote.">
+<Tip n="13" title="Never big-bang — Extract → Test → Harden → Promote.">
 Refactor in increments that each ship. The big-bang rewrite is the antipattern this protocol exists to prevent; small verifiable steps are the antidote.
 </Tip>
 
@@ -147,7 +147,7 @@ exact current behavior:
 Do NOT write tests for how it SHOULD work. Write tests for how it DOES work.
 ```
 
-<Tip n="13" title="Characterize before you change — test what the code does, not what it should.">
+<Tip n="14" title="Characterize before you change — test what the code does, not what it should.">
 A characterization test's job is to detect _change_, not assert _correctness_. Capture today's behavior — bugs included — so any refactor that alters output trips a test.
 </Tip>
 
@@ -157,7 +157,7 @@ A characterization test's job is to detect _change_, not assert _correctness_. C
 
 ### Golden masters: for pipelines
 
-For a data pipeline, a **golden master** captures the exact output of the original code so refactored code can be verified against it:
+For a data pipeline, a **golden master** captures the exact output of the original code so refactored code can be verified against it. (The same capture-compare pattern fits any deterministic transform — serialized API responses, rendered templates, compiled artifacts — not just DataFrames.)
 
 1. **Capture** — run the original pipeline on sample data; save the output DataFrame as a fixture (CSV or Parquet).
 2. **Compare** — the new code must produce identical output within floating-point tolerance.
@@ -185,7 +185,7 @@ Which to reach for:
 During a pipeline migration, use **both**: characterization tests verify each function; the golden master verifies that the composed pipeline produces identical output.
 
 <MarginNote variant="tip" label="Tip">
-  `atol`/`rtol` for floats, exact match for categoricals, `check_like=True` for column-order independence.
+  `atol`/`rtol` for floats, exact match for categoricals. Default to checking column order (it's usually part of the contract); reach for `check_like=True` only when order is explicitly non-contractual.
 </MarginNote>
 
 ## The quality flywheel
@@ -233,7 +233,7 @@ On a fresh repo, run the Day-1 greenfield setup: `/init`, deny `.env*` + `secret
 </Practice>
 
 <Practice id="ch12-pr-2" difficulty="3">
-Pick the messiest function in your project (under ~100 lines). Have Claude write characterization tests _without_ telling it what the function should do — only "document what DataFrames it accepts, what columns it produces, and what happens with NaN inputs." Run them. If they pass, save a golden-master fixture and you have a refactoring safety net; if they fail, you've discovered undocumented behavior. Either way, note what you learned.
+Pick the messiest function in your project (under ~100 lines). Have Claude write characterization tests _without_ telling it what the function should do — only "document what it accepts, what it produces, and what happens with edge inputs." Run them. If a test fails, first check whether it mis-captured the behavior (a bad fixture or a wrong inference) and iterate until the tests demonstrably match what the code does _today_. Passing tests give you a refactoring safety net (save a golden-master fixture); a surprise that survives that scrutiny is genuine undocumented behavior worth recording.
 </Practice>
 
 <Practice id="ch12-pr-3" difficulty="3">

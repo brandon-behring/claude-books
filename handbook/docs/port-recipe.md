@@ -38,8 +38,12 @@ A `.tex`-first chapter ports the LaTeX directly (no draft tutorial to promote). 
 - **Import only what the chapter uses.** The §2 block is a menu, not a mandate — a `.tex`-first chapter
   often needs no `Figure`/`WorkedExample` (ch12 used `BeforeAfter` + `KeyIdea`/`InsightBox` + the standard
   apparatus).
-- **Cross-refs**: a `.tex` `\cref{ch:…}` becomes a real `/chapters/chN-slug` link when the target is
-  **ported** (ch12 → ch06 code-archaeology is live), else `_(forthcoming)_` bare prose.
+- **Cross-refs**: a `.tex` `\cref{ch:…}` becomes a `/chapters/chN-slug` link when the target is **ported**
+  (ch12 → ch06), else `_(forthcoming)_` bare prose. ⚠️ **Known repo-wide bug** ([claude-books#22](https://github.com/brandon-behring/claude-books/issues/22)): root-relative
+  `/chapters/…` + `/supplements/…` links 404 under `base:/handbook/` in the combined-worker deploy — those
+  are the validator's "may not resolve" warnings, and Part I has them too. Keep the convention for
+  consistency; the base-aware fix (scaffold/rehype rebase or a `<ChapterLink>` helper) is repo-wide, not
+  per-chapter.
 
 ## 2. Per-chapter checklist (slim model)
 
