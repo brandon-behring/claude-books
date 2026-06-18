@@ -1,0 +1,259 @@
+---
+title: Project Lifecycle
+part: 3
+chapter: 12
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3, 4, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+sources:
+  - claude-code-overview
+  - anthropic-claude-code-best-practices
+description: The greenfield arc, the brownfield discipline, and the Extract-Test-Harden-Promote refactoring protocol — with characterization tests and golden masters that keep a refactor from changing behavior silently.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–8: a configured CLAUDE.md, the testing architecture (Ch 7), and the extension mechanisms (Ch 8). This chapter puts them on a timeline.">
+- The **greenfield** arc — what to invest on Day 1, Week 1, and Month 1, each step independently valuable
+- The **brownfield** discipline — understand before you act; document conventions as they _are_, not as you wish them
+- The **Extract → Test → Harden → Promote** refactoring protocol, and why each increment ships
+- **Characterization tests** and **golden masters** — capturing existing behavior so a refactor can't change it silently
+</YouWillLearn>
+
+_Two situations, two protocols: a blank directory for a new project, and a 50,000-line legacy codebase with zero tests. Both want Claude's help, and both reward the same discipline — **incremental investment, where every step is independently valuable** — so an interrupted project is always in a working state._
+
+{/* Tip numbers 12–14 are provisional (Part I used 1–8; Ch 6 used 9–11). Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+## Greenfield: from zero to production
+
+Three investments on **Day 1** compound into dramatically better outcomes over a project's lifetime — and none of them takes more than a few minutes.
+
+1. **Run `/init`** to generate a starter `CLAUDE.md`. Claude examines your structure and proposes conventions it can actually see.
+2. **Set permissions** in `.claude/settings.json` — deny access to `.env*` and `secrets/` before Claude ever reads them.
+3. **Add one hook**: `PostToolUse` matching `Edit|Write` → auto-format. This prevents style drift from the very first file.
+
+By **Week 1**, patterns emerge — invest where the repetition is:
+
+1. **Add testing infrastructure** — configure the test runner in `CLAUDE.md`.
+2. **Add your first custom command** for the workflow you run most.
+3. **Configure a `PreToolUse` hook** matching `Bash` → gate `git commit` on passing tests. The single most valuable hook for a new project.
+
+By **Month 1**, stabilize:
+
+1. **Review and trim `CLAUDE.md`** — remove instructions Claude follows without being told; add instructions for rules it keeps violating.
+2. **Transition from exploration to a development phase** — add explicit graduation criteria to `CLAUDE.md`.
+3. **Add skills** for repeated multi-step workflows; **set up memory** for cross-session persistence.
+4. **Document architecture** as actionable instructions, not prose.
+
+<Tip n="12" title="Invest incrementally — every step independently valuable.">
+Configure a project in small, shippable increments (a hook here, a command there). An interrupted setup is never broken; a half-finished big-bang configuration is.
+</Tip>
+
+<MarginNote variant="tip" label="Tip">
+  Most solo projects stabilize at Tier 2–3 within a month. Resist the urge to jump to Tier 5.
+</MarginNote>
+
+<Exercise id="ch12-ex-1">
+On day 1 of a new project you set permissions and add a `PostToolUse` auto-format hook but skip `/init`. What do you lose by skipping `/init` — and why is the format hook worth adding _before_ you've written a second file?
+</Exercise>
+
+## Brownfield: introducing Claude to existing code
+
+Start with understanding, not action. Use **Plan Mode** (Shift+Tab) to let Claude read and explain the codebase without modifying anything.<Citation src="claude-code-overview" /> Ask: "Explain the architecture." "What patterns does this codebase use?" "Where are the tests, and what's the coverage?"
+
+Then document the conventions that _exist_, in `CLAUDE.md` — **not aspirational ones**.<Citation src="anthropic-claude-code-best-practices" />
+
+<BeforeAfter title="Aspirational vs. honest CLAUDE.md">
+<div slot="before">
+
+```markdown
+# CLAUDE.md
+All features have unit tests. Follow TDD.
+```
+
+</div>
+<div slot="after">
+
+```markdown
+# CLAUDE.md
+Core (billing, auth) is unit-tested. The ETL scripts are
+characterization-tested only — treat their behavior as
+load-bearing, not their structure. New features: add unit
+tests. Don't assume coverage you can't see.
+```
+
+</div>
+</BeforeAfter>
+
+The "before" lies, and Claude believes it: told every feature is tested, Claude will skip writing tests it assumes exist and trust a safety net that isn't there. Document the real state; make the aspiration a separate, explicit goal.
+
+Adopt configuration in four steps, each independently valuable: **`CLAUDE.md`** (current state) → **permissions** (restrict to safe operations) → **hooks** (enforce _existing_ standards, not new ones) → **skills** (as patterns stabilize). Reading legacy code well is its own skill — [Chapter 6's code-archaeology technique](/chapters/ch06-thinking-together) (assume intent before assuming error) is the brownfield companion to this section.
+
+<Exercise id="ch12-ex-2">
+You're introducing Claude to a legacy codebase. Why is "document conventions as they _are_, not as you wish they were" more than a nicety — what specifically breaks if your `CLAUDE.md` is aspirational?
+</Exercise>
+
+## The incremental refactoring protocol
+
+Never attempt a big-bang rewrite (that is antipattern #7, **Chapter 14** _(forthcoming)_). Use four-step increments, each independently shippable:
+
+1. **Extract** — isolate the function or module to refactor. Draw a clear boundary between what is changing and what is not.
+2. **Test** — write characterization tests capturing current behavior. Claude excels here: _"Write tests that document exactly what this function does today, including edge cases."_
+3. **Harden** — refactor with the tests as a safety net; verify each change against them.
+4. **Promote** — move the refactored code into production; run the full regression suite and check for downstream breakage.
+
+Each step fits a ~25-minute focused session, and you **commit after each one** — so if you're interrupted, the project is always in a working state.
+
+<Tip n="14" title="Never big-bang — Extract → Test → Harden → Promote.">
+Refactor in increments that each ship. The big-bang rewrite is the antipattern this protocol exists to prevent; small verifiable steps are the antidote.
+</Tip>
+
+<KeyIdea>
+Refactoring with Claude follows the same principle as refactoring without it: small, verifiable increments. The difference is that Claude can write characterization tests in minutes instead of hours — making the Extract → Test → Harden → Promote cycle dramatically faster, which is exactly what makes small increments practical at scale.
+</KeyIdea>
+
+<Exercise id="ch12-ex-3">
+Characterization tests can pass on buggy code. Given that, why write them _before_ a refactor instead of writing correct tests first?
+</Exercise>
+
+### Characterization tests
+
+Before changing any code, have Claude write tests that capture what it does **today** — not what it should do:
+
+```text
+Read src/features/legacy_features.py. Write pytest tests that document its
+exact current behavior:
+  - What DataFrames does it accept?
+  - What columns does it produce?
+  - What happens with NaN inputs?
+Do NOT write tests for how it SHOULD work. Write tests for how it DOES work.
+```
+
+<Tip n="13" title="Characterize before you change — test what the code does, not what it should.">
+A characterization test's job is to detect _change_, not assert _correctness_. Capture today's behavior — bugs included — so any refactor that alters output trips a test.
+</Tip>
+
+<MarginNote variant="warning" label="Warning">
+  Characterization tests are temporary and may encode buggy behavior. That is intentional: they exist to detect _changes_, not to assert _correctness_.
+</MarginNote>
+
+### Golden masters: for pipelines
+
+For a data pipeline, a **golden master** captures the exact output of the original code so refactored code can be verified against it:
+
+1. **Capture** — run the original pipeline on sample data; save the output DataFrame as a fixture (CSV or Parquet).
+2. **Compare** — the new code must produce identical output within floating-point tolerance.
+3. **Verify** — `pd.testing.assert_frame_equal(new, golden, atol=1e-6)`.
+
+```text
+Run legacy_build_features() on tests/fixtures/sample_orders.csv. Save the
+output DataFrame to tests/fixtures/golden_features.parquet. Then write a test
+that runs the new build_features() on the same input and asserts
+pd.testing.assert_frame_equal(new, golden, atol=1e-6).
+```
+
+<InsightBox title="Golden masters test behavior, not correctness">
+  A golden master preserves the original output — including any bugs. If the old code computed a feature incorrectly, the golden master encodes that incorrect behavior. Fix bugs _after_ the migration, with explicit tests for the fix. The golden master's only job is to guarantee that the migration itself changed nothing.
+</InsightBox>
+
+Which to reach for:
+
+| | Characterization tests | Golden masters |
+|---|---|---|
+| **For** | individual functions | pipelines / multi-step workflows |
+| **Says** | "document what this function does today" | "capture the exact output on sample data" |
+| **Best when** | refactoring a function's internals without changing its API | migrating pipeline code (pandas → polars, notebook → module) |
+
+During a pipeline migration, use **both**: characterization tests verify each function; the golden master verifies that the composed pipeline produces identical output.
+
+<MarginNote variant="tip" label="Tip">
+  `atol`/`rtol` for floats, exact match for categoricals, `check_like=True` for column-order independence.
+</MarginNote>
+
+## The quality flywheel
+
+After each refactoring sprint, invest the lesson back into the tooling: update `CLAUDE.md` with what you learned, add hooks for the gotchas you hit, refine skills based on what worked, and update your metric baselines. Each sprint improves not just the code but the machinery around it — after three sprints the refactoring process itself is markedly faster. For large codebases, refactor independent modules in parallel with git worktrees (**Chapter 10** _(forthcoming)_).
+
+## Where this goes next
+
+- **Chapter 6 — Thinking Together** — [code archaeology](/chapters/ch06-thinking-together): assume intent before assuming error when reading legacy code, the brownfield mindset companion.
+- **Chapter 7 — Testing & Verification** _(forthcoming)_ — the validation architecture that characterization tests and golden masters plug into.
+- **Chapter 8 — Extending Claude** _(forthcoming)_ — the hooks, commands, and skills the greenfield arc reaches for.
+- **Chapter 10 — Agents & Parallel Work** _(forthcoming)_ — git worktrees for parallel refactoring across modules.
+- **Chapter 14 — Antipatterns & Recovery** _(forthcoming)_ — the big-bang rewrite (antipattern #7) this protocol exists to avoid.
+
+## Common pitfalls
+
+<Pitfall title="Documenting aspirational conventions">
+A `CLAUDE.md` that claims "all features have unit tests" when half the feature code is untested scripts will produce inconsistent behavior — Claude trusts the doc as ground truth and assumes coverage that isn't there. Document the real state; make the goal explicit and separate.
+</Pitfall>
+
+<Pitfall title="The big-bang rewrite">
+Rewriting a large module in one pass leaves you with nothing shippable until it's all done, and no way to tell a regression from an intended change. Extract → Test → Harden → Promote keeps every step independently valuable.
+</Pitfall>
+
+<Pitfall title="Fixing bugs during a migration">
+If you "fix" a bug while migrating, the golden master fails and you can't tell whether the migration or the fix caused the difference. The golden master must change _nothing_; fix bugs afterward, deliberately, with their own correctness tests.
+</Pitfall>
+
+<Pitfall title="Refactoring without characterization first">
+Refactoring untested legacy code with no characterization tests means you have no safety net — you cannot distinguish "I restructured this" from "I changed what it does." Capture behavior first, then change structure.
+</Pitfall>
+
+## Quick reference
+
+- **Greenfield**: Day 1 (`/init`, permissions, format hook) → Week 1 (test infra, first command, commit-gate hook) → Month 1 (trim `CLAUDE.md`, skills, memory, architecture docs).
+- **Brownfield**: understand first (Plan Mode) → document conventions as they _are_ → adopt incrementally (`CLAUDE.md` → permissions → hooks → skills).
+- **Refactor**: Extract → Test → Harden → Promote, committing after each step; each fits a ~25-minute session.
+- **Characterization tests** = individual functions, "what it does today." **Golden masters** = pipelines, "identical output." Use both during a migration.
+- Golden masters and characterization tests capture _behavior, not correctness_ — fix bugs after the migration, with their own tests.
+
+## Practice
+
+<Practice id="ch12-pr-1" difficulty="2">
+On a fresh repo, run the Day-1 greenfield setup: `/init`, deny `.env*` + `secrets/`, and one `PostToolUse` auto-format hook. Then add the Week-1 `PreToolUse` commit-gate hook. For each of the three day-1 steps, write one sentence on what it prevents.
+</Practice>
+
+<Practice id="ch12-pr-2" difficulty="3">
+Pick the messiest function in your project (under ~100 lines). Have Claude write characterization tests _without_ telling it what the function should do — only "document what DataFrames it accepts, what columns it produces, and what happens with NaN inputs." Run them. If they pass, save a golden-master fixture and you have a refactoring safety net; if they fail, you've discovered undocumented behavior. Either way, note what you learned.
+</Practice>
+
+<Practice id="ch12-pr-3" difficulty="3">
+Take one real refactor and run a single Extract → Test → Harden → Promote increment, committing after each step. Afterward, check out each of the four commits and confirm the working tree is shippable at every one.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch12-ex-1">
+`/init` seeds `CLAUDE.md` from your _actual_ structure — Claude proposes conventions it can see, and that file is the persistent project knowledge that survives `/clear`. Skip it and every session re-derives conventions from scratch (and you lose the natural prompt to write them down at all). The format hook is worth adding before file #2 because style drift compounds: enforce formatting from the first file and every file Claude writes is consistent with zero style instructions in your prompts — whereas retrofitting a formatter later means a noisy reformat-everything diff that hides real changes.
+</Solution>
+
+<Solution for="ch12-ex-2">
+Claude treats `CLAUDE.md` as ground truth. If it says "all features have unit tests" but half don't, Claude assumes a safety net that isn't there: it may skip writing tests it thinks already exist, depend on tests to catch regressions that no test covers, or "match" a convention only some files follow — producing exactly the inconsistent behavior (some features tested, some not) the doc was meant to prevent. The inaccuracy propagates. Document the real state and make the aspiration a separate, explicit goal so Claude knows which is which.
+</Solution>
+
+<Solution for="ch12-ex-3">
+Because a characterization test's purpose is to detect _change_, not assert _correctness_. Before a refactor you don't yet know which behaviors are intentional and which are bugs — so you capture all of them. Then any refactor that alters output fails a test, which is the precise signal you want: a refactor should change structure, not behavior. Writing "correct" tests first would instead bake in your _assumptions_ about what the code should do and miss the surprising-but-real behaviors downstream code may depend on. Fix the bugs afterward, deliberately, with their own correctness tests — keeping "I restructured this" separate from "I changed what it does."
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={12} />

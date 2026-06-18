@@ -22,6 +22,25 @@ material: Ch 6's tutorial omitted five substantive `.tex` sections (tests-as-thi
 two of three anti-sycophancy techniques, code archaeology, the prompt-pattern-library hook). Diff the
 `.tex` and fold back anything the draft dropped — tutorial-first ≠ tutorial-only.
 
+### `.tex`-first specifics (from the ch12 pilot, 2026-06-18)
+A `.tex`-first chapter ports the LaTeX directly (no draft tutorial to promote). Pilot findings:
+- **`<ChapterSupplements chapter={N} />` is safe with zero supplements** — the component is guarded by
+  `{items.length > 0 && …}`, so a chapter with no supplements (ch09–16) renders nothing. Keep it as the
+  last line regardless.
+- **Don't `<Figure>` a `.tex` diagram that has no compiled SVG.** `handbook/figures/` only holds the
+  Part I/II figures; a `.tex` `\begin{figure}` (e.g. ch12's refactoring-cycle TikZ) has no `.svg`. Render
+  it as structured prose / an ordered list / a `<KeyIdea>`, or flag it for the figure pipeline — never
+  reference a non-existent SVG.
+- **Semantic macros → Part I's prose convention.** The `.tex` marks claims `\official{… \sourceurl{URL}}`,
+  `\convergence{}`, `\practitioner{}`. Part I renders **official → `<Citation src=key>`** (map the URL to a
+  `sources/manifest.yaml` key) and **drops the convergence/practitioner distinction to plain prose** — no
+  `<Tag>`.
+- **Import only what the chapter uses.** The §2 block is a menu, not a mandate — a `.tex`-first chapter
+  often needs no `Figure`/`WorkedExample` (ch12 used `BeforeAfter` + `KeyIdea`/`InsightBox` + the standard
+  apparatus).
+- **Cross-refs**: a `.tex` `\cref{ch:…}` becomes a real `/chapters/chN-slug` link when the target is
+  **ported** (ch12 → ch06 code-archaeology is live), else `_(forthcoming)_` bare prose.
+
 ## 2. Per-chapter checklist (slim model)
 
 **Frontmatter** (match `src/content/chapters/ch01-principles.mdx`):
