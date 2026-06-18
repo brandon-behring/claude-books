@@ -1,6 +1,6 @@
 # Research cache
 
-Per-source primary-research notes for the `claude-books` three-volume series. Built during the 2026-05-22 research sprint per the approved plan ("Active execution plan: Research Sprint" in `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md`).
+Per-source primary-research notes for the `claude-books` four-book series. Built during the 2026-05-22 research sprint per the approved plan ("Active execution plan: Research Sprint" in `~/.claude/plans/this-repo-is-supposed-buzzing-eclipse.md`).
 
 **~167 notes · 11 topics**. Most recent additions (2026-05-23):
 - D4 multi-pass-review T1 coverage gap closed with 2 new T1 notes in `06-multi-agent-patterns/`.

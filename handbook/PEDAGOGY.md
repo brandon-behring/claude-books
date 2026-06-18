@@ -10,6 +10,11 @@ This doc is a reference for future contributors. Read once; refer when applying 
 > Architect's Reference / **Agentic Systems Design** — + a glossary infra layer. The former
 > **Field-Guide** is retired; the references below are updated (Field-Guide → Agentic Systems Design,
 > whose applied volume inherits the how-to / field-cases register). Decisions are unchanged.
+>
+> **Revision — 2026-06-18.** Agentic Coding was folded in as a 4th book (cross-tool *Use*; PR #18,
+> 2026-06-16) — the public lineup is now **4 books** (Handbook · Agentic Coding · Architect's Reference ·
+> Agentic Systems Design) + glossary infra. The two Use books are complementary: Handbook = Claude-Code
+> daily practice; Agentic Coding = cross-tool principles above any one tool.
 
 ---
 
@@ -129,7 +134,7 @@ The user's stated concern: *"Otherwise it is a mash up of every style which is n
 
 *Sources*: [[site-vercel-docs]] (`/docs/` vs `/kb/`), [[site-linear-docs]] + [[site-linear-method]] (separate domains entirely), [[site-react-dev]] (two-mode Learn/Reference toggle).
 
-The three books (Handbook / Architect's Reference / Agentic Systems Design) live at separate URL roots. Each has its own visual chrome: typography, accent color, navigation rail behavior. A reader who lands on a Handbook chapter knows immediately, by visual register, that they're in tutorial mode — without needing to read a badge.
+The four books (Handbook / Agentic Coding / Architect's Reference / Agentic Systems Design) live at separate URL roots. Each has its own visual chrome: typography, accent color, navigation rail behavior. A reader who lands on a Handbook chapter knows immediately, by visual register, that they're in tutorial mode — without needing to read a badge.
 
 **Specific**:
 - Handbook → narrative typography (slightly larger body, wider line-height, serif-leaning option for prose sections)
@@ -322,7 +327,7 @@ Backed by 9 tech-comparison notes at [[../docs/research/11-pedagogy/05-figures-d
 
 Pick by use case, not by author preference. Per-figure decisions go through the tree at the end of this section.
 
-| Tier | Tech | Best for | Est. count (across 3 books) |
+| Tier | Tech | Best for | Est. count (across 4 books) |
 |---|---|---|---|
 | 1 (default) | **Mermaid** | Flowcharts, sequence diagrams, state machines, simple ER, decision trees | 30–50 figures |
 | 2 (inherited) | **TikZ → SVG pipeline** | Diagrams already authored in the LaTeX source repo (agent loop, L1–L5 pyramid, context-budget charts, configuration hierarchy) — also the format we hand-author new figures in. In place 2026-05-24: `figures/agent-loop/`, `figures/context-budget/`, `figures/collaboration-flowchart/`, `figures/collaboration-quadrant/`, `figures/validation-pyramid/`, `figures/extension-decision/` (10 SVGs total across tutorial + compact-cheat-sheet variants) | 8–15 figures |

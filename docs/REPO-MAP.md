@@ -1,7 +1,7 @@
 # Repo map — where everything lives, and why
 
 > Git/branch topology for `claude-books`. For **what each book is**, see
-> [`BOOK-MAP.md`](./BOOK-MAP.md) and [`ROADMAP.md`](./ROADMAP.md). Last verified: **2026-06-08**.
+> [`BOOK-MAP.md`](./BOOK-MAP.md) and [`ROADMAP.md`](./ROADMAP.md). Last verified: **2026-06-18**.
 
 ## TL;DR
 
@@ -24,9 +24,10 @@ either anytime: `git switch -c <name> archive/<name>`.
 
 ## What's on the trunk
 
-- `handbook/` — the *Use* book (Part I prose, 4 ch; ch05–16 pending).
+- `handbook/` — the Claude-Code *Use* book (Part I prose, 4 ch; ch05–15 pending; draft/noindex).
+- `agentic-coding/` — the cross-tool *Use* book (Claude Code · Gemini CLI · Codex CLI; 17 ch + 6 app, v0.2.0; folded in via PR #18).
 - `architect-reference/` — the *Cert* book (30 ch authored, Round-2 study-guide COMPLETE; status authority [`cert-coverage.md`](./cert-coverage.md)).
-- `agentic-systems-design/` — the *Design* book, **multi-volume** (Vol 1 Environment & Context, 11 ch drafted; Vols 2–3 + applied pending — see [`BOOK-MAP.md`](./BOOK-MAP.md)).
+- `agentic-systems-design/` — the *Design* book, **multi-volume** (Vols 1–3 complete — Design v1.0 shipped 2026-06-14; applied volume (v2.0) pending — see [`BOOK-MAP.md`](./BOOK-MAP.md)).
 - `docs/research-program/` — strict-live research bridge (taxonomy / content-map / decisions).
 - `docs/research/` — legacy in-repo note cache (~184 notes).
 

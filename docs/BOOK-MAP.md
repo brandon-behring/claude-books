@@ -32,8 +32,10 @@ Building software with AI coding agents as a **single cross-tool practice** — 
 and Codex CLI side by side. Principle-first: each chapter uses a uniform Representation / Operation /
 Evolution skeleton and tracks where the tools **converge** (stable practice) and **diverge** (open
 design space). 17 chapters + 6 appendices (per-tool companions, a source archive, glossary, maturity
-model). Distinct from the Handbook, which is Claude-Code-specific daily practice; this is the
-tool-agnostic layer. Folded into the series via PR #18 (which also added the Cloudflare deploy hub).
+model). Distinct from the Handbook (Claude-Code-specific daily practice); this is the tool-agnostic layer
+*above* any one tool. Within the **Claude-centered** series, **Claude Code is the home lens** here — Gemini
+CLI and Codex CLI appear as comparative context, not co-equal subjects. Folded into the series via PR #18
+(which also added the Cloudflare deploy hub).
 
 ## Architect's Reference = Cert
 
@@ -47,12 +49,12 @@ Design via optional "go deeper" breadcrumbs.
 Reference altitude. The broad discipline of designing agentic systems, delivered **foundation-first
 across volumes**:
 
-- **Vol 1 — Environment & Context** *(drafted, 11 ch)* — the agent's world (repo / CLAUDE.md /
+- **Vol 1 — Environment & Context** *(complete, 11 ch)* — the agent's world (repo / CLAUDE.md /
   skills / guardrails / cross-domain) + what it reasons over (context-rot / assembly / memory),
   opened by the harness frame.
-- **Vol 2 — Tools & Orchestration** *(drafted, ch12–20)* — tool/MCP design, tool minimization,
+- **Vol 2 — Tools & Orchestration** *(complete, ch12–20)* — tool/MCP design, tool minimization,
   sub-agents, multi-agent, build-vs-buy a harness.
-- **Vol 3 — Evaluation & Operations** *(drafted, ch21–28)* — evals/validation, observability, cost, oversight/HITL, security.
+- **Vol 3 — Evaluation & Operations** *(complete, ch21–28)* — evals/validation, observability, cost, oversight/HITL, security.
 - **+ a problem-first applied volume** — re-traverses the material through real problems (reviews +
   breadcrumbs back to Vols 1–3). This carries the **public** "what teams actually did" mission (the
   retired Field-Guide's role).

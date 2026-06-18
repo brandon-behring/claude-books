@@ -1,6 +1,6 @@
 # Content map — research → book (v1)
 
-Which topics (and eventually which *atoms*) back which planned chapters/sections. **Re-centered 2026-06-08 on the Agentic Systems Design volumes** (the unwritten books); the cert book is authored, so its map lives in [`cert-coverage.md`](../cert-coverage.md), and the book model in [`BOOK-MAP.md`](../BOOK-MAP.md). Cert domains are the **floor**; this is the fuller picture.
+Which topics (and eventually which *atoms*) back which planned chapters/sections. **Re-centered 2026-06-08 on the Agentic Systems Design volumes** (then unwritten; **Vols 1–3 shipped 2026-06-14**); the cert book is authored, so its map lives in [`cert-coverage.md`](../cert-coverage.md), and the book model in [`BOOK-MAP.md`](../BOOK-MAP.md). Cert domains are the **floor**; this is the fuller picture.
 
 > **Living + versioned, topic-grain today.** 23 strict-live dossiers now exist (Waves 1–7, all D1–D5); their atoms already compose into chapter units. As dossiers land, each topic's verified **atoms** map to specific chapter/section units and the grain refines. The pilot (`context assembly`) builds the **first atom-grain slice** and proves the "atoms compose into chapter units" gate. Expect churn.
 

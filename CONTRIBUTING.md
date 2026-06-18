@@ -1,6 +1,6 @@
 # Contributing
 
-`claude-books` is a multi-book practitioner reference for Claude Code + the Anthropic stack — see [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md) for the book model and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for status.
+`claude-books` is a four-book, Claude-centered practitioner reference for Claude Code + the Anthropic stack — see [`docs/BOOK-MAP.md`](./docs/BOOK-MAP.md) for the book model and [`docs/ROADMAP.md`](./docs/ROADMAP.md) for status.
 
 ## Where to send PRs
 

@@ -24,6 +24,11 @@ applied volume (see [Next](#next--re-set-2026-06-17)).
 | `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | **Live** — Vols 1–3 drafted, **Design v1.0 COMPLETE 2026-06-14** (28 ch / 34 pages); applied (v2.0) pending |
 | `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | v1 shipped 2026-06-13 — 70-term bank + sync infra; cert consumer live |
 
+> **The two Use books are complementary by altitude** — **handbook** = Claude-Code-specific daily practice
+> (sessions, CLAUDE.md, workflows); **agentic-coding** = tool-agnostic principles *above* any one tool,
+> situating Claude Code among its peer CLI agents (Gemini CLI · Codex CLI). The series is **Claude-centered**:
+> Claude is the home lens; cross-tool is comparative context.
+
 **Agentic Systems Design — the volumes** (foundation-first):
 Vol 1 **Environment & Context** → Vol 2 **Tools & Orchestration** → Vol 3 **Evaluation & Operations**
 → **+ a problem-first applied volume** (re-traverses the material through real problems; reviews +
@@ -124,8 +129,8 @@ into `dist/<subroute>/`; `wrangler.jsonc` serves `./dist`; `.github/workflows/de
 `deploy-workflows@v1`, `secrets: inherit`) auto-deploys on push to `main`. Each book sets
 `base: '/<subroute>/'` + `site:` in `astro.config.mjs` (scaffold **^4.25** — base-aware links via
 #140/#141). The **Agentic Coding** book (cross-tool "Use") was folded in from `book-template-astro`
-(v3→v4). Handbook ships served-but-`noindex` (`dist/robots.txt` → `Disallow: /handbook/`) and omitted
-from the hub until its v1.0. Runbook + DNS binding: [`deploy-cloudflare.md`](./deploy-cloudflare.md).
+(v3→v4). Handbook ships served-but-`noindex` (`dist/robots.txt` → `Disallow: /handbook/`); it has no hub
+card — named in a hub note as the in-draft second Use book — until its v1.0. Runbook + DNS: [`deploy-cloudflare.md`](./deploy-cloudflare.md).
 - **Remaining gated item:** per-book v1.0 flips (draft banner off, `noindex` off) — currently the handbook.
 
 ## Ops lane (each on its own trigger)
