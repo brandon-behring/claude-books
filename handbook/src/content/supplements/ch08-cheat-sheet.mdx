@@ -1,0 +1,157 @@
+---
+title: "Ch 8 cheat sheet — extension decision + hook event reference"
+kind: cheat-sheet
+draft: true
+chapter_source: 8
+description: "Dense reference card: ASCII decision flowchart, extension-type × file location × scope × invocation table, hook event quick reference, consume-vs-build heuristic. Look-up oriented; print-friendly."
+last_updated: "2026-05-23"
+visual_intent: "Reference-card density. ASCII flowchart, tables, matrices, snippets. Minimal prose. Reader is here to find one specific thing, not to learn. Visually distinct from the tutorial."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+> **Use this when**: you need to look up *one specific thing* about extending Claude — which file path a skill lives at, which hook event fires when, whether to consume vs build an MCP server. Not a tutorial; not a TL;DR. Look-up oriented.
+
+## Decision flowchart
+
+<Figure
+  src="/figures/extension-decision/extension-decision-compact.svg"
+  alt="Compact 5-question decision tree. Each 'y' branches to an extension type. Reusable prompt? → Slash command. Reusable procedure? → Agent skill. Fires on lifecycle event? → Hook. Need external data/tools? → MCP server (consume first). Packaging multiple? → Plugin / CLI."
+  caption="Stop at the first 'y'. Compact variant of the tutorial flowchart."
+  width="100%"
+/>
+
+**Stop at the first YES.** Stopping early is the goal. If you reach the bottom, reconsider whether you need an extension at all.
+
+## Extension type × file location × scope × invocation
+
+| Type | Project path | User path | Scope | Invocation |
+|---|---|---|---|---|
+| **Slash command** | `.claude/commands/<name>.md` | `~/.claude/commands/<name>.md` | Per-repo or global | `/name [args]` |
+| **Agent skill** | `.claude/skills/<name>.md` | `~/.claude/skills/<name>.md` | Per-repo or global | `/name [args]` or NL match on `description` |
+| **Hook** | `.claude/settings.json` `hooks` field | `~/.claude/settings.json` `hooks` field | Per-repo or global | Auto, on lifecycle event |
+| **MCP server** | `.mcp.json` | `~/.mcp.json` | Per-repo or global | Auto-loaded at session start |
+| **Plugin** | Bundled module | Bundled module | Distributable | Per the plugin's manifest |
+| **CLI** | `claude` binary | `claude` binary | System-wide | `claude -p "..."` (headless), etc. |
+| **IDE integration** | Extension marketplace | Extension marketplace | Per-IDE | Editor-specific commands |
+
+<MarginNote variant="tip" label="Tip">
+  Project scope (<code>.claude/</code>) lives in the repo and version-controls with the team. User scope (<code>~/.claude/</code>) is personal and applies across all your repos.
+</MarginNote>
+
+## Hook event quick reference
+
+<MarginNote variant="warning" label="Warning">
+  The hook event list grows over time; this is a snapshot at 2026-05-23. Check <code>docs.claude.com</code> for additions.
+</MarginNote>
+
+| Event | Fires when | Common use |
+|---|---|---|
+| `PreToolUse` | Before any tool call | Block dangerous commands; gate writes |
+| `PostToolUse` | After a tool call returns | Auto-format on Edit; log tool I/O |
+| `UserPromptSubmit` | When you submit a prompt | Inject context; redact secrets |
+| `Stop` | When Claude finishes a turn | Run tests; post status to a channel |
+| `SubagentStop` | When a sub-agent completes | Aggregate sub-agent results |
+| `Notification` | On user-facing notification | Forward to system notifications |
+| `SessionStart` | New session begins | Load extra context; announce session |
+| `SessionEnd` | Session ends | Persist state; archive transcript |
+
+**Shape**: each hook is `{ matcher: "...", command: "shell command" }`. The shell command's stdout/stderr can modify, block, or annotate the event. Exit code 0 = allow; non-zero = block.
+
+## Consume vs build (MCP)
+
+| Question | Consume | Build |
+|---|---|---|
+| Does an existing MCP server cover this? | YES → consume | NO ↓ |
+| Does a CLI (`gh`, `aws`, `psql`, etc.) cover it via `Bash`? | YES → use CLI | NO ↓ |
+| Is the integration *durable* (you'll use it for years)? | NO → use CLI | YES ↓ |
+| Do you have engineering capacity for a real software project? | NO → defer | YES → build (see Architect's Reference) |
+
+**Default**: consume. Building an MCP server is a real software project — protocol, transport, tool schemas, error handling, deployment, security review. Don't take it on unless the consuming options have demonstrably failed.
+
+## Skill frontmatter shape
+
+```markdown
+---
+name: <kebab-case-name>           # how it's invoked: /kebab-case-name
+description: <one sentence>       # what Claude matches against
+# optional:
+# allowed-tools: [Read, Edit, Bash]
+---
+
+# Skill body
+... procedure here ...
+```
+
+## Slash command shape
+
+```markdown
+# .claude/commands/<name>.md
+... the prompt body Claude reads when /name is invoked ...
+# Args, if any, are interpolated as {{1}}, {{2}}, ...
+```
+
+## Hook config shape
+
+```jsonc
+// .claude/settings.json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "command": ".claude/hooks/deny-dangerous-bash.sh"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": ".claude/hooks/format-on-write.sh"
+      }
+    ]
+  }
+}
+```
+
+## Common compositions (recipes)
+
+| Use case | Composition |
+|---|---|
+| "Every PR gets a security-review pass" | Skill + CLI headless + GitHub Action |
+| "Block dangerous bash commands" | `PreToolUse` hook with a deny-list script |
+| "Auto-format on save" | `PostToolUse` hook matching `Edit\|Write` |
+| "Run the release procedure consistently" | Skill (`.claude/skills/release-checklist.md`) |
+| "Translate every error message" | Slash command (`/explain-error`) |
+| "Typed access to our Postgres" | Consume an existing Postgres MCP server |
+| "Headless CI summary on every push" | CLI in headless mode invoked from CI |
+
+## Project vs user scope decision
+
+| Need | Scope |
+|---|---|
+| Team needs to share this | Project (`.claude/`) — version controls with the repo |
+| Only you use it across all your repos | User (`~/.claude/`) |
+| Both — team needs it + you want it elsewhere | Project + symlink to user, OR duplicate (file is tiny) |
+
+## Boundary — chapter scope
+
+<MarginNote variant="note" label="Cross-Ref">
+  This chapter = use-side of extensions. <strong>Architect's Reference</strong> = design-side (building MCP servers, writing Agent SDK hooks programmatically, distributing plugins).
+</MarginNote>
+
+| Concern | Lives in |
+|---|---|
+| Which extension type to reach for | **This chapter (Ch 8)** |
+| How to consume an existing MCP server | **This chapter (Ch 8)** |
+| How to write a slash command, skill, or declarative hook | **This chapter (Ch 8)** |
+| How to **design** an MCP server (transport, schemas, sampling, prompts) | **Architect's Reference** |
+| How to write **programmatic Agent SDK hooks** | **Architect's Reference** |
+| How to build a **plugin for distribution** | **Architect's Reference** |
+
+## Drill in
+
+- **[Ch 8 full tutorial](#)** — narrative version with the decision-framework worked example
+- **[Ch 8 TL;DR](#)** — compressed essence (1 page)
+- **[Ch 8 how-to: build your first skill](#)** — end-to-end build of `.claude/skills/release-checklist.md`
+- **Architect's Reference (Phase 2)** — designing MCP servers, programmatic hooks, plugin distribution

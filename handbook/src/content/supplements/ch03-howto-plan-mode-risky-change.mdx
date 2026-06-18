@@ -1,0 +1,124 @@
+---
+title: "How to use Plan Mode for a risky change"
+kind: how-to
+chapter_source: 3
+cert_domains: [3, 4, 5]
+description: "Task-oriented how-to derived from Ch 3's Plan Mode section. Diátaxis 'how-to' mode: problem → prerequisites → numbered steps → expected outcome. No background; assumes the reader knows the session loop and what a permission mode is. Distinct from Ch 5's runaway-context recovery: this is proactive (prevent a wrong turn), not reactive."
+last_updated: "2026-05-25"
+visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Denser line-height than the tutorial. Reader is task-driven; in and out in 10 minutes."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+
+> **You have**: a change that is risky to let Claude make blind — it spans multiple files, touches code you do not know well, or could break something hard to reverse (a schema migration, an auth path, a shared utility). **You want**: Claude to read and *plan* the change first, with no edits, so any misunderstanding surfaces in a plan you can read rather than in code you have to unwind.
+
+## Prerequisites
+
+- Claude Code installed (`code.claude.com/docs/en/install`) and a session open on the project.
+- A `CLAUDE.md` so Claude has project context before it explores (Chapter 2).
+- A change you can describe as a goal but *not* as a one-sentence diff — if you can, skip planning and just ask.
+- 10 minutes.
+
+## Steps
+
+### 1. Decide whether the change is worth planning
+
+Plan Mode has overhead. Run it through one test before you reach for it:
+
+```text
+Could I describe the final diff in ONE sentence?
+   yes →  skip planning. Just ask Claude directly.
+   no  →  plan. (multi-file, unfamiliar code, or hard to reverse)
+```
+
+Typos, log lines, and renames fail the test — ask directly. Migrations, auth changes, and refactors across files pass it — plan.
+
+### 2. Enter Plan Mode
+
+Plan Mode is a read-only permission mode: Claude can read files and answer questions but cannot edit, write, or run destructive commands. Enter it either way:
+
+```text
+In-session:   press Shift+Tab to cycle permission modes until
+              the prompt shows Plan Mode.
+From the CLI:  claude --permission-mode plan
+```
+
+<MarginNote variant="warning" label="Warning">
+  Permission-mode names and the keys that switch them have shifted across releases. Verify the current name + shortcut. <a href="https://code.claude.com/docs/en/permissions">code.claude.com/docs/en/permissions</a>
+</MarginNote>
+
+Confirm you are in it before continuing — the durable guarantee is *no writes*, so a misread or a wrong file costs you nothing here.
+
+### 3. Explore — make Claude explain the code first
+
+Do not ask for a plan yet. Ask Claude to explain how the relevant area works, so its understanding is visible *before* it proposes changes:
+
+```text
+Read src/auth/ and explain how a session token is issued
+and validated today. Don't propose any changes yet.
+```
+
+Read the explanation. If Claude has the architecture wrong *here*, every plan built on it will be wrong too — correct the understanding now, cheaply, while nothing can be written.
+
+### 4. Plan — ask for a written plan, no edits
+
+Now ask for the plan explicitly, and require it to name the files and the risks:
+
+```text
+I want to add refresh-token rotation. Write a plan: which
+files change, in what order, what tests to add, and any
+risk of breaking existing sessions. Do NOT edit anything yet.
+```
+
+A good plan names the files, sequences the work, and surfaces the risk in a sentence you can veto. That risk line is the whole point — a leakage bug or a broken-session edge case caught in prose costs one reply; caught in code, it is a wrong turn to rewind.
+
+### 5. Read the plan and approve, refine, or reject
+
+Treat the plan as the artifact you actually review:
+
+```text
+Approve →  "Looks right. Implement it."   (move to Step 6)
+Refine  →  "Step 3 is wrong — rotate on use, not on a timer.
+            Revise the plan."             (stay in Plan Mode)
+Reject  →  the approach is off; /clear and re-explore with a
+            better framing.               (don't build on it)
+```
+
+Refining the plan is cheap because nothing is on disk. This is the step that earns Plan Mode its overhead.
+
+### 6. Implement, verify, commit
+
+Switch to default mode (`Shift+Tab` back) and hand the approved plan to Claude with a verification bar — the session loop from the chapter:
+
+```text
+Implement the plan. Write tests first, then code, then run
+pytest tests/auth/. Show me the diff before committing.
+```
+
+Read the diff, confirm the tests pass, then commit one logical change. If implementation drifts from the plan, interrupt (Esc) and point Claude back at the plan rather than re-litigating the design.
+
+<MarginNote variant="note" label="Official">
+  The recommended workflow for complex tasks separates explore + plan from implement. <a href="https://code.claude.com/docs/en/common-workflows">code.claude.com/docs/en/common-workflows</a>
+</MarginNote>
+
+## Expected outcome
+
+The change lands as a reviewed plan turned into verified code, not as a blind edit you discover after the fact. Any misunderstanding was caught in Step 3 or Step 5 — in prose you could correct in one line — instead of as a multi-file change you would have had to rewind.
+
+<KeyIdea>
+Plan Mode is **prevention**, not recovery. Course-correction (interrupt, rewind, `/clear`) cleans up a wrong turn *after* it starts; Plan Mode keeps the wrong turn from being written at all, by forcing the misunderstanding into a plan before any tool can modify a file.
+</KeyIdea>
+
+## When this fails
+
+- **Claude proposes edits during Explore/Plan** — you are not actually in Plan Mode (or the binding changed). Confirm the mode indicator; re-enter with `--permission-mode plan` from the CLI if the in-session toggle is unclear.
+- **The plan is vague ("update the relevant files")** — you skipped Explore, so Claude is planning over an area it has not read. Go back to Step 3 and make it explain the code first.
+- **You planned a one-line change** — overhead with no payoff. Plan Mode is for changes you *cannot* describe as a one-sentence diff; re-apply the Step 1 test.
+- **Implementation drifts from the approved plan** — interrupt (Esc) and point Claude back at the plan, rather than letting it improvise and then correcting in the cluttered context that follows.
+
+## See also
+
+- The chapter [Your First Working Session](/chapters/ch03-first-session) — for the session loop and course-correction moves this builds on.
+- The [Ch 3 tutorial](/supplements/ch03-tutorial) — for the four-phase workflow walked through end to end.
+- A later chapter on context as currency — for `/rewind` and the two-failure rule when a wrong turn *does* slip through.

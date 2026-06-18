@@ -1,0 +1,78 @@
+---
+title: "Ch 2 — Your First CLAUDE.md (TL;DR)"
+kind: tldr
+chapter_source: 2
+description: "1-page compressed version of Ch 2's tutorial. Same content, ~5-min read. For readers who want the macro view first or who have completed the tutorial and need a refresher."
+last_updated: "2026-05-25"
+visual_intent: "Compressed. Short paragraphs, key terms bolded, include/exclude as a single-glance table. NO worked example, NO retrieval prompts — those live in the tutorial. Reader is in 'scan' mode."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want the chapter's central claim before deciding whether to read the full tutorial — or who finished the tutorial and need a refresher. ~5-min read.
+
+<KeyIdea>
+`CLAUDE.md` is a briefing for a fast, capable, amnesiac teammate. It is the **persistent** layer — prompts vanish on `/clear`, this is read every session. Generate it with `/init`, then trim by one rule: include what Claude cannot infer, exclude what it can. Protect secrets with **enforced** deny rules, not advisory prose.
+</KeyIdea>
+
+## What CLAUDE.md does
+
+Claude reads `CLAUDE.md` at the **start of every session** — before your first prompt — to learn your conventions, commands, architecture, and rules. Prompts are session-only; `CLAUDE.md` is permanent. That permanence is why a two-minute file pays back forever.
+
+It loads hierarchically, most-specific winning on conflict:
+
+```text
+~/.claude/CLAUDE.md   →   <repo-root>/CLAUDE.md   →   <subdir>/CLAUDE.md
+```
+
+For your first file you only need the **repo-root** one.
+
+## Generate it: `/init`
+
+Run `/init` — Claude inspects your project and drafts a starter. It is good at describing *what your project is*, weaker at *how you want Claude to work in it*. Treat the output as a draft to trim, not a finished file.
+
+## Include vs. exclude
+
+The whole rule: **include what Claude cannot infer; exclude what it can.**
+
+| Include (Claude can't infer it) | Exclude (Claude can infer it / it's noise) |
+|---|---|
+| Build & verify commands (`pytest tests/`, `mypy src/`) | Standard language conventions (PEP 8, Prettier defaults) |
+| Architecture — where things go and why | Install steps (→ README) |
+| Style rules that *differ* from the default (only deltas) | Long explanations / project history (→ git log) |
+| **Verification criteria** (highest-leverage line) | Aspirational rules nobody follows |
+| | Fast-changing info — sprint focus (→ session memory) |
+
+<MarginNote variant="note" label="Key">
+  A long CLAUDE.md is not thorough — it is diluted. Length dilutes the load-bearing rules.
+</MarginNote>
+
+**Write positive instructions.** "Always use the query builder in `src/db/queries.py`" beats "never use raw SQL" — it names the target instead of fencing off one option, so Claude follows it more reliably.
+
+## Deny rules on day one
+
+`CLAUDE.md` is **advisory** (a prompt can override it). Deny rules in `.claude/settings.json` are **enforced** (the permission system blocks them — no prompt or injection gets past). Protect secrets the enforced way:
+
+```json
+{ "permissions": { "deny": [
+  "Read(.env*)", "Read(secrets/**)",
+  "Read(**/*.pem)", "Read(**/*.key)",
+  "Read(**/credentials*)"
+] } }
+```
+
+They cost nothing in context, never trip in normal work, and block the one irreversible mistake — a leaked secret. **Commit both files.**
+
+## What spirals from here
+
+- **Scaling CLAUDE.md** — a later chapter takes the root file to a hub-and-spoke hierarchy across packages.
+- **Session memory** — the fast-changing info excluded here gets its own home in the context chapter.
+- **Verification & hooks** — the "should be a hook, not an instruction" rule becomes a full validation architecture.
+
+## Drill in
+
+- **[Full tutorial](/supplements/ch02-tutorial)** — the same content with a `/init`-to-finished worked example and retrieval prompts. ~15-min read.
+- **[How-to: add deny rules to settings.json](/supplements/ch02-howto-deny-rules)** — concrete secret-protection procedure. ~5-min read.
+- **[Cheat sheet](/supplements/ch02-cheat-sheet)** — include/exclude table, deny-glob reference, quality-test flowchart. Look-up oriented.
+- **[Chapter: Your First CLAUDE.md](/chapters/ch02-first-claude-md)** — the canonical reference with exercises + citations.

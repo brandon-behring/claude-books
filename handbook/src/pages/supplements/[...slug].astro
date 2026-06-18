@@ -1,0 +1,125 @@
+---
+/**
+ * /supplements/<slug> — render entries from the `supplements` content collection.
+ *
+ * Per-kind layout via scaffold v4.1.0+ <PocLayout> (closes upstream #56).
+ * Each `kind` swaps line-length / vertical-rhythm / heading-weight via
+ * CSS variables exported by the scaffold's poc-layouts.css.
+ *
+ * Drafts (e.g. ch05–08, pending the Part II port) still build a route — they
+ * carry a DRAFT marker + noindex, and are segregated out of the index + nav.
+ */
+import { getCollection, render } from 'astro:content';
+import PocLayout from '@brandon_m_behring/book-scaffold-astro/components/PocLayout.astro';
+import '@brandon_m_behring/book-scaffold-astro/styles/poc-layouts.css';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('supplements');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const isDraft = entry.data.draft === true;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    {isDraft && <meta name="robots" content="noindex" />}
+    <title>{entry.data.title} — Supplement ({entry.data.kind})</title>
+    <style>
+      :root {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.6;
+        color: #1a1a1a;
+      }
+      body {
+        max-width: 72ch;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+      }
+      header.poc-meta {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        font-size: 0.875rem;
+        color: #666;
+      }
+      header.poc-meta nav a {
+        color: #0066cc;
+        text-decoration: none;
+      }
+      header.poc-meta .kind-tag {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        margin-right: 0.5rem;
+        background: #eef;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.8em;
+      }
+      header.poc-meta .draft-tag {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        margin-right: 0.5rem;
+        background: #fde68a;
+        color: #78350f;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.8em;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      pre {
+        background: #f6f8fa;
+        padding: 1rem;
+        overflow-x: auto;
+        border-radius: 0.25rem;
+      }
+      code:not(pre code) {
+        background: #f6f8fa;
+        padding: 0.1em 0.3em;
+        border-radius: 0.2em;
+      }
+      table {
+        border-collapse: collapse;
+        margin: 1rem 0;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      blockquote {
+        border-left: 3px solid #ccc;
+        padding-left: 1rem;
+        margin-left: 0;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="poc-meta">
+      <nav><a href="/supplements">← All supplements</a></nav>
+      <p>
+        {isDraft && <span class="draft-tag">DRAFT</span>}
+        <span class="kind-tag">{entry.data.kind}</span>
+        {entry.data.visual_intent && <em>Visual intent: {entry.data.visual_intent}</em>}
+      </p>
+      {isDraft && (
+        <p><em>Draft — pending the Part II chapter port. Content may change.</em></p>
+      )}
+    </header>
+    <main>
+      <PocLayout kind={entry.data.kind}>
+        <Content />
+      </PocLayout>
+    </main>
+  </body>
+</html>

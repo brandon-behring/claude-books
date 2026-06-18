@@ -1,0 +1,84 @@
+---
+/**
+ * ChapterSupplements — renders a chapter's "Go deeper" block from the
+ * `supplements` collection, keyed by the supplements' own `chapter_source`.
+ *
+ * Convention over configuration: a chapter declares nothing but its number;
+ * this queries every published (non-draft) supplement whose chapter_source
+ * matches, in a fixed kind order. Adding/porting a supplement wires it in
+ * automatically — chapters can't silently orphan their supplements again.
+ *
+ * Usage (near the end of a chapter MDX):
+ *   import ChapterSupplements from '../../components/ChapterSupplements.astro';
+ *   <ChapterSupplements chapter={1} />
+ */
+import { getCollection } from 'astro:content';
+
+interface Props {
+  chapter: number;
+}
+const { chapter } = Astro.props;
+
+const kindOrder = ['tutorial', 'how-to', 'tldr', 'cheat-sheet'];
+const kindMeta: Record<string, { label: string; blurb: string | null }> = {
+  'tutorial': { label: 'Tutorial', blurb: 'hands-on walkthrough with a worked example' },
+  'how-to': { label: 'How-to', blurb: null }, // the title is the task
+  'tldr': { label: 'TL;DR', blurb: 'the one-page compressed essence (~5 min)' },
+  'cheat-sheet': { label: 'Cheat sheet', blurb: 'dense, look-up-oriented reference card' },
+};
+
+const all = await getCollection('supplements');
+const items = all
+  .filter(
+    (e) =>
+      e.data.chapter_source === chapter &&
+      e.data.kind !== 'part-summary' &&
+      e.data.draft !== true
+  )
+  .sort((a, b) => kindOrder.indexOf(a.data.kind) - kindOrder.indexOf(b.data.kind));
+---
+{items.length > 0 && (
+  <aside class="chapter-supplements" aria-label="Supplements for this chapter">
+    <h2>Go deeper</h2>
+    <p>Other ways to work through this chapter:</p>
+    <ul>
+      {items.map((e) => {
+        const meta = kindMeta[e.data.kind] ?? { label: e.data.kind, blurb: null };
+        return (
+          <li>
+            <a href={`/supplements/${e.id}`}><strong>{meta.label}</strong></a>
+            {e.data.kind === 'how-to' ? <> — {e.data.title}</> : meta.blurb && <> — {meta.blurb}</>}
+          </li>
+        );
+      })}
+    </ul>
+  </aside>
+)}
+
+<style>
+  .chapter-supplements {
+    margin-top: 2.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-left: 3px solid var(--callout-info, #0066cc);
+    border-radius: 0.375rem;
+    background: var(--color-surface-muted, #f8fafc);
+  }
+  .chapter-supplements h2 {
+    margin-top: 0;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+  }
+  .chapter-supplements p {
+    margin: 0.25rem 0 0.5rem;
+    color: var(--color-text-muted, #555);
+    font-size: 0.95rem;
+  }
+  .chapter-supplements ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+  .chapter-supplements li {
+    margin-bottom: 0.3rem;
+  }
+</style>

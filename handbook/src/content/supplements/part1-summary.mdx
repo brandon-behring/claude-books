@@ -1,0 +1,79 @@
+---
+title: "Part I — Foundations (executive summary)"
+kind: part-summary
+part_source: 1
+description: "Covers Ch 1-4 in two pages — the reader's journey from L1 (Conversational) to L2 (Configured). All four chapters are now v1.0."
+last_updated: "2026-06-18"
+visual_intent: "Wide synthesis. Reader-journey framing. Diagram of the L1→L2 progression. Bullet-dense; minimal prose. Links each canonical chapter; per-chapter supplements are surfaced on the chapter pages' Go-deeper blocks."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **You are at L1 (Conversational)** — you've installed Claude Code, run a few prompts, and noticed it sometimes does great things and sometimes does frustrating things. By the end of Part I you'll be at **L2 (Configured)** — Claude reliably picks up your project's conventions, errors are visible and recoverable, and your sessions don't drift.
+
+<KeyIdea>
+Part I is the smallest investment that produces reliable Claude Code sessions. Each chapter adds one piece of permanent infrastructure — mental model → CLAUDE.md → session habits → prompting vocabulary — that survives across every future session.
+</KeyIdea>
+
+## The arc
+
+```
+Ch 1 — Mental model ──→ Ch 2 — CLAUDE.md ──→ Ch 3 — Session habits ──→ Ch 4 — Prompting
+                                                                              │
+   "what is this?"      "configure once"      "use it reliably"      "talk to it precisely"
+        │                      │                      │                      │
+        L1                     L1.5                  L1.5+                   L2
+```
+
+## Chapter summaries
+
+### Ch 1 — Principles & Mental Model
+
+**The mental model**: Claude Code is an agent loop with finite context, observable tool use, and configurable behavior. Four engineering principles — never fail silently, simplicity, immutability, fail fast — govern every recommendation in the handbook. The codebase Claude reads becomes the curriculum it learns from.
+
+- [Chapter 1: Principles & Mental Model](/chapters/ch01-principles) — the canonical reference (exercises + citations); its **Go deeper** block links the tutorial, TL;DR, how-to, and cheat sheet.
+
+### Ch 2 — Your First CLAUDE.md
+
+**The first permanent layer**: A starter CLAUDE.md captures what Claude cannot infer — build and test commands, architecture, verification criteria — and excludes what it can read from the codebase. Deny rules in `settings.json` protect secrets and destructive paths from day one. CLAUDE.md loads hierarchically (user → project → directory), specific overriding general. **Outcome**: a committed CLAUDE.md that makes your conventions stick across every session.
+
+- [Chapter 2: Your First CLAUDE.md](/chapters/ch02-first-claude-md) — the canonical reference (exercises + citations); its **Go deeper** block links the tutorial, TL;DR, how-to, and cheat sheet.
+
+### Ch 3 — Your First Working Session
+
+**Running the loop reliably**: The session loop — prompt → observe → refine → commit — becomes repeatable once you add three prompting basics (specificity, step-by-step, a verification bar), context hygiene (`/clear`, `/compact`, the two-failure rule), Plan Mode for risky changes, and course correction (interrupt with Esc, back out with `/rewind`). **Outcome**: a session that finishes its task without drifting or running out of context.
+
+- [Chapter 3: Your First Working Session](/chapters/ch03-first-session) — the canonical reference (exercises + citations); its **Go deeper** block links the tutorial, TL;DR, how-to, and cheat sheet.
+
+### Ch 4 — Working Productively
+
+**Talking to Claude precisely**: Precision vocabulary (replace vague verbs with checkable operations) and XML-tagged multi-component prompts (context / task / constraints / verification) make prompts land the first time more often. Scope control — naming the files Claude may touch, separating discovery from execution — keeps work from sprawling. Model selection matches model strength to task difficulty; extended thinking, caching, and cost optimization live in Appendix B. **Outcome**: prompts that work first-try more often than not.
+
+- [Chapter 4: Working Productively](/chapters/ch04-productive) — the canonical reference (exercises + citations); its **Go deeper** block links the tutorial, TL;DR, how-to, and cheat sheet.
+
+## What you'll have built by end of Part I
+
+- A working **CLAUDE.md** in your repo
+- A **`.claude/settings.json`** with reasonable permissions + deny rules
+- A repeatable **session habit** (prompt → observe → refine, with `/clear` between unrelated tasks)
+- A **prompting vocabulary** that produces consistent first-try results
+
+That's enough to make Claude Code reliable. Parts II–IV build on this foundation — context management, agents, scaling configuration, team patterns, enterprise deployment.
+
+## What's NOT in Part I (deferred to later Parts)
+
+- **Subagents + parallel work** — Ch 10, Part III
+- **CLAUDE.md at scale** — Ch 9, Part III (hub-and-spoke, conditional rules)
+- **Verification at scale** — Ch 7, Part II
+- **Team governance** — Ch 14, Part IV
+- **Enterprise deployment** — Ch 15, Part IV
+
+The handbook is intentionally sequential here. Skipping ahead to Part III without Part I means missing the principles that make the advanced material make sense.
+
+## Drill in
+
+- [Chapter 1: Principles & Mental Model](/chapters/ch01-principles) — start here if you're new
+- [Chapter 4: Working Productively](/chapters/ch04-productive) — jump here if you've already configured CLAUDE.md
+
+Each chapter surfaces its own tutorial, TL;DR, how-to, and cheat sheet in a **Go deeper** block at the end — and all of them are browsable on the [supplements index](/supplements).

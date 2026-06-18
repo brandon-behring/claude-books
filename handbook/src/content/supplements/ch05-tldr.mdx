@@ -1,0 +1,55 @@
+---
+title: "Ch 5 — Context as Currency (TL;DR)"
+kind: tldr
+draft: true
+chapter_source: 5
+cert_domains: [1, 3, 5]
+description: "1-page compressed version of Ch 5's tutorial. Same content, ~5-min read. For readers who want the macro view first or who have completed the tutorial and need a refresher on the four context commands and the two-failure rule."
+last_updated: "2026-05-23"
+visual_intent: "Compressed. Short paragraphs, key terms bolded, four-command table as a single-glance reference. NO worked example, NO retrieval prompts — those live in the tutorial. Reader is in 'scan' mode."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want the chapter's central claim before deciding whether to read the full tutorial — or who finished the tutorial and need a refresher. ~5-min read.
+
+<KeyIdea>
+Context is the currency you spend to get work done. Every tool call, every file read, every message costs tokens — and the budget is finite. The skill is recognizing when the remaining budget is no longer enough for the task and resetting **deliberately** rather than watching quality drift.
+</KeyIdea>
+
+## Why context degrades
+
+Tool results dominate the spend. Conversation history accumulates without bound. Stale information competes with fresh for Claude's attention. The window is finite (200K–1M tokens depending on model), and degradation begins well before the window is full: **60-70% on pre-1M models**, with auto-compaction at **~83% on stable releases**.
+
+Degradation is gradual, not a hard wall. Claude does not throw an error — it just makes subtly worse decisions. Misremembered signatures. Repeated suggestions. Forgotten constraints. The cause is always the same: **a context window holding too much for too long**.
+
+## The four commands
+
+| Command | When | What it does | Cost |
+|---|---|---|---|
+| `/clear` | New unrelated task; whole session contaminated | Wipes the session; reloads CLAUDE.md only | High — lose all in-flight context |
+| `/compact` | Mid-task, budget tight, recent work valuable | Summarizes conversation; frees old tool outputs | Medium — loses fidelity, not structure |
+| `/rewind` | Last few turns went sideways; earlier work intact | Surgical undo back to a checkpoint | Low — preserves productive earlier turns |
+| `/btw` | Need to steer or add a constraint without restarting | Injects a steering note inline | Lowest — costs only the steering message |
+
+## The two-failure rule
+
+Two consecutive failed attempts at the same fix means **the session is the bottleneck**, not Claude. The rule:
+
+1. **First failure**: iterate. Refine the prompt.
+2. **Second failure on the same problem**: stop. Reset with one of the four commands.
+
+<MarginNote variant="warning" label="Warning">
+  Three failed attempts wastes context and erodes trust. Two strikes is the discipline.
+</MarginNote>
+
+## What persists between sessions
+
+The four commands manage *within* a session. **Session naming**, **`CURRENT_WORK.md`**, and **auto-memory** manage between them. Three sentences in `CURRENT_WORK.md` at session end saves 5-10 minutes of cold-start friction at the next session start. Auto-memory at `~/.claude/projects/<project>/memory/MEMORY.md` captures stable preferences across sessions; you do not manage it actively, but glance occasionally to confirm it learned what you wanted.
+
+## Drill in
+
+- **[Full tutorial](#)** (Ch 5) — the same content with worked examples, BeforeAfter pairs, and retrieval prompts. ~15-min read.
+- **[How-to: recover a runaway context](#)** — concrete 6-step procedure for the "30 messages in, mid-stride, do not lose progress" case. ~5-min read.
+- **[Cheat sheet](#)** — ASCII context-budget diagram, decision matrix, command mechanics tables. Look-up oriented.

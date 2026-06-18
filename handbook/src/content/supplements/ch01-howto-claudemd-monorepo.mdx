@@ -1,0 +1,150 @@
+---
+title: "How to set up CLAUDE.md for a monorepo"
+kind: how-to
+chapter_source: 1
+description: "Task-oriented how-to derived from Ch 1's Configuration Layers property. Diátaxis 'how-to' mode: problem → prerequisites → numbered steps → expected outcome. No background; assumes reader knows what CLAUDE.md is."
+last_updated: "2026-05-25"
+visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Distinct typography (denser line-height than the tutorial). Reader is task-driven; in and out in 5 minutes."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+
+> **You have**: a monorepo with multiple packages, each with its own conventions (different test frameworks, different lint rules, different deploy targets). **You want**: Claude Code to apply the right conventions for whichever package it's currently working in, without you re-explaining every session.
+
+## Prerequisites
+
+- Claude Code installed (`code.claude.com/docs/en/install`).
+- A monorepo with a root directory and 2+ package subdirectories.
+- 10 minutes.
+
+## Steps
+
+### 1. Add a root `CLAUDE.md` with workspace-wide conventions
+
+In the monorepo root, create `CLAUDE.md`:
+
+```markdown
+# <Repo name> workspace
+
+Monorepo with packages at `packages/*`. Each package has its own conventions; this file covers conventions that apply across the whole workspace.
+
+## Languages + versions
+- Node 22.x, pnpm 10.x
+- Python 3.12 (in `packages/data-pipeline/` only)
+
+## Cross-workspace rules
+- All packages use ESM modules (Node side) — no CommonJS in new code
+- All Python in `data-pipeline/` follows ruff defaults
+- All commits use Conventional Commits (`feat:` / `fix:` / `chore:` / etc.)
+- Never run a destructive command without my approval
+
+## Per-package conventions
+Each package has its own `CLAUDE.md` with package-specific rules.
+```
+
+<MarginNote variant="tip" label="Tip">
+  Keep the root CLAUDE.md under 60 lines. Long files in CLAUDE.md cause attention dilution per Anthropic's guidance.
+</MarginNote>
+
+### 2. Add a `CLAUDE.md` to each package
+
+In `packages/api/CLAUDE.md`:
+
+```markdown
+# api package
+
+## Stack
+- Fastify 5.x, TypeScript 5.5
+- Postgres 16 via drizzle-orm
+- Vitest for tests; pino for logging
+
+## Conventions
+- Every route handler has a `.spec.ts` next to it
+- Database queries go through `db/queries/*.ts` — never inline SQL in route handlers
+- Errors thrown via `throw new HttpError({ statusCode, code, message })` — see `src/lib/errors.ts`
+
+## When in doubt
+- Check `src/routes/auth/login.spec.ts` as the canonical test pattern
+- Check `db/queries/users.ts` as the canonical query pattern
+```
+
+Repeat for `packages/web/`, `packages/cli/`, `packages/data-pipeline/`. Each `CLAUDE.md` covers **what that package does and its specific conventions** — not what the language is or how to install dependencies (that's in the root).
+
+### 3. Add `.claude/rules/` for cross-cutting conventions
+
+Some rules apply to specific file types regardless of which package they're in (e.g., all `*.test.ts` files use Vitest matchers, all `*.sql` files use 2-space indentation).
+
+In the repo root, create `.claude/rules/testing.md`:
+
+```markdown
+---
+paths:
+  - "**/*.test.ts"
+  - "**/*.spec.ts"
+---
+
+# Testing conventions (cross-package)
+
+- Use Vitest's `describe` / `it` / `expect`
+- One assertion per `it` block unless they're checking the same outcome
+- Mock the database via `beforeEach`; reset between tests
+- Test names start with a verb ("returns 401 when token missing")
+```
+
+The `paths:` frontmatter scopes this rule to matching files only — Claude loads it when editing a test file, ignores it otherwise. Token-efficient.
+
+<MarginNote variant="note" label="Cross-Ref">
+  `.claude/rules/` with `paths:` glob is documented in `docs.claude.com/en/build-with-claude/claude-rules` (Anthropic-official). See Chapter 9 for the full scaling story.
+</MarginNote>
+
+### 4. Verify with `/memory`
+
+In Claude Code, navigate to a package subdir and run:
+
+```
+/memory
+```
+
+You should see (in order):
+1. The user-level CLAUDE.md (if you have one at `~/.claude/CLAUDE.md`)
+2. The repo-root CLAUDE.md
+3. The package-level CLAUDE.md
+4. Any matching `.claude/rules/*.md` based on your current file
+
+If a file is missing or in the wrong order, fix the file paths.
+
+### 5. Test with a deliberate small change
+
+Ask Claude Code to add a simple route to the `api` package, e.g.:
+
+```
+Add a GET /health route that returns { ok: true, timestamp: <iso> }.
+```
+
+Verify Claude:
+- Uses Fastify (not Express)
+- Adds a `.spec.ts` next to the route handler
+- Uses the `HttpError` pattern for the unhappy path
+- Doesn't inline SQL anywhere
+
+If yes, your hierarchy works. If no, check the `CLAUDE.md` that should have governed the missed convention — it likely needs sharper wording.
+
+## Expected outcome
+
+When you ask Claude Code anything in the monorepo, it picks up the right conventions for the right package automatically — no per-session re-explaining.
+
+<KeyIdea>
+The hierarchy is **specific overrides general**. A rule in `packages/api/CLAUDE.md` overrides a conflicting rule in the root. A path-scoped `.claude/rules/testing.md` applies only to test files, not the whole repo. Use the hierarchy intentionally: put broad rules at the root, narrow rules close to the files they govern.
+</KeyIdea>
+
+## When this fails
+
+- **Claude ignores a package CLAUDE.md** — usually because the package isn't a sibling of the root CLAUDE.md. Claude walks up from the current file looking for `CLAUDE.md`; if your package is at `services/api/` instead of `packages/api/`, the walk-up still works as long as there's a CLAUDE.md somewhere on the path.
+- **Conflicting rules between root and package** — package wins by default. If you want the root to win, mark the root rule as **mandatory** in its text.
+- **`.claude/rules/` not loading** — check the `paths:` glob; it uses minimatch syntax. `**/*.test.ts` works; `*.test.ts` alone only matches the repo root.
+
+## See also
+
+- The chapter [Principles and Mental Model](/chapters/ch01-principles) — for the conceptual background on configuration layers.
+- Chapter 9 (CLAUDE.md hierarchy at scale) — for hub-and-spoke patterns across many monorepos.

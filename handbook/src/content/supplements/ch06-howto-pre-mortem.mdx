@@ -1,0 +1,166 @@
+---
+title: "How to run a pre-mortem before an irreversible decision"
+kind: how-to
+draft: true
+chapter_source: 6
+description: "Procedural how-to derived from Ch 6's pre-mortem pattern. Diátaxis 'how-to' mode: problem → prerequisites → numbered steps → expected outcome. Produces a list of named risks plus a draft ADR."
+last_updated: "2026-05-23"
+visual_intent: "Procedural. Numbered steps, minimal prose, copy-paste prompts. Reader has a real decision to make and 20 minutes."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+
+> **You have**: a decision you are about to make that is hard to reverse — a database choice, a vendor lock-in, a directory restructure, an API deprecation, a framework migration. **You want**: Claude to challenge the decision and surface concrete failure modes *before* you commit, plus a draft ADR you can circulate for review.
+
+## Prerequisites
+
+- A decision you can state in one sentence (if you cannot, that is the first problem to solve).
+- A Claude Code session, ideally one with context loaded from the relevant part of your codebase.
+- 20 minutes.
+
+## Steps
+
+### 1. State the decision precisely
+
+Open a session and paste:
+
+```
+I am about to commit to the following decision:
+
+  <one-sentence decision>
+
+Constraints that informed this choice:
+  - <constraint 1>
+  - <constraint 2>
+  - <constraint 3>
+
+Alternatives I considered and rejected:
+  - <alt 1> — rejected because <reason>
+  - <alt 2> — rejected because <reason>
+
+Do NOT critique the decision yet. First, restate the decision
+back to me in your own words so I can confirm you understood
+what I'm actually committing to.
+```
+
+<MarginNote variant="tip" label="Tip">
+  The restatement step catches misunderstandings that would otherwise contaminate every later answer.
+</MarginNote>
+
+If Claude's restatement matches what you meant, proceed. If not, refine your one-sentence decision before continuing.
+
+### 2. Ask the pre-mortem question
+
+Paste the pre-mortem prompt:
+
+```
+Now imagine it is six months from now. We adopted this
+decision and it failed badly enough that we're writing a
+post-mortem about what went wrong. Write that post-mortem.
+
+Requirements:
+  - Be specific. Name the actual failure mode, not "scaling
+    problems" or "team friction."
+  - Identify the signals we should have noticed at decision
+    time that would have predicted this failure.
+  - Identify the question we should have asked at decision
+    time that would have changed the outcome.
+  - Cover at least 3 distinct failure modes, ranked by your
+    estimated likelihood.
+
+Be harsh. The point of this exercise is to find what we're
+missing, not to validate what we already decided.
+```
+
+The "be harsh" clause is the anti-sycophancy lever. Without it Claude tends to soften ("this could potentially be challenging if..."). With it Claude is more likely to name a real failure mode.
+
+### 3. Pressure-test the top risk
+
+Pick the failure mode Claude rated most likely. Ask:
+
+```
+Take failure mode #1 and pressure-test it. Answer:
+
+  1. What is the earliest signal that would tell us this
+     failure mode is becoming real?
+  2. What is the latest moment we could reverse course before
+     the failure is committed? (i.e., what's the point of no
+     return?)
+  3. What's the cheapest mitigation we could put in place at
+     decision time that would either prevent this failure or
+     make it cheaply reversible?
+```
+
+<MarginNote variant="note" label="Note">
+  Steps 2 and 3 turn an abstract risk into a concrete check you can write into the ADR.
+</MarginNote>
+
+If the cheapest mitigation is genuinely cheap (a feature flag, a one-page abstraction, a configurable timeout), build it in. If the mitigation is itself expensive, that is information about how irreversible the decision really is.
+
+### 4. Repeat for the second risk
+
+Run step 3 again on failure mode #2. Two is usually enough; three starts hitting diminishing returns. If Claude's failure modes #1 and #2 share a root cause, that root cause is the real risk and your decision frame may need to widen.
+
+### 5. Draft the ADR
+
+Ask Claude to produce a draft:
+
+```
+Based on this conversation, draft an Architecture Decision
+Record with three sections:
+
+  ## Context
+  What was true at decision time, what alternatives existed,
+  what constraints applied. Keep to ~5 bullets.
+
+  ## Decision
+  What we chose and the 1-2 reasons it won over the
+  alternatives. Keep to ~3 sentences.
+
+  ## Consequences
+  What becomes easier, what becomes harder, and the specific
+  signals from the pre-mortem that would tell us we chose
+  wrong. Include the cheapest mitigations we agreed to put in
+  place. Keep to ~7 bullets total.
+
+Output as Markdown.
+```
+
+### 6. Edit the ADR yourself
+
+Read the draft. Two things to check:
+
+- **Are the Consequences specific enough to act on?** "Monitor database performance" is not actionable. "If query p99 exceeds 200ms, revisit the choice of Postgres for the events table" is.
+- **Did Claude soften any of the risks?** If the pre-mortem said "the schema migration will block deploys for 30+ minutes" and the ADR says "migrations may take some time," restore the sharper language.
+
+Save the file as `docs/adr/NNNN-<short-slug>.md` (where `NNNN` is the next sequential number in your ADR directory).
+
+### 7. Circulate before committing
+
+Send the ADR to one human reviewer who was not in the Claude session. Ask: "is the Consequences section concrete enough that you'd know how to falsify the decision in six months?" If yes, commit. If no, return to step 3 with the missing concreteness.
+
+## Expected outcome
+
+You leave the session with:
+
+- A list of 3+ named, ranked failure modes for your decision
+- For the top 1-2 risks: the earliest detection signal, the point of no return, and the cheapest mitigation
+- A draft ADR with specific, falsifiable Consequences
+- A reviewer's sign-off that the ADR is actionable
+
+<KeyIdea>
+The pre-mortem is not a vote on whether to proceed. It is a way to add **falsifiable trip-wires** to a decision you have already mostly made, so that the failure (if it happens) is caught early and the decision (if it works) is auditable.
+</KeyIdea>
+
+## When this fails
+
+- **Claude produces generic risks** — "this might not scale," "the team might struggle." Almost always means step 1 was too vague. Tighten the one-sentence decision and rerun the pre-mortem.
+- **The ADR Consequences are all positive** — the pre-mortem produced specific failure modes but the ADR draft glossed them. Rerun step 5 with the explicit instruction "include the three failure modes by name in the Consequences section, with the signals that would detect each."
+- **You start arguing with Claude's failure modes** — that is the wrong direction. The failure modes are a free option: if they are real, you have new information; if they are wrong, you can explain *why* in the ADR's Consequences as resolved-risk notes. Either way the ADR is richer.
+
+## See also
+
+- [Ch 6 tutorial](#) — the full mindset and the four patterns this how-to draws from
+- [Ch 6 cheat sheet](#) — the bare prompt templates with no narrative
+- [Ch 11 — Decision provenance](#) — how ADRs feed into longer-term project memory

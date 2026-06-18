@@ -1,0 +1,73 @@
+---
+title: "Ch 3 — Your First Working Session (TL;DR)"
+kind: tldr
+chapter_source: 3
+description: "1-page compressed version of Ch 3's tutorial. Same content, ~5-min read. The session loop, three prompting basics, context hygiene, course-correction, and Plan Mode — for readers who want the macro view first or need a refresher."
+last_updated: "2026-05-25"
+visual_intent: "Compressed. Short paragraphs, key terms bolded, the loop + course-correction moves as single-glance blocks. NO worked example, NO retrieval prompts — those live in the tutorial. Reader is in 'scan' mode."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want the chapter's central claim before deciding whether to read the full tutorial — or who finished it and need a refresher. ~5-min read.
+
+<KeyIdea>
+A session is a **loop**, not a prompt: prompt → observe → refine → commit. Make Claude precise with three basics — be specific about *what*, structure multi-part tasks, and include a **verification criterion**. Keep context clean (`/clear`, `/compact`, the two-failure rule), **interrupt early** when Claude drifts, and **plan before risky changes**.
+</KeyIdea>
+
+## The session loop
+
+```text
+PROMPT → OBSERVE → REFINE → COMMIT   (refine loops back; a wrong turn /clears)
+```
+
+**Observe is not optional** — read the diff, run the tests. One logical change per commit. The two steps that decide quality are **prompt** and **refine**.
+
+## Three prompting basics
+
+| Basic | What it does |
+|---|---|
+| **Be specific about *what*, not *how*** | Names the symptom + location + goal, so Claude stops guessing |
+| **Think step by step** | An explicit structure for multi-part tasks; fewer one-pass regressions |
+| **Include verification criteria** | The success bar in the prompt — Claude self-corrects before you see it |
+
+None is about writing code. They are about defining "correct" precisely enough that Claude can produce it — your value shifts from *implementation* to *specification*.
+
+## Context hygiene
+
+- **`/clear`** — wipe and start fresh, *between unrelated tasks* (`CLAUDE.md` reloads).
+- **`/compact`** — summarize to *continue* a long task whose context is getting large.
+- **Two-failure rule** — after two failed corrections, stop. `/clear` and write the prompt you wish you had written first. A third round fights a cluttered desk.
+
+## Course-correcting
+
+Durable idea: **interrupt early, recover cheaply.** Lightest to heaviest:
+
+```text
+Interrupt (Esc)  → stop mid-action, context kept     (wrong RIGHT NOW)
+Rewind (/rewind) → restore code/conversation to a checkpoint
+"Undo that"      → revert the last change in words
+/clear           → reset entirely                    (whole direction wrong)
+```
+
+<MarginNote variant="warning" label="Warning">
+  Key bindings + permission-mode names shift between releases. Learn the moves; verify the current keys in the Claude Code docs.
+</MarginNote>
+
+## Plan Mode
+
+A **read-only** permission mode — Claude reads and plans but cannot edit. Use it for changes you *cannot* describe as a one-sentence diff (multi-file, unfamiliar code, hard to reverse). Four phases: **explore → plan → implement → commit**. The payoff: a misunderstanding surfaces in a plan you can read, not in code you must unwind. Skip it for typos and renames.
+
+## What spirals from here
+
+- **Prompting** — Chapter 4: precision vocabulary, multi-component prompts, scope control.
+- **Context as currency** — Chapter 5: the two-failure rule + `/clear` / `/compact` become a full discipline (`/rewind`, session naming, auto-memory).
+- **Verification** — Chapter 7: the prompt-level bar grows into a validation architecture enforced by hooks.
+
+## Drill in
+
+- **[Full tutorial](/supplements/ch03-tutorial)** — the loop and the four-phase Plan Mode workflow walked through with a worked example + retrieval prompts. ~15-min read.
+- **[How-to: use Plan Mode for a risky change](/supplements/ch03-howto-plan-mode-risky-change)** — the explore-then-plan procedure in full. ~10-min read.
+- **[Cheat sheet](/supplements/ch03-cheat-sheet)** — loop, prompt-template, course-correction, and plan/skip decision tables. Look-up oriented.
+- **[Chapter: Your First Working Session](/chapters/ch03-first-session)** — the canonical reference with exercises + citations.

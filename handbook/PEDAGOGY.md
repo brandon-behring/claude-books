@@ -15,6 +15,13 @@ This doc is a reference for future contributors. Read once; refer when applying 
 > 2026-06-16) — the public lineup is now **4 books** (Handbook · Agentic Coding · Architect's Reference ·
 > Agentic Systems Design) + glossary infra. The two Use books are complementary: Handbook = Claude-Code
 > daily practice; Agentic Coding = cross-tool principles above any one tool.
+>
+> **Revision — 2026-06-18 (content model → slim + supplements rename).** Decision **#7 is revised to
+> SLIM** — canonical chapter + *earned* supplements only (see the decision log); **#18 Tips + #19
+> exercises unchanged.** The supplement collection `poc/` (a concluded format experiment) is renamed to
+> **`supplements/`** (route `/supplements/`, frontmatter field `kind`), grandfathered for Part I and
+> wired into each chapter via the `<ChapterSupplements>` component; Ch 5–8 supplements are drafts
+> pending the Part II port. See `docs/plans/active/2026-06-18_handbook-reconcile-slim.md`.
 
 ---
 
@@ -276,7 +283,7 @@ The [Diátaxis framework](https://diataxis.fr/) divides technical content into f
 | Diátaxis quadrant | claude-books artifact |
 |---|---|
 | **Tutorial** (learning-oriented; longest form) | Chapter (`src/content/chapters/*.mdx`) |
-| **How-to guide** (task-oriented; short focused) | Supplement (`src/content/poc/*.mdx` in PoCs; will move to `src/content/how-to/` if adopted) |
+| **How-to guide** (task-oriented; short focused) | Supplement (`src/content/supplements/*.mdx`, `kind: how-to`) |
 | **Reference** (information-oriented; look-up) | Appendices (A: advanced context, B: prompting cost, C: extension reference) + cheat sheets if adopted |
 | **Explanation** (understanding-oriented) | `<InsightBox>` callouts inside chapters + dedicated "why" sections |
 
@@ -432,7 +439,7 @@ State of each pedagogical choice as of 2026-05-23. **OPEN** = still exploring; *
 | 4 | Adopt source-tag attribution (`official/practitioner/convergence`) | **DECIDED** (predates this doc) | Continue |
 | 5 | Adopt 8-category margin-note system | **DECIDED** (predates this doc) | Continue; consider Vocab as `<TermDef>` link once glossary lands |
 | 6 | Adopt Diátaxis content-type quadrant explicitly | **DECIDED** (2026-05-23) — adopt, but volume names lead | Diátaxis vocabulary in PEDAGOGY.md + research notes; reader-facing nomenclature uses book names (Handbook / Architect's Ref / Agentic Systems Design) rather than "tutorial/reference/how-to" labels. Books inherently map: Handbook=tutorial+explanation, Architect's Ref=reference+explanation, Agentic Systems Design=reference+explanation (applied volume=how-to) |
-| 7 | Final supplement format(s) | **DECIDED** (2026-05-25) — 5 per chapter (Option B per [supplement-format decision memo](../../docs/design/2026-05-25_supplement-format-decision.md)) | v1.0 ships **tutorial + TL;DR + 1 how-to + 1 cheat-sheet per chapter** + **1 part-summary per Part** (4 Parts). Total: 60 chapter-supplements + 4 part-summaries = 64 artifacts across 15 chapters / 4 parts. Part-summary's L-progression framing earns its slot despite Round-2's structural-similarity concern; reader-journey wayfinding is the distinct value. Full options + tradeoffs in the decision memo |
+| 7 | Final supplement format(s) | **REVISED → SLIM** (2026-06-18; was *5 per chapter / Option B*, 2026-05-25) | **Canonical chapter for all 15 + supplements only where they earn their keep.** Supersedes both the 2026-05-25 Option-B "5 per chapter" lock *and* COMPARISON Round 4's blanket "4 per chapter" — the handbook is the fast-moving Use book, so 4–5×/chapter is 4–5× the staleness upkeep, and the `<PocLayout>` visual-distinctness counter-argument has since shipped. **#18 Tips + #19 exercises unchanged.** Existing supplements: **Part I grandfathered** (kept + wired via `<ChapterSupplements>`); **Ch 5–8 retained as drafts** (port basis). Collection renamed `poc/`→`supplements/`. The [2026-05-25 memo](../../docs/design/2026-05-25_supplement-format-decision.md) is now historical. See `docs/plans/active/2026-06-18_handbook-reconcile-slim.md` + `docs/audits/2026-06-18_handbook-source-audit.md` |
 | 8 | `<WorkedExample>` collapsible component | **DECIDED + SHIPPED + ADOPTED** (scaffold v4.1.0 2026-05-23; adopted in Ch 1 + Ch 5-8 tutorial PoCs 2026-05-24) | Available at `@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro` with `#worked-example-{id}` anchor pattern. Adopted IDs so far: `agent-loop-walkthrough` (Ch 1), `context-fill-example` (Ch 5), `sycophancy-interview` (Ch 6), `median-bug` (Ch 7), `security-review-composition` (Ch 8) |
 | 9 | Sub-chapter prerequisite tagging (e.g., section-level maturity) | **DEFERRED to v1.1** | Adds complexity; top-level chapter maturity tag sufficient for v1.0 |
 | 10 | Interleaving rationale section in PEDAGOGY.md | **DECIDED** (this doc) | See "Interleaving rationale" above |

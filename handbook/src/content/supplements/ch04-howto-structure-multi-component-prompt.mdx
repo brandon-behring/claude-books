@@ -1,0 +1,126 @@
+---
+title: "How to structure a multi-component prompt with XML tags"
+kind: how-to
+chapter_source: 4
+cert_domains: [4, 5]
+description: "Task-oriented how-to derived from Ch 4's multi-component prompting and scope-control sections. Diátaxis 'how-to' mode: problem → prerequisites → numbered steps → expected outcome. No background; assumes the reader knows the session loop and the three prompting basics. Distinct from Ch 1 (monorepo CLAUDE.md), Ch 2 (deny rules), and Ch 3 (Plan Mode): this turns one sprawling request into a precise, scoped, four-section prompt."
+last_updated: "2026-05-25"
+visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Denser line-height than the tutorial. Reader is task-driven; in and out in 10 minutes."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+
+> **You have**: a request with several moving parts — some background Claude needs, a task, a boundary it must not cross, and a way to check the result — and writing it as one paragraph keeps producing near-misses you have to correct. **You want**: a single prompt where each part is unambiguous, so Claude acts precisely on the first try and does not sprawl into files you never named.
+
+## Prerequisites
+
+- Claude Code installed (`code.claude.com/docs/en/install`) and a session open on the project.
+- A `CLAUDE.md` so Claude has project context before it starts (Chapter 2).
+- A task with **three or more distinct parts**. If your request is a one-liner, skip this — just be precise (one-line tasks do not need tags).
+- 10 minutes.
+
+## Steps
+
+### 1. Sort the request into four buckets
+
+Before writing anything, split what is in your head into four kinds of statement. Most near-misses come from a missing or merged bucket:
+
+```text
+CONTEXT      — what Claude needs to know that it can't infer
+               (current state, where things live, the metric today)
+TASK         — the single change you want made
+CONSTRAINTS  — boundaries to respect WHILE working (don't change X,
+               stay inside interface Y, files Z are in bounds)
+VERIFICATION — how success is checked AFTER (a command to run, a
+               behaviour to confirm)
+```
+
+The split that trips people up: a **constraint** shapes *how* Claude works; a **verification** is the bar you check the result against. "Don't change the public signature" is a constraint. "The benchmark must still pass" is verification. Keep them apart.
+
+### 2. Write each bucket as an XML section
+
+XML tags are not magic — they are visible section headers that tell Claude *this part is context, this part is the task.*<sup>↗</sup> Name the files in `constraints` to control scope up front:
+
+```xml
+<context>
+The churn model uses features from src/features/customer.py.
+Current AUC is 0.72 on validation.
+</context>
+
+<task>
+Add recency features: days since last purchase, days since
+last login. Compute them from the events table.
+</task>
+
+<constraints>
+- Modify only customer.py and its test — nothing else.
+- No data leakage: use only pre-churn data.
+- Must work with the existing FeatureStore interface.
+</constraints>
+
+<verification>
+Run: pytest tests/features/ -v
+All existing tests pass; no future-dated features appear
+in the test set.
+</verification>
+```
+
+<MarginNote variant="note" label="Official">
+  XML tags help Claude separate the parts of a structured prompt. <a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags">docs.claude.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags</a>
+</MarginNote>
+
+### 3. Replace any vague verb with operations
+
+Scan each section for category verbs — "clean," "fix," "handle," "improve." Each one is a guess waiting to happen. Swap it for the operations you actually mean:
+
+```text
+"clean the events table"   →  "drop rows with a null user_id,
+                               dedupe on (user_id, ts), cast ts to UTC"
+"handle missing values"    →  "impute numeric nulls with the median;
+                               log and skip rows with >50% NaN"
+```
+
+If you cannot name the operation, you have found the ambiguity that would have cost a correction round — resolve it now, in the prompt.
+
+### 4. Hand Claude the artifacts, not descriptions
+
+Anywhere a section *describes* code or data, replace the description with the real thing — it loads before Claude reasons, so it is in context from step one:
+
+```text
+@src/features/customer.py        load a file's content
+@tests/features/                 load a directory
+tail -100 app.log | claude -p …  pipe a real log instead of paraphrasing
+```
+
+### 5. Send it, then observe against your own verification line
+
+Run the prompt and check the result against the `verification` section you wrote — that line is the bar, so use it:
+
+```text
+Read the diff → run the verification command → confirm the
+behaviour you specified → commit one logical change.
+```
+
+If Claude edited a file outside the `constraints` list, you have a scope-creep miss — go to the troubleshooting note below rather than silently reverting.
+
+## Expected outcome
+
+One prompt that Claude acts on precisely: the context it needed was present, the task was unambiguous, the boundary kept it inside the files you named, and the verification line let it (and you) confirm success. The correction rounds the paragraph version produced are gone, because the ambiguity that caused them was removed before Claude started.
+
+<KeyIdea>
+The angle brackets are not what helps — the discipline of filling four sections is. A prompt that states context, task, constraints, and verification rarely needs a correction, because writing those four sections is what forces you to surface the ambiguity (and the scope boundary) you would otherwise have discovered in the diff.
+</KeyIdea>
+
+## When this fails
+
+- **Claude still touched a file you did not want** — your `constraints` did not name the in-bounds files. Add "modify only X and Y; if a shared file genuinely needs changing, stop and ask first," and add a session-wide scope rule for the rest of the session.
+- **The constraint and verification blurred** — you put a *check* in `constraints` or a *boundary* in `verification`. Re-sort: constraints shape the approach, verification is the after-the-fact bar.
+- **A section is still vague** — a category verb survived ("improve the query"). You have not yet named the operation; that unnamed operation is the guess that will misfire.
+- **The request was actually one-liner-simple** — four sections for a typo or a rename is ceremony. Tags earn their cost only at three-or-more parts; otherwise just be precise.
+
+## See also
+
+- The chapter [Working Productively](/chapters/ch04-productive) — for the precision vocabulary and the three scope-control techniques this builds on.
+- The [Ch 4 tutorial](/supplements/ch04-tutorial) — for the vague-to-XML transformation walked through end to end.
+- [How to use Plan Mode for a risky change](/supplements/ch03-howto-plan-mode-risky-change) — when "separate discovery from action" should be enforced by the permission system, not just stated.

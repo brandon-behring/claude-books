@@ -1,0 +1,140 @@
+---
+title: "Ch 5 cheat sheet — context budget, commands, decision matrix"
+kind: cheat-sheet
+draft: true
+chapter_source: 5
+cert_domains: [1, 3, 5]
+description: "Dense reference card: context-budget ASCII diagram, four-command mechanics tables, observation → action decision matrix, session-naming quick-ref. Look-up oriented; print-friendly. Not meant to be read linearly."
+last_updated: "2026-05-23"
+visual_intent: "Reference-card density. Tables, matrices, snippets. Minimal prose. Reader is here to find one specific thing, not to learn. Visually distinct from the narrative tutorial."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+
+> **Use this when**: you need to look up *one specific thing* about context management — which command for which symptom, where the degradation thresholds sit, the session-naming pattern, the do-nothing case. Not a tutorial; not a TL;DR. Look-up oriented.
+
+## Context budget across session lifecycle
+
+<Figure
+  src="/figures/context-budget/context-budget-compact.svg"
+  alt="Three horizontal stacked bars showing Fresh / Working / Degraded session states. Fresh: 75% available. Working: 40% available with 15% noise. Degraded: 25% available with 40% noise. Two vertical threshold lines mark 60% (degradation onset) and 83% (auto-compaction)."
+  caption="Same content as the tutorial's figure, compacted for look-up. CLAUDE.md (blue) + task (teal) + noise (orange) + available (gray)."
+  width="100%"
+/>
+
+Tool results dominate the spend. A single `Read` on a 600-line file is ~8K tokens. Thirty reads = 240K of context on file contents alone.
+
+## Four commands — mechanics
+
+| Command | Effect | Preserves | Loses | Reversible? |
+|---|---|---|---|---|
+| `/clear` | Wipes session | CLAUDE.md, auto-memory | All conversation, all tool results | No |
+| `/compact` | Summarizes conversation in place | Conversation thread (compressed) | Tool result fidelity, specifics | No |
+| `/rewind` | Backs session out N turns | All turns before checkpoint | The last N turns | Partial (the rewind itself) |
+| `/btw <note>` | Injects steering message inline | Everything | Nothing | N/A (additive) |
+
+## Decision matrix — you observe → use
+
+| You observe | Use | Why |
+|---|---|---|
+| Starting a new unrelated task | `/clear` | Fresh budget; previous noise gone |
+| Long session, budget tight, recent work good | `/compact` | Free old tool outputs without losing thread |
+| Last 3-5 turns went sideways; earlier work good | `/rewind` | Surgical undo; preserve productive earlier work |
+| Two failures on same problem; session contaminated | `/clear` + re-prime with lesson encoded | Clean slate; encode lesson in next prompt |
+| Claude drifting, want to add a constraint | `/btw <constraint>` | Cheapest steering; no reset needed |
+| Auto-compaction prompt appears | Accept it | Declining costs more than accepting |
+| Session is fine, you are just nervous | **Do nothing** | A 40% full budget is not a problem; resetting wastes context |
+
+## When to do nothing
+
+| Signal | Why it is not a problem |
+|---|---|
+| Claude read 10 files in the last 5 turns | Tool-heavy phase is normal; only resets if quality drops |
+| Conversation is 25 messages deep | Length alone is not contamination; context check the % full |
+| Budget is 40-60% used | Still well below the degradation threshold |
+| Claude asked a clarifying question | A question is not a failure; the two-failure rule needs **failures**, not friction |
+| You used `/clear` 10 minutes ago | A fresh session does not need another reset |
+
+## Two-failure rule
+
+```
+1st failure on a problem → iterate, refine prompt
+2nd failure on same problem → STOP. Session is the bottleneck.
+   ├── try /btw with sharper constraint (cheapest)
+   ├── try /rewind to before the failures (middle)
+   └── try /clear + re-prime with lesson encoded (most expensive)
+3rd failure → unacceptable; you skipped the rule
+```
+
+## Session-naming convention
+
+```
+<verb>-<noun>-<context>-<date>
+
+Examples:
+  fix-auth-session-bug-2026-05-22
+  add-metrics-endpoint-api-2026-05-23
+  refactor-redis-client-2026-05-24
+  investigate-cold-start-latency-2026-05-22
+```
+
+Rules:
+- Verb first (the action mode).
+- Noun second (what is being acted on).
+- Context third (which package, which feature).
+- Date last (recoverable thread later).
+
+## `CURRENT_WORK.md` template
+
+```markdown
+# Current work — <session-name>
+
+## What I'm doing
+<1-2 sentences>
+
+## What's confirmed (do not re-explore)
+- <bullet>
+- <bullet>
+
+## Suspect
+<file:line + hypothesis>
+
+## Next step
+<concrete next action>
+```
+
+Three to five sections. Written at session end (any session — clean or not). First prompt of the next session: `Read CURRENT_WORK.md and continue.`
+
+## Auto-memory locations
+
+| Scope | Path | Purpose |
+|---|---|---|
+| Per-project | `~/.claude/projects/<project>/memory/MEMORY.md` | Stable preferences learned across sessions |
+| User global | `~/.claude/CLAUDE.md` | Your personal conventions (style, tone, default tools) |
+| Repo conventions | `<repo>/CLAUDE.md` | Project-wide conventions (re-loaded on every `/clear`) |
+
+Auto-memory updates automatically — do not edit by hand routinely. Glance at it every few weeks to confirm it learned what you wanted.
+
+## Degradation thresholds quick-ref
+
+| Model class | Degradation begins | Auto-compaction |
+|---|---|---|
+| Pre-1M context (200K window) | ~60-70% | ~75% |
+| 1M context, stable releases | Less pronounced | ~83% |
+| Always | Tool-result heavy sessions degrade faster than chat-only |
+
+## Cost ordering (cheapest → most expensive)
+
+```
+/btw  <  /rewind  <  /compact  <  /clear
+```
+
+Match the cost to the severity. `/btw` for drift; `/rewind` for a short bad path; `/compact` for budget pressure; `/clear` for contamination or task boundaries.
+
+## Drill in
+
+- **[Ch 5 full tutorial](#)** — narrative version with worked example and retrieval prompts
+- **[Ch 5 TL;DR](#)** — compressed essence (1 page)
+- **[How-to: recover a runaway context](#)** — 6-step procedure for the mid-stride bloated-session case
+- **[Ch 1 — Principles & Mental Model](#)** — the agent-loop and finite-context properties this chapter builds on

@@ -1,0 +1,61 @@
+---
+title: "Ch 8 — Extending Claude (TL;DR)"
+kind: tldr
+draft: true
+chapter_source: 8
+description: "1-page compressed version of Ch 8's tutorial. Decision framework + when-to / when-not-to table. For readers who want the macro view first or who finished the tutorial and need a refresher."
+last_updated: "2026-05-23"
+visual_intent: "Compressed. Decision-framework punchline at the top, single comparison table, cross-links to drill-in. No worked example, no retrieval prompts — those live in the tutorial. Reader is in scan mode."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want the chapter's central claim before deciding whether to read the full tutorial — or who finished the tutorial and need a refresher. ~5-min read.
+
+<KeyIdea>
+The decision framework is the lever, not any individual extension type. Reach for the lightest extension that does the job (command → skill → hook → MCP), and prefer consuming an existing extension over building a new one. Teams that always reach for MCP are building too much; teams that stop at slash commands when they can are winning.
+</KeyIdea>
+
+## The hierarchy in one walk
+
+In order from lightest to heaviest:
+
+1. **Slash command** — a reusable prompt in `.claude/commands/<name>.md`.
+2. **Agent skill** — a reusable procedure with its own tool-access envelope in `.claude/skills/<name>.md`.
+3. **Hook** — a lifecycle-event handler in `.claude/settings.json` (`PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `Stop`, etc.).
+4. **MCP server** — external tools / resources via `.mcp.json`. Consume first; build last.
+5. **Plugin** — bundled distribution of any of the above.
+6. **CLI** — the `claude` binary itself for headless / scripting.
+7. **IDE integration** — VS Code, JetBrains, etc.
+
+## When to reach for, when not to
+
+| Type | Reach for when | DON'T reach for when |
+|---|---|---|
+| **Slash command** | Repeatable prompt; same instructions used >2 times | The work is procedural with branches — use a skill |
+| **Agent skill** | Multi-step procedure; needs its own tool envelope; "how we do X" | Single-step prompt — use a command. Cross-cutting enforcement — use a hook |
+| **Hook** | Mechanical enforcement; can't trust the model alone (destructive ops, formatting, logging) | Something CLAUDE.md instructions can handle |
+| **MCP server** (consume) | Need typed external access during a session; an existing server covers it | A `Bash` call to an existing CLI (`gh`, `aws`, `psql`) is sufficient |
+| **MCP server** (build) | All consuming options fail AND the integration is durable | Almost always — see Architect's Reference before committing |
+| **Plugin** | You're packaging multiple of the above for distribution | Single-extension cases — ship the file directly |
+| **CLI / headless** | Automation (CI, cron, GitHub Actions) | Interactive work — use the TUI |
+| **IDE integration** | In-editor surfacing for your team | The team doesn't share the IDE |
+
+## The "we want a security-review pass on every PR" example
+
+Walked live in the tutorial. The naive answer ("build an MCP server for GitHub") loses to the framework answer: a **skill** (procedure) + the **CLI** in **headless mode** + a **GitHub Action** that invokes it on PR open. `gh` covers the GitHub access — no new MCP server built. Three composed layers, each doing the lightest job that gets the result.
+
+## Boundary — this chapter stops at "which to reach for"
+
+<MarginNote variant="note" label="Cross-Ref">
+  Designing MCP servers, writing Agent SDK hooks programmatically, and building plugins for distribution all live in the <strong>Architect's Reference</strong> (Phase 2).
+</MarginNote>
+
+This chapter is the **use-side** of extensions. The **design-side** — building MCP servers, writing programmatic Agent SDK hooks, distributing plugins — lives in the Architect's Reference. If the framework here lands you on "build a new MCP server," your next stop is that volume.
+
+## Drill in
+
+- **Full tutorial** (Ch 8) — the decision framework walked through a real use case (security review on every PR), then a tour of the four main extension types. ~12-min read.
+- **How-to: build your first agent skill** — end-to-end build of `.claude/skills/release-checklist.md`. ~10-min read.
+- **Cheat sheet** — ASCII decision flowchart, extension-type table, hook event reference. Look-up oriented.

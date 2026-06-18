@@ -1,0 +1,80 @@
+---
+title: "Ch 4 — Working Productively (TL;DR)"
+kind: tldr
+chapter_source: 4
+description: "1-page compressed version of Ch 4's tutorial. Same content, ~5-min read. Precision vocabulary, XML-tagged multi-component prompts, scope control, and model selection — for readers who want the macro view first or need a refresher."
+last_updated: "2026-05-25"
+visual_intent: "Compressed. Short paragraphs, key terms bolded, the precision table + scope techniques as single-glance blocks. NO worked example, NO retrieval prompts — those live in the tutorial. Reader is in 'scan' mode."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want the chapter's central claim before deciding whether to read the full tutorial — or who finished it and need a refresher. ~5-min read.
+
+<KeyIdea>
+Inconsistent results are a **precision** problem, not luck. Replace vague verbs with **operations**, structure complex requests with **XML tags** (`context` / `task` / `constraints` / `verification`), stop **scope creep** by naming the files Claude may touch, and **match model strength to task difficulty**.
+</KeyIdea>
+
+## A precision vocabulary
+
+Vague verbs are where Claude guesses. Name the operations instead:
+
+| Vague | Precise |
+|---|---|
+| "Clean this data" | validate schema, impute nulls with median, drop `NaN`-target rows |
+| "Check if this works" | run `pytest`, confirm no leakage, verify distributions match prod |
+
+Longer, but every clause is checkable. **Compounding payoff**: when your `CLAUDE.md` and your prompts use the same precise verbs, correction rates fall.
+
+## XML tags for complex prompts
+
+For a request with **three or more parts**, separate them so Claude does not have to:
+
+```text
+<context>      what Claude can't infer (state, locations, the metric now)
+<task>         the single change you want
+<constraints>  boundaries to respect WHILE working (in-bounds files, interfaces)
+<verification> how success is checked AFTER (a command, a behaviour)
+```
+
+The discipline of filling four sections is the win, not the brackets. **Rich inputs**: hand Claude the artifact (`@file`, pasted screenshots, piped logs), not a description of it.
+
+## Scope control
+
+Scope creep is a **prompting gap, not a model fault** — Claude touched the extra file because the prompt did not forbid it. Three fixes:
+
+```text
+1. Name the files       "modify session.py + its test, nothing else"  (simplest)
+2. Discovery → action   "read src/payments/ and tell me what changes — no edits yet"
+3. Plan Mode            the read-only mode enforces it with permissions, not words
+```
+
+When Claude strays, add a constraint to the next prompt — don't just undo it.
+
+## Match the model to the task
+
+```text
+Faster / lighter  → mechanical, well-specified (formatting, boilerplate, bulk)
+Balanced          → most development (the daily default)
+Frontier          → ambiguous / complex (architecture, multi-file, unclear bugs)
+```
+
+<MarginNote variant="warning" label="Warning">
+  Model names + knowledge cutoffs drift with most releases. The principle is durable; verify the current lineup in the docs.
+</MarginNote>
+
+Read task *difficulty*, not prestige. The deeper knobs — extended thinking, caching, Batch API, fast mode — are in **Appendix B**.
+
+## What spirals from here
+
+- **Context as currency** — Chapter 5: `/rewind`, session naming, `CURRENT_WORK.md`, auto-memory.
+- **Thinking together** — Chapter 6: precise prompting becomes collaborative reasoning.
+- **Advanced prompting + cost** — Appendix B: extended thinking, caching, Batch API, fast mode.
+
+## Drill in
+
+- **[Full tutorial](/supplements/ch04-tutorial)** — precision vocabulary + the vague-to-XML worked example + retrieval prompts. ~15-min read.
+- **[How-to: structure a multi-component prompt with XML tags](/supplements/ch04-howto-structure-multi-component-prompt)** — the four-bucket procedure in full. ~10-min read.
+- **[Cheat sheet](/supplements/ch04-cheat-sheet)** — precision table, XML skeleton, scope techniques, model buckets. Look-up oriented.
+- **[Chapter: Working Productively](/chapters/ch04-productive)** — the canonical reference with exercises + citations.

@@ -4,6 +4,13 @@
 **Status**: working decision memo. Options presented without recommendations; user picks from clean slate.
 **Settles**: PEDAGOGY decision-log rows #7 (supplement format), #16 (war-story sidebars), #18 (numbered Tips), #19 (two-tier exercise model).
 
+> **Revised 2026-06-18 — this memo is now historical.** Decision **#7 was revised to SLIM** (canonical
+> chapter + *earned* supplements only), superseding this memo's Option-B "5 per chapter" lock *and*
+> COMPARISON Round 4's blanket "4 per chapter." #18 (Tips) and #19 (two-tier exercises) are unchanged.
+> The supplement collection was renamed `poc/`→`supplements/`. See the PEDAGOGY decision log (#7) and
+> `docs/plans/active/2026-06-18_handbook-reconcile-slim.md`. The options below are retained as the
+> decision's provenance.
+
 ## Context
 
 Bundle D infrastructure round shipped 2026-05-24 (5 commits closing 7 of 13 guides-recon items). The natural next blocker for Ch 1 v1.0 prose work is the 4 OPEN PEDAGOGY decisions that together define **chapter shape** — what supplement artifacts ship per chapter, whether chapters carry war-story sidebars, whether numbered Tips are a first-class pedagogical device, and whether exercises follow a two-tier (inline + end-of-chapter) model.

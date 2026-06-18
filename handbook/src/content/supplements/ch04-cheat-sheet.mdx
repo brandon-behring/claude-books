@@ -1,0 +1,140 @@
+---
+title: "Ch 4 cheat sheet — precision vocabulary, XML-tagged prompts, scope control, model selection"
+kind: cheat-sheet
+chapter_source: 4
+description: "Dense reference card: the vague-vs-precise vocabulary table, the four-section XML prompt skeleton, rich-input methods, the scope-control techniques, the constraint-vs-verification split, and the model-difficulty buckets. Look-up oriented; print-friendly. Not meant to be read linearly."
+last_updated: "2026-05-25"
+visual_intent: "Reference-card density. Tables, matrices, snippets, skeletons. Minimal prose. Reader is here to find one specific thing, not to learn. Visually distinct from the narrative tutorial."
+---
+
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **Use this when**: you need to look up *one specific thing* about prompting precisely — how to phrase a vague verb, the XML prompt skeleton, which rich-input method to use, how to scope a request, or which model bucket a task belongs in. Not a tutorial; not a TL;DR. Look-up oriented.
+
+## Vague → precise vocabulary
+
+| Vague request | Precise version |
+|---|---|
+| "Clean this data" | validate the schema, impute nulls with the median, drop `NaN`-target rows |
+| "Train a model" | fit XGBoost on the train split, evaluate AUC on validation, log the params |
+| "Check if this works" | run `pytest`, confirm no data leakage, verify distributions match production |
+| "Add error handling" | in `build_features()`, raise `ValueError` on schema mismatch; skip rows with >50% `NaN` |
+| "Make it faster" | profile the hot path, cache the repeated query, target p95 < 200ms (benchmark must pass) |
+| "Refactor this" | extract the pure transform fns; run the tests after each extraction; no behaviour change |
+
+<MarginNote variant="tip" label="Tip">
+  Every precise version names operations Claude can *do* and you can *check*. If you can't name the operation, that's the ambiguity that costs a correction round.
+</MarginNote>
+
+**The test for any verb**: is it a *category* ("clean," "fix," "handle," "improve") or an *operation* ("impute with the median," "raise `ValueError`")? Replace categories with operations.
+
+## XML prompt skeleton (3+ part requests)
+
+```xml
+<context>
+<!-- what Claude can't infer: current state, where things live, the metric now -->
+</context>
+
+<task>
+<!-- the single change you want made -->
+</task>
+
+<constraints>
+<!-- boundaries to respect WHILE working: in-bounds files, interfaces, "don't change X" -->
+</constraints>
+
+<verification>
+<!-- how success is checked AFTER: a command to run, a behaviour to confirm -->
+</verification>
+```
+
+Use tags at **3+ distinct parts**. One-liner? Skip tags — just be precise.
+
+## Constraint vs. verification (the split people miss)
+
+| | Constraint | Verification |
+|---|---|---|
+| **Role** | Shapes *how* Claude works | The bar checked *after* |
+| **Timing** | While working | After the result lands |
+| **Example** | "Don't change the public signature" | "The benchmark must still pass" |
+| **Example** | "Modify only `session.py` + its test" | "`pytest tests/auth/` is green" |
+
+## Rich inputs — give the artifact, not a description
+
+| Method | Use for |
+|---|---|
+| `@file` or `@dir/` | Load file/directory content *before* Claude reasons. Preferred over describing code. |
+| Image paste | Screenshots, diagrams, error messages dropped straight into the prompt. |
+| `cat file \| claude -p "…"` | Pipe a real log, command output, or data sample instead of paraphrasing it. |
+
+```bash
+tail -100 app.log | claude -p "Diagnose the errors"
+pytest tests/ -v 2>&1 | claude -p "Summarize the failures"
+```
+
+## Scope control — stop Claude sprawling
+
+```text
+TOO RESTRICTIVE  "Only modify line 42."     → can't make the supporting changes
+TOO PERMISSIVE   "Fix the auth system."     → may rewrite half the codebase
+RIGHT SCOPE      "Fix the expiry bug in session.py. You may also touch
+                  middleware.py if needed. Don't touch other files without asking."
+```
+
+| Technique | One-liner | When |
+|---|---|---|
+| **Name the files** | "modify `session.py` + its tests, nothing else" | Default — simplest, most effective |
+| **Discovery → action** | "read `src/payments/` and tell me what changes — no edits yet" | You don't yet know the blast radius |
+| **Plan Mode** | read-only mode enforces it with permissions | Risky / unfamiliar / multi-file |
+
+<MarginNote variant="tip" label="Tip">
+  When Claude strays, add a constraint to the *next* prompt ("for the rest of this session, only modify files I name") — don't just silently undo the edit.
+</MarginNote>
+
+**Scope creep is a prompting gap, not a model fault** — Claude touched the extra file because the prompt didn't forbid it.
+
+## Match the model to the task
+
+```text
+Could you describe the task's difficulty?
+        │
+        ├─ MECHANICAL / well-specified → faster, lighter model
+        │     (formatting, boilerplate, bulk edits, simple lookups)
+        │
+        ├─ STANDARD development        → balanced model  (the daily default)
+        │     (normal coding, code review, the session loop)
+        │
+        └─ AMBIGUOUS / complex         → frontier model
+              (architecture, multi-file refactor, unclear-root-cause bug)
+```
+
+<MarginNote variant="warning" label="Warning">
+  Model names, context windows, and knowledge cutoffs change with most releases. Match strength to difficulty (durable); verify the current lineup in the docs.
+</MarginNote>
+
+Default balanced, escalate for ambiguity/size, drop for bulk. Read *difficulty*, not prestige.
+
+## In Part I; deeper in Appendix B
+
+| Here (Ch 4) | Appendix B |
+|---|---|
+| Model *selection* (which bucket) | Extended thinking + effort controls |
+| Precise, scoped prompts | Prompt caching, Batch API (cost) |
+| Rich inputs | Fast mode (research preview) |
+
+## Prompt checklist
+
+- [ ] No category verbs left — every "clean / fix / handle" became an operation
+- [ ] 3+ parts → wrapped in `context` / `task` / `constraints` / `verification`
+- [ ] Constraints name the in-bounds files (scope controlled up front)
+- [ ] Verification line is a command or a behaviour, not a vibe
+- [ ] Real artifacts handed over (`@file`, pasted, piped) — not descriptions
+- [ ] Model bucket matches task difficulty
+
+## Drill in
+
+- **[Ch 4 full tutorial](/supplements/ch04-tutorial)** — narrative version with the vague-to-XML worked example
+- **[Ch 4 TL;DR](/supplements/ch04-tldr)** — compressed essence (1 page)
+- **[How-to: structure a multi-component prompt with XML tags](/supplements/ch04-howto-structure-multi-component-prompt)** — the four-bucket procedure in full
+- **[Chapter: Working Productively](/chapters/ch04-productive)** — the canonical reference (exercises + citations)
+- **[Ch 3 — Your First Working Session](/chapters/ch03-first-session)** — the three prompting basics this sharpens

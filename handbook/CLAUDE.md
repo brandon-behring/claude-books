@@ -1,6 +1,6 @@
 # handbook — AI authoring guide
 
-This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, currently v4.18.0; v4 BREAKING `defineStyle` API in use — `astro.config.mjs` passes `styles: [toolsStyle]`). It's the practitioner **Use** volume of the claude-books series — the "how to *use* Claude effectively" angle.
+This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, currently v4.25.0; v4 BREAKING `defineStyle` API in use — `astro.config.mjs` passes `styles: [toolsStyle]`). It's the practitioner **Use** volume of the claude-books series — the "how to *use* Claude effectively" angle.
 
 **Status**: Part I prose complete (ch01–04 shipped); Parts II–IV port pending — see [`OUTLINE.md`](./OUTLINE.md) for the 15-chapter structure, source→target mapping, and per-chapter trim decisions.
 

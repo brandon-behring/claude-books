@@ -1,0 +1,51 @@
+---
+title: "Ch 6 — Thinking Together (TL;DR)"
+kind: tldr
+draft: true
+chapter_source: 6
+description: "1-page compressed version of Ch 6. The 'interview is the third frame' insight, a table of the four patterns and when to reach for each, and links to drill-in."
+last_updated: "2026-05-23"
+visual_intent: "Compressed. Single KeyIdea, a pattern table, minimal prose. Reader is scanning. NO worked example, NO retrieval prompts — those live in the tutorial."
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+
+> **For**: readers who want Ch 6's central insight before deciding whether to read the full tutorial — or who finished the tutorial and need a refresher. ~5-min read.
+
+<KeyIdea>
+Delegate vs collaborate is the wrong frame — both are about *who does the work*. **Interview is the third frame**, and it is about *who does the thinking*. The cure for sycophantic, pattern-matched answers is to make Claude surface reasoning, uncertainty, and alternatives before you commit.
+</KeyIdea>
+
+## The four patterns
+
+| Pattern | When to reach for it | What it produces |
+|---|---|---|
+| **Hypothesis debugging** | A symptom under-determines its cause (failing test, drifting metric, intermittent error) | 2-4 ranked hypotheses, each with the cheapest evidence that would confirm or rule it out |
+| **Pre-mortem** | Before an irreversible decision (vendor choice, schema change, deprecation) | 3+ named, specific failure modes with detection signals and cheapest mitigations |
+| **Feynman** | You suspect your understanding of a topic is thinner than it feels | A list of the vague sentences, undefended claims, and clarifying questions in your own explanation |
+| **Interview** | At the start of any non-trivial task | 5-7 decision-shaping questions Claude wants answered before producing anything |
+
+All four share one shape: **make Claude do work that is harder to fake than producing a fluent answer.**
+
+## Anti-sycophancy red flags
+
+<MarginNote variant="warning" label="Warning">
+  Sycophancy is highest at session-start when Claude has the least context.
+</MarginNote>
+
+- "You're absolutely right" before any file is read or test is run
+- A fix proposed without a single `Read` tool call above it
+- Exactly one diagnosis with no alternatives mentioned
+
+The mechanical fix: take the load-bearing claim out of your prompt, and ask Claude to reach the claim from the evidence.
+
+## ADRs in one sentence
+
+**Architecture Decision Records** are the durable artifact the four patterns produce — three sections (Context / Decision / Consequences) that capture *why* a decision was made so a future you or a future Claude session does not start from zero.
+
+## Drill in
+
+- **Full tutorial** (Ch 6) — debugging-session arc, four patterns in depth, BeforeAfter pair, retrieval prompts, TryThis. ~15-min read.
+- **How-to: pre-mortem** — end-to-end pre-mortem session that produces a draft ADR. ~10-min read.
+- **Cheat sheet** — copy-paste prompt templates for all four patterns plus the ADR skeleton. Look-up oriented.

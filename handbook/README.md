@@ -1,6 +1,6 @@
 # handbook
 
-Built with [`@brandon_m_behring/book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro) (tools profile, v3.5.0).
+Built with [`@brandon_m_behring/book-scaffold-astro`](https://github.com/brandon-behring/book-scaffold-astro) (tools profile, v4.25.0).
 
 ## Getting started
 
