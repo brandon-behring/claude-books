@@ -1,0 +1,369 @@
+---
+title: Context as Currency
+chapter: 5
+part: 2
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 3, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+sources:
+  - anthropic-claude-code-best-practices
+  - anthropic-claude-code-interactive-mode
+  - anthropic-claude-code-memory
+  - claude-code-overview
+description: Why finite context is the central scarcity in a Claude Code session — the toolkit that recovers it, the status line that warns you, the two-failure rule, and the durable artifacts that carry state across resets.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–4: at least one real Claude Code session under your belt, and the finite-context property from Chapter 1.">
+- Why context **degrades** over a long session — and how to read the warning signs
+- The full **toolkit** that recovers a session: `/clear`, `/compact`, `/rewind`, `/btw`, plus the zero-cost **status line**
+- The **two-failure rule** for knowing when to stop iterating and reset
+- How **session naming**, `CURRENT_WORK.md`, and **auto-memory** carry state across resets
+</YouWillLearn>
+
+_Three hours into a session, Claude starts repeating itself. It forgets a rule you stated twenty minutes ago. It suggests an approach you already rejected. The code quality has noticeably dropped since the session started. In Chapter 1 you met finite context as a property of the agent; this chapter turns that property into a daily discipline — why context degrades, the full toolkit for managing it, and the patterns that carry state across resets._
+
+## Why context degrades
+
+Claude Code's context window holds everything the session has seen: your initial prompt, the `CLAUDE.md`, every file Claude has read, every tool result, every message exchanged. On the public models the window is large — 200K tokens, often 1M — but it is still finite, and three things eat it faster than newcomers expect:
+
+- **Tool results dominate.** A single `Read` on a 600-line file can spend several thousand tokens. Thirty such reads in a debugging session burns a quarter-million tokens of context on file contents alone.
+- **Conversation history accumulates.** Every prompt-and-response pair stays in context until you `/clear` or `/compact`. A 40-message session can carry 100K+ tokens of history before any code is touched.
+- **Stale information competes with fresh.** When context is half-full of files Claude read twenty messages ago for a different task, those tokens compete with the current task for Claude's attention.
+
+Anthropic calls this **context rot**: as token count grows, accuracy and recall degrade.<Citation src="anthropic-claude-code-best-practices" /> It is not a hard cliff but a performance gradient — each additional token of irrelevant information dilutes attention on the tokens that matter. Claude does not throw an error at 90% full; it just produces subtly worse decisions. Misremembering a function signature you discussed earlier. Re-reading a file it already read. Suggesting a fix it already tried and you already rejected. These are the symptoms; the cause is **a context window asked to hold too much for too long**. Content near the beginning and end of the window is recalled more reliably than details buried in the middle.
+
+<KeyIdea>
+Context is the currency you spend to get work done. Every tool call, every file read, every message costs tokens — and unlike money, you cannot earn more in the middle of a session. The skill is not avoiding spend; it is recognizing **when the remaining budget is no longer enough for the task** and resetting deliberately rather than watching quality drift.
+</KeyIdea>
+
+<MarginNote variant="warning" label="Warning">
+  Two distinct thresholds. **Quality degradation** is a practitioner heuristic — around 60–70% fill. **Auto-compaction** is a system-level trigger near 83%. Do not wait for auto-compaction; by then quality has already suffered.
+</MarginNote>
+
+The degradation threshold is a heuristic, not a measured constant — and an important caveat travels with it. The ~60–70% figure was calibrated on **pre-1M (200K) windows**; it predates the 1M context window and has not been re-measured against it. The ~83% auto-compaction trigger, by contrast, is a stable system-level behavior. The deeper move for 1M windows — thinking in **absolute tokens** rather than percentages, since 600K tokens of noise is worse than 120K regardless of the percentage — is a strategy in its own right; this chapter keeps the core hygiene, and the absolute-token framework lives in _Appendix A → strategy for 1M context windows (forthcoming)_.
+
+### The agent-loop economics
+
+Recall the agent loop from Chapter 1: prompt → reason → pick a tool → observe result → decide next step. Each iteration writes to the context window. The first lesson is that **tool results are the dominant cost** — a chat-only session can run for hours, but a tool-heavy session fills the budget in thirty to forty turns. The second is that **degradation is gradual**, so you cannot rely on Claude to tell you it is happening. You have to recognize the symptoms yourself.
+
+<Figure
+  src="/figures/context-budget/context-budget.svg"
+  alt="Three horizontal stacked bars representing context-window usage in Fresh, Working, and Degraded session states. Each bar is divided into CLAUDE.md (blue), task context (teal), noise (orange), and available (gray) regions. Fresh: 75% available. Working: 40% available with 15% noise. Degraded: 25% available with 40% noise. Two vertical orange threshold lines at the ~60% mark (degradation onset, pre-1M models) and ~83% mark (auto-compaction trigger)."
+  caption="Context composition over a session. Noise (errors, retries, abandoned approaches) grows fastest, crowding signal. The ~60% threshold marks where pre-1M quality drops non-linearly; auto-compaction triggers at ~83%. Ported from the LaTeX source repo's 05_context.tex via the TikZ pipeline."
+  width="100%"
+/>
+
+<WorkedExample id="context-fill-example" title="A session that fills its context — and the signal that says it has">
+
+You are thirty messages into a debugging session. The original task was "find and fix the bug in the auth flow that drops sessions after five minutes." You have:
+
+- Read 12 source files (`auth.py`, `session.py`, `middleware.py`, plus 9 related modules)
+- Run the test suite four times
+- Tried three candidate fixes; the test still fails
+- Discussed JWT expiration, cookie SameSite, and Redis TTL across 20+ messages
+
+You ask Claude for fix #4. Claude suggests setting the cookie's `max_age` to `3600`. You frown — you already discussed this eighteen messages ago, and you both agreed it was not the issue because the test fails before the cookie is set. What just happened?
+
+<InsightBox title="The signal Claude just gave you">
+  Claude proposed a fix it already discarded. That is not Claude getting worse at coding — it is Claude's attention saturating. Context is now bloated enough that earlier conversation is competing with newer information for relevance, and the older discussion lost. This is the **first failure** in the two-failure rule. One repeat suggestion is data; a second one is a verdict.
+</InsightBox>
+
+</WorkedExample>
+
+<Exercise id="ch05-ex-1">
+A debugging session is at roughly 65% context and Claude just proposed a fix you ruled out earlier. A colleague says "just buy a bigger model — the 1M window will fix this." Why is that the wrong diagnosis, and what is the actual failure mode the symptom points to?
+</Exercise>
+
+## The full context toolkit
+
+You have several tools, each suited to a different situation. Knowing which to reach for is the chapter's central skill.
+
+- **`/clear`** — wipe context and start fresh. Use it between unrelated tasks. Cost: about thirty seconds; benefit: full attention on the next task. After `/clear`, the session is empty except for `CLAUDE.md` and any auto-memory. Cheap, complete, irreversible.
+- **`/compact`** — summarize the conversation while preserving key decisions. Less aggressive than `/clear`: it frees the original tool outputs and message history but keeps the structural thread. Use it when a long task genuinely needs accumulated context but the window is getting large.
+- **`/rewind`** — checkpoint and roll back. Every action Claude takes creates an automatic checkpoint; double-tap `Esc` or run `/rewind` to open the menu and restore conversation only, code only, both, or summarize from a selected message. Checkpoints persist across sessions, so you can close your terminal and still rewind later.
+- **`/context`** — visualize current usage. Shows how much of the window is consumed and by what. This is your read on the budget before you decide which other command to reach for.
+- **`/btw`** — ask a side question without growing context. The answer appears in a dismissible overlay and never enters conversation history.<Citation src="anthropic-claude-code-interactive-mode" /> It works even while Claude is processing, draws only on what is already in context (no tool access), and costs nothing against your budget. Use it liberally to steer: "BTW, keep using the existing `HttpError` pattern, do not introduce a new error class."
+- **Subagents** — delegate context-heavy research to isolated agents. Results return to your session; the research context does not. This is the full treatment of Chapter 11's orchestration material _(forthcoming)_.
+
+A useful framing: `/btw` is the inverse of a subagent. `/btw` sees your full conversation but has no tools; a subagent has full tools but starts with an empty context. The first half of context discipline is reaching for the right one of these the moment the budget tightens — not after quality has already dropped.
+
+<MarginNote variant="warning" label="Warning">
+  `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` can lower the auto-compaction trigger (set to `70` to compact earlier) but cannot raise it above the default; values above ~83% are silently clamped. It is undocumented and may change without notice.
+</MarginNote>
+
+<Tip n="15" title="Match the cost to the severity.">
+The four commands order by cost: `/btw` < `/rewind` < `/compact` < `/clear`. Reach for the cheapest tool that fits — `/btw` for drift, `/rewind` for a short bad path, `/compact` for budget pressure, `/clear` for contamination or a task boundary.
+</Tip>
+
+The customizing-compaction knobs — `/compact <focus>` to direct the summary, the before/after verification protocol, `PreCompact`/`PostCompact` hooks for state checkpointing, and the two-phase compaction mechanics — are a protocol in their own right; they live in _Appendix A → the compaction protocol (forthcoming)_.
+
+## The status line: zero-cost monitoring
+
+Claude Code displays a configurable status line showing session metrics in real time.<Citation src="claude-code-overview" /> By default it shows the active model, git branch, session cost, and context-window usage percentage. It runs entirely locally — zero API tokens consumed — and is the early-warning system for context degradation. When usage enters the 60–70% range, proactively `/compact` or `/clear`; do not wait for quality to drop before acting.
+
+Four metrics earn a glance:
+
+- **Context usage %** — the single most important number. Watch for the 60–70% range where pre-1M quality drops non-linearly.
+- **Session cost** — tracks spend in real time, catching expensive operations before they compound.
+- **Git branch** — confirms you are working in the right context, which matters when switching between worktrees.
+- **Model** — confirms which model is active, important after a `--model` override or a skill-level model switch.
+
+You can extend it with a custom script whose output is appended to the default display:
+
+```bash
+# ~/.claude/statusline.sh — runs locally, never sent to API
+#!/bin/bash
+echo "env: ${APP_ENV:-dev}"
+```
+
+The status line costs nothing and prevents the most common failure mode: context degradation discovered only after quality has already dropped. Enable it on day one.
+
+<Tip n="16" title="Watch the token counter; act before the cliff.">
+The status line's context-usage percentage is free and always-on. When it approaches 60–70%, `/compact` or `/clear` proactively. Auto-compaction fires later (~83%), but by then quality has already slipped.
+</Tip>
+
+<Exercise id="ch05-ex-2">
+The status line shows model, git branch, session cost, and context %. Two developers each ignore one of these. The first burns a whole session's quality without noticing; the second edits the wrong worktree. Which metric did each ignore, and why is the context-% blindness the more insidious of the two?
+</Exercise>
+
+## The two-failure rule
+
+Two consecutive failed attempts at the same fix is the signal that **the session has degraded** — not that Claude is incapable. Now that you understand context rot, you can see _why_ it works. After two failed corrections, the context contains the original error, your first correction, Claude's apology and retry, your second correction, and Claude's second attempt — roughly 2,500 tokens of noise, nearly all of it encoding _failure patterns_ rather than the actual task. `/clear` discards that noise; a better initial prompt, informed by what went wrong, takes a couple of hundred tokens and produces a better result.
+
+The rule:
+
+1. **First failure**: ordinary. Iterate. Refine the prompt.
+2. **Second failure on the same problem**: **stop iterating.** The session itself is the bottleneck.
+
+When the rule trips, you have three reset options, ordered by cost:
+
+- **`/btw`** with a sharper constraint — cheapest, may not be enough.
+- **`/rewind`** to before the failed attempts, then retry with the lesson learned — middle cost, preserves earlier work.
+- **`/clear`** + a fresh prompt with the lesson encoded up front — most expensive, but guarantees a clean state.
+
+<MarginNote variant="warning" label="Warning">
+  A third failed attempt at the same fix wastes context and erodes trust in the session. Two strikes is the discipline.
+</MarginNote>
+
+The rule is not "Claude failed twice, give up." It is "if the session cannot solve this in two tries, the session is contaminated — reset and let the next session take a fresh shot." The procedural how-to companion to this chapter walks one runaway session end-to-end, capturing state before the reset and encoding the lesson into the next prompt.
+
+<Tip n="17" title="Two failures means the session, not Claude, is the bottleneck.">
+One repeat suggestion is data; a second on the same problem is a verdict. Stop iterating and reset — `/btw`, `/rewind`, or `/clear` — rather than spending a third attempt on a contaminated context.
+</Tip>
+
+<Exercise id="ch05-ex-3">
+You have just hit the second failure on the same bug. Earlier in the same session you correctly refactored a different module and you do not want to lose that work. Which of the three reset options fits, and what is the one thing you must do _before_ you reset so the next attempt does not walk the same path?
+</Exercise>
+
+## Session management and durable artifacts
+
+The toolkit manages context _within_ a session. The other half of the discipline is **what survives between sessions**. Sessions persist across terminal restarts,<Citation src="claude-code-overview" /> and a handful of commands make that persistence usable:
+
+- `claude --continue` — resume the most recent session.
+- `claude --resume` — pick from a list of previous sessions.
+- `claude --from-pr 123` — start a session with the full PR diff and metadata pre-loaded, which saves manual context setup for code review.
+- `/rename "fix-auth-session-bug"` — give a descriptive name for later retrieval.
+
+The `--resume` picker supports keyboard navigation: arrow keys move through the list, `P` previews a session without opening it, `R` renames inline, `/` searches by name or content, and `Enter` opens the selection. Treat sessions like branches — one logical workstream per session, named with the task type (`fix-null-handling-pipeline`, `feat-recency-features`, `debug-cv-leakage`) so you can find the thread again.
+
+<KeyIdea>
+The context window is not a workspace — it is a conversation, and conversations degrade over time. The durable half of context discipline is not a bigger window; it is **artifacts that survive compaction, session boundaries, and context limits**: `CURRENT_WORK.md`, plan documents, and git commits. Compaction supplements persistence; it does not replace it.
+</KeyIdea>
+
+The single highest-leverage artifact is `CURRENT_WORK.md` — a scratch file at the repo root that gives a 30-second context resume after any interruption. When a session ends, clean or not, write a few lines into it: what you are doing, what is confirmed, and what is next. The next session's first prompt is "read `CURRENT_WORK.md` and continue."
+
+<BeforeAfter>
+<div slot="before">
+
+```text
+Session 1 ends mid-debug, no notes.
+Session 2 starts cold:
+  "where were we on the auth thing?"
+Claude:
+  "I don't have context from the
+  previous session. Can you summarize
+  what you tried?"
+```
+
+</div>
+<div slot="after">
+
+```text
+Session 1 ends, you write to CURRENT_WORK.md:
+  "Debugging session-drop bug.
+   Confirmed not JWT, not cookies.
+   Suspect Redis TTL. Next: instrument
+   the middleware."
+Session 2 starts:
+  "Read CURRENT_WORK.md and continue."
+Claude resumes mid-stride.
+```
+
+</div>
+</BeforeAfter>
+
+The "after" pattern costs you about thirty seconds at session end and saves five to ten minutes of cold-start friction at the next start. Update it at the start _and_ end of every session; the compounding return makes it one of the highest-leverage habits in the handbook.
+
+## Auto-memory and cross-session persistence
+
+Claude maintains **auto-memory** that persists across conversations.<Citation src="anthropic-claude-code-memory" /> It records patterns, decisions, and lessons learned automatically — making them available in future sessions without explicit re-prompting — and lives in `~/.claude/projects/<project>/memory/MEMORY.md`. You do not manage it actively, but you should glance at it occasionally to confirm it learned what you wanted it to learn.
+
+The discipline is knowing what belongs there. **Store** stable patterns (confirmed conventions that apply across sessions), architecture decisions (why you chose X over Y, not just what), hard-won lessons (bugs, workarounds, gotchas that took time to find), and known issues (pre-existing problems to avoid re-investigating). **Do not store** transient state (current-task details, in-progress work), unverified conclusions (patterns seen once, not confirmed), or duplicates of `CLAUDE.md` (memory supplements configuration, it does not replace it).
+
+<BeforeAfter title="Memory entries">
+<div slot="before">
+
+```markdown
+# Memory
+The project uses pandas. We had a bug
+once. Config is in settings.yaml. I like
+using polars. Testing is important.
+```
+
+</div>
+<div slot="after">
+
+```markdown
+# Architecture Decision
+Feature pipelines use polars (not pandas)
+since 2026-01. Migration complete for
+src/features/. Tests still use pandas
+fixtures — convert as encountered.
+
+# Known Gotcha
+scikit-learn ColumnTransformer silently
+drops columns not in the transformer list.
+Always verify output columns match schema
+after pipeline.fit_transform().
+```
+
+</div>
+</BeforeAfter>
+
+The test for whether something belongs in memory: _"Will this still be true and useful in three months?"_ If yes, store it. If uncertain, wait for confirmation. And keep the three mechanisms distinct: `CLAUDE.md` holds project rules that apply every session (actionable instructions, re-injected after every compaction); **memory** holds lessons and patterns that emerged organically; `CURRENT_WORK.md` holds transient state, updated every session. If a memory entry becomes a rule, promote it to `CLAUDE.md` and delete the memory; if it goes stale, delete it — stale memories are noise.
+
+## Context budget planning
+
+Before starting a task, estimate whether it fits in your current session or needs a fresh one. A five-second estimate prevents a ten-minute recovery. Rough per-action costs:
+
+| Action | Tokens | Notes |
+|---|---|---|
+| Startup overhead | ~8K | System prompt + `CLAUDE.md` + env + MCP |
+| Reading a source file | 1,000–3,000 | Largest single consumer per action |
+| Edit cycle (edit + verify) | 500–1,000 | Per file edited |
+| Test-suite output | ~1,200 | Filter with hooks to reduce |
+| Search results (grep/glob) | ~600 | Per search |
+| Claude's analysis | 400–800 | Per response |
+
+The rule of thumb: a focused task touching 5–10 files consumes 30–50K tokens; a broad investigation can pass 100K easily. If a task will read more than twenty files, delegate the research to a subagent rather than loading everything into the main session.
+
+That estimate also tells you whether to split the work. A task that touches ten or fewer files and needs one coherent chain of reasoning fits a **single session**. A task with independent phases (architecture → implement → test → integrate) wants **multiple sessions**, each fresh with a handoff file. Tasks that are genuinely independent — different modules, different repos — can run as **parallel sessions** with git worktrees for file isolation. The deeper treatment of running many sessions in parallel — horizontal scaling and curating context for large codebases — is in _Appendix A → context at scale (forthcoming)_; default to splitting work more than your instinct suggests, because the cost of a handoff file is almost always less than the cost of context degradation in a three-hour session.
+
+## Where this goes next
+
+This chapter's discipline threads through the rest of the handbook:
+
+- **Chapter 1 — Principles and mental model** — the finite-context property this chapter operationalizes. The agent loop is _why_ tool results dominate the budget.
+- **Chapter 6 — [Thinking together](/chapters/ch06-thinking-together)** — the interview pattern is highest-leverage early in a session, before context fills; the ADRs there are exactly the kind of durable artifact this chapter argues for.
+- **Chapter 11 — Orchestration** _(forthcoming)_ — subagents and parallel sessions get their full treatment; this chapter only names them as context-isolation tools.
+- **Appendix A** _(forthcoming)_ — the 1M absolute-token strategy, the full compaction protocol with `PreCompact`/`PostCompact` hooks, context curation for large codebases, and horizontal scaling.
+
+## Common pitfalls
+
+<Pitfall title="Ignoring auto-compaction prompts">
+When Claude Code asks to compact, accept. Declining buys you a few minutes and costs you the rest of the session's quality. The prompt fires near 83% because that is a system-level trigger — the system has measured its own behavior, and you do not have better data than it does on your current trajectory.
+</Pitfall>
+
+<Pitfall title="`/clear`-ing too aggressively">
+If the task continues and the history is still relevant, `/compact` preserves more value than `/clear`. Reach for `/clear` at task *boundaries*, not in the middle of one. Rule of thumb: if you can write the next prompt in one sentence after `/clear`-ing, the boundary was real; if it needs three paragraphs of re-context, you should have `/compact`-ed.
+</Pitfall>
+
+<Pitfall title="Skipping `CURRENT_WORK.md`">
+Every session that ends without a note costs the next one a slow re-orientation. Three sentences is enough: what you were doing, what is done, what is next. Thirty seconds at session end saves five to ten minutes at the next start.
+</Pitfall>
+
+<Pitfall title="Treating the 1M window as infinite">
+Auto-compaction near 83% exists for a reason: even 1M tokens degrades when full. The same discipline applies; the budget is just bigger. The 60–70% degradation heuristic was measured pre-1M; the 83% auto-compaction trigger is the stable system-level number. Bigger windows let you run longer between resets — they do not eliminate the need to reset.
+</Pitfall>
+
+<Pitfall title="Correcting the output instead of the input">
+When Claude invents a function name, uses the wrong pattern, or is confidently wrong, the cause is usually missing context, not a bad model. Re-fixing the output spends tokens and leaves the gap in place. Show Claude the missing context — an `@file`, a `CLAUDE.md` rule, or a brief explanation — and retry. Correct the input, not the output.
+</Pitfall>
+
+## Quick reference
+
+**The core claim.** Context is the currency you spend to get work done; the skill is recognizing when the remaining budget is no longer enough and resetting deliberately rather than watching quality drift.
+
+**Why it degrades.** Tool results dominate the spend, conversation history accumulates without bound, and stale information competes with fresh. The window is finite (200K–1M tokens depending on model). Degradation begins well before the window is full — **~60–70% on pre-1M (200K) models, a practitioner heuristic that predates 1M** — with auto-compaction at **~83% (system-level, stable)**.
+
+**The toolkit.**
+
+| Command | When | What it does | Cost |
+|---|---|---|---|
+| `/clear` | New unrelated task; whole session contaminated | Wipes the session; reloads `CLAUDE.md` only | High — loses all in-flight context |
+| `/compact` | Mid-task, budget tight, recent work valuable | Summarizes conversation; frees old tool outputs | Medium — loses fidelity, not structure |
+| `/rewind` | Last few turns went sideways; earlier work intact | Surgical undo back to a checkpoint | Low — preserves productive earlier turns |
+| `/btw` | Steer or add a constraint without restarting | Injects a side question/note; never enters history | Lowest — zero budget cost |
+| `/context` | Anytime you need to read the budget | Visualizes window usage by source | Zero |
+
+Cost ordering: `/btw` < `/rewind` < `/compact` < `/clear`. The status line surfaces context %, cost, branch, and model for free — watch the percentage.
+
+**The two-failure rule.** First failure: iterate, refine the prompt. Second failure on the same problem: stop — the session is the bottleneck. Reset with `/btw`, `/rewind`, or `/clear`, encoding the lesson into the next prompt.
+
+**What persists between sessions.** Session naming (`/rename`, `--resume`, `--from-pr`); `CURRENT_WORK.md` at repo root (three sentences at session end); auto-memory at `~/.claude/projects/<project>/memory/MEMORY.md` (stable patterns and lessons, not transient state). Three distinct mechanisms: `CLAUDE.md` for rules, memory for emergent lessons, `CURRENT_WORK.md` for in-flight state.
+
+**Budget planning.** A focused 5–10 file task is 30–50K tokens; a broad investigation passes 100K. More than ~20 files to read → delegate to a subagent. Independent phases → multiple sessions with handoffs.
+
+## Practice
+
+<Practice id="ch05-pr-1" difficulty="2">
+Open a real Claude Code session you have used for ≥20 messages. Run `/context` and note how full the window is. Identify the single tool result that consumed the most budget (often a long `Read`) and what percentage of the window it took. Then write three lines to a new `CURRENT_WORK.md`, `/clear`, and prompt "Read `CURRENT_WORK.md` and pick up where I left off." Observe how quickly Claude re-orients with the note versus how slowly it would without.
+</Practice>
+
+<Practice id="ch05-pr-2" difficulty="3">
+For one working day, track correction rounds. Every time a task takes more than two attempts at the same fix, stop and note (a) what a better initial prompt would have been and (b) which reset command you should have reached for. At the end of the day, count how many of your over-two-attempt tasks were _session_ problems (the two-failure rule applied) versus genuinely hard bugs.
+</Practice>
+
+<Practice id="ch05-pr-3" difficulty="3">
+Configure a custom status line script that appends one project-specific signal to the default display (the active environment, the current branch's CI status, or a token budget marker). Run a normal session with it enabled and note the first moment the context-% reading would have changed a decision you made — a `/compact` you took earlier, or a `/clear` you would otherwise have skipped.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch05-ex-1">
+A bigger model is the wrong diagnosis because the failure is not capacity — it is **context rot**. At 65% fill the window is far from exhausted; the problem is that twenty messages of accumulated noise (the discarded fix among them) are competing with the current task for Claude's attention, so an old, rejected idea resurfaces. A 1M window would let the session run _longer_ before this happens, but the same dilution still arrives — the failure mode is "a context window asked to hold too much for too long," and the fix is to reset deliberately, not to buy more tokens.
+</Solution>
+
+<Solution for="ch05-ex-2">
+The first developer ignored **context usage %**; the second ignored **git branch**. The context-% blindness is the more insidious because the wrong-branch mistake produces a loud, immediate error (a failed build, a confused diff) that forces a correction, whereas context degradation is _silent_ — Claude keeps responding fluently while quality erodes, so the whole session's output drifts downward with no error to flag it. A loud failure gets fixed; a silent one ships.
+</Solution>
+
+<Solution for="ch05-ex-3">
+Use **`/rewind`** — it backs the session out to before the two failed attempts while preserving the earlier, correct refactor, where `/clear` would discard that productive work and `/btw` alone may not be enough to escape the contaminated path. The one thing to do first is **encode the lesson**: note (in the rewind summary or your next prompt) which approaches you already ruled out, so the fresh attempt starts from a new hypothesis instead of re-walking the path that just failed twice. The reset fixes the budget; the encoded lesson fixes the trajectory.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={5} />

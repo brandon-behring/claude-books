@@ -1,0 +1,299 @@
+---
+title: Scaling Configuration
+chapter: 9
+part: 3
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 3]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+sources:
+  - anthropic-claude-code-memory
+  - anthropic-claude-code-settings
+  - anthropic-claude-code-best-practices
+description: The hub-and-spoke pattern, tier classification, conditional rules, the five-level settings precedence, and output styles — the architecture that keeps configuration coherent across many projects instead of duplicated across many files.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapter 2 (your first CLAUDE.md) and a few projects' worth of experience. This chapter is about what to do once one CLAUDE.md is no longer enough.">
+- The **hub-and-spoke** pattern — `@import` shared patterns once instead of duplicating them across every project
+- **Tier classification** (T0–T5) — match configuration weight to project complexity rather than over-building
+- **Conditional rules** — `.claude/rules/` with `paths:` frontmatter so module-specific context loads only when it's relevant
+- The **five-level settings precedence**, the **CLAUDE.md length budget**, and **output styles** as a separable concern
+</YouWillLearn>
+
+_You have five projects. Each has its own CLAUDE.md with eighty percent identical content, and one of them has grown to six hundred lines where Claude now ignores half the rules. The problem is no longer configuration — it is architecture. This chapter is how a handful of files become one coherent system._
+
+{/* Tip numbers 22–24 are provisional (Part I used 1–8; Ch 6 used 9–11; Ch 12 used 12–14). Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+## The hub-and-spoke pattern
+
+For developers managing multiple repositories, the move that scales is a central **hub** of shared patterns that each project references — rather than a full copy of those patterns living in every project. Each project's CLAUDE.md becomes a thin **spoke**: a few imports plus the handful of facts unique to that repo.
+
+<BeforeAfter title="Five copies vs. one hub">
+<div slot="before">
+
+```text
+Five CLAUDE.md files, each 200 lines,
+80% identical. Updating the git
+convention means editing five files —
+and three of them are already stale.
+```
+
+</div>
+<div slot="after">
+
+```markdown
+# Project CLAUDE.md (spoke — 40 lines)
+@~/shared-patterns/git.md
+@~/shared-patterns/testing.md
+
+## Project-Specific
+- Build: `make build`
+- Test: `pytest tests/`
+- Architecture: one module per file
+```
+
+</div>
+</BeforeAfter>
+
+The mechanism is the `@path/to/file.md` import syntax, which references an external file without duplicating its content.<Citation src="anthropic-claude-code-memory" /> Change the git convention once in the hub, and all five projects inherit it on their next session.
+
+<KeyIdea>
+Duplication across CLAUDE.md files is not just inconvenient — it is actively harmful. When the git convention changes in one file but not the others, Claude learns a different convention depending on which project it is in. Inconsistency accumulates until you cannot trust that any project's instructions are current. The hub makes a shared rule have exactly one source of truth.
+</KeyIdea>
+
+<Tip n="22" title="Don't duplicate shared config — import it.">
+Maintain one hub of shared patterns and `@import` it from each project's CLAUDE.md. Update once; every project inherits. Duplicated config is config that silently drifts out of sync.
+</Tip>
+
+<Exercise id="ch09-ex-1">
+You maintain five projects whose CLAUDE.md files share the same testing conventions, and you fix a flaky-test rule in one of them. Under the duplicated-file approach, what is the failure mode over the next month — and how does a single `@~/shared-patterns/testing.md` import remove it?
+</Exercise>
+
+## Tier classification: match weight to complexity
+
+Not every project needs the same level of configuration. A throwaway prototype and an enterprise pipeline with CI/CD are at opposite ends of a spectrum, and building the heavy end for the light project is wasted effort that ages into maintenance debt. Classify by complexity and configure to the tier you are actually at:
+
+| Tier | Components | When to use |
+|---|---|---|
+| **T0** | None | Prototypes, learning repos |
+| **T1** | CLAUDE.md only | Small scripts, documentation projects |
+| **T2** | CLAUDE.md + settings | Standard development projects |
+| **T3** | + skills, commands, rules | Multi-module projects with workflows |
+| **T4** | + hooks, MCP | Projects needing automation and quality gates |
+| **T5** | + agent teams, pipelines | Enterprise-scale projects with CI/CD |
+
+The tiers are cumulative: each adds to the one below it. The discipline is to **start at T1 and promote only when friction justifies it**. Most solo projects stabilize at T2–T3 within a month; reaching for T5 on a project that doesn't need it buys you machinery to maintain and no benefit.
+
+<Tip n="23" title="Start at T1; promote when friction justifies it.">
+Configuration weight should track project complexity, not ambition. Add a tier's worth of machinery when the previous tier visibly hurts — not in anticipation.
+</Tip>
+
+<Exercise id="ch09-ex-2">
+A solo developer scaffolds a brand-new side project and immediately adds hooks, MCP servers, and a skills library (a T4 setup). Per the tier model, what has this cost them that a T1 start would not have — and what signal should have triggered the jump to T4 instead?
+</Exercise>
+
+## Conditional rules
+
+A CLAUDE.md applies to the whole project. But many instructions are only relevant inside one part of it — notebook conventions, model-training discipline, a specific module's invariants. Loading all of them on every session bloats context with rules that don't apply to the file at hand.
+
+The fix is conditional rules: place `.md` files in `.claude/rules/` with `paths:` frontmatter that controls when they load.<Citation src="anthropic-claude-code-best-practices" /> A rule fires only when Claude reads a file matching its glob.
+
+```markdown
+---
+paths: notebooks/**/*.py
+---
+# Notebook Rules
+- No hardcoded file paths (use config)
+- Every notebook has a markdown header explaining its purpose
+- Run `nbstripout` before committing
+```
+
+```markdown
+---
+paths: src/models/**/*.py
+---
+# Model Training Rules
+- Log all hyperparameters to the experiment tracker
+- Save model artifacts to models/
+- Include a reproducibility seed in every config
+- Run `pytest tests/models/` after changes
+```
+
+A rule **without** `paths:` frontmatter loads on _every_ session. In a monorepo or a multi-module project, a handful of those bloats context with irrelevant instructions — and, worse, deprioritizes the rules that do matter by crowding them.
+
+<InsightBox title="Rules are a parallel system, not a CLAUDE.md subsystem">
+  `.claude/rules/*.md` is a parallel layer alongside CLAUDE.md, not a child of it. An unconditional rule loads at launch at the same priority as `.claude/CLAUDE.md`; a conditional one with `paths:` loads later, only when a matching file is read. As with CLAUDE.md, scope is layered broad-to-specific: user-level rules (`~/.claude/rules/`) load before a project's rules, so the project's rules — read last — win.<Citation src="anthropic-claude-code-memory" />
+</InsightBox>
+
+<Exercise id="ch09-ex-3">
+You add a strict `Model Training Rules` file to `.claude/rules/` but forget the `paths:` frontmatter. The rules are correct and useful for `src/models/`. What goes wrong across the _rest_ of the codebase, and why is "the rules are correct" not enough to make this harmless?
+</Exercise>
+
+### Advanced rules patterns
+
+Beyond the basic `paths:` glob, the rules system has a few capabilities worth knowing:<Citation src="anthropic-claude-code-memory" />
+
+- **User-level rules.** Place `.md` files in `~/.claude/rules/` for personal rules that apply across all your projects — communication preferences, personal tooling conventions. These load before any project's rules.
+- **Brace expansion.** Path patterns support brace expansion: `paths: {src,tests}/**/*.py` matches files in both directories with one rule.
+- **Symlinks.** Symlink a shared rule file across projects instead of duplicating it — useful when hub-and-spoke `@imports` aren't the right shape (for example, when you want the file to participate in the rules system specifically).
+- **`claudeMdExcludes`.** In `settings.json`, list directory patterns where CLAUDE.md files should _not_ be loaded. This is essential for monorepos whose dependency directories ship their own CLAUDE.md files:
+
+```json
+{
+  "claudeMdExcludes": [
+    "node_modules",
+    "vendor",
+    "third_party"
+  ]
+}
+```
+
+Without `claudeMdExcludes`, a vendored dependency's CLAUDE.md can silently inject instructions you never wrote into your own sessions.
+
+## Settings: five-level precedence
+
+Where CLAUDE.md and rules carry _knowledge_, settings carry _behavior_: permissions, model choice, hooks, environment. Claude Code resolves settings through a five-level hierarchy, with higher levels overriding lower:<Citation src="anthropic-claude-code-settings" />
+
+1. **Managed** (`managed-settings.json`) — IT-deployed policy, highest priority.
+2. **Command-line arguments** — temporary session overrides.
+3. **Local** (`.claude/settings.local.json`) — personal, auto-gitignored.
+4. **Project** (`.claude/settings.json`) — team standards, committed to git.
+5. **User** (`~/.claude/settings.json`) — your global personal defaults.
+
+The everyday convention falls out of two of those levels: **commit `settings.json` for team-wide standards, and keep `settings.local.json` for personal preferences** (model choice, output style) that should never reach a teammate's checkout. The managed level exists for the enterprise case — an admin can pin a minimum version or constrain available models above anything an individual sets, which is the subject of the enterprise chapter.
+
+<MarginNote variant="note" label="Note">
+  Permission rules **merge** across these scopes rather than fully override — a project allow-rule and a user allow-rule both apply. It's the scalar settings (model, output style) that follow strict last-writer-wins precedence.
+</MarginNote>
+
+## CLAUDE.md length and attention
+
+A CLAUDE.md is not free: every line of it occupies context on every session, and past a certain length Claude's adherence to any one rule degrades. There are two distinct budgets, and they pull in the same direction:
+
+- Anthropic recommends keeping a file **under ~200 lines** for adherence.<Citation src="anthropic-claude-code-memory" />
+- The total effective configuration should stay **under ~500 lines** for cost. _(The cost guidance is documented at `code.claude.com/docs/en/costs`; no manifest key yet — see the summary.)_
+
+A practitioner middle ground for a single core file is around **300 lines** — longer than the strict adherence target, short enough to stay coherent. When you cross it, you don't trim by deleting useful instructions; you _relocate_ them:
+
+1. Move module-specific rules to `.claude/rules/` with `paths:` — so they load only where they apply.
+2. Move shared patterns to a hub via `@path` imports — so they live once.
+3. Move enforcement rules to hooks — so they _cannot_ be ignored, rather than competing for attention as prose.
+4. Keep core CLAUDE.md to project-wide essentials: build commands, architecture, verification criteria.
+
+<KeyIdea>
+A long CLAUDE.md fails in a particular way: not by being wrong, but by being _ignored_. Every rule competes for the model's attention, and past the adherence threshold the marginal rule dilutes the others rather than adding to them. Scaling configuration is mostly an exercise in moving instructions to the layer where they cost the least attention for the most effect.
+</KeyIdea>
+
+<Tip n="24" title="Relocate, don't just delete, when CLAUDE.md grows.">
+When a core CLAUDE.md gets long, push module rules to `.claude/rules/`, shared patterns to a hub, and enforcement to hooks. Keep the core to build commands, architecture, and verification criteria. Length isn't the enemy — undifferentiated length is.
+</Tip>
+
+## Output styles
+
+The last layer is communication. **Output styles** customize how Claude structures its responses — tone, verbosity, formatting conventions, and problem-solving protocols — configured via `outputStyle` in settings or the `--output-style` flag.<Citation src="anthropic-claude-code-best-practices" />
+
+The leverage in a custom style is not in formatting. A style that says "use bullets" saves minimal effort. A style that encodes a _decision protocol_ — "classify the issue type before searching for solutions" — changes the quality of every interaction, because it shapes how Claude approaches the work rather than how it presents the result. Reach for output styles when you want to encode _how to think about a class of problem_, and leave pure formatting to the defaults.
+
+## A visual: the configuration hierarchy
+
+The four layers form a stack, each owning a distinct concern, ascending from per-user communication up to global-and-project knowledge. Read bottom-up by what each governs and how broadly it applies:
+
+1. **Output Styles** — communication patterns, tone, protocols. _Per-user._
+2. **Settings** — permissions, model, hooks, environment variables. _A five-level cascade._
+3. **Rules** — conditional context, scoped by `paths:` frontmatter. _Per-module._
+4. **CLAUDE.md** — project knowledge: build commands, architecture, verification criteria. _Global + project._
+
+<KeyIdea>
+The configuration hierarchy works by **separating concerns**: CLAUDE.md for project knowledge, rules for conditional context, settings for permissions and behavior, output styles for communication. Mixing them — putting permission rules in CLAUDE.md, or formatting preferences in a rules file — reduces the effectiveness of both, because each layer is loaded and weighted differently. Put each instruction in the layer built for it.
+</KeyIdea>
+
+## Where this goes next
+
+This chapter is the hinge between configuring _one_ project and operating _many_. Several threads pick up from here:
+
+- **Chapter 2 — Your First CLAUDE.md** _(forthcoming)_ — the single-file starting point this chapter scales out of; revisit it once the hub exists.
+- **Chapter 8 — Extending Claude** _(forthcoming)_ — hooks, the enforcement layer this chapter relocates uncheckable rules into, and the deeper treatment of the rules and settings surfaces.
+- **Chapter 12 — Project Lifecycle** — the [tier model in motion](/chapters/ch12-project-lifecycle): which pieces of this architecture to add on Day 1, Week 1, and Month 1 as a project matures.
+- **Chapter 15 — Enterprise Deployment** _(forthcoming)_ — the managed-settings level, where an organization pins versions and constrains models above everything an individual configures.
+
+## Common pitfalls
+
+<Pitfall title="Duplicating shared config across projects">
+Copying the same git or testing conventions into every project's CLAUDE.md means each fix has to be made N times, and the copies drift apart until Claude learns a different convention per project. Hub the shared content and `@import` it once.
+</Pitfall>
+
+<Pitfall title="Over-tiering a simple project">
+Standing up hooks, MCP servers, and agent teams for a script that needs a 40-line CLAUDE.md is machinery you now have to maintain for no benefit. Start at T1 and promote only when the current tier visibly hurts.
+</Pitfall>
+
+<Pitfall title="Forgetting `paths:` on a conditional rule">
+A rules file without `paths:` frontmatter loads on _every_ session. A few of those flood the context with instructions irrelevant to the current file and deprioritize the rules that do apply. Add the glob, or move the rule into CLAUDE.md if it really is project-wide.
+</Pitfall>
+
+<Pitfall title="Letting CLAUDE.md grow past the attention budget">
+A 600-line CLAUDE.md doesn't fail loudly — Claude just starts ignoring rules as they dilute one another. Relocate: module rules to `.claude/rules/`, shared patterns to a hub, enforcement to hooks.
+</Pitfall>
+
+<Pitfall title="Mixing concerns across layers">
+Putting permission rules in CLAUDE.md or formatting preferences in a rules file blunts both. Each layer is loaded and weighted for its own job; keep knowledge, conditional context, behavior, and communication in their respective layers.
+</Pitfall>
+
+## Quick reference
+
+- **Hub-and-spoke**: one hub of shared patterns; each project is a thin spoke that `@import`s them. Update once, all inherit.
+- **Tiers**: T0 none → T1 CLAUDE.md → T2 + settings → T3 + skills/commands/rules → T4 + hooks/MCP → T5 + agent teams/pipelines. Start at T1; promote on friction. Most solo projects settle at T2–T3.
+- **Conditional rules**: `.claude/rules/*.md` with `paths:` glob frontmatter load only on matching files; no `paths:` means every session. User-level (`~/.claude/rules/`) loads before project rules; project wins. Brace expansion (`{src,tests}/**`), symlinks, and `claudeMdExcludes` for monorepos.
+- **Settings precedence** (high → low): managed > CLI args > local > project > user. Commit `settings.json`; keep `settings.local.json` personal. Permission rules merge; scalars override.
+- **Length**: ~200 lines/file for adherence, ~500 lines total for cost, ~300 as a practical core middle ground. When long, relocate (rules / hub / hooks) — don't just delete.
+- **Output styles**: tone, verbosity, formatting, and — most valuably — decision protocols. Configured via `outputStyle` or `--output-style`.
+
+## Practice
+
+<Practice id="ch09-pr-1" difficulty="2">
+Take three of your own projects whose CLAUDE.md files share content. Create a `~/shared-patterns/` directory, move your git-commit and testing conventions into it, and replace the duplicated sections in each project with `@~/shared-patterns/git.md`-style imports. Verify each project's CLAUDE.md is now under ~100 lines, then change one shared rule in the hub and confirm all three projects see it.
+</Practice>
+
+<Practice id="ch09-pr-2" difficulty="2">
+Open the longest CLAUDE.md you maintain and count its lines. For every section over the ~300-line budget, classify each instruction into one of four buckets: project-wide essential (keep), module-specific (move to a `.claude/rules/` file with `paths:`), shared across projects (move to the hub), or enforceable (move to a hook). Execute at least the rules-file extraction and re-measure.
+</Practice>
+
+<Practice id="ch09-pr-3" difficulty="3">
+Audit one project against the tier model. Write down its current tier (which of T0–T5 components it actually has), then name the single piece of friction that would justify the _next_ tier — and the piece of current machinery, if any, that you added before its friction appeared and could now remove. The goal is to make your configuration weight match the project's real complexity in both directions.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch09-ex-1">
+Under duplication, the fix lands in one file and the other four keep the flaky rule — so over the month each project drifts further apart, and Claude enforces a different testing convention depending on which repo you're in. You can no longer trust that any project's rules are current, and reconciling them is a five-file diff every time anything changes. A single `@~/shared-patterns/testing.md` import gives the rule exactly one source of truth: the fix lands once in the hub and every project inherits it on its next session, so drift is structurally impossible rather than merely discouraged.
+</Solution>
+
+<Solution for="ch09-ex-2">
+The T4 setup costs maintenance with no offsetting benefit: hooks, MCP servers, and skills all have to be kept working, debugged when they break, and updated as the tool evolves — overhead on a project a 40-line CLAUDE.md (T1) would fully serve. The tier model says configuration weight should track complexity, and a brand-new side project has none yet. The signal that should trigger T4 is _observed friction at the tier below_: repeatedly running the same multi-step workflow by hand (→ a command or skill), or a quality gate that keeps getting skipped (→ a hook). Add the tier when the previous one visibly hurts, not in anticipation.
+</Solution>
+
+<Solution for="ch09-ex-3">
+Without `paths:`, the rule loads on _every_ session, so the entire codebase — frontend, docs, infrastructure — now carries strict model-training instructions that don't apply to it. Two things go wrong: the irrelevant rules consume context budget everywhere, and by crowding the window they deprioritize the rules that _do_ apply to the file at hand, so adherence drops across the board. "The rules are correct" addresses only their content; the bug is their _scope_. A correct rule loaded in the wrong place is still a cost — `paths: src/models/**/*.py` makes correctness and relevance coincide.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={9} />

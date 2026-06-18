@@ -1,0 +1,431 @@
+---
+title: Testing & Verification
+chapter: 7
+part: 2
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3, 4, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+description: Six automated layers of validation plus the seventh only you can check — domain correctness — with phase-appropriate standards, verification criteria in CLAUDE.md, and hooks that make skipping a check impossible.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–4: a configured CLAUDE.md and a precise prompt. This chapter builds 'fail fast with diagnostics' (Principle 4) into a full reliability discipline.">
+- The **six automated layers** of validation, each catching a class of bug the layer below it can't
+- The **seventh layer — domain correctness** — that no automated check can replace, because Claude reads the same spec you do
+- How to choose which layers are required at which **project phase**, and make phase transitions explicit
+- How to encode verification criteria in `CLAUDE.md` and enforce them with **hooks**, so "done" actually means done
+</YouWillLearn>
+
+_Claude just generated two hundred lines of code that looks correct. The syntax is clean, the variable names are reasonable, the logic reads well. The tests pass. The type checker is green. And the code is still wrong. AI-generated code has a failure mode human-written code does not: it_ looks _correct — which is exactly why verification has to be a discipline, not a vibe._
+
+## Verification is king
+
+Giving Claude a way to verify its own work is Anthropic's stated single highest-leverage practice, and practitioners arrive at the same conclusion independently: the projects that succeed are the ones with verification at every layer. The mechanism is simple. When Claude can run tests, check types, and validate output against concrete criteria, it catches its own mistakes before you ever see them — a single-pass generation becomes an iterative refinement loop.
+
+<KeyIdea>
+Without verification criteria, **you** are the only quality gate, inspecting every diff by hand. With them, Claude becomes a self-correcting system: it runs the checks, reads the failures, and fixes them before claiming done. That is the whole difference between "Claude said it works" and "it actually works."
+</KeyIdea>
+
+Tests can pass for reasons that have nothing to do with correctness: the assertion was wrong, the input was unrepresentative, or the spec itself was misunderstood. So passing tests are one signal, not proof. The rest of this chapter is the apparatus that turns "looks correct" into "is correct" — and names the one gap no apparatus closes.
+
+<WorkedExample id="median-bug" title="Every test passes — and the code is still wrong">
+
+A small task: write a function returning the **median** weekly active users (WAU) across the last twelve weeks, from a query result.
+
+Claude wrote this:
+
+```python
+def median_wau(weeks: list[int]) -> float:
+    """Return the median of the last 12 weeks' WAU counts."""
+    if not weeks:
+        raise ValueError("Need at least one week of data")
+    sorted_weeks = sorted(weeks)
+    mid = len(sorted_weeks) // 2
+    return float(sorted_weeks[mid])
+```
+
+And these tests:
+
+```python
+def test_median_wau_basic():
+    assert median_wau([1, 2, 3]) == 2.0
+
+def test_median_wau_single_value():
+    assert median_wau([100]) == 100.0
+
+def test_median_wau_empty_raises():
+    with pytest.raises(ValueError):
+        median_wau([])
+```
+
+<MarginNote variant="tip" label="Tip">
+  Both tests pass. Type checker passes. Linter passes. The session looked complete.
+</MarginNote>
+
+Layer 1 (types): pass. Layer 2 (lint): pass. Layer 3 (unit): pass. Layer 4 (integration): pass — the function is pure, no integration surface. Layer 5 (e2e smoke): pass — the dashboard renders a number. Layer 6 (manual review of the diff): pass — it's short and reads cleanly.
+
+The dashboard shipped. A week later a stakeholder noticed the "median" was systematically a little high. The bug:
+
+```python
+return float(sorted_weeks[mid])   # wrong for even-length lists
+```
+
+For a list of length 12 — the actual production case — `mid = 6`, so the function returns the **7th** element of the sorted list rather than the average of the 6th and 7th. The unit tests used **odd-length** inputs, so the bug never surfaced. Integration and e2e rendered _some_ number; they never checked it was the _right_ number.
+
+<InsightBox title="What failed wasn't the tests — it was the spec">
+  Six automated layers passed because none of them asked "is this actually the median, by the standard mathematical definition, for the input shape production will hand it?" That question is **layer 7** — domain correctness — and it is the one layer Claude cannot reliably check on its own, because Claude is reading the same spec that produced the bug. You are the only validator who can hold the spec accountable.
+</InsightBox>
+
+The fix took one line. The ninety minutes of debugging stakeholder confusion took longer. The lesson is not "write better unit tests" — it is "domain correctness is a separate layer, and you own it."
+
+</WorkedExample>
+
+<Tip n="19" title="Give Claude a way to verify its own work.">
+The highest-leverage thing you can hand Claude is not a better prompt but a concrete check it can run — tests, a type checker, a known-answer example. Verification turns single-pass generation into self-correction.
+</Tip>
+
+<Exercise id="ch07-ex-1">
+In the median session, every automated layer was green and the code was still wrong. Which property of the unit tests let the bug survive — and what one change to the _inputs_ (not the assertions) would have caught it before the dashboard shipped?
+</Exercise>
+
+## The six automated layers
+
+Layer your defenses so no single failure mode goes undetected. Each layer catches a class of bug the layers below it can't — and each costs more than the layer below, in compute, author time, or maintenance. The discipline is to run the cheap layers always and escalate to the expensive ones only when the cheap ones aren't enough.
+
+<Figure
+  src="/figures/validation-pyramid/validation-pyramid.svg"
+  alt="A six-layer pyramid stack with a separate seventh layer floating above. Bottom to top, decreasing in width: 1. Type check (ms per file), 2. Lint (seconds), 3. Unit tests (seconds), 4. Integration (sec to min), 5. End-to-end / smoke (minutes), 6. Manual verification (human attention, shown in orange as the apex of the automated stack). Above with a vertical gap: 7. Domain correctness (teal, human only — above the automated stack). A vertical 'cost per run' arrow runs up the left side."
+  caption="The validation pyramid. Six automated layers ordered cheap → expensive; layer 7 (domain correctness) is human-only and sits above the automated stack. Each layer catches a class of bug the layers below it can't. Compiled from TikZ source at figures/validation-pyramid/validation-pyramid.tex."
+  width="100%"
+/>
+
+<MarginNote variant="note" label="Note">
+  Ordering matters: a type error caught by `tsc` is one second of feedback. The same bug caught by an e2e test is thirty seconds plus an unclear stack trace.
+</MarginNote>
+
+**Layer 1 — Type checking.** Catches shape errors, nullability bugs, accidental `any`, refactors that drift signatures out of sync. Cost: milliseconds per file — the cheapest signal you will ever buy. Skip only when you literally cannot run a type checker (untyped legacy, throwaway single-file scripts). In Python: `mypy`, `pyright`, or `ty`; pair with `pandas-stubs` for DataFrame types and `pandera` for schema validation. In TS: `tsc --noEmit`. In Rust / Go / Haskell the compiler does it on every build.
+
+**Layer 2 — Linting.** Catches style violations, dead code, and common bug patterns: unused imports, mutable default args, a missing `await`, `==` where you meant `===`. Cost: seconds, usually at save- or commit-time. Skip only on a codebase whose noise floor would drown the signal — and even then, lint **new files** in isolation.
+
+**Layer 3 — Unit tests.** Catches logic bugs in a single function or class under controlled inputs — empty list, negative number, the off-by-one that sank the median. Cost depends on test count and isolation: a 200-test suite running in four seconds is healthy; a 200-test suite that needs a database is not actually unit-tested. This layer also enforces **input validation** — checking preconditions at function entry and failing fast with explicit errors (Principle 4 from Chapter 1), so a bad argument is a loud error at the boundary rather than a silent wrong answer three calls deep.
+
+**Property-based tests** are the sharpest form of this layer. Instead of specific inputs, they assert _invariants_ that must hold for all inputs, and a generator throws hundreds of cases at them. A single Hypothesis test can replace dozens of hand-written edge cases:
+
+```python
+from hypothesis import given, settings
+from hypothesis import strategies as st
+import pandas as pd
+
+@given(st.lists(
+    st.floats(allow_nan=True, allow_infinity=False),
+    min_size=1, max_size=100
+))
+@settings(max_examples=200)
+def test_feature_builder_invariants(values):
+    df = pd.DataFrame({"amount": values})
+    result = build_features(df)
+    # Schema invariant: output columns never change
+    assert set(result.columns) == {"amount", "log_amount", "is_missing"}
+    # Null invariant: NaN inputs produce is_missing=True
+    assert (df["amount"].isna() == result["is_missing"]).all()
+    # Range invariant: log_amount is never negative
+    assert (result["log_amount"].dropna() >= 0).all()
+```
+
+Hypothesis runs this on ~200 generated inputs and shrinks any failure to a minimal reproducer. Pointed at the median function — asserting "at least half the values are ≤ the result and at least half are ≥ it" — it would have failed on the first even-length input it generated.
+
+**Layer 4 — Integration tests.** Catches bugs at the boundaries between modules: your function vs. the actual database, the real HTTP client, the real config loader. Cost: seconds to tens of seconds, often needing test infrastructure (a test database, a mock server, fixtures). Skip when you have very few inter-module boundaries; otherwise it is the baseline for anything past prototype.
+
+**Layer 5 — End-to-end / smoke tests.** Catches bugs in the full stack — the browser hits the real backend, the real frontend renders, real data flows. The "did we actually ship a working product?" check. Cost: tens of seconds to minutes; slow, flaky, expensive to maintain, so **one smoke test per critical user path** is usually enough. Skip when you're writing a library (there is no "end" to test).
+
+**Layer 6 — Manual verification.** Catches what you didn't think to write a test for: UX regressions, visual glitches, "the number on the dashboard looks wrong," accessibility issues, copy errors. Cost: human attention — expensive and irreplaceable. Skip for internal refactors with full automated coverage; never skip for user-facing changes.
+
+<MarginNote variant="tip" label="Tip">
+  Layers 1–2 are cheap to add to any project today. Layers 3–4 are the baseline for production. Layers 5–6 are for critical systems.
+</MarginNote>
+
+<Exercise id="ch07-ex-2">
+You keep hitting off-by-one bugs in a function and your example-based unit tests keep missing them. Which layer's _technique_ is built for exactly this, and what does it assert that a hand-written `assert f([1,2,3]) == ...` does not?
+</Exercise>
+
+## The seventh layer — domain correctness
+
+The six layers above are about **code that runs**. The seventh is about **code that solves the right problem**.
+
+<KeyIdea>
+Layers 1–6 verify "this function does what its tests say it does." Layer 7 — domain correctness — verifies "what the function does is actually what the business needed." Claude cannot reliably check layer 7 on its own, because Claude is reading the same spec you are. The 6-layer model is necessary but not sufficient wherever "correct output" requires judgment.
+</KeyIdea>
+
+These are the failures that pass every structural test and still produce the wrong answer:
+
+- **Data leakage.** A feature-engineering function uses future values during training. Tests pass because the function is deterministic; the model just achieves unrealistic accuracy.
+- **Wrong aggregation.** A revenue calculation sums instead of averaging across periods. Tests pass because the function produces a number; the number is wrong.
+- **Survivorship bias.** A cohort analysis silently excludes deleted records. Tests pass because the query runs; the results mislead.
+- **Silent unit mismatch.** A function mixes daily and monthly rates. Tests pass because both are floats; the financial model is off by 30×.
+
+They share a pattern: structural tests verify the code _runs_, not that it _means_ what you intended. The fix is a class of tests that encode domain knowledge rather than interface contracts:
+
+```python
+def test_no_future_leakage():
+    """Features at time t must use only data from t-1 or earlier."""
+    df = make_time_series(n=100)
+    features = build_features(df, as_of=50)
+    assert features.index.max() <= 50          # nothing from rows 51-100
+
+def test_revenue_units():
+    """Monthly revenue * 12 should approximate annual revenue."""
+    monthly = compute_monthly_revenue(test_data)
+    annual = compute_annual_revenue(test_data)
+    assert abs(monthly.sum() * 12 - annual.sum()) / annual.sum() < 0.05
+
+def test_cohort_completeness():
+    """Cohort analysis must account for all original records."""
+    assert cohort_analysis(raw_data).sum() == len(raw_data)
+```
+
+Claude can generate the test _structure_, but you must specify the invariants — because Claude does not know that monthly revenue times twelve should approximate annual revenue, or that a cohort count must reconcile to the raw record count. You do. When you ask Claude to write tests, ask explicitly: _"Write tests that verify the business logic is correct, not just that the code runs — include leakage checks, unit consistency, and completeness invariants."_ A few practical reflexes close the rest of the gap:
+
+- After every nontrivial change, ask: _does one sentence describing what this code does match the user-facing requirement?_
+- For numerical or statistical code, **run the change on a known example with a known answer** before trusting any test.
+- For UX changes, **load the page and click the thing** — tests pass with the button still broken.
+- For data pipelines, **eyeball a row of output** — schema validation does not catch wrong-but-well-typed values.
+
+<Tip n="20" title="Domain correctness is a separate layer, and you own it.">
+Layers 1–6 prove the code runs; only you can prove it means what the business needed. Encode your domain knowledge as invariant tests, and spot-check a known-answer example by hand.
+</Tip>
+
+<Exercise id="ch07-ex-3">
+A revenue dashboard ships: types pass, lint passes, unit and integration tests are green, and the page renders a number. A finance lead says the figure is "obviously too low." Which layer failed, why couldn't any of the automated layers have caught it, and what is the cheapest check that would have?
+</Exercise>
+
+## Phase-appropriate standards
+
+Not all code earns the same rigor. Applying production standards to a prototype kills velocity; applying prototype standards to production kills reliability. The discipline is to declare — explicitly — which layers are required at this project's current phase, and to transition deliberately.
+
+| Phase | Testing | Code quality | Transition criteria |
+|---|---|---|---|
+| **Exploration** | Manual OK | Long functions OK | Hypothesis validated |
+| **Development** | Unit + integration | Style enforced, type hints | Coverage > 60%, code review |
+| **Production** | Full six-layer | Strict lint, immutability | Coverage > 80%, zero critical warnings |
+| **Critical-path** | Six-layer + formal review | + audit log | None — expand manual review |
+
+<MarginNote variant="warning" label="Warning">
+  The failure mode is _not_ "we used too few layers" — it's "we never decided which layers were required, so each session relitigates the question." Decide once, encode it, enforce it.
+</MarginNote>
+
+### Making phase transitions explicit
+
+The fix for relitigation is to write the phase — and its graduation checklist — into `CLAUDE.md`, so every session inherits the same answer:
+
+```markdown
+## Phase: EXPLORATION (until March 15)
+- Tests: manual OK for now
+- Coverage target: none
+- Graduation criteria:
+  - [ ] Model validated on holdout set
+  - [ ] No data leakage verified
+  - [ ] Feature distributions documented
+  - [ ] Dependencies locked
+  When all checked: switch to DEVELOPMENT phase
+```
+
+Premature rigor kills exploration; sloppy production kills credibility. The solution is not to pick one standard for all time — it is to be explicit about which standard applies _right now_ and what unlocks the next one.
+
+<Tip n="21" title="Match rigor to phase, and write the phase down.">
+A 2-day spike earns layers 1–2; production code earns all six. The expensive mistake runs in both directions — decide the phase explicitly in `CLAUDE.md`, with a graduation checklist, so no session has to guess.
+</Tip>
+
+## Test-first with Claude
+
+For greenfield work, "give Claude a way to verify its own work" has a sharper form: provide the test cases in your _initial_ prompt, not after the code is written. Claude excels at test generation given a clear specification, and the tests then constrain the implementation — which is precisely what prevents the "looks correct but is subtly wrong" failure mode. The pattern is four steps:
+
+1. Describe the **interface**: inputs, outputs, edge cases.
+2. Claude writes **tests** based on that interface.
+3. Claude writes the **implementation** that passes the tests.
+4. Tests run **automatically** via hooks (next section).
+
+```text
+Create a FeatureValidator class:
+- Takes a DataFrame and a schema dict
+- Validates column types, value ranges, null counts
+- Returns ValidationResult with an errors list
+- Raises ValueError if required columns are missing
+
+Write tests first, then the implementation.
+```
+
+This is the verification _gate_ side of tests. Tests have a second life as a _thinking_ tool — writing cases to discover what the code should do at all, not just to confirm it does — which is the subject of [Chapter 6's tests-as-thinking section](/chapters/ch06-thinking-together). Here, the job is narrower and concrete: pin the behavior so Claude can't drift from it.
+
+## Encode the criteria in CLAUDE.md
+
+Once you've picked your phase, write the verification criteria _into_ `CLAUDE.md` so Claude executes them before claiming a task is done. Criteria that live in your head live in your head only — and every session relitigates what "done" means.
+
+<BeforeAfter>
+<div slot="before">
+
+```markdown
+## Testing
+We use pytest. Tests are important.
+```
+
+</div>
+<div slot="after">
+
+```markdown
+## Verification (this project = MVP phase)
+
+Before claiming a task complete, run and report:
+1. `mypy src/` — must pass with zero errors
+2. `ruff check src/ tests/` — must pass
+3. `pytest tests/ -x` — must pass; report which tests
+   covered the change
+4. For numerical changes: include one worked example
+   with a known answer in the response
+
+Never say "done" if 1-3 fails. If 4 doesn't apply, say so.
+```
+
+</div>
+</BeforeAfter>
+
+The "after" is longer, but it converts a vague aspiration ("tests are important") into an executable checklist Claude can complete and report on. The fourth criterion is layer-7 enforcement by proxy: Claude can't verify domain correctness, but it can surface the worked example you need to verify it yourself in seconds. These few lines improve every interaction, because they give Claude a concrete way to validate its own work on every change.
+
+## Quality gates via hooks
+
+`CLAUDE.md` is guidance; **hooks are enforcement.** Claude follows the spirit of `CLAUDE.md` most of the time — but "most of the time" is not "always." Under context pressure, or persuaded by a confident-sounding prompt, Claude can skip a step or simply forget it. When a verification criterion is non-negotiable, encode it as a hook that runs the check and **fails the action** if the check fails.
+
+Two hooks prevent most quality debt — one that lints on every write, one that gates commits on the full check:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": ".claude/hooks/lint-on-write.sh",
+        "description": "Auto-lint on write"
+      }]
+    }],
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "command": ".claude/hooks/pre-commit-gate.sh",
+        "description": "Block bad commits"
+      }]
+    }]
+  }
+}
+```
+
+The contrast is the whole argument. `CLAUDE.md` says "always run tests before committing" and Claude may forget in a long, context-degraded session. A `PreToolUse` hook matching `Bash` fires on every Bash command; the gate script (`pre-commit-gate.sh`) checks whether the command is a `git commit` and, if so, runs `pytest` first — so the tests run **every** time a commit is attempted, regardless of context state, and cannot be forgotten. A non-zero exit blocks the triggering action and the failure message is surfaced to Claude as feedback, so it reads the error and continues working rather than shipping red.
+
+<KeyIdea>
+The rule that decides where a standard lives: **if a standard is non-negotiable, make it a hook; if it's advisory, put it in `CLAUDE.md`.** Guidance is forgettable by design; a hook is not.
+</KeyIdea>
+
+The full hook event taxonomy and exit-code semantics — which event blocks which action, and how to write gates that don't slow the loop to a crawl — belong to the extension chapter _(forthcoming)_. The step-by-step build of a `Stop`-hook gate is in this chapter's how-to companion.
+
+## Where this goes next
+
+The verification discipline threads through the rest of the handbook:
+
+- **Chapter 5 — Context as currency** _(forthcoming)_ — every verification run costs context tokens; choose your layers with the budget in mind.
+- **[Chapter 6 — Thinking together](/chapters/ch06-thinking-together)** — tests serve a second purpose there: exploration. "Run the tests and paste the output" is a verifiable prompt; "make sure the tests pass" is not.
+- **Chapter 8 — Extending Claude** _(forthcoming)_ — the full hook taxonomy, exit codes, and gate patterns beyond the two shown here.
+- **Chapter 14 — Antipatterns** _(forthcoming)_ — the specific failure modes of skipping verification, and how to recover from them.
+
+## Common pitfalls
+
+<Pitfall title="Confusing 'tests pass' with 'code is correct'">
+The median bug is the cautionary tale. Tests pass for reasons that aren't "the code is right" — the assertion was wrong, the input was unrepresentative, the spec was misunderstood. Treat passing tests as one signal among seven, not as proof. The full pyramid is the proof; any single layer is data.
+</Pitfall>
+
+<Pitfall title="Skipping the seventh layer because the first six are green">
+Six green layers feel like done, which is exactly when domain correctness slips through. Claude reads the same spec you do, so it cannot catch a spec-level error for you. For anything numerical, statistical, or business-critical, run a known-answer example by hand — the green checkmarks are necessary, not sufficient.
+</Pitfall>
+
+<Pitfall title="Using prototype standards on production code">
+A type error shipped to production is far more expensive than the same bug caught in a prototype — incidents, customer-facing breaks, on-call pages. Production code earns the full pyramid; prototype code earns layers 1–3. Don't blur the line.
+</Pitfall>
+
+<Pitfall title="Using production standards on a 2-day spike">
+The opposite failure, and just as costly: exploration grinds to a halt, and nothing gets validated because nothing gets _built_. Spike work earns layers 1–2 to keep the code parseable, and stops there. Save the deeper layers for when the spike survives to "we're building this."
+</Pitfall>
+
+<Pitfall title="Verification criteria in your head, not in CLAUDE.md — and not behind a hook">
+If the criteria live only in your head, every session relitigates what "done" means. Encode them once in `CLAUDE.md` and every session inherits them. And for the non-negotiable checks, don't trust guidance alone: Claude can be talked out of a step or forget it under context pressure. A `Stop` or `PreToolUse` hook that exits non-zero makes the check unskippable. `CLAUDE.md` is guidance; hooks are enforcement.
+</Pitfall>
+
+## Quick reference
+
+- AI-generated code _looks_ correct — verification is what makes it correct.
+- **Six automated layers**, cheap → expensive: type check → lint → unit → integration → e2e → manual.
+- **Plus a seventh, human-only**: domain correctness — "the code runs, but does it solve the actual problem?" Claude can't check it for you.
+
+| # | Layer | Catches | Cost / tooling |
+|---|---|---|---|
+| 1 | Type checking | Shape errors, nullability, refactor drift | ms / file — `mypy`, `pyright`, `ty`, `tsc --noEmit` |
+| 2 | Linting | Style, dead code, common bug patterns | seconds — `ruff`, `eslint`, `clippy` |
+| 3 | Unit tests | Logic bugs, edge cases (+ property-based) | sec–min — `pytest`, `vitest`, Hypothesis |
+| 4 | Integration | Module-boundary bugs (DB / HTTP / config) | sec–min — testcontainers, mock servers |
+| 5 | E2E / smoke | Full-stack regressions | minutes — Playwright, Cypress, `curl` smoke |
+| 6 | Manual | UX, visual, copy, accessibility | human attention |
+| **7** | **Domain correctness** _(human-only)_ | "Solves the right problem" | judgment — spec + known-answer example |
+
+- **Phase-appropriate rigor**: Exploration → 1–3 (manual OK); Development → 1–4 (coverage > 60%); Production → all six (coverage > 80%); Critical-path → six + formal review + audit. Decide the phase in `CLAUDE.md` with a graduation checklist.
+- **Test-first**: describe the interface → Claude writes tests → Claude writes the implementation → hooks run the tests.
+- **Encode + enforce**: `CLAUDE.md` declares the criteria so Claude runs them before claiming done; a hook makes the non-negotiable ones impossible to skip. Non-zero exit blocks the action and the failure is surfaced to Claude.
+
+## Practice
+
+<Practice id="ch07-pr-1" difficulty="2">
+Take the most recent task Claude finished for you. For each of the six automated layers, ask: did Claude actually run it, or just claim it — and was the output reported in the session or did you have to ask? Then run the seventh: pick one real input with a known answer and verify by hand that the change does what the requirement wanted. Note which layer, if any, was silently skipped.
+</Practice>
+
+<Practice id="ch07-pr-2" difficulty="3">
+Pick a function with example-based unit tests that you suspect are thin. Write one property-based test (Hypothesis or fast-check) that asserts an _invariant_ rather than a specific output — for a sort: "the output is a permutation of the input and is non-decreasing." Run it. If it surfaces an input neither you nor the existing tests considered, you've found a boundary in your understanding, not just your code.
+</Practice>
+
+<Practice id="ch07-pr-3" difficulty="4">
+Stand up a verification gate end-to-end for one real project. (1) Decide the phase and write a `## Verification` block into `CLAUDE.md` naming the exact commands. (2) Add a `Stop` (or `PreToolUse`-on-`Bash`) hook that runs them and exits non-zero on failure. (3) Test it with a deliberately broken change and confirm Claude cannot claim "done" while the check is red. (4) Tune the gate's cost so it's cheap enough to tolerate on every turn-end — scope the test run, push slow integration/e2e to CI. The how-to companion walks each step.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch07-ex-1">
+The unit tests used only **odd-length inputs** (`[1, 2, 3]`, `[100]`), and the bug — returning the single middle element instead of averaging the two middle elements — only manifests on **even-length** lists, which is exactly the production shape (12 weeks). The cheapest input change that catches it: add a single even-length case with a known answer, e.g. `assert median_wau([1, 2, 3, 4]) == 2.5`. Better still, a property-based test that asserts the median property holds for _all_ generated lengths would have found it on the first even-length draw — the fix is in the inputs, not the assertions you already had.
+</Solution>
+
+<Solution for="ch07-ex-2">
+Property-based testing (Hypothesis, fast-check) is built for this. Instead of pinning one example, it asserts an **invariant that must hold for every input** — and a generator produces hundreds of cases, including the boundary ones you'd never hand-pick, then shrinks any failure to a minimal reproducer. A hand-written `assert f([1,2,3]) == ...` only proves the function is right on the one input you happened to choose; off-by-one bugs live precisely in the inputs you _didn't_ choose. The property ("at least half the values are ≤ the result and at least half are ≥ it," or "the output length equals the input length") is what a single example cannot express.
+</Solution>
+
+<Solution for="ch07-ex-3">
+**Layer 7 — domain correctness — failed.** None of the automated layers could have caught it, because each only checks that the code does what its tests and types say; they can't check that the spec itself was right, and Claude generated both the code and the tests from the same possibly-flawed understanding (e.g. summing where it should average, or excluding refunded rows). The cheapest catch is a **known-answer spot-check**: take one period whose correct revenue you can compute independently and compare. A domain-invariant test makes it permanent — for instance, "monthly revenue × 12 ≈ annual revenue within tolerance," which only a human who knows the business can specify.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={7} />
