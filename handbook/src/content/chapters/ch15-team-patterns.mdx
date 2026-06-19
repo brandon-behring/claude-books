@@ -1,0 +1,272 @@
+---
+title: Team Patterns & Governance
+chapter: 15
+part: 4
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 3]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+sources:
+  - anthropic-claude-code-settings
+description: Turning one developer's Claude Code mastery into a team standard — shared CLAUDE.md in version control, managed settings for IT, day-one onboarding, governed extensions, and AI-assisted code review.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–9: a structured CLAUDE.md, the settings/permissions model, and the extension hierarchy (commands, skills, hooks, MCP). This chapter scales them from one developer to a team.">
+- How a **shared `CLAUDE.md` and `settings.json` in version control** give every teammate the same context, permissions, and hooks
+- The **managed-settings** layer IT uses to enforce org-wide policy — and the managed-only keys that make it enforceable
+- How to **onboard a new teammate to productivity on day one** with nothing but the committed configuration
+- How to **govern shared extensions** (skills, hooks, MCP) at team scale, and two **code-review patterns** that augment human reviewers
+</YouWillLearn>
+
+_You have used Claude effectively for months. Then your team lead asks: "Can we standardize this across our eight-person team?" The answer is yes — but individual mastery does not automatically translate to team productivity. Shared conventions require infrastructure, and that infrastructure is the subject of this chapter._
+
+{/* Tip numbers 31–33 are provisional (Part I used 1–8). Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+## Shared CLAUDE.md in version control
+
+The whole team standard lives in three files, and the split between them is the single most important governance decision you make. The project-level `CLAUDE.md` (structured per Chapter 2 _(forthcoming)_) and `.claude/settings.json` are **committed to version control**, so every team member gets the same project context, the same permissions, and the same hooks. Claude Code is available on the Team and Enterprise plans, where a shared `CLAUDE.md` in the repo is the intended way to distribute that context across seats.
+
+Three files form the team standard:
+
+- **`CLAUDE.md`** — project knowledge: build commands, architecture, conventions. Reviewed in PRs like any other code.
+- **`.claude/settings.json`** — team permissions: deny rules, required hooks. Committed to git.
+- **`.claude/settings.local.json`** — personal preferences: model choice, output style, personal API tokens. Auto-gitignored.
+
+<InsightBox title="Why separate committed and local settings">
+  Put model choice in the committed `settings.json` and every developer who needs a more capable model for a hard task must override the team file to get it — and their override drifts from the shared standard. Put it in `settings.local.json` and each developer chooses their own model without touching anyone else's setup. The principle is a clean line: **team standards** (deny rules, required hooks) are committed; **personal preferences** (model, output style) are local.
+</InsightBox>
+
+<Tip n="31" title="Commit team standards; gitignore personal preferences.">
+`CLAUDE.md` and `settings.json` carry the conventions, deny rules, and hooks the whole team shares; `settings.local.json` carries each person's model and style. Drawing that line keeps one developer's preference from silently becoming everyone's policy.
+</Tip>
+
+<Exercise id="ch15-ex-1">
+A teammate edits the committed `settings.json` to set their preferred model so they stop getting prompted for it, and pushes the change. Two days later another teammate complains that their model "keeps switching." What went wrong, and which file should that preference have lived in?
+</Exercise>
+
+## Managed settings for IT
+
+A committed `settings.json` is a team _convention_, not a hard boundary: a developer can edit the committed file or run in a bypass-permissions mode — even though its deny rules can't simply be loosened by a personal `settings.local.json` (rules merge across scopes, and deny wins). When an organization needs policy that developers **cannot** override, that is a different layer. IT administrators can deploy `managed-settings.json` files that override all other settings.<Citation src="anthropic-claude-code-settings" /> This enables:
+
+- Organization-wide deny rules (sensitive-file access)
+- Mandatory hooks (security scanning, compliance checks)
+- Approved MCP-server allowlists
+- Model restrictions (e.g., a cheaper tier only, for cost control)
+
+Managed settings deploy to system-level paths and **cannot be overridden** by project or user settings. They sit at the top of the five-level precedence hierarchy — managed/policy settings outrank command-line args, which outrank local, then project, then user settings (Chapter 9 _(forthcoming)_ has the full hierarchy). Managed settings are the IT equivalent of a required hook: non-negotiable.
+
+<KeyIdea>
+There are two kinds of "shared" configuration, and conflating them is the root of most team-governance confusion. **Committed `settings.json`** is a convention the team agrees to and any teammate can edit in a PR. **Managed `managed-settings.json`** is policy that IT deploys to system paths, that no project or user setting can override, and that a developer cannot edit away. Use committed settings for what the team chooses together; use managed settings for what the organization must enforce.
+</KeyIdea>
+
+### Delivery mechanisms
+
+Managed settings can be delivered through several channels, all at the highest priority level.<Citation src="anthropic-claude-code-settings" /> The mechanism you pick is a function of how your fleet is managed:
+
+- **Server-managed** — delivered from Anthropic servers via the admin console (Teams/Enterprise). Fetched at startup and polled periodically, so policy updates reach seats without touching each machine.
+- **macOS MDM** — a managed-preferences domain (`com.anthropic.claudecode`) pushed through tools like Jamf or Kandji.
+- **Windows Registry** — a policy key under `HKLM\SOFTWARE\Policies\ClaudeCode` carrying the settings payload, deployed via Group Policy or Intune.
+- **File-based** — a `managed-settings.json` at a system path (for example `/etc/claude-code/` on Linux, or the system Application Support directory on macOS).
+
+A drop-in directory (`managed-settings.d/`) alongside `managed-settings.json` accepts policy **fragments** that merge alphabetically — use numeric prefixes (`10-security.json`, `20-models.json`) to make the merge order explicit. Server-managed delivery requires a Teams or Enterprise plan and a recent Claude Code build; the surface evolves, so confirm the current minimum version when you roll it out.
+
+<MarginNote variant="warning" label="Warning">
+  Server-managed settings are a client-side control. For unmanaged or BYO devices where you cannot trust the client, reach for MDM-level enforcement — it is harder to circumvent than a setting the client itself applies.
+</MarginNote>
+
+### Managed-only settings
+
+Two distinct kinds of key matter here, and the distinction is what makes a policy actually binding. The first kind are **managed-only enforcement controls** — they exist solely to be set in `managed-settings.json` and they take an already-shared setting and make it exclusive:
+
+- **`allowManagedPermissionRulesOnly`** — when `true`, only managed allow/ask/deny rules apply; permission rules from project and user settings are ignored entirely instead of merging.
+- **`allowManagedHooksOnly`** — when `true`, only managed (and SDK / managed-enabled-plugin) hooks load; project and user hooks are blocked.
+- **`allowManagedMcpServersOnly`** — when `true`, only the managed `allowedMcpServers` allowlist is respected; a user can still add servers, but only allowlisted ones work.
+- **`enforceAvailableModels`** — when `true` (with a non-empty `availableModels`), the Default model is also constrained to the allowlist, not just the model picker (requires v2.1.175+).
+- **`disableBypassPermissionsMode`** — prevent the permission-skipping mode, so no one can opt out of the permission system entirely.
+
+The second kind are ordinary settings that **take effect at any scope but are only authoritative when set in managed settings** — a developer can set them in their own file, so to make them non-negotiable you place them at the managed level (which project and user settings cannot override):
+
+- **`availableModels`** — restrict which models can be selected (main session, subagents, and the advisor). On its own it bounds the picker, not the Default — pair it with `enforceAvailableModels` for a true allowlist.
+- **`companyAnnouncements`** — display messages to users at startup (policy reminders, links to AI-usage guidelines).
+
+A minimal `managed-settings.json` that pins the permission surface, the model allowlist, and a startup notice:
+
+```json
+{
+  "permissions": {
+    "deny": ["Bash(curl *)", "Read(./.env)"],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "allowManagedPermissionRulesOnly": true,
+  "availableModels": ["sonnet", "haiku"],
+  "enforceAvailableModels": true,
+  "companyAnnouncements": [
+    "Review AI usage guidelines at docs.acme.com/ai"
+  ]
+}
+```
+
+Without `allowManagedPermissionRulesOnly`, permission rules from project and user settings still **merge** with the managed ones, so a lower-scope `allow` rule sits alongside the managed `deny` (deny still wins on conflict, but the surface is no longer pinned to exactly what IT set). Setting it to `true` makes the managed rules the _only_ rules that apply. Likewise `availableModels` on its own restricts the model _picker_ but a user can still land on their tier's Default model; `enforceAvailableModels: true` (requires Claude Code v2.1.175+) constrains the Default to the allowlist too, turning it into a real allowlist. To pin one exact model, list a single entry in `availableModels`.
+
+<Tip n="32" title="Use managed settings only for what must be enforced.">
+Anything a developer should be able to relax for a good reason belongs in committed `settings.json`. Reserve `managed-settings.json` — and the managed-only enforcement controls like `allowManagedPermissionRulesOnly` and `enforceAvailableModels` — for the deny rules, hooks, and model limits the organization genuinely cannot allow a teammate to override.
+</Tip>
+
+When hooks are configured at multiple levels they **all run together** — managed, project, and local hooks that match the same event fire for it, in parallel, with identical handlers deduplicated. There is no "managed wins" precedence: a managed formatting hook and a local hook that reverses it both run, and the order is not guaranteed, so they can race. The discipline is to make hooks **idempotent and non-conflicting** rather than to rely on layering: if a hook is meant to be a gate, have it return a blocking decision (exit code 2) so the action is stopped regardless of what other hooks do, and use `allowManagedHooksOnly` when lower-scope hooks must be excluded entirely. To debug unexpected hook behavior, view the merged configuration with `/hooks`, check each level's `settings.json`, and test a hook in isolation before promoting it into managed settings.
+
+<Exercise id="ch15-ex-2">
+Your security team wants two guarantees: developers cannot add their own permission rules, and they cannot turn off the permission system. Which two managed-only keys deliver those guarantees — and why does putting the same deny rules in a committed `settings.json` _not_ deliver them?
+</Exercise>
+
+## Onboarding new team members
+
+The payoff of committed configuration is onboarding speed. Day one with Claude for a new teammate is a short, repeatable sequence:
+
+1. **Clone the repo.** `CLAUDE.md` and `settings.json` load automatically — context and permissions arrive with the checkout.
+2. **Run `/init`** to verify Claude understands the project, and compare its output to the existing `CLAUDE.md`; they should align. A divergence is a signal that the committed file has drifted from the code.
+3. **Create `.claude/settings.local.json`** for personal preferences (model, output style).
+4. **Run the team's `/check` command** to verify the environment works end to end.
+5. **Review the team's hook configuration** — what runs on file write? On commit? Why? Understanding the guardrails is part of onboarding, not an afterthought.
+
+<KeyIdea>
+The target is that a new developer is productive with Claude **within their first day, without reading a setup guide**. That only happens if the configuration in version control is self-documenting — the `CLAUDE.md`, the deny rules, and the hooks have to explain the project well enough that cloning the repo _is_ the onboarding. If onboarding still needs a separate wiki page, that page's content belongs in the committed files instead.
+</KeyIdea>
+
+<Exercise id="ch15-ex-3">
+On day one, a new teammate runs `/init` and its proposed conventions disagree with the committed `CLAUDE.md` in several places. Should they trust `/init` or the committed file — and what does the disagreement tell you about the repo?
+</Exercise>
+
+## Shared extensions at scale
+
+Chapter 9 _(forthcoming)_ introduced the extension hierarchy — commands, skills, hooks, and MCP servers. At team scale each of these needs governance, not just authorship:
+
+- **Shared skills** — commit team skills to `.claude/skills/` in the repo so quality dashboards, pre-release checklists, and onboarding workflows benefit everyone. For an expensive skill that does a lot of reading, set `context: fork` so it runs in its own context window and does not spend teammates' context budgets on its intermediate work.
+- **Managed MCP** — deploy IT-approved MCP servers through managed settings, giving the team standardized access to shared databases, ticketing systems, and monitoring tools. A name-only allowlist is not a real boundary, though: it only becomes authoritative when you set `allowManagedMcpServersOnly: true` (or use a dedicated managed MCP configuration), at which point only the managed `allowedMcpServers` are respected and a developer's ad-hoc server, while it can still be added, will not load. Without that flag, MCP servers from all scopes merge and the allowlist is advisory.
+- **Shared hook libraries** — keep common hooks (auto-format, test gates, lint) in a central repository and import them via a hub-and-spoke pattern (a shared base that projects reference, covered in Chapter 9 _(forthcoming)_). Update the hook once and every project inherits the change.
+
+The hierarchy scales naturally along the committed-versus-managed line from earlier in this chapter: commands and skills live **in the repo** for the team to share and edit, hooks live in **`settings.json`** for enforcement the team agrees to, and managed MCP lives in **managed settings** for the integrations IT controls.
+
+## Code-review patterns with Claude
+
+Two patterns put Claude into a team's review loop. Both follow one rule: Claude does the analysis, a human makes the decision.
+
+### Pre-PR self-review
+
+Before opening a PR, have Claude review your own changes so the obvious problems never reach a reviewer:
+
+```text
+Review the diff in `git diff main...HEAD` for:
+1. Logic errors and bugs
+2. Missing test coverage
+3. Style violations per our CLAUDE.md
+4. Security concerns
+Report issues with file:line references and severity.
+```
+
+This catches the easy issues before reviewers see the code, which shortens review cycles and lets human attention go to design rather than typos.
+
+### Reviewer-assist
+
+During review, point Claude at a specific concern to investigate the blast radius of a change:
+
+```text
+In PR #234, the author changed the feature normalization
+strategy in src/features/preprocessing.py. What are the
+implications for models trained on the old normalization?
+Check whether any downstream code depends on the old
+feature distributions.
+```
+
+<Tip n="33" title="AI augments review; it does not replace it.">
+In both patterns the reviewer still owns the decision — Claude supplies analysis, file:line references, and a read of the downstream impact. Treat its output as a well-prepared briefing for a human judgment call, not the judgment itself.
+</Tip>
+
+## Where this goes next
+
+- **Chapter 2 — Configuring Claude (CLAUDE.md)** _(forthcoming)_ — the structure of the `CLAUDE.md` that this chapter commits and shares across a team.
+- **Chapter 9 — Settings & Permissions** _(forthcoming)_ — the full five-level settings precedence hierarchy and the deny-rule patterns that managed settings enforce.
+- **Chapter 8 — Extending Claude** _(forthcoming)_ — the commands, skills (`context: fork`), hooks, and MCP servers governed here at team scale.
+- **Chapter 10 — Agents & Parallel Work** _(forthcoming)_ — the Writer/Reviewer pattern that the code-review patterns above generalize.
+- **The Architect's Reference** covers enterprise governance from the certification angle — managed-settings policy keys, model allowlists, and admin toggles — as Domain 1 and Domain 3 material.
+
+## Common pitfalls
+
+<Pitfall title="Putting personal preferences in the committed settings.json">
+Model choice, output style, and personal tokens belong in `settings.local.json` (auto-gitignored). Commit them and one person's preference becomes everyone's policy — and teammates start overriding the shared file, which is exactly the drift committed settings are supposed to prevent.
+</Pitfall>
+
+<Pitfall title="Using managed settings for team conventions">
+Managed settings are policy a developer cannot override. Use them for what the organization must enforce (deny rules on secrets, mandatory security hooks, a model allowlist) — not for ordinary team conventions that a teammate might reasonably need to relax. Over-locking managed settings turns every legitimate exception into an IT ticket.
+</Pitfall>
+
+<Pitfall title="Relying on a committed deny rule for security">
+A deny rule in a committed `settings.json` is a convention, but _not_ because a `settings.local.json` can override it — permission rules merge across scopes and `deny` is evaluated before `ask` and `allow`, so a local `allow` cannot loosen a project `deny`. The real bypass paths are different: a developer can edit the mutable committed file itself, work from an untrusted local copy of the repo, or run in bypass-permissions mode. If a rule is a real security boundary, it has to live in managed settings — with `allowManagedPermissionRulesOnly` so lower-scope rules are ignored and `disableBypassPermissionsMode` so no one can skip the permission system — where no user or project setting can relax it.
+</Pitfall>
+
+<Pitfall title="Onboarding that needs a separate setup guide">
+If a new teammate can't become productive from the cloned repo alone, the committed configuration isn't self-documenting yet. The fix is not a longer wiki page — it's moving that page's content into `CLAUDE.md`, the deny rules, and the hooks, so the checkout carries everything.
+</Pitfall>
+
+<Pitfall title="Treating Claude's review as the decision">
+Pre-PR self-review and reviewer-assist surface issues and trace downstream impact, but a human still owns the merge call. Auto-merging on a clean Claude review removes the judgment the review was meant to inform.
+</Pitfall>
+
+## Quick reference
+
+- Commit **`CLAUDE.md`** and **`.claude/settings.json`** for team standards; keep **`.claude/settings.local.json`** for personal preferences (auto-gitignored).
+- **Managed settings** (`managed-settings.json`) enforce IT policy at the highest precedence — they cannot be overridden by project or user settings.
+- **Managed-only enforcement controls** (exclusive only in `managed-settings.json`): `allowManagedPermissionRulesOnly`, `allowManagedHooksOnly`, `allowManagedMcpServersOnly`, `enforceAvailableModels`, `disableBypassPermissionsMode`. **Authoritative-only-at-managed-scope settings** (work anywhere): `availableModels`, `companyAnnouncements`.
+- **Delivery**: server-managed (admin console), macOS MDM, Windows Registry, or file-based; fragments in `managed-settings.d/` merge alphabetically (numeric prefixes set order).
+- **Hooks at multiple levels all run together** (in parallel, identical handlers deduplicated) — there is no managed-wins precedence, so make hooks idempotent and gate with a blocking exit code 2, or use `allowManagedHooksOnly` to exclude lower scopes. Debug with `/hooks`.
+- New teammates are productive **day one** from the committed configuration — `clone → /init (compare) → settings.local.json → /check → review hooks`.
+- **Code review**: pre-PR self-review catches issues before humans see them; reviewer-assist investigates a specific concern. The human always decides.
+
+## Practice
+
+<Practice id="ch15-pr-1" difficulty="2">
+Draft a team `.claude/settings.json` with: three deny rules protecting sensitive files (`.env*`, `secrets/`, credentials); one `ask` rule for a destructive operation (`git push`); one `PostToolUse` hook matching `Edit|Write` for auto-formatting; and one `PreToolUse` hook matching `Bash` that gates `git commit` on your test suite. Have a teammate review it — does it match their expectations of the project's guardrails?
+</Practice>
+
+<Practice id="ch15-pr-2" difficulty="3">
+Take the deny rules from the previous exercise and decide which belong in committed `settings.json` and which belong in `managed-settings.json`. For each rule, write one sentence: is this a convention the team agrees to (committed) or a boundary the organization must enforce (managed)? Then sketch the managed file using `allowManagedPermissionRulesOnly` so the enforced rules cannot be relaxed by a project or user setting.
+</Practice>
+
+<Practice id="ch15-pr-3" difficulty="3">
+Run a pre-PR self-review on a real branch with the prompt from this chapter (`git diff main...HEAD` for logic, coverage, style, and security, reported with file:line and severity). Triage the output: which findings were genuine, which were noise, and which you would have caught yourself? Use that to tune the prompt — drop a category that only produced noise, or add a project-specific concern from your `CLAUDE.md` — so the self-review earns its place in your workflow.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch15-ex-1">
+Model choice is a **personal preference**, so it belongs in `settings.local.json` (which is auto-gitignored), not in the committed `settings.json`. By committing it, the teammate made their personal model the team default — and because settings merge with committed values overriding user-level ones, everyone else's model now "switches" to the committed choice whenever the project settings apply. The fix is to revert the committed change and have each developer set their own model in `settings.local.json`, keeping the committed file to deny rules and required hooks.
+</Solution>
+
+<Solution for="ch15-ex-2">
+`allowManagedPermissionRulesOnly` guarantees developers cannot add their own permission rules (only managed allow/deny rules apply), and `disableBypassPermissionsMode` guarantees they cannot turn the permission system off (it blocks the permission-skipping mode). Putting the same deny rules in a committed `settings.json` doesn't deliver either guarantee because committed settings are a convention, not policy: while a `settings.local.json` can't override a committed `deny` (rules merge and `deny` outranks `allow`), a developer can still edit the mutable committed file itself, work from an untrusted local copy, or run in a mode that bypasses permissions. Only the managed layer — which project and user settings cannot override — makes the boundary actually binding.
+</Solution>
+
+<Solution for="ch15-ex-3">
+Trust the **committed `CLAUDE.md`** as the team's agreed standard, but treat the disagreement as a bug report. `/init` proposes conventions from what the code _currently looks like_; the committed file states what the team has _decided_. When they diverge, either the code has drifted from the documented conventions (some files no longer follow the standard) or the committed file is stale (it documents a convention the team has since abandoned). Either way, the disagreement is a prompt to reconcile the two — update the code to match the doc, or update the doc to match reality — so the next new teammate sees them aligned.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={15} />

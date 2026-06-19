@@ -48,7 +48,7 @@ A `.tex`-first chapter ports the LaTeX directly (no draft tutorial to promote). 
 ## 2. Per-chapter checklist (slim model)
 
 **Frontmatter** (match `src/content/chapters/ch01-principles.mdx`):
-- [ ] `title, part, chapter, volatility` (per audit tier: `stable-principle` | `evolving` | `fast-moving`),
+- [ ] `title, part, chapter, volatility` (the scaffold schema enforces `stable-principle` | `feature-surface` | `architectural-pattern` — **not** `evolving`/`fast-moving`, which older handbook docs name; use `feature-surface` for command/settings-surface chapters),
   `tools_compared: [claude-code]`, `cert_domains` (per `../../docs/cert-coverage.md`),
   `introduced_in_version`, `last_updated` + `last_verified` (today), `sources` (keys in
   `sources/manifest.yaml`), `description`.

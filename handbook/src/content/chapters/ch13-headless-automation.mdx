@@ -1,0 +1,305 @@
+---
+title: Headless & Automation
+chapter: 13
+part: 3
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [3, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+sources:
+  - claude-code-overview
+  - anthropic-claude-code-best-practices
+description: Headless mode, the fan-out pattern, scheduled tasks, GitHub Actions, and Remote Control — automating your own Claude Code workflows, with trust gates that keep a 90-percent-reliable prompt from failing silently in CI.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–8: the agent loop, permissions, and the extension mechanisms (hooks especially). This chapter runs them without you in the loop.">
+- The five **automation modes** and how to choose by failure cost — and the **trust gates** that let a one-off `claude -p` call graduate safely to CI
+- **Headless mode** (`claude -p`), the **fan-out** pattern, and how permissions and `--bare` behave in scripted, unattended calls
+- **Scheduled tasks** (`/loop`, cloud vs. desktop), **GitHub Actions**, and **Remote Control** for driving a session from another device
+</YouWillLearn>
+
+_Your team merges 20 PRs per week. Each needs type checking, test runs, and documentation updates. Manual review is not scaling — and Claude can do this work, but not through interactive sessions. This chapter is about automating your **own** Claude Code workflows: the headless surface, how to grow a script into a pipeline without it failing silently, and how to run it on a schedule or in CI._
+
+{/* Tip numbers 25–27 are provisional. Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+## Choosing your automation mode
+
+Claude Code offers several automation modes, each with different tradeoffs. Choosing the wrong one either over-engineers a simple task or under-controls a risky one. Match the mode to the **failure cost**: higher stakes earn more control.
+
+- **Headless mode** (`claude -p`) — a quick one-off. Runs a single prompt and returns output. Fastest to set up; add `--output-format json` for structured output.
+- **Fan-out** — process many files with the same operation. A shell loop wrapped around headless mode: you define the units, Claude processes each independently. Test on 2–3 first.
+- **`/batch`** — let Claude figure out _what_ needs changing. It researches the codebase, decomposes the work, and spawns parallel agents; you review the plan before execution.
+- **Agent SDK** — programmatic control, custom tools, and error handling in Python or TypeScript. Production-grade (covered below as a cross-book pointer).
+- **Cloud scheduled tasks / GitHub Actions** — run on a schedule or on a PR trigger, without your machine. Anthropic infrastructure runs the prompt; each run clones fresh.
+
+### The progression — and its trust gates
+
+Most automation starts as a one-off `claude -p` you run by hand. When it works, it migrates: **manual headless** → **scripted fan-out** (a shell loop, `--tools` to restrict the available toolset for safety, JSON output for downstream consumption) → **CI integration** (GitHub Actions, triggered on PR) → **scheduled** (a recurring cloud task) → **Agent SDK** (when the shell script needs conditionals, retries, or custom tools). Each step adds reliability and removes manual intervention. The mistake is jumping to the SDK before proving the concept with a single `-p` call.
+
+Each promotion should be **gated on evidence** that the current stage works without you:
+
+- **Manual → Scripted** — the prompt has produced correct results on 5+ files without modification. If you are still editing the prompt after each run, it is not ready to script.
+- **Scripted → CI** — the script has run end-to-end 3+ times with no manual intervention, output validation is automated (not "I eyeballed the diff"), and tool scoping (`--tools`) is explicit.
+- **CI → Scheduled** — CI has produced correct results for 2+ weeks, failure handling is tested (you know what happens at a rate limit or an unexpected file), and outputs are PRs, not direct commits.
+
+<KeyIdea>
+The trust gate exists to stop the most common automation failure: a prompt that works 90% of the time, deployed to CI where it fails silently 10% of the time. That 10% is invisible in manual runs — you catch and fix it on the spot — but it compounds in automation: ten failures per hundred PRs, each needing manual cleanup. Promote a stage only after the current one has succeeded N times without intervention.
+</KeyIdea>
+
+<Tip n="25" title="Gate every promotion on unattended success.">
+Don't move a pipeline stage forward until the current stage has run correctly N times with zero intervention. The gate, not the prompt, is what makes automation trustworthy.
+</Tip>
+
+<Exercise id="ch13-ex-1">
+A fan-out prompt works perfectly on the 5 files you tested it on, so you wire it straight into CI on a 200-file repo. Why is "works on 5 files" the wrong gate for the Scripted → CI promotion — and what would a sufficient gate look like?
+</Exercise>
+
+### Handling failures in unattended pipelines
+
+Unattended pipelines need failure modes designed in advance, because Claude cannot ask you for help when you are not watching:
+
+- **Bound execution** — `--max-turns` and a budget cap prevent runaway sessions. A stuck agent burning tokens for 30 minutes is expensive.
+- **Scope tools** — `--tools "Read,Edit"` restricts the available toolset so an agent can't run arbitrary commands; `--disallowedTools` denies specific patterns (e.g. `"Bash(rm *)"`); `--allowedTools` is the separate auto-approve allowlist (tools that run without prompting). Match tools to the task, not to convenience.
+- **Validate output** — parse the `--output-format json` result programmatically. If it doesn't match the expected structure, fail loudly; never commit partial results.
+- **Gate before merge** — CI should produce PRs, not direct commits. A human reviews before merge. Automation eliminates toil, not judgment.
+
+## Headless mode
+
+Use `claude -p "prompt"` for non-interactive automation.<Citation src="claude-code-overview" /> A single prompt runs and returns; no session, no interaction. The flags that matter for scripting:
+
+- `-p "prompt"` — single prompt, no interaction.
+- `--output-format json` — structured output for pipeline consumption (also `text`, `stream-json`).
+- `--tools` — restrict which built-in tools Claude can use (e.g. `--tools "Read,Edit"`); `--disallowedTools` denies specific patterns.
+- `--allowedTools` — the auto-approve allowlist: tools that run without prompting for permission (not a restriction of what's available).
+- `--model` — override the model per invocation.
+
+### The fan-out pattern
+
+The fan-out pattern turns a manual chore into a loop. The shape: test on a handful of files, review the output, then scale to the whole set.
+
+<BeforeAfter title="Manual repetition vs. scripted fan-out">
+<div slot="before">
+
+```text
+Open Claude, paste file, ask for type hints,
+copy the result, repeat 47 times.
+```
+
+</div>
+<div slot="after">
+
+```bash
+# Test on 3 files first (null-delimited: handles spaces/newlines in paths)
+n=0
+find src -name '*.py' -print0 | while IFS= read -r -d '' f; do
+  [ "$n" -ge 3 ] && break
+  claude -p "Add type hints to $f" \
+    --tools "Read,Edit"
+  n=$((n + 1))
+done
+
+# Review the results, then scale
+find src -name '*.py' -print0 | while IFS= read -r -d '' f; do
+  claude -p "Add type hints to $f" \
+    --tools "Read,Edit" \
+    --output-format json >> results.jsonl
+done
+```
+
+</div>
+</BeforeAfter>
+
+The `--tools` flag restricts which built-in tools Claude can use in unattended mode — `"Read,Edit"` is the safest pair for code modifications.<Citation src="anthropic-claude-code-best-practices" /> A separate flag, `--allowedTools`, is an auto-approve allowlist (tools that run without a permission prompt), and supports pattern matching like `'Bash(git commit *)'` to pre-approve specific commands; `--disallowedTools` denies patterns such as `'Bash(rm *)'`. Combine `--tools` with `--output-format json` and parse with `jq` to run automated quality checks before anything commits.
+
+<Tip n="26" title="Test fan-out on 2–3 files before scaling.">
+A prompt that works on `src/utils.py` may do something unexpected on `src/models/network.py`. Review the first few outputs by hand, then scale with confidence — the loop will faithfully repeat a mistake 200 times.
+</Tip>
+
+<Exercise id="ch13-ex-2">
+A fan-out loop runs `claude -p` with no `--tools` flag across 80 files overnight, leaving the full toolset available. List two distinct ways this can go wrong that restricting the toolset would have prevented — and explain why `--output-format json` matters even when the prompt "just edits files."
+</Exercise>
+
+### Permissions in headless mode
+
+In headless mode, Claude still respects permission rules. For trusted CI/CD environments you can use `--dangerously-skip-permissions` to bypass interactive prompts — but **only** in environments you fully control (CI runners, Docker containers). Never expose that flag in a user-facing script: it removes the last guardrail in front of arbitrary tool use.
+
+### Bare mode for scripted calls
+
+The `--bare` flag skips auto-discovery of hooks, skills, plugins, MCP servers, auto memory, and `CLAUDE.md`, so scripted calls start faster. In bare mode Claude has access to only Bash, file-read, and file-edit tools — which makes it ideal for CI/CD pipelines, SDK-style automation, and `-p` calls where startup speed matters more than full project context.
+
+```bash
+# Faster to first API request than a standard session
+claude --bare -p "explain this function" < src/main.py
+```
+
+Bare mode pairs naturally with structured output and `--max-turns`: a fast, scoped, bounded automation primitive. Reach for it when you don't need hooks, skills, or MCP — and reach for a standard session when you do.
+
+<Exercise id="ch13-ex-3">
+You have a fan-out that lints 500 files and only needs file read + edit. Would you add `--bare`? Name one thing `--bare` buys you here, and one situation in a _different_ pipeline where `--bare` would silently break the result.
+</Exercise>
+
+### Designing Claude-powered systems is a separate book
+
+Building Claude-powered _systems_ with the Agent SDK — custom tool definitions, programmatic hook callbacks, subagent orchestration, and pipeline architectures like traffic-light health dashboards — is the **Architect's Reference's** subject. This chapter is about automating your own Claude Code workflows from the CLI. The rule of thumb at the boundary: start with headless mode, and move to the SDK only when a shell script has grown conditionals, retries, or custom tools that bash handles poorly — and the prompt has stopped changing. If you are still iterating on the prompt, stay in bash; it is faster to edit.
+
+## Pipeline directionality
+
+One failure mode survives any automation mode: editing a downstream artifact and then re-running the upstream step that regenerates it. Never re-run an upstream step after editing its downstream output — the rerun silently discards your edits. Mark generated files explicitly so neither you nor Claude mistakes them for source:
+
+```text
+# GENERATED — do not edit manually
+```
+
+This is the directionality discipline behind antipattern #5 (**Chapter 14** _(forthcoming)_): a pipeline flows one way, and hand-edits belong at the source, never at the artifact.
+
+## Scheduled tasks
+
+Three tiers of recurring automation, differing in _where_ they run and _how_ persistent they are:
+
+| | Cloud (`/schedule`) | Desktop | `/loop` |
+|---|---|---|---|
+| **Runs on** | Anthropic cloud | your machine | your machine |
+| **Needs machine on** | no | yes | yes |
+| **Persistent** | yes | yes | no (session-scoped) |
+| **Local files** | no (fresh clone) | yes | yes |
+| **Min interval** | 1 hour | 1 minute | 1 minute |
+
+- **Cloud (`/schedule`)** — create from the CLI, web, or Desktop app. Runs on Anthropic infrastructure, so it works even when your machine is off. Each run clones the repo fresh, executes the prompt, and creates a session you can review. Best for work that must happen reliably: daily PR reviews, weekly dependency audits.
+- **Desktop** — scheduled tasks that run on your machine, with access to local files and MCP servers. Reach for it when you need local filesystem access on a schedule.
+- **`/loop`** — a bundled skill that re-runs a prompt on an interval while the session stays open: `/loop 5m check if the deploy finished`. Session-scoped — it stops when you close the session. Best for quick polling during active work.
+
+<InsightBox title="Cloud, desktop, or loop — pick by where the files live">
+Use **Cloud** for durable, machine-independent recurring work (the cron job that must fire whether or not your laptop is awake). Use **`/loop`** for ephemeral polling inside an active session. Use **Desktop** only when the task genuinely needs your local filesystem on a schedule. The names and exact cadences of these surfaces are evolving — choose by the underlying need (durability vs. local access vs. session polling), not by today's command name.
+</InsightBox>
+
+<Tip n="27" title="Pick the scheduler by durability, not by name.">
+Cloud for must-happen recurring work, `/loop` for in-session polling, Desktop for scheduled local-file access. The surfaces evolve; the three needs don't.
+</Tip>
+
+## GitHub Actions integration
+
+Claude Code integrates with GitHub Actions to bring automation into your PR workflow. Mention `@claude` in a PR or issue comment and Claude can analyze code, open pull requests, implement features, and fix bugs — following your `CLAUDE.md` guidelines.
+
+```yaml
+# .github/workflows/claude.yml
+name: Claude Code
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+Setup runs through an install helper (or install the GitHub app manually and add `ANTHROPIC_API_KEY` as a repository secret). Pass CLI flags through the action's arguments — `--max-turns`, `--model`, `--tools` — to bound and scope the runs the same way you would locally. Authentication supports the direct API as well as AWS Bedrock and Google Vertex AI.
+
+<MarginNote variant="note" label="Note">
+The exact action version, setup command, and input names move with releases. Treat the YAML above as the shape, not a frozen contract — check the current GitHub Actions docs when you wire it up.
+</MarginNote>
+
+## Remote Control and web sessions
+
+**Remote Control** connects claude.ai/code or the Claude mobile app to a session running on _your_ machine. Start a task at your desk, then pick it up from your phone or another browser; your local filesystem, MCP servers, and project configuration stay available. Enable it from an existing session with `/remote-control`, or start in that mode with `claude --remote-control` (server mode: `claude remote-control`).
+
+Remote Control authenticates through your **claude.ai account** — it drives a local session and is not an inference-provider feature, so it is unrelated to whether your model calls route through the direct API, Bedrock, or Vertex. (Treat it as a connectivity feature of your account, not of your model backend.)
+
+**Claude Code on the web** runs on Anthropic cloud infrastructure with no local machine needed — useful for repos you don't have cloned, or for parallel cloud tasks.
+
+<KeyIdea>
+Traditional automation _breaks_ on unexpected input — a file with an unusual encoding, a signature it was not designed for. Claude-powered automation _bends_: it reads the unusual file, adapts, and continues. That shifts the boundary between the "common case" (automated) and the "exception" (manual) dramatically — tasks that needed human judgment in a bash pipeline now fall inside the automated path. Design pipelines for that wider boundary, and treat the trust gates as the new exception handling.
+</KeyIdea>
+
+## Where this goes next
+
+- **Chapter 8 — Extending Claude** _(forthcoming)_ — hooks, the building blocks this chapter assembles into pipelines.
+- **Chapter 10 — Agents & Parallel Work** _(forthcoming)_ — `/batch`, subagents, and worktrees: the parallelism surfaces a fan-out hands off to when Claude must decide _what_ changes.
+- **Chapter 14 — Antipatterns & Recovery** _(forthcoming)_ — pipeline directionality (antipattern #5) and the failure modes unattended automation invites.
+- **Architect's Reference** — the Agent SDK, custom tools, programmatic hooks, and pipeline architecture, for building Claude-powered systems rather than automating your own workflow.
+
+## Common pitfalls
+
+<Pitfall title="Skipping the trust gate">
+Wiring a prompt that "worked on a few files" straight into CI. A 90%-reliable prompt fails silently on one PR in ten, and automation hides the failures that a manual run would have caught. Promote only after N unattended successes with automated output validation.
+</Pitfall>
+
+<Pitfall title="Unscoped tools in unattended mode">
+Running fan-out or CI without `--tools` leaves the full toolset available, so an agent can run arbitrary commands with no human watching. Restrict the toolset to the task (`--tools "Read,Edit"` for code edits, `--disallowedTools` to deny patterns), and reserve `--dangerously-skip-permissions` for environments you fully control.
+</Pitfall>
+
+<Pitfall title="Unbounded unattended runs">
+No `--max-turns` and no budget cap means one stuck session can burn tokens for half an hour. Bound execution before you walk away from it.
+</Pitfall>
+
+<Pitfall title="Re-running upstream after editing downstream">
+Editing a generated artifact, then re-running the step that regenerates it, silently discards the edit. Mark generated files `# GENERATED — do not edit manually` and keep hand-edits at the source.
+</Pitfall>
+
+<Pitfall title="Jumping to the SDK too early">
+Rewriting a working `claude -p` loop in the Agent SDK before the prompt is stable. The SDK earns its place only when bash can no longer express the control flow; while the prompt still changes, bash is faster to edit.
+</Pitfall>
+
+## Quick reference
+
+- **Modes by failure cost**: headless (`claude -p`) → fan-out (shell loop) → `/batch` (Claude decomposes) → Agent SDK (programmatic) → cloud/Actions (scheduled, off-machine).
+- **Trust gates**: Manual→Scripted (5+ correct files) → Scripted→CI (3+ clean end-to-end runs, automated validation) → CI→Scheduled (2+ weeks correct, outputs are PRs).
+- **Headless flags**: `-p` (single prompt), `--output-format json`, `--tools "Read,Edit"` (restrict the available toolset), `--disallowedTools` (deny patterns), `--allowedTools` (auto-approve allowlist — no prompt, not a restriction), `--model`, `--max-turns`, `--bare` (skip discovery, faster start).
+- **Schedulers**: Cloud (`/schedule`, off-machine, 1-hr min) · Desktop (local files, 1-min min) · `/loop` (session-scoped polling).
+- **GitHub Actions**: `@claude` in a PR/issue comment; pass `--max-turns`/`--model`/`--tools`; direct API, Bedrock, or Vertex auth.
+- **Remote Control**: drive a local session from claude.ai/code or mobile; authenticates via your claude.ai account, independent of model backend. Claude Code on the web runs entirely in the cloud.
+
+## Practice
+
+<Practice id="ch13-pr-1" difficulty="1">
+Write a single `claude -p` command that adds type hints to one file in your project, with the toolset restricted by `--tools "Read,Edit"`. Run it. Does the output compile? Do the tests pass? If yes, scale to 3 files and review each diff. If no, refine the prompt — and note what you had to specify that you'd assumed Claude would infer.
+</Practice>
+
+<Practice id="ch13-pr-2" difficulty="2">
+Take the type-hint command from Practice 1 and write the fan-out loop around it: test on 3 files, then scale to a directory, appending `--output-format json` results to a `.jsonl` file. Write a one-line `jq` check that flags any run where the result wasn't a clean edit. This is the "automated output validation" half of the Scripted → CI gate.
+</Practice>
+
+<Practice id="ch13-pr-3" difficulty="3">
+Pick one recurring chore you do by hand (a dependency audit, a docs check, a daily PR triage). Decide which scheduler fits — Cloud, Desktop, or `/loop` — by asking three questions: must it run when my machine is off? does it need my local files? is it session-scoped polling or durable recurring work? Justify the choice in two sentences, then note which trust gate it must clear before you'd let it run unattended.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch13-ex-1">
+"Works on 5 files" only proves the prompt handles the 5 shapes you happened to test — it says nothing about the unusual file that breaks it (a different encoding, an unexpected signature, a file with no functions to hint). The Scripted → CI gate is stronger: the script has run **end-to-end 3+ times with no manual intervention**, output validation is **automated** (a `jq` or parser check, not "I eyeballed the diff"), and tool scoping is explicit. The point of the gate is that CI hides failures a manual run would have caught — so you promote on evidence of _unattended_ reliability, not on a sample that you were watching.
+</Solution>
+
+<Solution for="ch13-ex-2">
+Without `--tools` restricting the available toolset, an agent can run arbitrary `Bash` — so a prompt that "just adds type hints" could, on some file, decide to run a destructive command, push a commit, or touch files outside the intended set; restricting to `--tools "Read,Edit"` removes that whole class of overnight surprise (and `--disallowedTools "Bash(rm *)"` can deny specific patterns without dropping the tool entirely). Second, even confined to edits it might modify the wrong file or introduce a non-compiling change across many files at once. `--output-format json` matters because it makes each run **machine-checkable**: you can parse every result and fail loudly on anything that doesn't match the expected structure, instead of discovering 80 silent partial edits in the morning. Unattended automation needs its validation automated too.
+</Solution>
+
+<Solution for="ch13-ex-3">
+Yes — add `--bare`. The lint fan-out needs only file read + edit and no project context, so skipping hook/skill/plugin/MCP/memory/`CLAUDE.md` discovery buys you a faster start on every one of 500 invocations, which compounds. The flip side: in a _different_ pipeline that relies on a `PostToolUse` auto-format hook, a project-specific skill, an MCP server, or `CLAUDE.md` conventions to produce correct output, `--bare` silently strips exactly those — the run completes but ignores the configuration you depended on. Use `--bare` only when you've confirmed the task needs none of that machinery.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={13} />

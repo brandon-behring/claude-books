@@ -1,11 +1,11 @@
 ---
 title: "Ch 5 cheat sheet — context budget, commands, decision matrix"
 kind: cheat-sheet
-draft: true
+draft: false
 chapter_source: 5
 cert_domains: [1, 3, 5]
 description: "Dense reference card: context-budget ASCII diagram, four-command mechanics tables, observation → action decision matrix, session-naming quick-ref. Look-up oriented; print-friendly. Not meant to be read linearly."
-last_updated: "2026-05-23"
+last_updated: "2026-06-18"
 visual_intent: "Reference-card density. Tables, matrices, snippets. Minimal prose. Reader is here to find one specific thing, not to learn. Visually distinct from the narrative tutorial."
 ---
 
@@ -120,9 +120,11 @@ Auto-memory updates automatically — do not edit by hand routinely. Glance at i
 
 | Model class | Degradation begins | Auto-compaction |
 |---|---|---|
-| Pre-1M context (200K window) | ~60-70% | ~75% |
-| 1M context, stable releases | Less pronounced | ~83% |
+| Pre-1M context (200K window) | ~60-70% (heuristic, measured pre-1M) | ~83% (system-level) |
+| 1M context, stable releases | Re-measure in absolute tokens, not % | ~83% (system-level) |
 | Always | Tool-result heavy sessions degrade faster than chat-only |
+
+The ~60–70% figure is a practitioner heuristic calibrated on 200K windows; it predates 1M and has not been re-measured against it. The ~83% auto-compaction trigger is a stable system-level behavior across model sizes.
 
 ## Cost ordering (cheapest → most expensive)
 
@@ -134,7 +136,6 @@ Match the cost to the severity. `/btw` for drift; `/rewind` for a short bad path
 
 ## Drill in
 
-- **[Ch 5 full tutorial](#)** — narrative version with worked example and retrieval prompts
-- **[Ch 5 TL;DR](#)** — compressed essence (1 page)
-- **[How-to: recover a runaway context](#)** — 6-step procedure for the mid-stride bloated-session case
-- **[Ch 1 — Principles & Mental Model](#)** — the agent-loop and finite-context properties this chapter builds on
+- **[Ch 5 — Context as Currency](/chapters/ch05-context-as-currency)** — the chapter, with the worked example, the two-failure rule, and durable artifacts
+- **[How-to: recover a runaway context](/supplements/ch05-howto-recover-runaway-context)** — 6-step procedure for the mid-stride bloated-session case
+- **[Ch 1 — Principles & Mental Model](/chapters/ch01-principles)** — the agent-loop and finite-context properties this chapter builds on

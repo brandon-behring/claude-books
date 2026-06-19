@@ -1,0 +1,365 @@
+---
+title: Antipatterns & Recovery
+chapter: 14
+part: 3
+volatility: stable-principle
+tools_compared: [claude-code]
+cert_domains: [3, 4, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-18
+last_verified: 2026-06-18
+description: The eight ways developers undermine themselves with Claude Code — each with a recovery guide — plus the four-layer failure diagnosis and how to smoke-test and adversarially test a CLAUDE.md.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–13: the agent loop, context hygiene (Ch 5), the testing architecture (Ch 7), CLAUDE.md scaling (Ch 9), and the refactoring protocol (Ch 12). This chapter is what to do when those disciplines slip.">
+- The **eight antipatterns** that most reliably wreck a session — each with its **symptom, root cause, and a recovery guide for when you are already stuck**
+- The **four-layer diagnosis** — prompt → CLAUDE.md → codebase → model — that tells you *which* layer to fix instead of blaming the model
+- How to **smoke-test** and **adversarially test** a CLAUDE.md rule, so an instruction is a standard rather than an assumption
+</YouWillLearn>
+
+_Three hours in, Claude is hallucinating function names and ignoring your CLAUDE.md rules. What went wrong? More importantly: how do you escape? Every tool has characteristic misuse patterns. These eight are the most common ways developers undermine their own productivity — and unlike most pitfall lists, each one here ships with a recovery guide for the moment you realize you are in it._
+
+{/* Tip numbers 28–30 are provisional (Part I used 1–8; later ports use 9+). Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+Each antipattern below follows the same shape: the **symptom** you will actually notice, the **root cause** underneath it, and a numbered **recovery** for when prevention came too late. Read the symptoms first — that is how you will recognize yourself.
+
+## Antipatterns of context and session discipline
+
+The first four arise from the finite-context property: too much in the window, the wrong things in the window, or the same failure echoing through it.
+
+<Pitfall title="1. Context Overload">
+**Symptom:** Claude ignores important rules. Instructions from CLAUDE.md are followed inconsistently. Behavior degrades over long sessions.
+
+**Root cause:** CLAUDE.md has grown to contain every rule, convention, and preference accumulated over months. Claude's attention dilutes across all of it, and critical rules get the same weight as minor preferences.
+
+**Recovery** — Claude is ignoring rules that are genuinely in your CLAUDE.md, and instructions that work at session start fail after thirty minutes:
+1. Count the lines in CLAUDE.md. If it is over ~300, split it.
+2. Move module-specific rules to `.claude/rules/` with `paths:` frontmatter so they load only for the files they govern.
+3. Move shared patterns to hub imports.
+4. Move non-negotiable standards to hooks (enforced, not advised).
+5. What remains should be project-wide essentials only.
+</Pitfall>
+
+The cure is structural — a 650-line monolith becomes a small core plus conditional spokes:
+
+<BeforeAfter title="A monolithic CLAUDE.md vs. hub-and-spoke">
+<div slot="before">
+
+```text
+# CLAUDE.md — 650 lines
+Includes: git conventions, code style, architecture
+notes, deployment procedures, 12 module-specific rules,
+personal preferences, historical decisions,
+aspirational goals...
+```
+
+</div>
+<div slot="after">
+
+```text
+# CLAUDE.md — 80 lines (core project rules)
+# .claude/rules/backend.md  — paths: backend/**/*.py
+# .claude/rules/frontend.md — paths: frontend/**/*.tsx
+# @~/shared-patterns/git.md — imported
+# Hooks enforce: formatting, tests, lint
+```
+
+</div>
+</BeforeAfter>
+
+The hub-and-spoke architecture that this recovery reaches for is the subject of Chapter 9 _(forthcoming)_; the `paths:`-scoped conditional rules are its load-bearing mechanism.
+
+<Exercise id="ch14-ex-1">
+Your CLAUDE.md is 480 lines and Claude follows its rules at the start of a session but drifts after half an hour. A teammate suggests "just tell it to re-read CLAUDE.md every few prompts." Why does that not fix Context Overload — and what does the recovery do instead that re-reading cannot?
+</Exercise>
+
+<Pitfall title="2. The Kitchen-Sink Session">
+**Symptom:** Performance degrades midway through a session. Claude repeats itself, forgets earlier decisions, or produces lower-quality output.
+
+**Root cause:** Multiple unrelated tasks in a single session. Each task's context remains, consuming tokens that contribute nothing to the current task.
+
+**Recovery** — you are ninety minutes into a session that started with debugging, moved to feature work, and now involves documentation, and Claude's responses are noticeably worse than at the start: stop. `/clear`. Start a fresh session for the current task only. Before clearing, note your current state in a `CURRENT_WORK.md` scratch file so you do not lose track of what you were doing.
+</Pitfall>
+
+<Pitfall title="3. Over-Correcting">
+**Symptom:** Three or more rounds of "no, that's not what I meant," followed by increasingly desperate attempts at the same task.
+
+**Root cause:** Each correction adds noise — the original error, your correction, Claude's acknowledgment, and its retry. After three rounds, the context is dominated by failure patterns, and Claude is now pattern-matching on the *failures*.
+
+**Recovery** — you are on correction round four and Claude keeps making the same mistake with slight variations:
+1. `/clear` immediately.
+2. Before re-prompting, write down exactly what you want — on paper or in a scratch file.
+3. Include three things: what the function should do, one example input/output pair, and the single constraint Claude kept violating.
+4. Re-prompt with this more precise request.
+</Pitfall>
+
+This is the **two-failure rule** in its breach: after two failed corrections, stop correcting and start over with a better prompt (Chapter 5 _(forthcoming)_). The hypothesis-debugging workflow in [Chapter 6](/chapters/ch06-thinking-together) prevents over-correction at the source, by structuring the problem *before* the first prompt rather than salvaging it after the fourth.
+
+<Pitfall title="4. The Infinite Exploration">
+**Symptom:** You ask Claude to "investigate" something without scoping it. Claude reads hundreds of files, filling the context window with exploration results that crowd out the actual implementation.
+
+**Root cause:** Unbounded prompts like "look into how auth works" give Claude no stopping criteria. It reads every related file, consuming context that should be reserved for the task itself.
+
+**Recovery** — you asked Claude to "look into" something and it has read forty files; your context is full of exploration results and you have not started the real task:
+1. `/clear` immediately.
+2. Re-prompt with a scoped question and explicit deliverables.
+3. Or delegate to a subagent so the exploration runs in isolated context and only a summary returns.
+</Pitfall>
+
+The fix is in the framing of the request — bound it, and name the deliverable:
+
+<BeforeAfter title="Unbounded investigation vs. scoped delegation">
+<div slot="before">
+
+```text
+Investigate how our authentication system works.
+```
+
+</div>
+<div slot="after">
+
+```text
+Use a subagent to investigate how our auth system
+handles token refresh, and whether we have any
+existing OAuth utilities I should reuse.
+Report back with: which files handle refresh, what
+the token lifecycle is, and whether I can reuse
+existing code for Google OAuth.
+```
+
+</div>
+</BeforeAfter>
+
+Using a subagent for exploration keeps the research context out of your main session — the delegation patterns are Chapter 10's subject _(forthcoming)_.
+
+<Tip n="28" title="When two corrections fail, clear — don't correct a third time.">
+Each correction round fills the window with the failure it is trying to fix. Past two rounds, the cheapest path is almost always `/clear` and a precise re-prompt, not a fourth "no, like this."
+</Tip>
+
+<Exercise id="ch14-ex-2">
+The Kitchen-Sink Session, Over-Correcting, and Infinite Exploration have different symptoms but the recovery for all three opens with `/clear`. What single property of the system makes `/clear` the common first move — and what does the recovery do *after* `/clear` that distinguishes the three cases?
+</Exercise>
+
+## Antipatterns of process and pipeline discipline
+
+The next four are not about the window filling up — they are about skipping a discipline (a phase gate, a verification step, a direction convention, an incremental protocol) and paying for it later.
+
+<Pitfall title="5. The Permanent Prototype">
+**Symptom:** Code has been "working" for weeks but has no tests, no type hints, no error handling. "We'll add those later" has quietly become permanent.
+
+**Root cause:** The exploration phase has no defined exit criteria. Without an explicit transition, the code accumulates users and dependencies while staying at prototype quality.
+
+**Recovery** — your project has been in "exploration" mode for six weeks, it has users, and it has no tests:
+1. Add a DEVELOPMENT phase to CLAUDE.md today, effective immediately.
+2. Have Claude write characterization tests for the three most critical functions.
+3. Add a `PreToolUse` hook (matching `Bash`) that gates `git commit` on those tests passing.
+4. You now have a safety net. Refactor incrementally from here.
+</Pitfall>
+
+The exit criterion is the whole point: an explicit phase-transition checklist in CLAUDE.md, with a date for graduating from exploration to development, is what keeps "later" from becoming "never" (Chapter 12's [phase transitions](/chapters/ch12-project-lifecycle)).
+
+<Pitfall title="6. Pipeline-Direction Violations">
+**Symptom:** Carefully edited downstream artifacts are overwritten when an upstream script is re-run.
+
+**Root cause:** You edited a generated file, then re-ran the generator. The generator regenerates from source, destroying your manual edits.
+
+**Recovery** — you just ran `extract_features.py` and it overwrote two hours of manual YAML edits. Those edits were *uncommitted*, so do **not** reach for `git checkout` / `git restore --source=HEAD` on the overwritten path — that restores the last *committed* version, which never contained your edits, and can discard other uncommitted work. Recover the *change*, not the file:
+1. Check your editor's local history or backup folder first (most editors keep timestamped snapshots of unsaved/overwritten buffers) — that is the only place uncommitted edits may still exist.
+2. Reconstruct the change at the *source* — the `.py`, the `.tex`, the template, the upstream data — so the generator re-emits it. Reconstructing it once at the source is permanent; re-editing the artifact is not.
+3. Re-generate. Use `git restore --source=HEAD path/` only to *intentionally discard* a bad regenerated **output**, never to try to recover the lost manual edits.
+4. Going forward, never edit downstream — edit the source and re-generate.
+</Pitfall>
+
+To make the boundary visible, have the generator emit a `# GENERATED — do not edit manually` header into every artifact it writes — put the marker in the *generator or template*, not hand-added to the file. A marker typed directly into a generated file is wiped on the next run; one emitted by the generator is re-stamped every time.
+
+<Pitfall title="7. The Verification Gap">
+**Symptom:** AI-generated code is accepted without testing. Subtle bugs surface in production weeks later.
+
+**Root cause:** AI-generated code *looks* correct. The syntax is clean, the variable names are reasonable, the logic reads well. That appearance of correctness is precisely why verification is essential — it is the failure mode that does not announce itself.
+
+**Recovery** — you have 1,500 lines of untested AI-generated code that "works" but inspires zero confidence:
+1. Do NOT try to test everything at once.
+2. Identify the three most critical functions — highest risk, most dependencies.
+3. Have Claude write tests for those three functions only.
+4. Add a `PreToolUse` hook gating commits on tests passing. No new untested code from here.
+5. Expand coverage incrementally: three more functions per week.
+</Pitfall>
+
+Always providing verification criteria, and writing tests *with* the code rather than after it as a separate chore, is the discipline this gap punishes its absence — the full validation architecture is Chapter 7 _(forthcoming)_.
+
+<Pitfall title="8. Big-Bang Refactoring">
+**Symptom:** A large rewrite fails partway through, leaving the codebase broken and the old and new code tangled together.
+
+**Root cause:** The scope of the rewrite exceeds what can be held in context. Claude loses track of the original behavior and introduces regressions it cannot see.
+
+**Recovery** — you are three hours into a rewrite, half the tests fail, and the old and new code are mixed together:
+1. `git stash push -u -m "failed rewrite"` to set the mess aside. The `-u` is load-bearing: a large rewrite adds *new* files, and a plain `git stash` leaves untracked files behind. (If you would rather keep the attempt visible, commit it on a throwaway WIP branch instead.)
+2. Return to the last working commit, then confirm `git status --short` prints nothing — a clean tree is the precondition for starting over.
+3. Start the incremental protocol: extract ONE function, write characterization tests, refactor, verify, commit.
+4. Repeat. Each step takes about twenty-five minutes and always leaves the code in a working state.
+</Pitfall>
+
+Big-Bang Refactoring is the exact antipattern the **Extract → Test → Harden → Promote** protocol exists to prevent — each increment ships, so an interrupted refactor is never a broken one ([Chapter 12](/chapters/ch12-project-lifecycle)).
+
+<Tip n="29" title="Never big-bang — every refactoring step must ship on its own.">
+A rewrite large enough to fail partway is large enough to leave you with nothing working and no way to tell a regression from an intended change. Extract one function, characterize it, harden it, promote it, commit. Repeat.
+</Tip>
+
+<KeyIdea>
+Every antipattern shares one root: treating Claude as infinitely capable rather than as a powerful but bounded system. Context is finite. Attention degrades. Verification is essential. Working *within* these constraints — not ignoring them — is the whole difference between productive and frustrating Claude usage. These are personal-discipline patterns; when you scale Claude to a team, the same failures recur but the fixes shift from personal habit to organizational infrastructure (Part IV).
+</KeyIdea>
+
+<MarginNote variant="tip" label="Tip">
+  When debugging Claude itself, `/debug` inspects model, session, and configuration state; `/status` shows version and account info.
+</MarginNote>
+
+<Exercise id="ch14-ex-3">
+The Permanent Prototype and the Verification Gap have nearly identical recoveries — characterize the three most critical functions, then gate commits on a `PreToolUse` hook. If the two recoveries are the same, what makes them *different* antipatterns? Identify the distinct root cause each one fixes.
+</Exercise>
+
+## Systematic diagnosis: the four failure layers
+
+Sometimes no single antipattern fits — Claude just keeps making the same mistake across sessions. Before blaming the model, work through four layers **in order**. The order matters because the cheap fixes live at the top, and fixing the wrong layer wastes time.
+
+<KeyIdea>
+**Diagnose the layer, not the symptom.** A persistent failure lives in exactly one of four places, and they are ordered cheapest-to-fix first:
+
+1. **The prompt.** Is the request ambiguous? Does it assume context Claude does not have? **Test:** rephrase with explicit constraints and an example of what "correct" looks like. If Claude now succeeds, the problem was prompt specificity.
+2. **CLAUDE.md.** Is there a conflicting rule, a rule too vague to enforce, or one Claude reads differently than you meant? **Test:** first run `/memory` to see *which* instruction files are actually loaded — Claude concatenates several, not just one: the project file (`./CLAUDE.md` **or** `./.claude/CLAUDE.md`), `CLAUDE.local.md`, the user file (`~/.claude/CLAUDE.md`), any managed-policy file, and everything under `.claude/rules/`. Renaming only `.claude/CLAUDE.md` often leaves the real offender loaded (many repos keep their main rules in the root `CLAUDE.md`). So move aside the *loaded* file(s) under test (`mv CLAUDE.md CLAUDE.md.bak`), retry, and restore afterward. If the problem disappears, a rule is interfering — add files back one at a time to isolate the conflict.
+3. **The codebase.** Does the existing code teach Claude the wrong pattern? With 50 functions using pattern A, Claude defaults to A regardless of instructions. **Test:** ask Claude *why* it chose its approach. If it cites existing code, the codebase is the teacher and your instruction is the exception — make the exception explicit ("Do NOT follow the pattern in `src/legacy/`; use `src/v2/` instead").
+4. **The model.** Genuine limitations exist — certain reasoning patterns, computations, or domain conventions a model gets wrong consistently. **Test:** retry with extended thinking (`/effort max`), then switch to a *genuinely different* model tier. First check which model is active (`/status`, or open `/model`) so you do not "switch" to the model you are already on and get a false negative — then move across tiers, e.g. to a heavier model when you are on a lighter one. If every model fails the same way, accept the limit and design a workaround (a verification step, a hook, or manual review).
+</KeyIdea>
+
+In practice, roughly 80% of persistent failures live at Layer 1 (the prompt) or Layer 2 (CLAUDE.md). The common error is to jump straight to Layer 4 — "the model is wrong" — before checking whether the instructions are unambiguous and conflict-free. The layered order forces you to rule out the cheap fixes before concluding the model is at fault, and it almost always is not.
+
+## Testing your CLAUDE.md
+
+You added a rule to CLAUDE.md. How do you know it works? An untested rule is an assumption, not a standard — and there are two tests, one for ordinary rules and a sharper one for rules that matter.
+
+**The smoke test.** After adding or changing a rule:
+
+1. Start a fresh session (`/clear`).
+2. Ask Claude to do the thing the rule governs — but do **not** mention the rule; just describe the task.
+3. Check whether Claude follows the rule without being told.
+
+If Claude follows it, the rule works. If Claude ignores it, the rule is either too vague, buried among competing rules, or contradicted by codebase patterns (that is Layer 3 again).
+
+**The adversarial test.** For critical rules — security, compliance, data handling — invert it:
+
+1. Ask Claude to do something the rule *prohibits*: "Write a function that reads from `.env` and logs the contents."
+2. Check whether Claude refuses or flags the violation.
+3. If Claude complies without hesitation, the deny rule is not working.
+
+That last step exposes a distinction worth internalizing: deny rules in `settings.json` are **enforced by the harness** — the client blocks a *matching* tool call regardless of what Claude decides. Rules in CLAUDE.md are **advisory** — Claude follows them because it is told to, not because it is prevented from violating them. For anything security-critical, use `settings.json` deny rules or hooks, not CLAUDE.md prose.
+
+But "enforced" is only as wide as the pattern: a deny rule matches *specific tools and paths*, so a single rule rarely closes a whole behavior. `Read(.env)` blocks the Read tool but **not** `Bash(cat .env)`, `Bash(grep ... .env)`, or code Claude *writes* that opens the file at runtime — each is a different tool surface. So when the adversarial test asks Claude to "read from `.env` and log the contents," cover every path the action could take:
+
+```json
+"permissions": {
+  "deny": ["Read(./.env)", "Read(./.env.*)", "Bash(cat:*.env*)", "Bash(grep:*.env*)"]
+}
+```
+
+For secrets specifically, a tool-pattern list is hard to make exhaustive — prefer a `PreToolUse` hook (which can inspect the full command) or managed settings, and treat the deny list as defense-in-depth rather than the whole fence. (The deny-rule mechanics live in Chapter 2 _(forthcoming)_; the managed-settings enforcement layer is Chapter 15 _(forthcoming)_.)
+
+<Tip n="30" title="An untested rule is an assumption — smoke-test it in a fresh session.">
+After adding a CLAUDE.md rule, `/clear`, describe the governed task *without naming the rule*, and see whether Claude obeys unprompted. For security-critical rules, also adversarially test that the prohibited action is refused — and if it isn't, move the rule to `settings.json` or a hook.
+</Tip>
+
+## Where this goes next
+
+Each antipattern's prevention path lives in an earlier chapter; this chapter is where they converge as failure modes. The spiral closes here:
+
+- **Chapter 5 — Context as Currency** _(forthcoming)_ — the two-failure rule and the `/clear` discipline behind three of the four context antipatterns.
+- **Chapter 6 — [Thinking Together](/chapters/ch06-thinking-together)** — hypothesis debugging, the structured frame that prevents Over-Correcting before the first prompt.
+- **Chapter 7 — Testing & Verification** _(forthcoming)_ — the validation architecture the Verification Gap punishes the absence of.
+- **Chapter 9 — Scaling Configuration** _(forthcoming)_ — hub-and-spoke and `paths:`-scoped rules, the structural cure for Context Overload.
+- **Chapter 12 — [Project Lifecycle](/chapters/ch12-project-lifecycle)** — phase transitions (vs. the Permanent Prototype) and Extract → Test → Harden → Promote (vs. Big-Bang Refactoring).
+- **Part IV — Team & Enterprise** _(forthcoming)_ — where personal-discipline antipatterns recur at team scale and the fixes become managed settings and shared infrastructure.
+
+## Common pitfalls
+
+The eight antipatterns above _are_ this chapter's pitfalls — each rendered with its symptom, root cause, and recovery. A few diagnostic mistakes sit one level up, in how you respond when something is going wrong at all:
+
+<Pitfall title="Blaming the model first">
+The reflex when Claude fails repeatedly is "the model is wrong" — Layer 4. But ~80% of persistent failures are Layer 1 (prompt) or Layer 2 (CLAUDE.md). Work the layers in order; you will usually fix it at the top, for free.
+</Pitfall>
+
+<Pitfall title="Correcting through a degrading session">
+Continuing to issue corrections in a session that has gone bad just feeds more failure patterns into the window. The instinct to "push through" is exactly backwards — `/clear` and re-prompt is faster than the fourth correction.
+</Pitfall>
+
+<Pitfall title="Trusting an untested CLAUDE.md rule">
+Adding a rule and assuming it now governs behavior. Until you smoke-test it (fresh session, task described without naming the rule), it is an assumption — and for security-critical rules, CLAUDE.md is advisory, not enforced.
+</Pitfall>
+
+## Quick reference
+
+**The eight antipatterns** (symptom → recovery cue):
+
+| # | Antipattern | Symptom | First recovery move |
+|---|---|---|---|
+| 1 | Context Overload | rules followed inconsistently; degrades over long sessions | count CLAUDE.md lines; split if >~300 |
+| 2 | Kitchen-Sink Session | quality drops midway; Claude forgets earlier decisions | `/clear`; one session per task |
+| 3 | Over-Correcting | 3+ rounds of "not what I meant" | `/clear`; write down the exact spec, then re-prompt |
+| 4 | Infinite Exploration | reads hundreds of files; context crowded out | `/clear`; scope the question or delegate to a subagent |
+| 5 | Permanent Prototype | "working" for weeks, no tests, no exit criteria | add a DEVELOPMENT phase + characterize the critical 3 |
+| 6 | Pipeline-Direction Violation | re-running a generator overwrites manual edits | check editor local-history; reconstruct the change at the source + re-generate; never edit downstream |
+| 7 | Verification Gap | untested AI code; bugs surface weeks later | test the critical 3; gate commits with a hook |
+| 8 | Big-Bang Refactoring | large rewrite fails partway; codebase broken | `git stash push -u` (or WIP branch) + reset to a clean tree; restart the incremental protocol |
+
+**The four-layer diagnosis** (work top-down — cheap fixes first):
+
+1. **Prompt** — rephrase with constraints + a correct example.
+2. **CLAUDE.md** — `/memory` to see which files load, move the loaded one(s) aside and retry (restore after); add files back to isolate the conflict.
+3. **Codebase** — ask *why*; if Claude cites existing code, make the exception explicit.
+4. **Model** — try `/effort max`, then check the active model (`/status`) and switch to a genuinely different tier; if all fail alike, design a workaround.
+
+**Testing a rule** — smoke test (fresh session, don't name the rule, check unprompted compliance) for ordinary rules; adversarial test (ask for the prohibited action, confirm refusal) for security-critical ones. `settings.json` deny rules are enforced but only for the tools/paths they match (cover Read *and* Bash *and* runtime reads, or use a hook); CLAUDE.md rules are advisory.
+
+## Practice
+
+<Practice id="ch14-pr-1" difficulty="2">
+Audit your most active project against the eight antipatterns. Concretely: count the lines in CLAUDE.md (over ~300? flag Context Overload); skim your last five sessions and count how many had three or more correction rounds (Over-Correcting); decide whether the project is in an explicit development phase or is a permanent prototype with no tests. Then pick the single antipattern most affecting your productivity and apply its recovery guide.
+</Practice>
+
+<Practice id="ch14-pr-2" difficulty="3">
+Run the four-layer diagnosis on a real recurring failure. Take a task Claude has gotten wrong more than once and work the layers in order: rephrase the prompt with an explicit correct example (Layer 1); if that fails, move CLAUDE.md aside and retry (Layer 2); if that fails, ask Claude *why* it chose its approach and check whether it cites existing code (Layer 3); only then try `/effort max` and a different model (Layer 4). Record which layer actually fixed it — and whether your first instinct had been to blame a different layer.
+</Practice>
+
+<Practice id="ch14-pr-3" difficulty="3">
+Smoke-test, then adversarially test, one real CLAUDE.md rule. Pick a security-relevant rule (e.g. "never read or log secrets"). Smoke test: in a fresh session, describe a task the rule governs without naming the rule, and see whether Claude obeys. Adversarial test: ask Claude to do the prohibited thing directly and watch whether it refuses. If it complies, move the rule from CLAUDE.md into a `settings.json` deny rule (or a hook) and re-run the adversarial test to confirm the enforced version actually blocks it.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch14-ex-1">
+Re-reading does not help because Context Overload is a *signal-to-noise* problem, not a memory problem: at 480 lines the rule is still in the window — Claude's attention is simply spread thin across hundreds of competing instructions, so critical rules carry the same weight as minor preferences. Re-reading reloads the same diluted pile. The recovery instead *changes what is in the window*: `paths:`-scoped rules load only for the files they govern, hub imports pull shared patterns out of the core, and hooks move non-negotiables out of advisory prose into enforced gates. After the split, the core CLAUDE.md is small enough that every line in it gets real attention — which re-reading a 480-line file can never achieve.
+</Solution>
+
+<Solution for="ch14-ex-2">
+`/clear` is the common move because all three are failures of the *finite context window* — the window is either polluted with stale task context (Kitchen-Sink), saturated with failure patterns (Over-Correcting), or crowded with exploration results (Infinite Exploration). In every case the window itself is the problem, so emptying it is the precondition for any fix. What differs is what you do *after* the clear. Kitchen-Sink: just restart, scoped to the single current task. Over-Correcting: first write down an exact spec (desired behavior, one input/output example, the violated constraint), *then* re-prompt — because the failure was prompt imprecision the noise was hiding. Infinite Exploration: re-prompt with explicit deliverables, or delegate the exploration to a subagent so its context never touches your main session again.
+</Solution>
+
+<Solution for="ch14-ex-3">
+The recoveries converge because both end in the same safe state — a tested critical core behind a commit gate — but they fix opposite root causes. The Permanent Prototype is a *phase* failure: there was never an exit criterion, so exploration-grade code (no tests, no error handling) silently became production by accumulating users. Its real fix is the DEVELOPMENT-phase transition; the characterization tests are how you make that transition safely on code that has no net yet. The Verification Gap is a *trust* failure: the code may be perfectly "finished" in intent, but it was accepted because it *looked* correct, never checked. Its real fix is making verification non-optional going forward (tests with code, hook-gated commits); characterizing the critical three is triage for the backlog of already-unverified code. Same destination, different disease — one skipped a phase gate, the other skipped a verification step.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={14} />
