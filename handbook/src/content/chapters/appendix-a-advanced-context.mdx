@@ -1,0 +1,112 @@
+---
+title: "Appendix A — Advanced Context Strategies"
+part: 5
+chapter: 17
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 3, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - anthropic-claude-code-model-config
+  - anthropic-claude-code-hooks
+  - claude-code-overview
+  - anthropic-claude-code-best-practices
+description: The advanced half of Chapter 5 — the 1M-window strategy in absolute tokens, the compaction protocol with PreCompact/PostCompact hooks, concentric-rings context curation for large codebases, and horizontal scaling across many shallow sessions.
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+
+_The advanced companion to [Chapter 5 — Context as Currency](/chapters/ch05-context-as-currency). That chapter covers the hygiene every session needs — `/clear`, `/compact`, the two-failure rule, auto-memory. This appendix is for the sessions that outgrow it: very long runs, large codebases, and the 1M-token window._
+
+<MarginNote variant="warning" label="Warning">
+  Context behavior (window sizes, auto-compaction thresholds, recovery rates) is empirical and shifts with releases. The token figures below are directional, verified against the live docs on 2026-06-19; treat them as heuristics, not contracts.
+</MarginNote>
+
+## Think in absolute tokens, not percentages
+
+Chapter 5's "degradation sets in around 60–70% full" heuristic was measured on a 200K window. On a **1M window** the same percentage is a different absolute quantity — 60% of 1M is 600K tokens, and what actually degrades quality is the **absolute volume of low-relevance tokens** competing for attention, not the percentage of the window.
+
+<KeyIdea>
+At 1M, stop reasoning in percentages and reason in absolute relevant-context. A 1M window doesn't mean "fill it to 70%"; it means you can hold a genuinely large *relevant* working set — but 300K tokens of half-relevant file dumps degrades a 1M session just as 140K would degrade a 200K one. The window got bigger; the discipline of keeping it *relevant* did not change.
+</KeyIdea>
+
+## The 1M context window: when it earns its keep
+
+The 1M window is GA, but **availability varies by model and plan**, and it is not a blanket default.<Citation src="anthropic-claude-code-model-config" /> On the Anthropic API, Fable 5, Opus 4.8, and Opus 4.7 always run 1M. On Max / Team / Enterprise subscriptions, **Opus is auto-upgraded to 1M** with no configuration; **Sonnet's 1M is not part of that auto-upgrade** and needs usage credits on every plan, including Max. Force it with the `opus[1m]` / `sonnet[1m]` aliases or a `[1m]`-suffixed model name; disable it with `CLAUDE_CODE_DISABLE_1M_CONTEXT=1`. There is **no token premium beyond 200K** — 1M tokens bill at standard rates.
+
+Reach for 1M when the *relevant* working set genuinely exceeds 200K — a large multi-file refactor you must hold coherently, a long investigation across many sources. Don't reach for it as a substitute for curation: a tidy 150K session out-reasons a bloated 700K one.
+
+## The compaction protocol
+
+When a long session approaches its limit, compaction reclaims room. Treat it as a three-step protocol, not a reflex:
+
+1. **Before** — checkpoint durable state to a file (`CURRENT_WORK.md`, an ADR, a scratch note) so nothing load-bearing lives *only* in the conversation.
+2. **Compact** — run `/compact` (or let auto-compaction fire near the limit).
+3. **After** — verify Claude still holds the thread: ask it to restate the current task and constraints before continuing.
+
+<MarginNote variant="note" label="Note">
+  Auto-compaction fires automatically as the window fills (historically around the low-80s-percent mark — directional, and system-tuned). Override the trigger point with `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`. The protocol above applies whether you compact manually or it fires on its own.
+</MarginNote>
+
+### PreCompact / PostCompact hooks
+
+The [`PreCompact` and `PostCompact` events](/chapters/appendix-c-extension-reference) let you make the checkpoint-and-restore automatic: `PreCompact` writes durable state before the window is summarized, `PostCompact` re-reads it after.<Citation src="anthropic-claude-code-hooks" />
+
+```json
+{
+  "hooks": {
+    "PreCompact": [{ "hooks": [{ "type": "command",
+      "command": "./scripts/save-session-state.sh" }] }],
+    "PostCompact": [{ "hooks": [{ "type": "command",
+      "command": "./scripts/restore-session-state.sh" }] }]
+  }
+}
+```
+
+The pattern: `PreCompact` snapshots what compaction might blur (the open task, key decisions, file paths in flight) to disk; `PostCompact` feeds it back so the post-compaction session resumes with its bearings instead of a lossy summary.
+
+### Two-phase mechanics
+
+Compaction works in two phases: it first clears **tool outputs** (the bulky, re-derivable file reads and command results), then summarizes the **conversation** itself. The first phase often recovers a meaningful fraction of the window (directionally 30–50%) without touching the reasoning history at all — which is why a `/compact` mid-task is far less destructive than it feels: most of what's freed is re-derivable output, not your decisions.
+
+## Concentric rings: curating context for a large codebase
+
+On a large codebase you can't (and shouldn't) load everything. Curate context in **concentric rings** by relevance to the task:
+
+| Ring | What | Rough budget |
+|---|---|---|
+| **1 — the change** | the file(s) you're actually modifying | 200–2K tokens |
+| **2 — direct dependencies** | what the change imports / calls | 2–10K |
+| **3 — usage sites** | what calls *into* the change (blast radius) | 5–20K |
+| **4 — architecture** | the conventions + structure that frame it | 1–5K |
+
+<InsightBox title="Let subagents read the outer rings">
+  The outer rings are exactly the work to delegate. A subagent can read Ring 3's usage sites or sweep Ring 4's architecture and return a summary — so the blast-radius analysis costs your main session a paragraph, not twenty files. Curation and delegation are the same move from two angles: keep Ring 1–2 in your window, send Ring 3–4 to a worker (Chapters [10](/chapters/ch10-agents-parallel) and [11](/chapters/ch11-orchestration)).
+</InsightBox>
+
+## Horizontal scaling: many shallow sessions over one deep one
+
+Past a certain size, the answer to "this won't fit" is not a bigger window — it's **more sessions**. Decompose the work into independent units, give each its own fresh session, and pass state between them through **durable handoff files** rather than a single ever-growing context.
+
+<KeyIdea>
+Go *deep* (one long session, 1M window) when the task is genuinely interdependent and you need everything held at once. Go *wide* (many shallow sessions + handoff files, or a `/workflows` fan-out) when the work decomposes into units that each fit a clean window. Wide scales further: ten 100K sessions coordinate better than one 1M session strained to its limit, and they parallelize.
+</KeyIdea>
+
+<Pitfall title="Reaching for 1M to avoid decomposing the work">
+A 1M window is a tool for genuinely large *relevant* context, not a way to dodge breaking a job into pieces. If you're filling 1M because the task sprawls, the fix is usually horizontal — split it, hand off through files — not a bigger window holding more half-relevant material.
+</Pitfall>
+
+## See also
+
+- **[Chapter 5 — Context as Currency](/chapters/ch05-context-as-currency)** — the everyday hygiene this appendix builds on.
+- **[Chapter 10 — Agents & Parallel Work](/chapters/ch10-agents-parallel)** and **[Chapter 11 — Orchestration](/chapters/ch11-orchestration)** — delegating the outer rings and scaling horizontally.
+- **[Appendix C — Extension Reference](/chapters/appendix-c-extension-reference)** — the `PreCompact`/`PostCompact` events used above.

@@ -62,7 +62,7 @@ Context is the currency you spend to get work done. Every tool call, every file 
   Two distinct thresholds. **Quality degradation** is a practitioner heuristic — around 60–70% fill. **Auto-compaction** is a system-level trigger near 83%. Do not wait for auto-compaction; by then quality has already suffered.
 </MarginNote>
 
-The degradation threshold is a heuristic, not a measured constant — and an important caveat travels with it. The ~60–70% figure was calibrated on **pre-1M (200K) windows**; it predates the 1M context window and has not been re-measured against it. The ~83% auto-compaction trigger, by contrast, is a stable system-level behavior. The deeper move for 1M windows — thinking in **absolute tokens** rather than percentages, since 600K tokens of noise is worse than 120K regardless of the percentage — is a strategy in its own right; this chapter keeps the core hygiene, and the absolute-token framework lives in _Appendix A → strategy for 1M context windows (forthcoming)_.
+The degradation threshold is a heuristic, not a measured constant — and an important caveat travels with it. The ~60–70% figure was calibrated on **pre-1M (200K) windows**; it predates the 1M context window and has not been re-measured against it. The ~83% auto-compaction trigger, by contrast, is a stable system-level behavior. The deeper move for 1M windows — thinking in **absolute tokens** rather than percentages, since 600K tokens of noise is worse than 120K regardless of the percentage — is a strategy in its own right; this chapter keeps the core hygiene, and the absolute-token framework lives in [Appendix A → strategy for 1M context windows](/chapters/appendix-a-advanced-context).
 
 ### The agent-loop economics
 
@@ -105,7 +105,7 @@ You have several tools, each suited to a different situation. Knowing which to r
 - **`/rewind`** — checkpoint and roll back. Every action Claude takes creates an automatic checkpoint; double-tap `Esc` or run `/rewind` to open the menu and restore conversation only, code only, both, or summarize from a selected message. Checkpoints persist across sessions, so you can close your terminal and still rewind later.
 - **`/context`** — visualize current usage. Shows how much of the window is consumed and by what. This is your read on the budget before you decide which other command to reach for.
 - **`/btw`** — ask a side question without growing context. The answer appears in a dismissible overlay and never enters conversation history.<Citation src="anthropic-claude-code-interactive-mode" /> It works even while Claude is processing, draws only on what is already in context (no tool access), and costs nothing against your budget. Use it liberally to steer: "BTW, keep using the existing `HttpError` pattern, do not introduce a new error class."
-- **Subagents** — delegate context-heavy research to isolated agents. Results return to your session; the research context does not. This is the full treatment of Chapter 11's orchestration material _(forthcoming)_.
+- **Subagents** — delegate context-heavy research to isolated agents. Results return to your session; the research context does not. This is the full treatment of [Chapter 11's orchestration material](/chapters/ch11-orchestration).
 
 A useful framing: `/btw` is the inverse of a subagent. `/btw` sees your full conversation but has no tools; a subagent has full tools but starts with an empty context. The first half of context discipline is reaching for the right one of these the moment the budget tightens — not after quality has already dropped.
 
@@ -117,7 +117,7 @@ A useful framing: `/btw` is the inverse of a subagent. `/btw` sees your full con
 The four commands order by cost: `/btw` < `/rewind` < `/compact` < `/clear`. Reach for the cheapest tool that fits — `/btw` for drift, `/rewind` for a short bad path, `/compact` for budget pressure, `/clear` for contamination or a task boundary.
 </Tip>
 
-The customizing-compaction knobs — `/compact <focus>` to direct the summary, the before/after verification protocol, `PreCompact`/`PostCompact` hooks for state checkpointing, and the two-phase compaction mechanics — are a protocol in their own right; they live in _Appendix A → the compaction protocol (forthcoming)_.
+The customizing-compaction knobs — `/compact <focus>` to direct the summary, the before/after verification protocol, `PreCompact`/`PostCompact` hooks for state checkpointing, and the two-phase compaction mechanics — are a protocol in their own right; they live in [Appendix A → the compaction protocol](/chapters/appendix-a-advanced-context).
 
 ## The status line: zero-cost monitoring
 
@@ -279,7 +279,7 @@ Before starting a task, estimate whether it fits in your current session or need
 
 The rule of thumb: a focused task touching 5–10 files consumes 30–50K tokens; a broad investigation can pass 100K easily. If a task will read more than twenty files, delegate the research to a subagent rather than loading everything into the main session.
 
-That estimate also tells you whether to split the work. A task that touches ten or fewer files and needs one coherent chain of reasoning fits a **single session**. A task with independent phases (architecture → implement → test → integrate) wants **multiple sessions**, each fresh with a handoff file. Tasks that are genuinely independent — different modules, different repos — can run as **parallel sessions** with git worktrees for file isolation. The deeper treatment of running many sessions in parallel — horizontal scaling and curating context for large codebases — is in _Appendix A → context at scale (forthcoming)_; default to splitting work more than your instinct suggests, because the cost of a handoff file is almost always less than the cost of context degradation in a three-hour session.
+That estimate also tells you whether to split the work. A task that touches ten or fewer files and needs one coherent chain of reasoning fits a **single session**. A task with independent phases (architecture → implement → test → integrate) wants **multiple sessions**, each fresh with a handoff file. Tasks that are genuinely independent — different modules, different repos — can run as **parallel sessions** with git worktrees for file isolation. The deeper treatment of running many sessions in parallel — horizontal scaling and curating context for large codebases — is in [Appendix A → context at scale](/chapters/appendix-a-advanced-context); default to splitting work more than your instinct suggests, because the cost of a handoff file is almost always less than the cost of context degradation in a three-hour session.
 
 ## Where this goes next
 
@@ -287,8 +287,8 @@ This chapter's discipline threads through the rest of the handbook:
 
 - **Chapter 1 — Principles and mental model** — the finite-context property this chapter operationalizes. The agent loop is _why_ tool results dominate the budget.
 - **Chapter 6 — [Thinking together](/chapters/ch06-thinking-together)** — the interview pattern is highest-leverage early in a session, before context fills; the ADRs there are exactly the kind of durable artifact this chapter argues for.
-- **Chapter 11 — Orchestration** _(forthcoming)_ — subagents and parallel sessions get their full treatment; this chapter only names them as context-isolation tools.
-- **Appendix A** _(forthcoming)_ — the 1M absolute-token strategy, the full compaction protocol with `PreCompact`/`PostCompact` hooks, context curation for large codebases, and horizontal scaling.
+- **Chapter 11 — [Orchestration](/chapters/ch11-orchestration)** — subagents and parallel sessions get their full treatment; this chapter only names them as context-isolation tools.
+- **[Appendix A](/chapters/appendix-a-advanced-context)** — the 1M absolute-token strategy, the full compaction protocol with `PreCompact`/`PostCompact` hooks, context curation for large codebases, and horizontal scaling.
 
 ## Common pitfalls
 

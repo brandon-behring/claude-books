@@ -2,8 +2,10 @@
 import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
 import { getCollection } from 'astro:content';
 
-const chapters = await getCollection('chapters', (entry) => !entry.data.draft);
-chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
+const all = await getCollection('chapters', (entry) => !entry.data.draft);
+const byChapter = (a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0);
+const chapters = all.filter((c) => (c.data.part ?? 0) !== 5).sort(byChapter);
+const appendices = all.filter((c) => (c.data.part ?? 0) === 5).sort(byChapter);
 ---
 <Base title="Best Practices for Using Claude" description="Astro port of the LaTeX handbook claude-best-practices v2.9.">
   <article class="prose">
@@ -21,6 +23,19 @@ chapters.sort((a, b) => (a.data.chapter ?? 0) - (b.data.chapter ?? 0));
         </li>
       ))}
     </ul>
+
+    {appendices.length > 0 && (
+      <>
+        <h2>Appendices</h2>
+        <ul>
+          {appendices.map((c) => (
+            <li>
+              <a href={`/chapters/${c.id}/`}>{c.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
 
     <h2>Other pages</h2>
     <ul>

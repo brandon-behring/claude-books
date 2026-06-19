@@ -1,0 +1,100 @@
+---
+title: "Appendix B — Advanced Prompting & Cost"
+part: 5
+chapter: 18
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [4, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - anthropic-claude-code-model-config
+  - anthropic-prompt-caching
+  - anthropic-batch-processing
+  - anthropic-pricing
+description: The advanced half of Chapter 4 — extended thinking and effort levels, the ultrathink keyword, prompt caching, the Batch API, and fast mode. The cost and reasoning knobs new readers don't need on day one.
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+
+_The advanced companion to [Chapter 4 — Working Productively](/chapters/ch04-productive). That chapter covers the prompting every reader needs — precision vocabulary, XML-tagged structure, scope, model selection. This appendix is the cost-and-reasoning knobs you reach for once the basics are reflexive._
+
+<MarginNote variant="warning" label="Warning">
+  Pricing, effort levels, and fast-mode behavior are among the fastest-moving facts in the product. Verified against the live docs on 2026-06-19; confirm current numbers at [claude.com/pricing](https://claude.com/pricing) and the model-config docs before budgeting.
+</MarginNote>
+
+## Extended thinking and effort levels
+
+On models with adaptive reasoning, the **effort level** is the primary control for how much Claude thinks — it lets the model decide whether and how much to reason per step.<Citation src="anthropic-claude-code-model-config" /> The scale and model support:
+
+| Model | Effort levels |
+|---|---|
+| Fable 5, Opus 4.8, Opus 4.7 | `low`, `medium`, `high`, `xhigh`, `max` |
+| Opus 4.6, Sonnet 4.6 | `low`, `medium`, `high`, `max` |
+
+The **default is `high`** (on Fable 5 / Opus 4.8 / Opus 4.6 / Sonnet 4.6) and **`xhigh` on Opus 4.7**. Set a level a model doesn't support and Claude Code falls back to the highest it does (so `xhigh` runs as `high` on Opus 4.6). Set it via `/effort` (a slider, or `/effort high`), the `--effort` flag, `CLAUDE_CODE_EFFORT_LEVEL`, or `effortLevel` in settings; skill/subagent frontmatter can override per-run.
+
+- `low`/`medium`/`high`/`xhigh` **persist across sessions**; `max` is **session-only** (deepest reasoning, no token cap — but prone to overthinking; test before adopting).
+- `/effort auto` resets to the model default.
+- **Adaptive reasoning** is always on for Opus 4.7+ and Fable 5 (the fixed-budget mode and `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` don't apply). On Opus 4.6 / Sonnet 4.6 you can revert to a fixed `MAX_THINKING_TOKENS` budget.
+- Toggle thinking for a session with `Option+T` / `Alt+T`; `Ctrl+O` shows the reasoning verbatim. **You're billed for thinking tokens even when they're collapsed.** Thinking cannot be turned off on Fable 5.
+
+<KeyIdea>
+The effort scale is calibrated **per model** — `high` on Opus 4.8 is not the same underlying budget as `high` on Sonnet 4.6. So "use high effort" is not a portable instruction; the right level depends on the model you're on and the task. Start at the default and adjust only when you have a reason (latency-sensitive → `low`; a genuinely hard problem → `xhigh`).
+</KeyIdea>
+
+### The `ultrathink` keyword
+
+To request deeper reasoning on a **single turn** without changing your session effort, include the word **`ultrathink`** anywhere in the prompt — Claude Code recognizes it and adds an in-context instruction (the API effort level is unchanged).<Citation src="anthropic-claude-code-model-config" />
+
+<Pitfall title='Believing "think" / "think hard" are escalation keywords'>
+They aren't. Only `ultrathink` is recognized as a keyword in Claude Code; phrases like "think", "think hard", and "think more" are passed through as ordinary prompt text with no special effect. The "ladder of thinking phrases" is folklore — use `ultrathink` for a one-off, or `/effort` to change the session level.
+</Pitfall>
+
+<MarginNote variant="note" label="Note">
+  `ultracode` is a different thing: a Claude Code *setting* (not an effort level) that sends `xhigh` **and** has Claude orchestrate a [dynamic workflow](/chapters/ch11-orchestration) for each substantial task. Session-only. See Chapter 11.
+</MarginNote>
+
+## Prompt caching
+
+Claude Code uses prompt caching automatically; understanding it explains most of your bill.<Citation src="anthropic-prompt-caching" /> A cache **read costs 0.1× the base input price** — about a **90% discount** — so a stable prefix (tool definitions, system prompt, a large reference doc) is paid for once at full rate and reused cheaply.
+
+- **Cache writes** cost more than a normal input token: **1.25×** base for the default **5-minute** cache, **2×** base for the optional **1-hour** cache (`"cache_control": { "type": "ephemeral", "ttl": "1h" }`).
+- Up to **4 cache breakpoints** per request, cacheable in the order `tools` → `system` → `messages`.
+- The economics: caching pays off when you read a prefix more than a couple of times within its lifetime. A long-lived session re-reading a big `CLAUDE.md` or tool set is the ideal case; a one-shot call is not.
+
+## The Batch API
+
+For work that doesn't need an immediate answer, the **Message Batches API** processes requests asynchronously at a **50% discount**, with most batches finishing in under an hour.<Citation src="anthropic-batch-processing" /> It's the right tool for bulk, non-interactive jobs — large-scale evals, overnight content analysis, dataset summarization. It **combines with caching** for compounding savings.
+
+<MarginNote variant="warning" label="Warning">
+  The Batch API is **not eligible for Zero Data Retention** — batch data follows the feature's standard retention policy. If a workload requires ZDR (Appendix-adjacent compliance, Chapter 16), the Batch API isn't the path.
+</MarginNote>
+
+## Fast mode
+
+`/fast` toggles **fast mode**, which gives faster output from an Opus model **without downgrading to a smaller one** — you keep Opus-tier quality at higher throughput. It's available on recent Opus tiers (Opus 4.8 / 4.7 / 4.6).<Citation src="anthropic-claude-code-model-config" /> Fast mode carries its own pricing and availability terms that move with releases — check [claude.com/pricing](https://claude.com/pricing) for the current rate rather than budgeting against a number frozen here.
+
+<MarginNote variant="note" label="Note">
+  Under a managed `availableModels` allowlist, `/fast` refuses to toggle when it would implicitly switch to an Opus model that isn't on the list.
+</MarginNote>
+
+## Putting the levers in order
+
+<InsightBox title="Cache first, batch what you can, right-size last">
+  For a large bill the order is: (1) **prompt caching** — the ~90%-off lever that keeps the model you want; (2) **Batch API** — 50% off for anything that can run async; (3) **model right-sizing** — Sonnet for most work, Opus for the hard reasoning, Haiku for the trivial (Chapter 16's enterprise cost section goes deeper). Reach for a *lower effort level* before a *weaker model* when you want to trim cost without losing capability — `medium` effort on Opus often beats `high` on a smaller model.
+</InsightBox>
+
+## See also
+
+- **[Chapter 4 — Working Productively](/chapters/ch04-productive)** — the everyday prompting this appendix extends.
+- **[Chapter 16 — Enterprise Deployment](/chapters/ch16-enterprise-deployment)** — cost optimization at organization scale (the same levers, applied to a 50-seat bill).
+- **[Chapter 11 — Orchestration](/chapters/ch11-orchestration)** — `ultracode` and dynamic workflows.

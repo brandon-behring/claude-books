@@ -170,7 +170,7 @@ The last Part I prompting skill is choosing how hard Claude should work. Claude 
 
 The rule of thumb that follows: default to a balanced model for development, escalate to a frontier model when the problem is ambiguous or spans many files, and drop to a faster model for bulk or trivial work. You do not need to memorise a capability table — you need to notice which of the three buckets the task in front of you falls into. Knowledge cutoffs and exact model names drift per release, so confirm the current lineup against Anthropic's model documentation rather than trusting a number printed in a book.
 
-This chapter deliberately stops at *selection*. The deeper knobs — extended thinking and its effort controls, prompt caching and the Batch API for cost, and fast mode — are covered in Appendix B; reach for them when you are optimising cost or driving complex multi-step reasoning, not while you are learning to prompt well.
+This chapter deliberately stops at *selection*. The deeper knobs — extended thinking and its effort controls, prompt caching and the Batch API for cost, and fast mode — are covered in [Appendix B](/chapters/appendix-b-advanced-prompting-cost); reach for them when you are optimising cost or driving complex multi-step reasoning, not while you are learning to prompt well.
 
 <InsightBox title="Difficulty, not prestige">
   The instinct to "use the best model for everything" wastes speed on work that does not need it and trains a habit of not thinking about fit. The skill is reading task *difficulty* — is this well-specified and mechanical, standard, or genuinely ambiguous? — and spending reasoning depth where ambiguity actually lives. That judgement outlasts any specific model lineup.
@@ -182,7 +182,7 @@ This chapter completes the Part I prompting arc. Three threads continue it:
 
 - **Context as currency** — Chapter 5 develops the context discipline from Chapter 3 (`/clear`, `/compact`, the two-failure rule) into the full toolkit: `/rewind`, session naming, `CURRENT_WORK.md`, and auto-memory.
 - **Thinking together** — Chapter 6 takes precise prompting into collaborative reasoning: hypothesis debugging, pre-mortems, and treating Claude as a thinking partner rather than an order-taker.
-- **Advanced prompting and cost** — Appendix B picks up extended thinking, prompt caching, the Batch API, and fast mode for readers optimising cost or complex reasoning.
+- **Advanced prompting and cost** — [Appendix B](/chapters/appendix-b-advanced-prompting-cost) picks up extended thinking, prompt caching, the Batch API, and fast mode for readers optimising cost or complex reasoning.
 
 ## Common pitfalls
 
@@ -210,7 +210,7 @@ Using the heaviest model for trivial work burns speed and dulls the habit of mat
 - Scope creep is a prompting gap: name the files, separate discovery from action, or use Plan Mode.
 - Match model strength to task difficulty — faster for mechanical, balanced by default, frontier for ambiguous.
 - Model names and cutoffs drift; verify the current lineup in the docs.
-- Extended thinking, caching, Batch API, and fast mode live in Appendix B.
+- Extended thinking, caching, Batch API, and fast mode live in [Appendix B](/chapters/appendix-b-advanced-prompting-cost).
 
 ## Practice
 
