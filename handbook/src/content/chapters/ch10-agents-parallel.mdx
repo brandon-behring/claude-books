@@ -20,6 +20,7 @@ description: Subagents as isolated context workers, the delegation decision, des
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
@@ -128,6 +129,13 @@ Delegation is not free — every subagent spends its own context tokens — so t
 - **Sequential reasoning** is required — step B needs step A's result.
 - It is simply **too small** to justify the overhead.
 
+<Figure
+  src="/figures/delegation-decision/delegation-decision.svg"
+  alt="A delegation funnel. Three neutral decision diamonds stacked vertically — 'Independent task?', 'Context-heavy or parallel?', 'More than ~2 min?'. A 'yes' to all three cascades down to 'Delegate' (green); any 'no' routes right to a single 'Do it directly' box (neutral)."
+  caption="When to delegate. Each 'no' is a reason to keep the task in your own session; only an independent, context-heavy or parallel, non-trivial task earns a subagent."
+  width="78%"
+/>
+
 <MarginNote variant="note" label="Cost">
   Each subagent consumes its own context tokens. Four parallel agents cost roughly 4× the tokens but take only 1× the wall-clock time. Parallelism trades cost for speed — spend it deliberately.
 </MarginNote>
@@ -208,6 +216,13 @@ claude --worktree rate-limiting
 
 </div>
 </BeforeAfter>
+
+<Figure
+  src="/figures/worktree-isolation/worktree-isolation.svg"
+  alt="Two side-by-side panels. Left (rose border, 'Shared working tree'): Agent A and Agent B both point to one file.py, labeled 'edits collide'. Right (green border, 'One worktree per agent'): Agent A points to wt-a/file.py and Agent B to wt-b/file.py, labeled 'no overlap'."
+  caption="Why parallel writers need worktrees. On a shared tree, two agents editing the same file collide; an isolated worktree per agent removes the overlap."
+  width="100%"
+/>
 
 Each worktree gets its own branch and a complete isolated copy of the repo. Cleanup is automatic: if no changes were made, the worktree is removed silently; if changes exist, you are prompted to merge or discard.
 
