@@ -246,3 +246,11 @@
   captured_at: 2026-06-19T00:00:00Z
   tier: T1-official
   tool: cross-tool
+
+- id: anthropic-claude-code-model-config
+  url: https://code.claude.com/docs/en/model-config
+  title: "Claude Code model configuration (defaults, aliases, allowlists)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code

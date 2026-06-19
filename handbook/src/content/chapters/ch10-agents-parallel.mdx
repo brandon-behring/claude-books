@@ -15,6 +15,7 @@ sources:
   - claude-code-overview
   - anthropic-claude-code-best-practices
   - anthropic-claude-code-common-workflows
+  - anthropic-claude-code-sub-agents
 description: Subagents as isolated context workers, the delegation decision, designing verifiable agent tasks and parallelism economics, git worktrees for parallel file work, the Writer/Reviewer pattern, and the /batch skill — using subagents as a developer, not architecting a multi-agent system.
 ---
 
@@ -93,14 +94,13 @@ You do not always need a custom definition. Claude Code ships several built-in s
 
 - **Explore** — fast codebase exploration: find files, search code, answer "where is X?"
 - **Plan** — read-only analysis for implementation planning.
-- **Bash** — command-execution specialist.
 - **General-purpose** — a multi-tool agent for complex, open-ended tasks.
 
 In practice you rarely type "use the Explore subagent." You say *"find every place we parse the auth token"* and Claude dispatches an Explore agent; the result returns as a summary, not as ten files in your context.
 
 ### Continuing a subagent's work
 
-Each new invocation of the Task tool starts a **fresh** subagent with no memory of a previous one. To resume a stopped subagent with its full context intact, the parent sends it a message by ID or name rather than spawning a new one.<Citation src="claude-code-overview" /> In practice you just ask Claude to *"continue the review agent"* or *"resume agent X"* and it does the right thing; spawning a brand-new agent is the only thing that loses the prior context.
+Each new invocation of the Task tool starts a **fresh** subagent with no memory of a previous one. Resuming one with its context intact — asking Claude to *"continue the review agent"* — is possible, with two caveats: the built-in **Explore and Plan agents are one-shot** (they return no agent ID, so they can't be resumed — use `general-purpose` or a custom subagent when you need to continue), and the underlying resume mechanism (the `SendMessage` tool) is currently **available only when agent teams are enabled** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`).<Citation src="anthropic-claude-code-sub-agents" /> Outside that, treat each new invocation as a fresh start.
 
 <Tip n="37" title="A subagent buys you context isolation — spend it on heavy exploration.">
 The value of a subagent is that its file reads, searches, and dead ends never touch your main session. Delegate the work that would otherwise bloat your context; keep the work that needs your context in your context.
@@ -128,7 +128,7 @@ Delegation is not free — every subagent spends its own context tokens — so t
 - **Sequential reasoning** is required — step B needs step A's result.
 - It is simply **too small** to justify the overhead.
 
-<MarginNote variant="cost" label="Cost">
+<MarginNote variant="note" label="Cost">
   Each subagent consumes its own context tokens. Four parallel agents cost roughly 4× the tokens but take only 1× the wall-clock time. Parallelism trades cost for speed — spend it deliberately.
 </MarginNote>
 
@@ -200,9 +200,10 @@ cd - && git worktree remove ../feature-cache
 <div slot="after">
 
 ```bash
-# Automatic: Claude manages the worktree lifecycle
-claude --worktree "Implement caching layer"
-claude --worktree "Add rate limiting"
+# Claude manages the worktree lifecycle — pass a name
+# (or omit it for an auto-generated one), then work in that session
+claude --worktree feature-cache
+claude --worktree rate-limiting
 ```
 
 </div>
@@ -229,7 +230,7 @@ With `isolation: worktree` set, the subagent operates on its own copy of the rep
   Add `.claude/worktrees/` to `.gitignore` — Claude stores worktree metadata there and it should not be committed. If orphaned worktrees pile up after a crash, run `git worktree prune` to clear the stale entries.
 </MarginNote>
 
-<MarginNote variant="cost" label="Cost">
+<MarginNote variant="note" label="Cost">
   Worktrees trade disk for isolation. They share git objects but duplicate the working tree, so a 500 MB repo spawning four worktrees may use ~1 GB extra. `git worktree prune` reclaims stale ones.
 </MarginNote>
 
@@ -279,7 +280,7 @@ When to reach for `/batch` versus a fan-out script (Chapter 13's `for f in …; 
 | **Best for** | Complex changes where decomposition needs understanding the codebase | Simple, repetitive changes where you already know the file list |
 | **Output** | one PR per unit, each in its own worktree | whatever your script does per file |
 
-<MarginNote variant="cost" label="Cost">
+<MarginNote variant="note" label="Cost">
   `/batch` spawns N agents × per-agent context — a 20-unit batch costs ~20× a single session. The initial plan review is your one chance to scope it down before the spend.
 </MarginNote>
 
@@ -318,8 +319,8 @@ Two agents editing the same files without worktrees will overwrite each other an
 More than four parallel agents rarely helps: coordination overhead climbs and you cannot review every report carefully, so you end up trusting output you did not actually verify. Stay in the 2–4 / 5–15-minute band; the limit is your attention, not the compute.
 </Pitfall>
 
-<Pitfall title="Spawning instead of resuming">
-A new Task invocation starts a fresh agent with no memory of the last one. If you want a stopped agent to keep going with its accumulated context, ask Claude to *continue* it (it resumes via message-by-ID) — re-invoking the agent type silently throws that context away.
+<Pitfall title="Expecting a re-invoked agent to remember">
+A new Task invocation starts a fresh agent with no memory of the last one. Resuming with accumulated context works only where it's supported — agent teams enabled, and not the one-shot Explore/Plan agents. Where it isn't, don't assume "run the review agent again" continues the prior run; it starts over.
 </Pitfall>
 
 ## Quick reference
@@ -327,7 +328,7 @@ A new Task invocation starts a fresh agent with no memory of the last one. If yo
 - **Subagents**: isolated context, independent tool set, return a summary to the parent. Defined in `.claude/agents/*.md`; managed with `/agents`.
 - **Frontmatter keys**: `tools` (note: *not* `allowed-tools` — skills use the hyphenated form), `model`, `isolation`, `memory`, `background`, `skills`, `mcpServers`.
 - **Built-in types** via the Task tool: **Explore**, **Plan**, **Bash**, **General-purpose**.
-- **Continue** a subagent by resuming it (message-by-ID), not by re-invoking — a new invocation starts fresh.
+- **Resuming** a subagent keeps its context (Explore/Plan are one-shot; resume needs agent teams enabled) — otherwise a new invocation starts fresh.
 - **Delegate when**: independent, context-heavy, parallelizable, needs a fresh perspective. **Do directly when**: under two minutes, context-dependent, sequential, or trivial.
 - **Good agent task**: self-contained, verifiable, bounded.
 - **Parallelism sweet spot**: 2–4 agents, 5–15-minute tasks. Under ~2 min, overhead dominates; over 4, coordination + review attention degrade.

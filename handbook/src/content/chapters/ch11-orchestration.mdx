@@ -85,7 +85,7 @@ Reach for it when you have several independent tasks and want to be the coordina
 
 Agent teams are multiple coordinated sessions with a **shared task list and direct inter-agent messaging**, run by a lead that splits the project, assigns pieces, and keeps the workers in sync.<Citation src="anthropic-claude-code-agents" /> The status to remember: **experimental, and disabled by default** — you opt in deliberately.
 
-The catch worth internalizing: teammates are **not** worktree-isolated. Unlike agent-view sessions and subagents, which each get their own checkout, teammates share your working tree — so you must **partition the work**, giving each teammate a disjoint set of files. Skip that and two teammates will edit the same file and collide.
+The catch worth internalizing: teammates are **not** worktree-isolated. Agent-view sessions each get their own checkout automatically, and a subagent can opt into one with `isolation: worktree` (it otherwise runs in your current working directory) — but teammates share your working tree, so you must **partition the work**, giving each teammate a disjoint set of files. Skip that and two teammates will edit the same file and collide.
 
 ## Dynamic workflows — move the plan into code
 

@@ -77,7 +77,7 @@ The four classic misfires all spend effort one rung too high (or one too low):
 1. **Building a skill when a command suffices.** If the workflow is a fixed sequence with no branching, a command is simpler to maintain. Skills earn their complexity only when Claude needs to _decide_ what to do next.
 2. **Using a skill when a hook is needed.** Skills are _advisory_ — Claude can ignore or adapt them. If the behavior must be _enforced_ (security scan, formatting), use a hook. Hooks run whether or not Claude remembers to invoke them.
 3. **Reaching for MCP when a CLI exists.** Claude already knows `gh`, `aws`, `gcloud`, `psql`. MCP is for services without a good CLI, or when you need structured I/O schemas.<Citation src="anthropic-claude-code-best-practices" />
-4. **Encoding team standards in skills instead of hooks.** "Every PR must pass linting" belongs in a `PreToolUse` hook on `Bash(git commit*)`, not a skill someone might forget to invoke.
+4. **Encoding team standards in skills instead of hooks.** "Every PR must pass linting" belongs in a `PreToolUse` hook matching `Bash` (with an `if: "Bash(git commit*)"` condition so it fires only on commits — a hook matcher targets the tool name, and command-level filtering goes in the handler's `if` field), not a skill someone might forget to invoke.
 
 ### The promotion path
 
@@ -212,7 +212,7 @@ file:line references and severity.
 
 ### Budget and permissions
 
-Skill descriptions consume roughly 2% of the context window (fallback: 16,000 characters); run `/context` to see whether any skills were excluded.<Citation src="anthropic-claude-code-skills" /> Permission rules can target skills specifically:
+Skill descriptions share a budget that scales at about 1% of the context window (raise it with the `skillListingBudgetFraction` setting); run `/doctor` to see whether any skill descriptions are being shortened or dropped.<Citation src="anthropic-claude-code-skills" /> Permission rules can target skills specifically:
 
 ```json
 {
@@ -239,10 +239,11 @@ Hooks are the **enforcement layer**. Unlike `CLAUDE.md` instructions (which are 
 
 ### Handler types
 
-A hook event triggers one of four handler types. (Not all events support all four — some are command-only.) The command timeout is 10 minutes; HTTP defaults to 30 seconds.<Citation src="anthropic-claude-code-hooks" />
+A hook event triggers one of five handler types. (Not all events support all five — some are command-only.) Default timeouts: 10 minutes (600s) for `command`, `http`, and `mcp_tool`; 30 seconds for `prompt`; 60 seconds for `agent`.<Citation src="anthropic-claude-code-hooks" />
 
 - **`command`** — a shell script; receives JSON on stdin, returns JSON on stdout. The original and most common type.
 - **`http`** — POSTs JSON to a URL. Best for webhooks, external notifications, CI triggers.
+- **`mcp_tool`** — calls a tool on an already-connected MCP server.
 - **`prompt`** — a single-turn LLM evaluation returning yes/no. Best for policy checks that need judgment, not just pattern matching.
 - **`agent`** — a multi-turn subagent with full tool access. Best for complex validation that reads files, runs commands, or reasons across steps.
 
@@ -307,19 +308,22 @@ curl -H "Authorization: token $GH_TOKEN" \
 <div slot="after">
 
 ```bash
-# One command — Claude can now query GitHub directly
-claude mcp add github --transport stdio -- npx @anthropic/mcp-github
-claude mcp list          # Shows: github (stdio)
-# Now in any session Claude can list/create issues + PRs,
-# read repo contents, and search code across repos.
+# One command. Remote servers (the common case for hosted
+# services like GitHub) use HTTP + an auth header; browse
+# reviewed ones in the Anthropic Directory (claude.ai/directory):
+claude mcp add --transport http <name> <url> \
+  --header "Authorization: Bearer $TOKEN"
+claude mcp list          # Shows the server + transport
+# A local tool instead runs as a process over stdio:
+#   claude mcp add --transport stdio <name> -- npx <server>
 ```
 
 </div>
 </BeforeAfter>
 
-A consumed server provides **tools** (functions Claude can call), **resources** (data referenced via `@server:resource/path`), and prompts. Scopes mirror the rest of the config: **local** (this machine, default), **project** (`.mcp.json`, committed for the team), and **user** (`~/.claude/mcp.json`, personal global).
+A consumed server provides **tools** (functions Claude can call), **resources** (data Claude can reference with an `@server` mention), and prompts. Three scopes: **local** (the default — current project only, stored in `~/.claude.json`), **project** (`.mcp.json`, committed for the team), and **user** (all your projects, also in `~/.claude.json`).
 
-Servers run **locally over stdio** — your credentials never leave your machine; Claude talks to the server over stdio, not the network. Permission rules scope MCP tools with wildcards:
+Transport depends on the server: **remote** servers (the common case for hosted services) use **HTTP** — the recommended transport — and authenticate with an OAuth flow or a bearer token sent to the remote endpoint; **local** tools run as a process over **stdio**, where credentials stay on your machine. Either way, permission rules scope MCP tools with wildcards:
 
 ```json
 {
@@ -331,7 +335,7 @@ Servers run **locally over stdio** — your credentials never leave your machine
 ```
 
 <KeyIdea>
-**The 10% context threshold.** When a server's tool definitions exceed ~10% of the context window, Claude switches to on-demand search instead of loading every tool's schema up front — keeping context efficient. The practical consequence: prefer a CLI for well-known services (it costs almost no context), and reserve MCP for systems that genuinely need typed, structured access mid-session. A single MCP server with dozens of verbose tool schemas can quietly eat a large slice of your window.
+**Tool Search keeps MCP context-cheap — but a CLI is still cheaper.** By default, Claude Code uses MCP Tool Search: instead of loading every connected server's tool schemas up front, it fetches them on demand when a request needs them, so a server with dozens of tools no longer eats your window just by being connected. Even so, prefer a CLI for well-known services (a `gh` call costs almost no context), and reserve MCP for systems that genuinely need typed, structured access mid-session.
 </KeyIdea>
 
 Before installing any third-party server, run a quick provenance audit: check the README and manifest (a GitHub server shouldn't need filesystem write access), review the permissions it requests via `/permissions` and deny anything beyond its stated purpose, and test it first in a sandboxed session or throwaway worktree. Prefer servers from the official registry; for enterprise policy enforcement, use Managed MCP (covered in [**Chapter 16 — Enterprise Deployment**](/chapters/ch16-enterprise-deployment)).
@@ -350,7 +354,7 @@ The framework pays off when a real problem decomposes into the _right_ rungs —
 
 **Is it a reusable prompt?** Partly. The instructions ("look for SQL injection, leaked secrets, auth bypass; cite line numbers; suggest fixes") are reusable — but packaging them as `/security-review` relies on a human remembering to run it, and "remember to run the command" is exactly the step people forget. → a command is _part_ of the answer, not all of it.
 
-**Is it a reusable procedure?** Yes: fetch the diff, scan the categories, produce structured findings, format a comment, post. That's a **skill** (`.claude/skills/security-review.md`) with the right tool access (`gh` for PR ops, `Read`/`Grep` for the scan).
+**Is it a reusable procedure?** Yes: fetch the diff, scan the categories, produce structured findings, format a comment, post. That's a **skill** (`.claude/skills/security-review/SKILL.md`) with the right tool access (`gh` for PR ops, `Read`/`Grep` for the scan).
 
 **Does it need to fire automatically?** Yes — on PR open. But Claude Code hooks fire on _Claude's_ lifecycle events (`PreToolUse`, `Stop`, …), not GitHub's. The automation layer for a GitHub event is a **GitHub Action** that invokes the Claude CLI in headless mode. → a hook is _not_ the right tool here.
 
@@ -412,8 +416,8 @@ The most common failure isn't picking the wrong rung — it's leaping past comma
 A skill is advisory — Claude can adapt or skip it, and someone has to invoke it. If "every commit passes the linter" lives in a skill, it holds only when Claude (or the human) remembers. Put enforceable standards in a `PreToolUse` hook; reserve skills for procedures that need judgment.
 </Pitfall>
 
-<Pitfall title="Letting a verbose MCP server eat the context window">
-A single MCP server with dozens of richly-described tools can consume a large slice of context before you've typed a word — and past ~10% Claude falls back to on-demand tool search. Audit a server's tool count and description length, prune to the tools you use, and prefer a CLI when the service has a good one.
+<Pitfall title="Reaching for MCP when a CLI would do">
+MCP Tool Search defers tool schemas until they're needed, so a connected server is cheaper than it used to be — but a server you barely use still adds a tool surface to search and a connection to manage, where a `gh`/`aws`/`psql` call via `Bash` costs almost nothing. Prefer a CLI when the service has a good one; reserve MCP for typed, structured access you actually need mid-session.
 </Pitfall>
 
 ## Quick reference
@@ -432,9 +436,9 @@ The decision framework is the lever — not any single extension type. Reach for
 | **IDE** | in-editor surfacing your team shares | the team doesn't share an IDE | VS Code / JetBrains (beta) |
 
 - **Promotion path:** prompt typed 3× → command → (needs branching) skill → (must run every time) hook → (needs external data) MCP.
-- **Hooks:** ~29 lifecycle events; four handler types (`command` / `http` / `prompt` / `agent`); enforcement layer — always execute. Full reference: _Appendix C (forthcoming)_.
+- **Hooks:** ~29 lifecycle events; five handler types (`command` / `http` / `mcp_tool` / `prompt` / `agent`); enforcement layer — always execute. Full reference: _Appendix C (forthcoming)_.
 - **Skills:** `SKILL.md` per directory; precedence enterprise > personal > project; `context: fork` runs it as an isolated subagent; descriptions cost ~2% of context.
-- **MCP / CLI:** servers run locally over stdio (credentials stay put); past ~10% context Claude switches to on-demand tool search — prefer a CLI for well-known services.
+- **MCP / CLI:** remote servers use HTTP (OAuth/bearer); local tools use stdio. Tool Search defers tool schemas on demand by default — prefer a CLI for well-known services anyway.
 
 ## Practice
 
@@ -449,7 +453,7 @@ Take a real "fire on a GitHub event" need from your own repo (say, "lint + summa
 <ExerciseSolutions>
 
 <Solution for="ch08-ex-1">
-A skill is **advisory** — Claude can adapt or skip it, and a human (or Claude) has to remember to invoke it, so "every commit" isn't actually guaranteed. The standard is non-negotiable, which is the hook's job: a `PreToolUse` hook on `Bash(git commit*)` runs the linter whether or not anyone remembers, blocking the commit (exit code 2) on failure. The correct rung is a **hook**; the skill is one rung too low for an enforcement requirement.
+A skill is **advisory** — Claude can adapt or skip it, and a human (or Claude) has to remember to invoke it, so "every commit" isn't actually guaranteed. The standard is non-negotiable, which is the hook's job: a `PreToolUse` hook matching `Bash` (with an `if: "Bash(git commit*)"` condition) runs the linter whether or not anyone remembers, blocking the commit (exit code 2) on failure. The correct rung is a **hook**; the skill is one rung too low for an enforcement requirement.
 </Solution>
 
 <Solution for="ch08-ex-2">

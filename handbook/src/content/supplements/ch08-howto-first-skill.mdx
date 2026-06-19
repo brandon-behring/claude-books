@@ -3,7 +3,7 @@ title: "How to build your first agent skill (release checklist)"
 kind: how-to
 draft: false
 chapter_source: 8
-description: "Task-oriented how-to. Package a real procedure — your project's release checklist — as a .claude/skills/release-checklist.md that any session in the repo can invoke. End-to-end build of one skill."
+description: "Task-oriented how-to. Package a real procedure — your project's release checklist — as a .claude/skills/release-checklist/SKILL.md that any session in the repo can invoke. End-to-end build of one skill."
 last_updated: "2026-06-19"
 visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Distinct typography from the tutorial. Reader is task-driven; in and out in 10 minutes with a working skill in their repo."
 ---
@@ -11,7 +11,7 @@ visual_intent: "Procedural. Numbered steps, minimal prose, code-heavy. Distinct 
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
 
-> **You have**: a release procedure that you currently re-type into Claude every release (or worse, forget half of). Things like "bump the version, regenerate the changelog from conventional-commits, run the full test matrix, tag the commit, post to the release channel." **You want**: a `.claude/skills/release-checklist.md` that any session in this repo can invoke as `/release-checklist`, with Claude executing the procedure consistently every time.
+> **You have**: a release procedure that you currently re-type into Claude every release (or worse, forget half of). Things like "bump the version, regenerate the changelog from conventional-commits, run the full test matrix, tag the commit, post to the release channel." **You want**: a `.claude/skills/release-checklist/SKILL.md` that any session in this repo can invoke as `/release-checklist`, with Claude executing the procedure consistently every time.
 
 ## Prerequisites
 
@@ -35,12 +35,12 @@ If your "procedure" is really one paragraph of instructions with no branches, st
 In the repo root:
 
 ```bash
-mkdir -p .claude/skills
-touch .claude/skills/release-checklist.md
+mkdir -p .claude/skills/release-checklist
+touch .claude/skills/release-checklist/SKILL.md
 ```
 
 <MarginNote variant="note" label="Cross-Ref">
-  Project-scoped skills live at <code>.claude/skills/&lt;name&gt;.md</code>; user-scoped (available across all your repos) at <code>~/.claude/skills/&lt;name&gt;.md</code>. Same file format.
+  Project-scoped skills live at <code>.claude/skills/&lt;name&gt;/SKILL.md</code>; user-scoped (available across all your repos) at <code>~/.claude/skills/&lt;name&gt;/SKILL.md</code>. Same directory format.
 </MarginNote>
 
 ### 3. Write the frontmatter
@@ -128,11 +128,11 @@ A skill captures a procedure once so every future session executes it consistent
 
 ### 7. (Optional) Promote to user-scoped if it's universal
 
-If this same checklist applies across all your repos with minor parameterization, move it to `~/.claude/skills/release-checklist.md`. Per-repo CLAUDE.md files can still override the specifics (channel name, test command, etc.).
+If this same checklist applies across all your repos with minor parameterization, move it to `~/.claude/skills/release-checklist/SKILL.md`. Per-repo CLAUDE.md files can still override the specifics (channel name, test command, etc.).
 
 ## Expected outcome
 
-You have `.claude/skills/release-checklist.md` committed to the repo. Any session — yours or a teammate's — that says "run our release checklist" gets the same procedure, executed consistently, with explicit halt-on-error checkpoints. Future-you (and future hires) inherit the procedure without you having to re-explain it.
+You have `.claude/skills/release-checklist/SKILL.md` committed to the repo. Any session — yours or a teammate's — that says "run our release checklist" gets the same procedure, executed consistently, with explicit halt-on-error checkpoints. Future-you (and future hires) inherit the procedure without you having to re-explain it.
 
 ## When this fails
 
@@ -142,6 +142,6 @@ You have `.claude/skills/release-checklist.md` committed to the repo. Any sessio
 
 ## See also
 
-- The tutorial on [the extension decision framework](#) (Ch 8) — for why a skill is the right layer for this use case versus a command or a hook.
-- The cheat sheet on [extension types at a glance](#) — for the lookup table when you're deciding which layer to reach for next.
+- [Chapter 8 — Extending Claude](/chapters/ch08-extending-claude) — for why a skill is the right layer for this use case versus a command or a hook.
+- The [Ch 8 cheat sheet](/supplements/ch08-cheat-sheet) — for the lookup table when you're deciding which layer to reach for next.
 - **Architect's Reference** — when your skill needs to call into the Agent SDK directly (e.g., spawning forked sub-agents from inside a skill body).

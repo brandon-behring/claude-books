@@ -18,6 +18,7 @@ sources:
   - anthropic-pricing
   - aws-bedrock-fedramp-govcloud
   - anthropic-models-overview
+  - anthropic-claude-code-model-config
   - anthropic-claude-code-settings
 description: The compliance, identity, governance, and cost surface for deploying Claude Code across an organization — what a security review asks for, how Claude reaches government workloads, and the cost levers that matter at 50-plus seats.
 ---
@@ -76,7 +77,7 @@ For organization rollouts, Claude's Enterprise plan provides the identity contro
 
 ### Data protection
 
-Session data travels over **TLS**, and Enterprise adds **custom data-retention controls**.<Citation src="anthropic-claude-code-security" /><Citation src="anthropic-claude-enterprise" /> On training: consumer tiers (Free, Pro, Max) are **opt-in** — training is off unless a user enables it, and disabling it stops future use — while commercial products (the API, Team, Enterprise) are governed by the Commercial Terms rather than that consumer setting.<Citation src="anthropic-claude-code-security" /> Zero Data Retention is available for commercial and API use; confirm the current terms in the commercial privacy documentation before you cite a specific guarantee.
+Session data travels over **TLS**, and Enterprise adds **custom data-retention controls**.<Citation src="anthropic-claude-code-security" /><Citation src="anthropic-claude-enterprise" /> On training, the security page points to the **Consumer and Commercial Terms** rather than stating the semantics inline — so cite those for the specifics, not the security page: consumer tiers (Free, Pro, Max) are **opt-in** (training is off unless a user enables it), while commercial products (the API, Team, Enterprise) follow the Commercial Terms, where the default is not-trained-on. Zero Data Retention is available for commercial and API use; confirm the current terms in the Commercial Terms / privacy documentation before citing a specific guarantee.
 
 <MarginNote variant="note" label="Note">
   The consumer training toggle (opt-in, de-identified, up to five years if enabled) is a *consumer* setting. Don't assume it describes how Team/Enterprise/API data is handled — those follow the Commercial Terms, where the default is not-trained-on.
@@ -103,6 +104,7 @@ A procurement officer asks, "Is Claude Code FedRAMP High authorized?" A plain "y
 The team controls from [Chapter 15](/chapters/ch15-team-patterns) become the enterprise governance surface. Access control is delivered through **managed (policy) settings**, not a separate product — they sit at the top of the [settings precedence](/chapters/ch09-scaling-configuration) and can't be overridden locally:<Citation src="anthropic-claude-code-settings" />
 
 - `availableModels` + `enforceAvailableModels` — restrict the selectable models org-wide (and constrain the Default to the allowlist).
+- `allowManagedPermissionRulesOnly` — make managed permission rules binding, so lower-scope `allow`/`ask` rules can't loosen them.
 - `requiredMinimumVersion` — block startup on outdated clients.
 - `disableWorkflows` — turn off dynamic workflows org-wide.
 - `allowManagedHooksOnly` — load only managed/SDK hooks.
@@ -123,7 +125,7 @@ At fifty seats the bill is seat-price plus usage, and the instinct to "just use 
 Caching beats downgrading. A team that turns on prompt caching keeps Opus-or-Sonnet quality at a fraction of the token cost; a team that downgrades everyone to the cheapest model to save money pays in slower, lower-quality work that costs more developer time than it saves in tokens. Cache first; right-size second; downgrade only where the task genuinely doesn't need the capability.
 </KeyIdea>
 
-By default an **Enterprise subscription seat** runs **Sonnet 4.6** and **Enterprise pay-as-you-go** runs **Opus 4.8** — set the org allowlist deliberately rather than inheriting the default.<Citation src="anthropic-models-overview" />
+By default an **Enterprise subscription seat** runs **Sonnet 4.6** and **Enterprise pay-as-you-go** runs **Opus 4.8** — set the org allowlist deliberately rather than inheriting the default.<Citation src="anthropic-claude-code-model-config" />
 
 <MarginNote variant="note" label="Cost">
   Pricing below is a dated snapshot — model versions and rates change with each release. Verify current numbers at [claude.com/pricing](https://claude.com/pricing) before you budget.
