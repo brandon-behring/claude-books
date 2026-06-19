@@ -34,7 +34,7 @@ _The look-up companion to [Chapter 8 — Extending Claude](/chapters/ch08-extend
 
 ## The lifecycle events
 
-Claude Code's `settings.json` hook surface exposes **29 lifecycle events** as of 2026-06-19.<Citation src="anthropic-claude-code-hooks" /> (This is distinct from the Agent SDK's hook surface, which is a separate, smaller set — don't conflate them.) Each event fires at a defined point; a hook subscribes by event name.
+Claude Code's `settings.json` hook surface exposes **30 lifecycle events** as of 2026-06-19.<Citation src="anthropic-claude-code-hooks" /> (This is distinct from the Agent SDK's hook surface, which is a separate, smaller set — don't conflate them.) Each event fires at a defined point; a hook subscribes by event name.
 
 | Event | Fires when |
 |---|---|
@@ -67,6 +67,7 @@ Claude Code's `settings.json` hook surface exposes **29 lifecycle events** as of
 | `PostCompact` | after compaction completes |
 | `Elicitation` | an MCP server requests user input during a tool call |
 | `ElicitationResult` | after a user responds to an MCP elicitation |
+| `SessionEnd` | a session terminates |
 
 ## The five handler types
 

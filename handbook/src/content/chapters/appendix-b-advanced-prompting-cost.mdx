@@ -65,7 +65,7 @@ They aren't. Only `ultrathink` is recognized as a keyword in Claude Code; phrase
 
 ## Prompt caching
 
-Claude Code uses prompt caching automatically; understanding it explains most of your bill.<Citation src="anthropic-prompt-caching" /> A cache **read costs 0.1× the base input price** — about a **90% discount** — so a stable prefix (tool definitions, system prompt, a large reference doc) is paid for once at full rate and reused cheaply.
+Claude Code applies prompt caching **automatically** — you don't place breakpoints or set TTLs in the CLI (the one CLI-level knob is `DISABLE_PROMPT_CACHING`). The mechanics below are what it does under the hood, and what an API or SDK caller sets explicitly; understanding them explains most of your bill.<Citation src="anthropic-prompt-caching" /> A cache **read costs 0.1× the base input price** — about a **90% discount** — so a stable prefix (tool definitions, system prompt, a large reference doc) is paid for once at full rate and reused cheaply.
 
 - **Cache writes** cost more than a normal input token: **1.25×** base for the default **5-minute** cache, **2×** base for the optional **1-hour** cache (`"cache_control": { "type": "ephemeral", "ttl": "1h" }`).
 - Up to **4 cache breakpoints** per request, cacheable in the order `tools` → `system` → `messages`.

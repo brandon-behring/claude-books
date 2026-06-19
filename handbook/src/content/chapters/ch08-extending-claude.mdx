@@ -249,7 +249,7 @@ A hook event triggers one of five handler types. (Not all events support all fiv
 
 ### The high-traffic events
 
-Claude Code exposes about **29 lifecycle hook events** as of June 2026 (this is the Claude Code `settings.json` surface — the Agent SDK's hook surface is a separate, smaller set; don't conflate them).<Citation src="anthropic-claude-code-hooks" /> Day to day, a handful carry almost all the traffic:
+Claude Code exposes **30 lifecycle hook events** as of June 2026 (this is the Claude Code `settings.json` surface — the Agent SDK's hook surface is a separate, smaller set; don't conflate them).<Citation src="anthropic-claude-code-hooks" /> Day to day, a handful carry almost all the traffic:
 
 | Event | Fires when | Typical use |
 |---|---|---|
@@ -261,7 +261,7 @@ Claude Code exposes about **29 lifecycle hook events** as of June 2026 (this is 
 | `PreCompact` | before context compaction | save state |
 | `SessionEnd` | a session ends | persist state, update logs |
 
-For the full enumeration — all ~29 events, their matcher values, and which handler types each supports — see [Appendix C → the full hook-event reference](/chapters/appendix-c-extension-reference).
+For the full enumeration — all 30 events, the five handler types, and the matcher model — see [Appendix C → the full hook-event reference](/chapters/appendix-c-extension-reference).
 
 ### Notification hooks
 
@@ -436,7 +436,7 @@ The decision framework is the lever — not any single extension type. Reach for
 | **IDE** | in-editor surfacing your team shares | the team doesn't share an IDE | VS Code / JetBrains (beta) |
 
 - **Promotion path:** prompt typed 3× → command → (needs branching) skill → (must run every time) hook → (needs external data) MCP.
-- **Hooks:** ~29 lifecycle events; five handler types (`command` / `http` / `mcp_tool` / `prompt` / `agent`); enforcement layer — always execute. Full reference: [Appendix C](/chapters/appendix-c-extension-reference).
+- **Hooks:** 30 lifecycle events; five handler types (`command` / `http` / `mcp_tool` / `prompt` / `agent`); enforcement layer — always execute. Full reference: [Appendix C](/chapters/appendix-c-extension-reference).
 - **Skills:** `SKILL.md` per directory; precedence enterprise > personal > project; `context: fork` runs it as an isolated subagent; descriptions cost ~2% of context.
 - **MCP / CLI:** remote servers use HTTP (OAuth/bearer); local tools use stdio. Tool Search defers tool schemas on demand by default — prefer a CLI for well-known services anyway.
 

@@ -54,7 +54,7 @@ When a long session approaches its limit, compaction reclaims room. Treat it as 
 3. **After** — verify Claude still holds the thread: ask it to restate the current task and constraints before continuing.
 
 <MarginNote variant="note" label="Note">
-  Auto-compaction fires automatically as the window fills (historically around the low-80s-percent mark — directional, and system-tuned). Override the trigger point with `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`. The protocol above applies whether you compact manually or it fires on its own.
+  Auto-compaction fires automatically as the window fills (historically around the low-80s-percent mark — directional, and system-tuned). `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` can only *lower* that threshold (never raise it), and only takes effect where Claude Code compacts proactively. The protocol above applies whether you compact manually or it fires on its own.
 </MarginNote>
 
 ### PreCompact / PostCompact hooks
@@ -65,14 +65,14 @@ The [`PreCompact` and `PostCompact` events](/chapters/appendix-c-extension-refer
 {
   "hooks": {
     "PreCompact": [{ "hooks": [{ "type": "command",
-      "command": "./scripts/save-session-state.sh" }] }],
+      "command": "$CLAUDE_PROJECT_DIR/scripts/save-session-state.sh" }] }],
     "PostCompact": [{ "hooks": [{ "type": "command",
-      "command": "./scripts/restore-session-state.sh" }] }]
+      "command": "$CLAUDE_PROJECT_DIR/scripts/restore-session-state.sh" }] }]
   }
 }
 ```
 
-The pattern: `PreCompact` snapshots what compaction might blur (the open task, key decisions, file paths in flight) to disk; `PostCompact` feeds it back so the post-compaction session resumes with its bearings instead of a lossy summary.
+The pattern: `PreCompact` snapshots what compaction might blur (the open task, key decisions, file paths in flight) to disk; `PostCompact` feeds it back. (Use an absolute path — `$CLAUDE_PROJECT_DIR/…` above — since hooks run in a minimal shell, per [Appendix C](/chapters/appendix-c-extension-reference).) so the post-compaction session resumes with its bearings instead of a lossy summary.
 
 ### Two-phase mechanics
 
