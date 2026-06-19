@@ -36,7 +36,7 @@ Every chapter MDX file uses this frontmatter shape:
 title: <Chapter title>
 chapter: <numeric, e.g. 5>
 part: <numeric: 1=Foundations, 2=Personal Practice, 3=Scaling & Craft, 4=Team & Enterprise>
-volatility: stable-principle | evolving | fast-moving
+volatility: stable-principle | architectural-pattern | feature-surface
 last_updated: YYYY-MM-DD
 introduced_in_version: <semver string, e.g. "1.0.0">
 cert_domains: [<int subset of 1..5>]   # which cert domains this chapter touches
@@ -44,7 +44,7 @@ tools_compared: [claude-code]           # tools schema field
 description: <one-line meta description for SEO/social>
 ```
 
-`volatility` drives the staleness banner: `fast-moving` + `last_updated > 90d` → banner renders. Chapter 15 (Enterprise Deployment) is the canonical `fast-moving` example because of pricing/cert/auth changes.
+`volatility` drives the staleness banner: the scaffold (`src/lib/freshness.ts`) maps each class to a freshness threshold against `last_verified` — `feature-surface` = 90 days (shortest), `architectural-pattern` = 180, `stable-principle` = 365. `feature-surface` **is** the "fast-moving" tier (the enum has no `fast-moving` or `evolving` value — those names are retired). Chapter 16 (Enterprise Deployment) is the canonical `feature-surface` example, because of pricing/cert/auth changes.
 
 ## Cert-domain mapping
 
