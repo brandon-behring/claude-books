@@ -1,0 +1,365 @@
+---
+title: Agents & Parallel Work
+chapter: 10
+part: 3
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 2, 3]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - claude-code-overview
+  - anthropic-claude-code-best-practices
+  - anthropic-claude-code-common-workflows
+  - anthropic-claude-code-sub-agents
+description: Subagents as isolated context workers, the delegation decision, designing verifiable agent tasks and parallelism economics, git worktrees for parallel file work, the Writer/Reviewer pattern, and the /batch skill — using subagents as a developer, not architecting a multi-agent system.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–7: the agent loop, context as currency (Ch 5), and the testing/verification discipline (Ch 7) that makes an agent's output checkable. This chapter spends a second context to buy speed and perspective.">
+- **Subagents** as isolated context workers — the Task tool, the frontmatter keys (`tools`, `isolation`, `memory`, `background`, `skills`, `mcpServers`), the built-in types, and how to continue one
+- **When to delegate** (independent / context-heavy / parallelizable / fresh-perspective) versus when to just do it yourself
+- How to design a **verifiable, bounded, self-contained** agent task — and the parallelism economics that say *2–4 agents on 5–15-minute tasks*, no more
+- **Git worktrees** for parallel file modifications, the **Writer/Reviewer** pattern, and the **`/batch`** skill for large-scale changes
+</YouWillLearn>
+
+_A code review needs four perspectives: correctness, security, performance, and style. Run them sequentially and it takes twenty minutes; run them in parallel and it takes five. But the win is not only speed. A reviewer who cannot see the writer's reasoning catches different bugs. This chapter is about delegating to subagents as a developer — when it pays, how to task them well, and how to keep parallel work from colliding. The orchestration **layer** that coordinates many agents at scale is its own chapter._
+
+{/* Tip numbers 37–39 are provisional. Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+## Subagents: isolated context workers
+
+A **subagent** is a purpose-built Claude instance that runs in its own context, isolated from your main session.<Citation src="claude-code-overview" /> It receives a task, executes it with its own tool set, and returns a result to the parent — the parent's context never fills with the subagent's file reads and dead ends. That isolation is the whole point: a subagent that explores ten files and reports two findings costs you two findings of context, not ten files'.
+
+You define a custom subagent as a Markdown file under `.claude/agents/`, with frontmatter on top and a system prompt below.
+
+```markdown
+# .claude/agents/data-quality-reviewer.md
+---
+name: data-quality-reviewer
+description: Review a data pipeline for quality issues
+tools: [Read, Grep, Glob]
+---
+You are a data quality specialist. Review the provided
+pipeline code for:
+1. Schema violations and type mismatches
+2. Null handling (silent drops vs. explicit imputation)
+3. Distribution drift between train and serve
+4. Data leakage between train and test splits
+Report findings with severity ratings (Critical/High/Medium/Low).
+```
+
+Note the frontmatter key is `tools` — **not** `allowed-tools`. Skills use `allowed-tools` (hyphenated); subagents use `tools` (no hyphen). The two surfaces follow different specification standards, and the inconsistency is deliberate, not a typo.<Citation src="claude-code-overview" />
+
+<MarginNote variant="note" label="Note">
+  **Subagent** here means one isolated worker with its own context. An **agent team** — a collaborative group that shares a task list and messages each other — is a different surface, covered in Ch 11.
+</MarginNote>
+
+### The frontmatter keys
+
+| Key | Purpose |
+|---|---|
+| `name` | Display name — lowercase, hyphens. |
+| `description` | What the agent does; used for auto-dispatch. |
+| `tools` | Tools the agent may use (note: *not* `allowed-tools`). |
+| `model` | Override the model (`sonnet`, `opus`, `haiku`). |
+| `isolation` | Set to `worktree` for an isolated file system (see below). |
+| `memory` | Persistent memory scope: `user`, `project`, or `local`. |
+| `background` | Run in the background; the parent is notified on completion. |
+| `skills` | Skills available to the subagent. |
+| `mcpServers` | MCP servers the subagent can access. |
+
+Manage these configurations interactively with the `/agents` command.<Citation src="claude-code-overview" />
+
+### Built-in subagent types
+
+You do not always need a custom definition. Claude Code ships several built-in subagent types you can invoke through the **Task tool** directly:
+
+- **Explore** — fast codebase exploration: find files, search code, answer "where is X?"
+- **Plan** — read-only analysis for implementation planning.
+- **General-purpose** — a multi-tool agent for complex, open-ended tasks.
+
+In practice you rarely type "use the Explore subagent." You say *"find every place we parse the auth token"* and Claude dispatches an Explore agent; the result returns as a summary, not as ten files in your context.
+
+### Continuing a subagent's work
+
+Each new invocation of the Task tool starts a **fresh** subagent with no memory of a previous one. Resuming one with its context intact — asking Claude to *"continue the review agent"* — is possible, with two caveats: the built-in **Explore and Plan agents are one-shot** (they return no agent ID, so they can't be resumed — use `general-purpose` or a custom subagent when you need to continue), and the underlying resume mechanism (the `SendMessage` tool) is currently **available only when agent teams are enabled** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`).<Citation src="anthropic-claude-code-sub-agents" /> Outside that, treat each new invocation as a fresh start.
+
+<Tip n="37" title="A subagent buys you context isolation — spend it on heavy exploration.">
+The value of a subagent is that its file reads, searches, and dead ends never touch your main session. Delegate the work that would otherwise bloat your context; keep the work that needs your context in your context.
+</Tip>
+
+<Exercise id="ch10-ex-1">
+You ask Claude to review a module and it spawns a subagent that reads twenty files and returns a four-line summary. Your main session's context is barely touched. Explain — in terms of the agent loop and finite context from Chapter 1 — why that is the entire point of a subagent, and what you would have paid for the same review done inline.
+</Exercise>
+
+## When to delegate
+
+Delegation is not free — every subagent spends its own context tokens — so the decision is real. The test is about *dependency* and *size*, not difficulty.
+
+**Delegate when:**
+
+- The task is **independent** of your current work — it does not need what you are holding in your session.
+- It requires **heavy context** that would otherwise pollute your main session (a wide codebase sweep, a long log).
+- Multiple tasks can run in **parallel** for a wall-clock saving.
+- You want an **unbiased second opinion** — the Writer/Reviewer pattern below.
+
+**Do it directly when:**
+
+- The task takes **under two minutes** — the agent's startup overhead exceeds the saving.
+- It **depends on your session's context** (what you just discussed, the file you just edited).
+- **Sequential reasoning** is required — step B needs step A's result.
+- It is simply **too small** to justify the overhead.
+
+<MarginNote variant="note" label="Cost">
+  Each subagent consumes its own context tokens. Four parallel agents cost roughly 4× the tokens but take only 1× the wall-clock time. Parallelism trades cost for speed — spend it deliberately.
+</MarginNote>
+
+<Exercise id="ch10-ex-2">
+You have two tasks: (a) "rename `getUser` to `fetchUser` across the repo" and (b) "audit `src/auth/` for missing rate-limit checks." One is a good delegation candidate and one is borderline. Which is which, and what property of each task decides it?
+</Exercise>
+
+## Designing effective agent tasks
+
+Knowing *when* to delegate is necessary but not sufficient. The quality of the delegation determines the quality of the result — and the most common failure is vague tasking.
+
+### The three properties of a good agent task
+
+1. **Self-contained.** The agent must complete the task without coming back to ask the parent for clarification. If it needs context from your session, either pass that context explicitly in the prompt or do the task yourself.
+2. **Verifiable.** The output must be checkable. *"Review this code"* produces opinions; *"run the test suite and report failures with file:line references"* produces verifiable facts. Prefer tasks with concrete success criteria.
+3. **Bounded.** An agent told to find *"everything wrong with this codebase"* will burn its whole context window and return an unfocused report. Constrain the scope: *"review `src/auth/` for SQL-injection vulnerabilities."*
+
+<KeyIdea>
+Specificity in the prompt determines specificity in the output. "Review this PR" yields generic feedback. "Review `src/payments/` for (1) race conditions in concurrent checkout, (2) floating-point precision in amount calculations, (3) missing error handling on gateway timeouts" yields actionable findings. The agent cannot be more precise than your tasking.
+</KeyIdea>
+
+### When parallel execution actually helps
+
+Parallel agents save wall-clock time **only when the tasks are truly independent**. The test is one question per pair:
+
+- Can Agent B start without knowing Agent A's result? → **Parallel.**
+- Does B's work depend on A's output? → **Sequential.** Run A, feed its result to B.
+- Do both agents modify the same files? → **Use worktrees**, or make one read-only.
+
+Parallelism has overhead. Each agent loads its own context, reads files independently, and may duplicate exploration the others are also doing. For tasks under two minutes, that overhead exceeds the saving.
+
+<InsightBox title="The parallelism sweet spot is narrow">
+  The sweet spot is **2–4 agents on tasks that each take 5–15 minutes**. Below ~2 minutes per task, the per-agent startup overhead dominates and sequential is faster. Above 4 agents, coordination cost grows and quality degrades — not because the agents are worse, but because *you* cannot review four-plus reports carefully enough to trust them. The bottleneck moves from compute to your attention.
+</InsightBox>
+
+### Designing agent prompts
+
+1. **State the role**, not just the task. *"You are a security specialist"* focuses attention differently than *"review this code."*
+2. **Specify the output format.** *"Report as: file:line | severity | description"* produces structured, comparable results across agents — essential when you run several and need to merge their findings.
+3. **Tell the agent what to ignore.** *"Do not report style issues — focus only on correctness"* removes the noise that buries real findings.
+4. **Restrict tools to what's needed.** A review agent needs `Read, Grep, Glob` — not `Edit` or `Bash`. Fewer tools mean fewer distractions and a smaller blast radius.
+
+<Tip n="38" title="Make every agent task verifiable and bounded.">
+Give the agent a concrete success criterion and a scope it can finish inside one context window. "Run the tests and report failures" beats "check the code"; "review `src/auth/`" beats "find everything wrong."
+</Tip>
+
+<Exercise id="ch10-ex-3">
+Rewrite this delegation so a subagent could execute it without coming back to ask anything, produce a checkable result, and stay inside one context window: _"Have a look at the API layer and tell me if there's anything concerning."_ Name which of the three properties each of your edits fixes.
+</Exercise>
+
+## Git worktrees: isolated file systems
+
+Two agents editing the same files will collide. A **git worktree** solves this by giving each agent its own complete, isolated copy of the repository — its own working tree on its own branch, sharing the underlying git objects.<Citation src="anthropic-claude-code-common-workflows" />
+
+You can manage worktrees by hand, or let Claude manage their lifecycle for you:
+
+<BeforeAfter title="Manual worktree management vs. the --worktree flag">
+<div slot="before">
+
+```bash
+# Manual: you create the worktree and remember to clean it up
+git worktree add ../feature-cache -b feature-cache
+cd ../feature-cache && claude
+# ... work ...
+cd - && git worktree remove ../feature-cache
+```
+
+</div>
+<div slot="after">
+
+```bash
+# Claude manages the worktree lifecycle — pass a name
+# (or omit it for an auto-generated one), then work in that session
+claude --worktree feature-cache
+claude --worktree rate-limiting
+```
+
+</div>
+</BeforeAfter>
+
+Each worktree gets its own branch and a complete isolated copy of the repo. Cleanup is automatic: if no changes were made, the worktree is removed silently; if changes exist, you are prompted to merge or discard.
+
+A subagent can run in its own worktree too, via the `isolation` frontmatter key:
+
+```markdown
+# .claude/agents/parallel-reviewer.md
+---
+name: parallel-reviewer
+tools: [Read, Grep, Glob]
+isolation: worktree
+---
+Review the code for correctness and edge cases.
+Report findings with file:line references.
+```
+
+With `isolation: worktree` set, the subagent operates on its own copy of the repository — essential for any agent that *modifies* files, since two agents editing the same file without isolation will conflict.<Citation src="claude-code-overview" />
+
+<MarginNote variant="warning" label="Warning">
+  Add `.claude/worktrees/` to `.gitignore` — Claude stores worktree metadata there and it should not be committed. If orphaned worktrees pile up after a crash, run `git worktree prune` to clear the stale entries.
+</MarginNote>
+
+<MarginNote variant="note" label="Cost">
+  Worktrees trade disk for isolation. They share git objects but duplicate the working tree, so a 500 MB repo spawning four worktrees may use ~1 GB extra. `git worktree prune` reclaims stale ones.
+</MarginNote>
+
+<Tip n="39" title="Isolate file-modifying agents in worktrees; leave read-only agents shared.">
+If two agents will write, give each a worktree (`--worktree`, or `isolation: worktree`). If they only read — reviewers, explorers — they can safely share the tree. Match isolation to whether the agent has a writing tool at all.
+</Tip>
+
+## The Writer/Reviewer pattern
+
+Use **separate sessions** to defeat confirmation bias.<Citation src="anthropic-claude-code-best-practices" />
+
+1. **Writer session** — makes changes against the requirements.
+2. **Reviewer session** — reviews the *diff* with no knowledge of intent: *"Review this diff for bugs, regressions, and missed edge cases. You have no context about why these changes were made."*
+
+This catches errors the writer is blind to precisely because the writer has accumulated context about the "correct" approach — and that context is exactly what makes it stop questioning its own work. The reviewer, starting cold, has no such commitment.
+
+You can extend the same idea to multi-perspective review by running several reviewer subagents in parallel, each with one lens:
+
+1. **Correctness** — "Does this logic do what it claims?"
+2. **Data quality** — "Schema violations? Null patterns? Drift?"
+3. **Statistical validity** — "Are the assumptions met? Distributions stable?"
+4. **Reproducibility** — "Seeds set? Configs versioned? Results deterministic?"
+
+Run four in parallel and it costs the same wall-clock time as one — and you get four independent reads instead of one writer's self-assessment. Think *together* first (Chapter 6), then *separate* for independent review.
+
+<KeyIdea>
+Parallelism in Claude Code is not about speed alone — it is about **perspective isolation**. A reviewer that cannot see the writer's reasoning catches different bugs; a security agent that sees only the code, not the intent, finds different vulnerabilities. The diversity of independent perspectives is the value, with the time saving as a bonus.
+</KeyIdea>
+
+## The /batch skill: parallel codebase changes
+
+`/batch` is a bundled skill (not a built-in command) that orchestrates a large-scale change across a codebase in parallel.<Citation src="claude-code-overview" /> It researches the codebase, decomposes the work into **5–30 independent units**, presents a plan for your approval, then spawns **one background agent per unit in its own git worktree**. Each agent implements its unit, runs the tests, and opens a pull request.
+
+```text
+/batch migrate src/ from class components to hooks
+/batch add type hints to all Python files in lib/
+/batch update all API endpoints to return JSON:API format
+```
+
+The plan-review step is your checkpoint: test on two or three units before approving a twenty-unit run, because a twenty-unit batch costs roughly twenty times a single session.
+
+When to reach for `/batch` versus a fan-out script (Chapter 13's `for f in …; claude -p …` loop):
+
+| | `/batch` | Fan-out script |
+|---|---|---|
+| **Who decomposes** | Claude researches and splits the work | You define the units up front |
+| **Best for** | Complex changes where decomposition needs understanding the codebase | Simple, repetitive changes where you already know the file list |
+| **Output** | one PR per unit, each in its own worktree | whatever your script does per file |
+
+<MarginNote variant="note" label="Cost">
+  `/batch` spawns N agents × per-agent context — a 20-unit batch costs ~20× a single session. The initial plan review is your one chance to scope it down before the spend.
+</MarginNote>
+
+## Where the orchestration layer lives
+
+This chapter is deliberately about subagents as a developer uses them: delegate, isolate, review, batch. The moment you need agents to *coordinate* — share a live task list, message each other mid-task, or be dispatched and monitored from a single control surface — you have crossed into orchestration.
+
+_The orchestration surface — Agent View, `/goal`, `/workflows`, nested subagents, and Agent Teams — is its own chapter: [Ch 11 Orchestration](/chapters/ch11-orchestration)._
+
+And designing multi-agent *systems* programmatically — the Agent SDK, `fork_session`, `AgentDefinition`-style orchestration — is an architecture concern rather than a usage one; the Architect's Reference covers it. This chapter stays on "use subagents as a developer," not "architect a system."
+
+## Where this goes next
+
+- **Chapter 6 — Thinking Together** — [think together first](/chapters/ch06-thinking-together), then separate for independent Writer/Reviewer review; the collaboration that precedes delegation.
+- **Chapter 7 — Testing & Verification** — [the verification discipline](/chapters/ch07-testing-verification) that makes an agent's output *checkable*; "run the tests and report failures" is only useful because the tests exist.
+- **Chapter 5 — Context as Currency** — [why isolation matters](/chapters/ch05-context-as-currency): a subagent spends a *separate* budget so your main session's stays clean.
+- **Chapter 12 — Project Lifecycle** — [parallel refactoring](/chapters/ch12-project-lifecycle): worktrees let you refactor independent modules at the same time.
+- **Chapter 13 — Headless & Automation** — [the fan-out pattern](/chapters/ch13-headless-automation): the scripted counterpart to `/batch` when you already know the unit list.
+- **Chapter 11 — Orchestration** — [Agent View, `/goal`, `/workflows`, nested subagents, and Agent Teams](/chapters/ch11-orchestration): coordinating agents at scale.
+
+## Common pitfalls
+
+<Pitfall title="Vague tasking">
+"Review this PR" produces generic feedback because the agent cannot be more specific than your prompt. State the role, scope the target, list what to look for, and say what to ignore. Specificity in equals specificity out.
+</Pitfall>
+
+<Pitfall title="Parallelizing dependent work">
+If Agent B needs Agent A's output, running them in parallel just means B works from stale or missing information. Apply the test — *can B start without A's result?* — before you fan out. Dependent steps run sequentially, full stop.
+</Pitfall>
+
+<Pitfall title="Unisolated file modifications">
+Two agents editing the same files without worktrees will overwrite each other and leave a corrupted, half-merged tree. Any agent with a writing tool that runs alongside another writer needs `isolation: worktree` (or `--worktree`); read-only agents can share.
+</Pitfall>
+
+<Pitfall title="Over-fanning out">
+More than four parallel agents rarely helps: coordination overhead climbs and you cannot review every report carefully, so you end up trusting output you did not actually verify. Stay in the 2–4 / 5–15-minute band; the limit is your attention, not the compute.
+</Pitfall>
+
+<Pitfall title="Expecting a re-invoked agent to remember">
+A new Task invocation starts a fresh agent with no memory of the last one. Resuming with accumulated context works only where it's supported — agent teams enabled, and not the one-shot Explore/Plan agents. Where it isn't, don't assume "run the review agent again" continues the prior run; it starts over.
+</Pitfall>
+
+## Quick reference
+
+- **Subagents**: isolated context, independent tool set, return a summary to the parent. Defined in `.claude/agents/*.md`; managed with `/agents`.
+- **Frontmatter keys**: `tools` (note: *not* `allowed-tools` — skills use the hyphenated form), `model`, `isolation`, `memory`, `background`, `skills`, `mcpServers`.
+- **Built-in types** via the Task tool: **Explore**, **Plan**, **Bash**, **General-purpose**.
+- **Resuming** a subagent keeps its context (Explore/Plan are one-shot; resume needs agent teams enabled) — otherwise a new invocation starts fresh.
+- **Delegate when**: independent, context-heavy, parallelizable, needs a fresh perspective. **Do directly when**: under two minutes, context-dependent, sequential, or trivial.
+- **Good agent task**: self-contained, verifiable, bounded.
+- **Parallelism sweet spot**: 2–4 agents, 5–15-minute tasks. Under ~2 min, overhead dominates; over 4, coordination + review attention degrade.
+- **Worktrees**: isolated file systems for parallel writes — `claude --worktree "…"` or `isolation: worktree`. Gitignore `.claude/worktrees/`; `git worktree prune` cleans stale entries.
+- **Writer/Reviewer**: separate sessions defeat confirmation bias; extend to multi-perspective reviewers in parallel.
+- **`/batch`**: Claude decomposes into 5–30 units, one background agent per unit in its own worktree, each opens a PR. Use the plan review as your scope-down checkpoint.
+
+## Practice
+
+<Practice id="ch10-pr-1" difficulty="2">
+Take one review task you currently do inline that takes more than ten minutes. Split it into a **2-agent parallel** design — for example a data-quality agent (schema, nulls, distributions) and a statistical-validity agent (leakage, assumptions, reproducibility). First answer the gating question: are the two tasks *truly independent*, or does one need the other's output? If they are independent, write the `.claude/agents/*.md` definition file for one of them — frontmatter (restricted `tools`) plus a system prompt that states the role, the scope, the output format, and what to ignore.
+</Practice>
+
+<Practice id="ch10-pr-2" difficulty="3">
+Run the Writer/Reviewer pattern on a real change. In one session, have Claude make a small change against a written requirement. In a **fresh** session, paste only the diff and ask it to review for bugs, regressions, and missed edge cases with *no* knowledge of intent. Compare what the cold reviewer flags against what the writer was confident about. Write two or three sentences on whether the separation surfaced anything the writer's accumulated context had stopped it from questioning.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch10-ex-1">
+In the agent loop, every file the model reads becomes part of the context window it reasons over for the rest of the session, and that window is finite (Chapter 1). Done inline, a twenty-file review would load twenty files' worth of tokens into *your* session and they would stay there — crowding out the work you actually care about and pushing you toward compaction. A subagent runs the same loop in a *separate* finite window: it reads the twenty files into its own context, reasons, and returns only the four-line summary. You pay four lines of context for a twenty-file review. That trade — pay for the conclusion, not the exploration — is the entire reason subagents exist.
+</Solution>
+
+<Solution for="ch10-ex-2">
+(a) the rename is the *borderline* case and (b) the auth audit is the *good* delegation candidate — and the deciding property is context-heaviness, not difficulty. The rename is mechanical and may touch your current files, so it can be context-dependent and is often fast enough that the agent's startup overhead is not worth it (do it directly, or fan it out only if it spans many files you are *not* touching). The auth audit is independent of whatever you are doing, requires a wide read across `src/auth/` that would bloat your main session, and has a verifiable, bounded output ("missing rate-limit checks, with file:line") — exactly the heavy-context, independent, checkable profile that delegation is for.
+</Solution>
+
+<Solution for="ch10-ex-3">
+A rewrite such as: _"You are an API-security reviewer. Review `src/api/` (only that directory) for missing authentication checks, unvalidated request bodies, and unhandled error paths. Report findings as `file:line | severity | description`. Do not report style or formatting issues. Use only Read, Grep, and Glob."_ — Naming the directory and the three specific concerns makes it **bounded** (it fits one context window instead of "the API layer" sprawling everywhere). The fixed report format and the concrete list of what to look for make it **verifiable** (you can check each finding against a line). Stating the role, the format, and what to ignore — plus restricting the tools — makes it **self-contained**: the agent has everything it needs and never has to come back to ask what you meant by "concerning."
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={10} />

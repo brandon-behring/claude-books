@@ -1,0 +1,469 @@
+---
+title: Extending Claude
+chapter: 8
+part: 2
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 2, 3]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - anthropic-claude-code-skills
+  - anthropic-claude-code-hooks
+  - anthropic-claude-code-mcp
+  - anthropic-claude-code-plugins
+  - anthropic-claude-code-vs-code
+  - anthropic-claude-code-jetbrains
+  - anthropic-claude-code-sandboxing
+  - anthropic-claude-code-best-practices
+description: The extension decision framework — command → skill → hook → MCP, escalating capability and setup cost — plus custom slash commands, skill frontmatter and forked context, the hook lifecycle, consuming MCP servers, plugins, IDE integrations, and CLI tools. Which extension to reach for, and how to consume one.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapters 1–7: the agent loop, a configured CLAUDE.md, permissions, and the verification loop. This chapter is about wiring repeated work into the tool itself.">
+- The **extension decision framework** — command → skill → hook → MCP, escalating capability _and_ setup cost — and the promotion path that grows one into the next
+- **Custom slash commands** (Markdown prompt templates), **skills** (frontmatter, precedence, forked context), and the **hook** lifecycle at a glance
+- How to **consume** an external **MCP server** safely — and the context-cost threshold that makes you choose CLI over MCP
+- Where **plugins**, **IDE integrations**, **sandboxing**, and **CLI tools** fit, and the boundary where designing your own extension becomes an Architect's-Reference problem
+</YouWillLearn>
+
+_You keep running the same four commands by hand — format, lint, test, commit. You re-explain the same deployment procedure every session. There must be a way to encode these workflows so Claude runs them without being told each time. Claude Code ships four extension mechanisms — commands, skills, hooks, and MCP servers — that form a ladder of increasing autonomy. Knowing **which rung to reach for** is the difference between a tool and a workflow, and it is the lever this chapter is built around._
+
+{/* Tip numbers 34–36 are provisional (Part I used 1–8; Ch 6 used 9–11; ch12 used 12–14). Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
+
+## Choosing the right mechanism
+
+Before the mechanics of any one extension, answer the strategic question: _given a workflow problem, which extension do you reach for?_ Getting this wrong costs more than the implementation — it costs ongoing maintenance on the wrong abstraction.
+
+The four mechanisms form a ladder. Each rung adds capability **and** setup cost; the simplest rung that solves the problem is the right one.
+
+<KeyIdea>
+**The extension ladder — climb only as far as the problem forces you.**
+
+1. **Command** — a Markdown file that expands into a prompt. Zero infrastructure. _Reach for it when:_ the workflow is a single prompt that needs a shortcut (`/check`, `/deploy`).
+2. **Skill** — a prompt-driven playbook Claude executes with tool access; can read files, branch, spawn subagents. _Reach for it when:_ the work is multi-step or needs domain knowledge and Claude must _decide_ what to do next (code review, release checklist).
+3. **Hook** — deterministic automation on a lifecycle event. Claude does not decide whether it runs — the harness does. _Reach for it when:_ something must happen **every time, without exception** (auto-format, lint-on-edit, security scan on commit).
+4. **MCP server** — structured access to an external service with schema-defined inputs and outputs. _Reach for it when:_ Claude must talk to a database, an API, or an internal tool with typed I/O (Jira, Postgres, Slack).
+
+Read the axis as: **capability increases as you climb; so does setup and maintenance cost.** Start at the bottom; promote only when you hit a rung's limit.
+</KeyIdea>
+
+<MarginNote variant="tip" label="Tip">
+  Start with the simplest mechanism. Promote only when you hit its limits — never the other way round.
+</MarginNote>
+
+### Common mistakes
+
+The four classic misfires all spend effort one rung too high (or one too low):
+
+1. **Building a skill when a command suffices.** If the workflow is a fixed sequence with no branching, a command is simpler to maintain. Skills earn their complexity only when Claude needs to _decide_ what to do next.
+2. **Using a skill when a hook is needed.** Skills are _advisory_ — Claude can ignore or adapt them. If the behavior must be _enforced_ (security scan, formatting), use a hook. Hooks run whether or not Claude remembers to invoke them.
+3. **Reaching for MCP when a CLI exists.** Claude already knows `gh`, `aws`, `gcloud`, `psql`. MCP is for services without a good CLI, or when you need structured I/O schemas.<Citation src="anthropic-claude-code-best-practices" />
+4. **Encoding team standards in skills instead of hooks.** "Every PR must pass linting" belongs in a `PreToolUse` hook matching `Bash` (with an `if: "Bash(git commit*)"` condition so it fires only on commits — a hook matcher targets the tool name, and command-level filtering goes in the handler's `if` field), not a skill someone might forget to invoke.
+
+### The promotion path
+
+Extensions evolve naturally — and the right move is usually to let them, not to skip ahead:
+
+1. You type the same prompt three times → extract it into a **command**.
+2. The command needs conditional logic ("if tests fail, do X") → promote it to a **skill**.
+3. The skill must run on _every_ commit, not just when invoked → extract the enforcement part into a **hook**.
+4. The hook needs data from an external service → add an **MCP server** and call it from the hook.
+
+<InsightBox title="The real failure mode is skipping the command stage">
+  Choosing the _wrong_ rung is rarely the problem. The common failure is jumping straight to a complex skill or MCP server when a three-line command file would have solved it for now. Most workflows that end up as elaborate skills started life as a prompt someone typed repeatedly. If you find yourself building a skill on day one, pause: would a command do for now? A command handles the large majority of workflow needs; add skills, hooks, and MCP only when the simpler rung is genuinely insufficient.
+</InsightBox>
+
+<Tip n="34" title="Climb the extension ladder; don't leap it.">
+Reach for the lightest mechanism that solves the problem — command before skill, skill before hook, hook before MCP. Each rung up buys capability at the price of maintenance; only step up when the rung below can't express what you need.
+</Tip>
+
+<Exercise id="ch08-ex-1">
+Your team agrees that "every commit must pass the linter." A teammate proposes a `/lint-check` skill that Claude runs before committing. Why is a skill the wrong mechanism here, and which rung is correct?
+</Exercise>
+
+## Custom slash commands
+
+Commands are the lightest rung: Markdown files that expand into a prompt when invoked.<Citation src="anthropic-claude-code-skills" /> Place them in `~/.claude/commands/` (global) or `.claude/commands/` (project), and invoke as `/command-name`. They accept arguments via `$ARGUMENTS` and reference files with `@path`.
+
+```markdown
+# .claude/commands/check.md
+Run a comprehensive check of the project:
+1. Run the test suite: `pytest tests/`
+2. Run the linter: `ruff check src/`
+3. Run the type checker: `mypy src/`
+4. Report results as a summary table
+```
+
+The best commands aren't shortcuts — they encode _decisions_. Instead of a command that runs a test, write one that decides _what to do next_ based on project state:
+
+```markdown
+# .claude/commands/next.md
+Check the current project state:
+1. Read CURRENT_WORK.md for context
+2. Run `git status` and `git diff --stat`
+3. Check for failing tests
+4. Recommend the single highest-priority next action
+```
+
+<MarginNote variant="note" label="Official">
+  Custom slash commands have been merged into skills: both <code>.claude/commands/</code> and <code>.claude/skills/</code> work, and skills take precedence if names conflict.
+</MarginNote>
+
+## Skills: domain knowledge and workflows
+
+Skills combine domain knowledge with executable workflows.<Citation src="anthropic-claude-code-skills" /> Each skill lives in its own directory as a `SKILL.md` file. Unlike commands (prompt templates), a skill can be applied automatically when Claude detects a relevant context, define multi-step procedures with validation gates, restrict tools via `allowed-tools`, run shell commands before its content reaches Claude, and spawn a forked subagent context.
+
+### File structure and precedence
+
+```text
+.claude/skills/qa-health/SKILL.md      # Project skill
+~/.claude/skills/deploy-check/SKILL.md # Personal (all projects)
+```
+
+Precedence runs **enterprise (managed settings) > personal > project**. Plugin skills use a namespaced form: `plugin-name:skill-name`.
+
+### Frontmatter reference
+
+All keys are optional; `name` defaults to the directory name.
+
+| Key | Purpose |
+|---|---|
+| `name` | Display name and `/slash-command`. Lowercase, hyphens, ≤64 chars. |
+| `description` | What the skill does. Claude reads this to decide when to auto-apply. |
+| `allowed-tools` | Tools permitted without prompting while the skill is active. **Hyphenated.** |
+| `argument-hint` | Autocomplete hint, e.g. `[issue-number]`. |
+| `model` | Override model while active (`sonnet`, `opus`, `haiku`). |
+| `context` | Set to `fork` to run in a forked subagent context. |
+| `agent` | Which subagent type to use when `context: fork` is set. |
+| `hooks` | Lifecycle hooks scoped to this skill's execution. |
+| `user-invocable` | Set `false` to hide from the `/` menu. Default `true`. |
+| `disable-model-invocation` | Set `true` to prevent Claude auto-loading. Default `false`. |
+
+### A basic skill
+
+```yaml
+---
+name: qa-health
+description: Run quality dashboard across all volumes
+allowed-tools: [Bash, Read, Glob]
+---
+# QA Health Check
+1. Run `python scripts/audits/health_dashboard.py`
+2. Parse output for RED/YELLOW/GREEN status
+3. Report findings with actionable recommendations
+4. If any RED items, create a TODO list for fixes
+```
+
+A skill can also execute shell commands _before_ its content reaches Claude, injecting live project state into the prompt — the `` !`command` `` syntax runs at skill-load time:<Citation src="anthropic-claude-code-skills" />
+
+```yaml
+---
+name: review-changes
+description: Review recent changes with full context
+allowed-tools: [Bash, Read, Grep]
+---
+# Review Changes
+Current branch status:
+!`git status --short`
+
+Review the changes above for logic errors, missing tests,
+and style violations per our CLAUDE.md.
+```
+
+Including the word "ultrathink" anywhere in a skill's content enables extended thinking for that skill's run.
+
+### Forked context: skill as subagent
+
+For skills that need isolation — long-running analysis, exploratory research, or work that shouldn't pollute your main context — set `context: fork`. The forked context runs as a subagent: it gets its own context window, doesn't consume your main session's context, and returns only a summary when done. This is the bridge between skills and subagents (the parallel-work patterns live in [**Chapter 10 — Agents & Parallel Work**](/chapters/ch10-agents-parallel)).
+
+```yaml
+---
+name: deep-audit
+description: Run thorough code audit in isolated context
+context: fork
+agent: general-purpose
+model: opus
+allowed-tools: [Read, Grep, Glob, Bash]
+---
+# Deep Audit
+Analyze the entire codebase for security vulnerabilities,
+performance bottlenecks, and dead code. Report findings with
+file:line references and severity.
+```
+
+### Budget and permissions
+
+Skill descriptions share a budget that scales at about 1% of the context window (raise it with the `skillListingBudgetFraction` setting); run `/doctor` to see whether any skill descriptions are being shortened or dropped.<Citation src="anthropic-claude-code-skills" /> Permission rules can target skills specifically:
+
+```json
+{
+  "permissions": {
+    "allow": ["Skill(qa-health)"],
+    "deny": ["Skill(deploy *)"]
+  }
+}
+```
+
+`Skill(name)` matches exactly; `Skill(name *)` matches a prefix with any arguments; bare `Skill` denies all skill usage.
+
+<Tip n="35" title="Measure a skill's value by frequency × savings.">
+A skill that saves 5 minutes per use and runs 3 times a week saves ~13 hours a year. If a candidate skill doesn't clear that bar, a command probably suffices.
+</Tip>
+
+<Exercise id="ch08-ex-2">
+You want Claude to run an exhaustive security audit of a large codebase — the kind of task that fills a context window with file reads. Which two skill frontmatter keys keep that audit from crowding out your main session, and what does each do?
+</Exercise>
+
+## Hooks: deterministic automation at a glance
+
+Hooks are the **enforcement layer**. Unlike `CLAUDE.md` instructions (which are advisory), hooks _always execute_ — Claude doesn't choose whether to run one; the harness fires it on a lifecycle event. Configure them via `/hooks` or in `settings.json`.<Citation src="anthropic-claude-code-hooks" />
+
+### Handler types
+
+A hook event triggers one of five handler types. (Not all events support all five — some are command-only.) Default timeouts: 10 minutes (600s) for `command`, `http`, and `mcp_tool`; 30 seconds for `prompt`; 60 seconds for `agent`.<Citation src="anthropic-claude-code-hooks" />
+
+- **`command`** — a shell script; receives JSON on stdin, returns JSON on stdout. The original and most common type.
+- **`http`** — POSTs JSON to a URL. Best for webhooks, external notifications, CI triggers.
+- **`mcp_tool`** — calls a tool on an already-connected MCP server.
+- **`prompt`** — a single-turn LLM evaluation returning yes/no. Best for policy checks that need judgment, not just pattern matching.
+- **`agent`** — a multi-turn subagent with full tool access. Best for complex validation that reads files, runs commands, or reasons across steps.
+
+### The high-traffic events
+
+Claude Code exposes about **29 lifecycle hook events** as of June 2026 (this is the Claude Code `settings.json` surface — the Agent SDK's hook surface is a separate, smaller set; don't conflate them).<Citation src="anthropic-claude-code-hooks" /> Day to day, a handful carry almost all the traffic:
+
+| Event | Fires when | Typical use |
+|---|---|---|
+| `SessionStart` | a session begins or resumes | load context, run a health check |
+| `UserPromptSubmit` | the user submits a prompt | transform or validate input |
+| `PreToolUse` | before a tool call runs | validate inputs, block operations |
+| `PostToolUse` | after a tool call succeeds | auto-lint, log, trigger follow-up |
+| `Stop` | Claude finishes responding | run cleanup |
+| `PreCompact` | before context compaction | save state |
+| `SessionEnd` | a session ends | persist state, update logs |
+
+For the full enumeration — all ~29 events, their matcher values, and which handler types each supports — see _Appendix C → the full hook-event reference (forthcoming)_.
+
+### Notification hooks
+
+The `Notification` event fires when Claude needs human attention — ideal for a desktop alert during a long unattended run:
+
+```json
+{
+  "hooks": {
+    "Notification": [{
+      "hooks": [{
+        "type": "command",
+        "command": "notify-send 'Claude Code' 'Needs attention'"
+      }]
+    }]
+  }
+}
+```
+
+On macOS, swap `notify-send` for `osascript -e 'display notification "…"'`; on WSL, use `powershell.exe` toast notifications.
+
+<MarginNote variant="warning" label="Warning">
+  Hooks fail silently by default. When one misbehaves, the usual cause is environment: hook commands run in a minimal shell, so a script that works in your terminal can fail on `PATH`. Use absolute paths, and add `>> /tmp/hook-debug.log 2>&1` while debugging. Then check it loaded with <code>/hooks</code>.
+</MarginNote>
+
+<Tip n="36" title="Non-negotiable → hook; advisory → CLAUDE.md.">
+If a standard must hold every time regardless of what Claude is doing, make it a hook. If it's guidance Claude can reasonably adapt, put it in `CLAUDE.md`. Mismatching the two is the root of most "it didn't enforce my rule" surprises.
+</Tip>
+
+## MCP: consuming external services
+
+The Model Context Protocol connects Claude to external services, databases, APIs, and custom tools through a standard protocol.<Citation src="anthropic-claude-code-mcp" /> This chapter is about **consuming** a server, not designing one. Adding a server is one command:
+
+<BeforeAfter title="Raw API calls vs. a consumed MCP server">
+<div slot="before">
+
+```bash
+# Manual: raw API calls to GitHub
+curl -H "Authorization: token $GH_TOKEN" \
+  https://api.github.com/repos/org/repo/issues
+# Parse JSON, extract what you need, paste into Claude
+```
+
+</div>
+<div slot="after">
+
+```bash
+# One command. Remote servers (the common case for hosted
+# services like GitHub) use HTTP + an auth header; browse
+# reviewed ones in the Anthropic Directory (claude.ai/directory):
+claude mcp add --transport http <name> <url> \
+  --header "Authorization: Bearer $TOKEN"
+claude mcp list          # Shows the server + transport
+# A local tool instead runs as a process over stdio:
+#   claude mcp add --transport stdio <name> -- npx <server>
+```
+
+</div>
+</BeforeAfter>
+
+A consumed server provides **tools** (functions Claude can call), **resources** (data Claude can reference with an `@server` mention), and prompts. Three scopes: **local** (the default — current project only, stored in `~/.claude.json`), **project** (`.mcp.json`, committed for the team), and **user** (all your projects, also in `~/.claude.json`).
+
+Transport depends on the server: **remote** servers (the common case for hosted services) use **HTTP** — the recommended transport — and authenticate with an OAuth flow or a bearer token sent to the remote endpoint; **local** tools run as a process over **stdio**, where credentials stay on your machine. Either way, permission rules scope MCP tools with wildcards:
+
+```json
+{
+  "permissions": {
+    "allow": ["mcp__github__*"],
+    "deny": ["mcp__github__delete_*"]
+  }
+}
+```
+
+<KeyIdea>
+**Tool Search keeps MCP context-cheap — but a CLI is still cheaper.** By default, Claude Code uses MCP Tool Search: instead of loading every connected server's tool schemas up front, it fetches them on demand when a request needs them, so a server with dozens of tools no longer eats your window just by being connected. Even so, prefer a CLI for well-known services (a `gh` call costs almost no context), and reserve MCP for systems that genuinely need typed, structured access mid-session.
+</KeyIdea>
+
+Before installing any third-party server, run a quick provenance audit: check the README and manifest (a GitHub server shouldn't need filesystem write access), review the permissions it requests via `/permissions` and deny anything beyond its stated purpose, and test it first in a sandboxed session or throwaway worktree. Prefer servers from the official registry; for enterprise policy enforcement, use Managed MCP (covered in [**Chapter 16 — Enterprise Deployment**](/chapters/ch16-enterprise-deployment)).
+
+<Exercise id="ch08-ex-3">
+You need Claude to read issues from GitHub during a session. A teammate suggests installing a GitHub MCP server; you suggest the `gh` CLI. Give the context-cost reason your suggestion is usually the right default — and name the one situation where the MCP server wins.
+</Exercise>
+
+## The worked composition
+
+The framework pays off when a real problem decomposes into the _right_ rungs — not the heaviest ones.
+
+<WorkedExample title="A security-review pass on every PR — walking the framework live">
+
+**The need:** every time a teammate opens a PR, Claude should run a security-review pass and post inline comments on suspicious changes.
+
+**Is it a reusable prompt?** Partly. The instructions ("look for SQL injection, leaked secrets, auth bypass; cite line numbers; suggest fixes") are reusable — but packaging them as `/security-review` relies on a human remembering to run it, and "remember to run the command" is exactly the step people forget. → a command is _part_ of the answer, not all of it.
+
+**Is it a reusable procedure?** Yes: fetch the diff, scan the categories, produce structured findings, format a comment, post. That's a **skill** (`.claude/skills/security-review/SKILL.md`) with the right tool access (`gh` for PR ops, `Read`/`Grep` for the scan).
+
+**Does it need to fire automatically?** Yes — on PR open. But Claude Code hooks fire on _Claude's_ lifecycle events (`PreToolUse`, `Stop`, …), not GitHub's. The automation layer for a GitHub event is a **GitHub Action** that invokes the Claude CLI in headless mode. → a hook is _not_ the right tool here.
+
+**Does it need external data?** Yes — the GitHub API. But the `gh` CLI already covers it. → **no new MCP server.** Consume `gh`.
+
+**Final composition:** a **skill** that uses `gh` and the file-reading tools, invoked by the **CLI** in **headless mode** from a **GitHub Action** on PR open. Three rungs, each doing the lightest job that gets the result — and **zero custom MCP server built.**
+
+<InsightBox title="Why this composition wins">
+  The naive answer — "build an MCP server that integrates Claude with GitHub" — is a multi-week project that duplicates what `gh` already does. The framework answer — skill + CLI + Action — is a one-afternoon project on existing infrastructure. The lever was knowing which rung each _piece_ of the problem actually needs.
+</InsightBox>
+
+</WorkedExample>
+
+## Plugins, IDEs, sandboxing, and CLI tools
+
+The four-rung ladder covers most extension decisions. Four lighter surfaces round it out.
+
+**Plugins** bundle skills, hooks, subagents, and MCP into a single installable unit — the fastest path from "nothing configured" to "productive."<Citation src="anthropic-claude-code-plugins" /> Browse the marketplace with `/plugin`; installed plugins land in `.claude/plugins/`. For typed languages, a **code-intelligence plugin** is worth installing immediately: it replaces text-based `Grep`/`Glob` navigation with precise "go to definition" / "find references" and automatic post-edit type checking — fewer file reads, smaller context, lower cost per message. Check the marketplace before building custom skills.
+
+**IDE integrations** let Claude Code run in VS Code or JetBrains in addition to the terminal; all three share the same engine, `CLAUDE.md`, settings, and hooks.
+
+- **VS Code** — a graphical chat panel, inline diffs with per-hunk accept/reject, `@`-mention file references (`@file.ts#5-10` for line ranges), plan mode as a commentable document, and conversation checkpoints. The extension bundles the CLI — no separate install — and works with Cursor too.<Citation src="anthropic-claude-code-vs-code" />
+- **JetBrains** (IntelliJ, PyCharm, WebStorm, GoLand, and others) is **in beta**, so treat its surface as still settling. It's terminal-based — Claude runs in the IDE's integrated terminal with IDE features layered on (native diff viewer, current selection and open file shared as context, lint/type diagnostics forwarded to Claude) — and, unlike VS Code, it **requires the CLI installed separately**.<Citation src="anthropic-claude-code-jetbrains" />
+
+Teams that standardize on one IDE can commit extension-specific settings; mixed-IDE teams should rely on `CLAUDE.md` and `settings.json`, which behave identically everywhere.
+
+**Sandboxing** (`/sandbox`) gives OS-level isolation that restricts filesystem and network access, letting Claude run commands without per-action prompts because the sandbox prevents access beyond its boundaries — a safer alternative to `--dangerously-skip-permissions`.<Citation src="anthropic-claude-code-sandboxing" />
+
+**CLI tools** are the most context-efficient way to reach an external service.<Citation src="anthropic-claude-code-best-practices" /> Install the CLI for services you use regularly — `gh` (GitHub), `aws`, `gcloud`, `sentry-cli` — and Claude invokes them via `Bash`. For an unfamiliar one: _"Use `tool --help` to learn the tool, then use it to solve X."_ A CLI consumes far less context than the equivalent MCP server, which is why it's the default for well-known services.
+
+<InsightBox title="Where this chapter stops: consume vs. build">
+  This is the **use-side** of extensions — which rung to reach for and how to consume one. The **design-side** lives in the **Architect's Reference**: designing MCP _servers_ (transport, tool schemas, resource models), authoring custom tools, and writing Agent SDK hooks programmatically. If the framework here lands you on "build a new MCP server" or "write a custom SDK hook handler," that volume is your next stop — not deeper into this chapter.
+</InsightBox>
+
+## Where this goes next
+
+- **Chapter 6 — Thinking Together** — [the collaboration-pattern decision](/chapters/ch06-thinking-together) is the same _shape_ of decision as picking an extension: stop at the first rung that fits.
+- **Chapter 7 — Testing & Verification** — [`PostToolUse` hooks are one of its validation layers](/chapters/ch07-testing-verification); this chapter's hook surface plugs into that architecture.
+- **Chapter 9 — Scaling Configuration** — [settings precedence and the permissions model](/chapters/ch09-scaling-configuration) that scope skills, hooks, and MCP tools across user / project / managed scopes.
+- **Chapter 10 — Agents & Parallel Work** — [forked-context skills are the bridge to subagents and parallel delegation](/chapters/ch10-agents-parallel) explored here.
+- **Chapter 12 — Project Lifecycle** — [the greenfield arc](/chapters/ch12-project-lifecycle) reaches for the commands, skills, and hooks introduced in this chapter on a timeline.
+- **Chapter 13 — Headless & Automation** — [the CLI in headless mode](/chapters/ch13-headless-automation) is the invocation layer the worked composition's GitHub Action depends on.
+
+## Common pitfalls
+
+<Pitfall title="Building an MCP server when consuming one would do">
+The most expensive mistake in this chapter. MCP servers feel architecturally satisfying — typed tools, clean boundaries — and the urge to build "ours" over consuming "theirs" is real. Almost every external system worth talking to already has a CLI (`gh`, `aws`, `kubectl`, `psql`) Claude can invoke via `Bash` for a fraction of the cost. Map the existing landscape for a day before committing a week to building.
+</Pitfall>
+
+<Pitfall title="Reaching for hooks before commands or skills">
+Hooks fire automatically and feel like the "real" engineering layer — which makes them the wrong default. A hook that runs `pytest` on every edit looks elegant but slows the loop, fires on irrelevant edits, and becomes an annoyance you eventually disable. Reach for a command first; promote to a skill if it grows branches; escalate to a hook only when _non-execution_ is unacceptable (blocking `rm -rf`, enforcing CI). Hooks are guardrails, not convenience automation.
+</Pitfall>
+
+<Pitfall title="Skipping the command stage entirely">
+The most common failure isn't picking the wrong rung — it's leaping past commands straight to a skill or MCP server on day one. Most elaborate skills began as a prompt typed three times. If you're building a skill before you've felt the pain a command would have absorbed, you're paying maintenance cost you haven't earned yet.
+</Pitfall>
+
+<Pitfall title="Encoding a non-negotiable standard as a skill">
+A skill is advisory — Claude can adapt or skip it, and someone has to invoke it. If "every commit passes the linter" lives in a skill, it holds only when Claude (or the human) remembers. Put enforceable standards in a `PreToolUse` hook; reserve skills for procedures that need judgment.
+</Pitfall>
+
+<Pitfall title="Reaching for MCP when a CLI would do">
+MCP Tool Search defers tool schemas until they're needed, so a connected server is cheaper than it used to be — but a server you barely use still adds a tool surface to search and a connection to manage, where a `gh`/`aws`/`psql` call via `Bash` costs almost nothing. Prefer a CLI when the service has a good one; reserve MCP for typed, structured access you actually need mid-session.
+</Pitfall>
+
+## Quick reference
+
+The decision framework is the lever — not any single extension type. Reach for the lightest rung that does the job, and prefer consuming an existing extension over building one. Teams that always reach for MCP are building too much; teams that stop at commands when they can are winning.
+
+| Mechanism | Reach for when | _Don't_ when | Lives at |
+|---|---|---|---|
+| **Command** | a repeatable prompt; same instructions used >2× | the work branches — use a skill | `.claude/commands/<name>.md` |
+| **Skill** | a multi-step procedure; needs a tool envelope / "how we do X" | a single-step prompt (command) or cross-cutting enforcement (hook) | `.claude/skills/<name>/SKILL.md` |
+| **Hook** | mechanical enforcement; can't trust the model alone | a `CLAUDE.md` instruction would hold | `settings.json` `hooks` |
+| **MCP (consume)** | typed external access mid-session; an existing server covers it | a `Bash` call to a CLI (`gh`, `aws`, `psql`) suffices | `.mcp.json` |
+| **MCP (build)** | every consuming option fails _and_ the integration is durable | almost always — see the Architect's Reference first | — |
+| **Plugin** | packaging several of the above for distribution | single-extension cases — ship the file | `/plugin` → `.claude/plugins/` |
+| **CLI / headless** | automation (CI, cron, GitHub Actions) | interactive work — use the TUI | the `claude` binary |
+| **IDE** | in-editor surfacing your team shares | the team doesn't share an IDE | VS Code / JetBrains (beta) |
+
+- **Promotion path:** prompt typed 3× → command → (needs branching) skill → (must run every time) hook → (needs external data) MCP.
+- **Hooks:** ~29 lifecycle events; five handler types (`command` / `http` / `mcp_tool` / `prompt` / `agent`); enforcement layer — always execute. Full reference: _Appendix C (forthcoming)_.
+- **Skills:** `SKILL.md` per directory; precedence enterprise > personal > project; `context: fork` runs it as an isolated subagent; descriptions cost ~2% of context.
+- **MCP / CLI:** remote servers use HTTP (OAuth/bearer); local tools use stdio. Tool Search defers tool schemas on demand by default — prefer a CLI for well-known services anyway.
+
+## Practice
+
+<Practice id="ch08-pr-1" difficulty="2">
+Pick one task you currently re-prompt Claude for in your own work (something you've typed similar instructions for three or more times). Walk it down the ladder: is it a reusable prompt (draft `.claude/commands/<name>.md`)? Does it branch into a procedure (draft `.claude/skills/<name>/SKILL.md`)? Must it fire on a lifecycle event (sketch a `settings.json` hook)? Commit whichever you produced, and write one sentence on _why_ you stopped at that rung.
+</Practice>
+
+<Practice id="ch08-pr-2" difficulty="3">
+Take a real "fire on a GitHub event" need from your own repo (say, "lint + summarize every PR") and decompose it the way the worked example did: which part is a skill, which is the CLI/headless invocation, which is the GitHub Action, and where would an MCP server be genuinely justified versus over-built? Write the four-rung breakdown and identify the single rung you were _tempted_ to over-build.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch08-ex-1">
+A skill is **advisory** — Claude can adapt or skip it, and a human (or Claude) has to remember to invoke it, so "every commit" isn't actually guaranteed. The standard is non-negotiable, which is the hook's job: a `PreToolUse` hook matching `Bash` (with an `if: "Bash(git commit*)"` condition) runs the linter whether or not anyone remembers, blocking the commit (exit code 2) on failure. The correct rung is a **hook**; the skill is one rung too low for an enforcement requirement.
+</Solution>
+
+<Solution for="ch08-ex-2">
+`context: fork` and (optionally) `agent`. Setting `context: fork` runs the skill as a subagent in its **own context window**, so the file reads the audit generates don't consume your main session's context — only a summary returns when it finishes. `agent` selects which subagent type the fork uses (e.g. `general-purpose`). Together they let a context-hungry audit run in isolation; `model` can also pin it to `opus` for the heavier reasoning, but the isolation comes from the fork.
+</Solution>
+
+<Solution for="ch08-ex-3">
+`gh` is invoked via `Bash` and costs almost no context, whereas an MCP server loads its tool schemas into the window — and a verbose server can pass the ~10% threshold where Claude falls back to on-demand tool search, paying context for capability you may not need for a one-shot read. So for well-known services with a good CLI, the CLI is the right default. The MCP server wins when you need **typed, structured access mid-session** — repeated, schema-validated calls where parsing raw CLI output would be brittle, or where Claude needs the server's resources (`@server:resource/path`) rather than ad-hoc command output.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={8} />

@@ -1,0 +1,247 @@
+---
+title: Enterprise Deployment
+part: 4
+chapter: 16
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 2, 3, 4, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - anthropic-claude-code-security
+  - anthropic-trust-center
+  - anthropic-claude-enterprise
+  - anthropic-pricing
+  - aws-bedrock-fedramp-govcloud
+  - anthropic-models-overview
+  - anthropic-claude-code-model-config
+  - anthropic-claude-code-settings
+description: The compliance, identity, governance, and cost surface for deploying Claude Code across an organization — what a security review asks for, how Claude reaches government workloads, and the cost levers that matter at 50-plus seats.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapter 15 — shared CLAUDE.md, managed settings, and the team patterns this chapter scales to an org.">
+- The **compliance and security surface** a deployment review asks for — and where the *system of record* lives, so you cite it instead of freezing a list
+- How Claude reaches **government and regulated workloads**, and the platform-authorization distinction the marketing shorthand gets wrong
+- The **governance controls** IT enforces at org scale — managed settings, audit logs, admin toggles
+- **Cost optimization** at 50-plus seats — the levers that beat downgrading, with a dated pricing snapshot
+- A **phased rollout** and a **deployment decision matrix**
+</YouWillLearn>
+
+_Chapter 15 turned one developer's practice into a team standard. This chapter scales it to the organization: the certifications a security review will ask for, how Claude reaches regulated and government workloads, the controls IT enforces, and the cost levers that matter when the bill is seat-price-plus-usage across fifty or more developers._
+
+<MarginNote variant="warning" label="Warning">
+  This is the fastest-aging material in the book — pricing, certifications, and government authorizations move monthly. Everything below was verified on 2026-06-19, and the chapter leans on the staleness banner above; treat the systems of record (Trust Center, pricing page) as authoritative over any number frozen here.
+</MarginNote>
+
+{/* Tip numbers 43–45 are provisional (Part I 1–8; Ch 6 9–11; Ch 12 12–14; fan-out 15–42). Finalize the global sequence in reading order in Phase 4 — see handbook/docs/port-recipe.md §4. */}
+
+## Security and compliance
+
+A security review opens with one question: which certifications do you hold? Claude Code is built on Anthropic's security program; the first-party security documentation names **SOC 2 Type 2** and **ISO 27001**, with reports and certificates available at the Anthropic Trust Center.<Citation src="anthropic-claude-code-security" /> The Enterprise offering adds a **HIPAA-ready** deployment, and further attestations (such as ISO/IEC 42001) are published alongside them.<Citation src="anthropic-claude-enterprise" />
+
+<KeyIdea>
+Don't paste a certification list into a deployment doc — cite the [Trust Center](https://trust.anthropic.com). The list changes as new attestations land, and the Trust Center is both the authoritative, dated source and the artifact a security reviewer will actually accept. A frozen list in a wiki is stale the day an audit renews.
+</KeyIdea>
+
+<Tip n="43" title="Cite the Trust Center; don't freeze the cert list.">
+Certifications renew and expand on their own schedule. Point reviewers to trust.anthropic.com — the dated system of record — rather than a copied list that silently goes stale.
+</Tip>
+
+### Identity and access
+
+For organization rollouts, Claude's Enterprise plan provides the identity controls IT expects:<Citation src="anthropic-claude-enterprise" />
+
+- **Single sign-on (SSO)** — on Team and Enterprise.
+- **SCIM provisioning** — automated user lifecycle (create / update / deprovision) on Enterprise.
+- **Role-based access with fine-grained permissioning** — on Enterprise.
+- **Domain capture** — claim your email domain so accounts join the org, on Team and Enterprise.
+- **Audit logs and a Compliance API** for observability and monitoring.
+
+### Data protection
+
+Session data travels over **TLS**, and Enterprise adds **custom data-retention controls**.<Citation src="anthropic-claude-code-security" /><Citation src="anthropic-claude-enterprise" /> On training, the security page points to the **Consumer and Commercial Terms** rather than stating the semantics inline — so cite those for the specifics, not the security page: consumer tiers (Free, Pro, Max) are **opt-in** (training is off unless a user enables it), while commercial products (the API, Team, Enterprise) follow the Commercial Terms, where the default is not-trained-on. Zero Data Retention is available for commercial and API use; confirm the current terms in the Commercial Terms / privacy documentation before citing a specific guarantee.
+
+<MarginNote variant="note" label="Note">
+  The consumer training toggle (opt-in, de-identified, up to five years if enabled) is a *consumer* setting. Don't assume it describes how Team/Enterprise/API data is handled — those follow the Commercial Terms, where the default is not-trained-on.
+</MarginNote>
+
+## Government and regulated workloads
+
+Claude reaches the highest US-government bars — but not as Claude Code itself. Anthropic's models receive **FedRAMP High** and **DoD Impact Level 4 and 5** authorization through **Amazon Bedrock in AWS GovCloud (US)**, and reach FedRAMP-High workloads through **Google Vertex AI with Assured Workloads**.<Citation src="aws-bedrock-fedramp-govcloud" /> The authorization is the *platform's*: the models operate as software components inside an already-authorized service, inheriting its boundary.
+
+<Pitfall title="Saying 'Claude Code is FedRAMP High'">
+It isn't — and a government security reviewer will catch it. FedRAMP High and DoD IL-4/5 are authorizations of the **hosting platform** (Bedrock in AWS GovCloud, or Vertex AI Assured Workloads), which the models inherit as components. Claude Code and the Claude API are not themselves FedRAMP-authorized. Phrase it as "Claude via Bedrock GovCloud," and route regulated workloads through that platform.
+</Pitfall>
+
+<Tip n="44" title="FedRAMP is the platform's, not Claude Code's.">
+Government authorization comes through Bedrock GovCloud or Vertex Assured Workloads, which the models inherit. Say "via Bedrock GovCloud," never "Claude Code is FedRAMP High."
+</Tip>
+
+<Exercise id="ch16-ex-1">
+A procurement officer asks, "Is Claude Code FedRAMP High authorized?" A plain "yes" is wrong and a plain "no" is misleading. Write the one-sentence answer that's actually correct, and name the mechanism that makes it so.
+</Exercise>
+
+## Governance at organization scale
+
+The team controls from [Chapter 15](/chapters/ch15-team-patterns) become the enterprise governance surface. Access control is delivered through **managed (policy) settings**, not a separate product — they sit at the top of the [settings precedence](/chapters/ch09-scaling-configuration) and can't be overridden locally:<Citation src="anthropic-claude-code-settings" />
+
+- `availableModels` + `enforceAvailableModels` — restrict the selectable models org-wide (and constrain the Default to the allowlist).
+- `allowManagedPermissionRulesOnly` — make managed permission rules binding, so lower-scope `allow`/`ask` rules can't loosen them.
+- `requiredMinimumVersion` — block startup on outdated clients.
+- `disableWorkflows` — turn off dynamic workflows org-wide.
+- `allowManagedHooksOnly` — load only managed/SDK hooks.
+- `disableRemoteControl` — disable Remote Control at the device level.
+
+Admin toggles at `claude.ai/admin-settings/claude-code` govern Remote Control and Dynamic Workflows centrally; **OpenTelemetry** metrics, **audit logs**, a **Compliance API**, and **admin-set spend limits** (per user and per org) round out the monitoring surface.<Citation src="anthropic-claude-enterprise" />
+
+## Cost optimization at scale
+
+At fifty seats the bill is seat-price plus usage, and the instinct to "just use a cheaper model everywhere" is usually the wrong first move. Reach for the levers in this order:
+
+1. **Prompt caching** — cache reads run at roughly **90% off** the input price. The single biggest lever, and it keeps the model you actually want.
+2. **Batch API** — **50% off** for asynchronous, non-interactive work (overnight test generation, bulk analysis).
+3. **Model right-sizing** — Sonnet for the majority of coding work, Opus for the hardest reasoning, Haiku for simple/cheap tasks. Right-size per task, don't downgrade globally.
+4. **Spend caps** — admins set per-user and per-org limits as a backstop.
+
+<KeyIdea>
+Caching beats downgrading. A team that turns on prompt caching keeps Opus-or-Sonnet quality at a fraction of the token cost; a team that downgrades everyone to the cheapest model to save money pays in slower, lower-quality work that costs more developer time than it saves in tokens. Cache first; right-size second; downgrade only where the task genuinely doesn't need the capability.
+</KeyIdea>
+
+By default an **Enterprise subscription seat** runs **Sonnet 4.6** and **Enterprise pay-as-you-go** runs **Opus 4.8** — set the org allowlist deliberately rather than inheriting the default.<Citation src="anthropic-claude-code-model-config" />
+
+<MarginNote variant="note" label="Cost">
+  Pricing below is a dated snapshot — model versions and rates change with each release. Verify current numbers at [claude.com/pricing](https://claude.com/pricing) before you budget.
+</MarginNote>
+
+**API pricing per million tokens** — _snapshot as of 2026-06-19; verify at claude.com/pricing:_<Citation src="anthropic-pricing" />
+
+| Model | Input ($/MTok) | Output ($/MTok) |
+|---|---|---|
+| Opus 4.8 | $5 | $25 |
+| Sonnet 4.6 | $3 | $15 |
+| Haiku 4.5 | $1 | $5 |
+| Fable 5 | $10 | $50 |
+
+Cache reads run ~90% below the input rate; the Batch API is 50% off. **Subscription tiers**: Pro ($17/mo annual, $20 monthly); Max (from $100/mo, 5× or 20× Pro usage); Team ($20/seat annual, $25 monthly, plus a $100 Premium seat at 5× usage); Enterprise (seat price plus usage at API rates).<Citation src="anthropic-pricing" />
+
+<Exercise id="ch16-ex-2">
+Your platform team keeps a wiki page listing Claude's certifications, copied from a vendor doc a year ago. Why is that a liability in an audit — and what should the page contain instead?
+</Exercise>
+
+## A phased 50-person rollout
+
+Don't switch fifty developers on at once. Phase it so each step is independently valuable and reversible — the same incremental discipline the rest of the book applies to configuration:
+
+| Phase | Who | What |
+|---|---|---|
+| **Week 1 — Pilot** | 5 developers | Stand up shared `CLAUDE.md` + managed settings; pick one real project; gather friction. |
+| **Week 2 — Expand** | 15 developers | Add the skills/commands the pilot proved; onboard with a day-one checklist. |
+| **Week 3 — Scale** | 50 developers | Roll out org-wide; turn on monitoring (OpenTelemetry, audit logs); set spend caps. |
+| **Week 4 — Optimize** | all | Review usage; enable caching everywhere; right-size the model allowlist; trim `CLAUDE.md`. |
+
+## Deployment decision matrix
+
+Not every need is a Claude Code need. Match the surface to the job:
+
+| Need | Reach for |
+|---|---|
+| Interactive development with team coding standards | **Claude Code** |
+| Quick questions, document analysis, ad-hoc help | **Claude apps** (web / desktop) |
+| Automation, bulk processing, custom applications | **API + Agent SDK** |
+| Compliance, SSO/SCIM, governed rollout | **Enterprise plan** |
+
+<Tip n="45" title="Cache before you downgrade.">
+The cheapest way to cut a large bill is prompt caching (~90% off cache reads), not a global move to a weaker model. Cache first, right-size per task second, and downgrade only where the work genuinely doesn't need the capability.
+</Tip>
+
+<Exercise id="ch16-ex-3">
+A team blew its monthly budget, so the lead switched everyone to the cheapest model — and now work is slower and buggier, and the next month's developer-time cost is higher. What should the lead have done first, and why does it beat the downgrade?
+</Exercise>
+
+## Where this goes next
+
+- **Chapter 15 — Team Patterns & Governance** — [shared CLAUDE.md and managed settings](/chapters/ch15-team-patterns), the team layer this chapter scales to the org.
+- **Chapter 9 — Scaling Configuration** — [the five-level settings precedence](/chapters/ch09-scaling-configuration) that managed/policy settings sit atop.
+- **Chapter 13 — Headless & Automation** — [CI integration and OpenTelemetry monitoring](/chapters/ch13-headless-automation) at organization scale.
+- **System-level reliability, evaluation, and security** — designing for it (not just configuring it) is the Agentic Systems Design volume (evaluation & operations) and the Architect's Reference (Domain 5). This chapter is the deployment surface; those books are the architecture behind it.
+
+## Common pitfalls
+
+<Pitfall title="Claiming Claude Code itself is FedRAMP authorized">
+The authorization belongs to the hosting platform (Bedrock GovCloud, Vertex Assured Workloads); the models inherit it as components. Misstating this in a government procurement doc is the kind of error that stalls an approval. Route regulated workloads through the authorized platform and describe it as such.
+</Pitfall>
+
+<Pitfall title="Freezing the certification list">
+A cert list copied into a doc is stale the moment an attestation renews or a new one lands. Point to the Trust Center — it's dated, authoritative, and what reviewers accept.
+</Pitfall>
+
+<Pitfall title="Downgrading the model before turning on caching">
+Moving everyone to the cheapest model to save money trades token cost for developer time and quality. Prompt caching is the larger lever and keeps the capability; reach for it first.
+</Pitfall>
+
+<Pitfall title="Big-bang rollout to the whole org">
+Switching fifty developers on at once means no pilot to surface friction and no safe rollback. Phase it — five, then fifteen, then fifty — and turn on monitoring before the final wave.
+</Pitfall>
+
+<Pitfall title="Assuming the consumer training toggle covers commercial data">
+The opt-in training setting is a consumer-tier control. Team/Enterprise/API data is governed by the Commercial Terms, where the default is not-trained-on — cite the Commercial Terms, not the consumer privacy setting, when answering a data-handling question.
+</Pitfall>
+
+## Quick reference
+
+- **Certifications**: SOC 2 Type 2 + ISO 27001 (first-party); HIPAA-ready (Enterprise); full current list at **trust.anthropic.com** — cite it, don't freeze it.
+- **IAM (Enterprise)**: SSO, SCIM provisioning, role-based access with fine-grained permissioning, domain capture, audit logs, Compliance API.
+- **Government**: FedRAMP High + DoD IL-4/5 **via Bedrock GovCloud**; FedRAMP-High via **Vertex Assured Workloads** — platform authorization, not Claude-direct.
+- **Governance**: managed settings (`availableModels`/`enforceAvailableModels`, `requiredMinimumVersion`, `disableWorkflows`, `allowManagedHooksOnly`, `disableRemoteControl`) + admin toggles + OpenTelemetry + audit logs + spend caps.
+- **Cost levers, in order**: prompt caching (~90% off reads) → Batch API (50%) → model right-sizing → spend caps. Pricing is a dated snapshot — verify at claude.com/pricing.
+- **Rollout**: pilot 5 → expand 15 → scale 50 → optimize.
+
+## Practice
+
+<Practice id="ch16-pr-1" difficulty="2">
+Write the one-paragraph answer your platform team would give a government customer who asks whether Claude is FedRAMP High authorized. State the mechanism (platform authorization via Bedrock GovCloud / Vertex Assured Workloads), what that means for how they'd deploy, and what is *not* true (Claude Code / the bare API are not themselves authorized).
+</Practice>
+
+<Practice id="ch16-pr-2" difficulty="3">
+Sketch a monthly cost estimate for 50 developers (assume a sessions-per-day and tokens-per-session figure you state). Then apply the levers in order — enable prompt caching, move bulk/async work to the Batch API, right-size the model per task — and re-estimate. Show which lever moved the number most, and confirm caching beats a global downgrade.
+</Practice>
+
+<Practice id="ch16-pr-3" difficulty="3">
+Draft a managed-settings policy block for a regulated org: an `availableModels` allowlist with `enforceAvailableModels`, a `requiredMinimumVersion`, and a decision on `disableWorkflows` / `allowManagedHooksOnly` / `disableRemoteControl`. Write one sentence per key justifying it against a compliance requirement.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch16-ex-1">
+"Claude reaches FedRAMP High and DoD IL-4/5 through Amazon Bedrock in AWS GovCloud (US) — the authorization is the platform's, which the models inherit as software components — so you deploy via that authorized service rather than calling Claude Code or the bare API directly." The mechanism is *platform inheritance*: FedRAMP and DoD authorizations attach to the hosting environment (Bedrock/GovCloud, or Vertex AI Assured Workloads), and AI models are treated as components operating inside that authorized boundary, not as independently-authorized services.
+</Solution>
+
+<Solution for="ch16-ex-2">
+Certifications renew, expand, and occasionally lapse on schedules you don't control, so a copied list is stale the moment any of that happens — and presenting a stale or inaccurate cert claim in an audit is worse than presenting none, because it reads as either carelessness or misrepresentation. The page should instead link the Anthropic Trust Center, which is dated, kept current by the party that holds the certifications, and is the artifact a reviewer will actually accept. State only what you can stand behind in prose (e.g. "SOC 2 Type 2 and ISO 27001 held; see Trust Center for the current full list and reports").
+</Solution>
+
+<Solution for="ch16-ex-3">
+The lead should have turned on **prompt caching** first — cache reads run at roughly 90% below the input rate, which cuts the bill far more than a model downgrade while keeping the capability the team relies on. Downgrading globally to the cheapest model trades a token-cost saving for slower, buggier work, and the extra developer time (and rework) usually costs more than the tokens saved — a false economy. The correct order is cache, then right-size per task (Sonnet for most work, Opus for the hard problems, Haiku for the trivial ones), then set spend caps as a backstop; a blanket downgrade is the last resort, applied only where the task genuinely doesn't need more.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={16} />

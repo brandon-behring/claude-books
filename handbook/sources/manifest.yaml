@@ -103,3 +103,154 @@
   captured_at: 2026-05-25T00:00:00Z
   tier: T1-official
   tool: claude-code
+
+# --- Appended for Ch 8 (Extending Claude). PROVISIONAL — see HITL note above. ---
+
+- id: anthropic-claude-code-skills
+  url: https://code.claude.com/docs/en/skills
+  title: "Agent Skills (SKILL.md, commands, frontmatter)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-hooks
+  url: https://code.claude.com/docs/en/hooks
+  title: "Claude Code hooks (lifecycle events, handler types)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-mcp
+  url: https://code.claude.com/docs/en/mcp
+  title: "Model Context Protocol (MCP) in Claude Code"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-plugins
+  url: https://code.claude.com/docs/en/plugins
+  title: "Claude Code plugins and the marketplace"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-vs-code
+  url: https://code.claude.com/docs/en/vs-code
+  title: "Claude Code for VS Code"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-jetbrains
+  url: https://code.claude.com/docs/en/jetbrains
+  title: "Claude Code for JetBrains IDEs (Beta)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-sandboxing
+  url: https://code.claude.com/docs/en/sandboxing
+  title: "Claude Code sandboxing (OS-level isolation)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# --- Appended for Ch 11 (Orchestration). PROVISIONAL — see HITL note above. ---
+
+- id: anthropic-claude-code-agents
+  url: https://code.claude.com/docs/en/agents
+  title: "Run agents in parallel (subagents, agent view, agent teams, workflows)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-workflows
+  url: https://code.claude.com/docs/en/workflows
+  title: "Orchestrate subagents at scale with dynamic workflows"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-sub-agents
+  url: https://code.claude.com/docs/en/sub-agents
+  title: "Create custom subagents (nested subagents, depth limit)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-code-goal
+  url: https://code.claude.com/docs/en/goal
+  title: "Keep Claude working toward a goal (/goal)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+# --- Appended for Ch 16 (Enterprise Deployment). PROVISIONAL — see HITL note above. ---
+
+- id: anthropic-claude-code-security
+  url: https://code.claude.com/docs/en/security
+  title: "Claude Code security (safeguards, certifications, Trust Center)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-trust-center
+  url: https://trust.anthropic.com
+  title: "Anthropic Trust Center (SOC 2, ISO 27001, compliance reports)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-claude-enterprise
+  url: https://claude.com/pricing/enterprise
+  title: "Claude Enterprise (SSO, SCIM, role-based access, governance)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-pricing
+  url: https://claude.com/pricing
+  title: "Claude pricing (plans and API rates)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: anthropic-models-overview
+  url: https://platform.claude.com/docs/en/about-claude/models/overview
+  title: "Claude models overview (pricing, context, defaults)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
+- id: aws-bedrock-fedramp-govcloud
+  url: https://aws.amazon.com/blogs/publicsector/accelerating-government-innovation-amazon-bedrock-models-get-fedramp-high-and-dod-il-4-5-approval-in-aws-govcloud-us/
+  title: "Amazon Bedrock models get FedRAMP High and DoD IL-4/5 approval in AWS GovCloud (US)"
+  author: Amazon Web Services
+  publish_date: 2025-06-11
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: cross-tool
+
+- id: anthropic-claude-code-model-config
+  url: https://code.claude.com/docs/en/model-config
+  title: "Claude Code model configuration (defaults, aliases, allowlists)"
+  author: Anthropic
+  captured_at: 2026-06-19T00:00:00Z
+  tier: T1-official
+  tool: claude-code

@@ -140,7 +140,7 @@ Most entries are 🟡 (outlined). **Ch 1-4 (Part I) are ✅ shipped in v1.0** as
 **Source**: NEW (no direct `.tex`) — the use-side material splits from `09_agents_parallel.tex`; the rest is live research on the June-2026 multi-agent layer.
 **Theme**: The orchestration surface that postdates the LaTeX source — Agent View (`claude agents`), `/goal`, `/workflows`, nested subagents (depth limits), Agent Teams. When to reach for orchestration vs. a single subagent; observing + steering multi-agent runs; the cost/latency of fan-out.
 **Cert domains**: D1 (multi-agent use-side), D3 (workflows/config), D5 (reliability of orchestrated runs).
-**Stale signals — HIGH**: the fastest-moving surface in the book; APIs/commands are new in 2026. `volatility: fast-moving`. Author from the verified currency brief (`docs/currency-brief-2026-06.md`) + live docs.
+**Stale signals — HIGH**: the fastest-moving surface in the book; APIs/commands are new in 2026. `volatility: feature-surface` (the 90-day tier — the scaffold enum has no `fast-moving` value). Author from the verified currency brief (`docs/currency-brief-2026-06.md`) + live docs.
 **MDX-native**: orchestration decision flowchart (single subagent → parallel → nested → teams); a `<BeforeAfter>` of a serial vs. orchestrated workflow.
 **Boundary note**: This is "*use* the orchestration features as a developer." Designing multi-agent *systems* with the SDK (coordinator patterns, `fork_session`, error propagation) → Architect's Reference.
 **Origin**: split from Ch 10 per the 2026-06-18 fan-out roadmap (the audit's "paradigm gap"); the OUTLINE grows 15→16 here. Hand-authored (research-first).
@@ -183,7 +183,7 @@ Most entries are 🟡 (outlined). **Ch 1-4 (Part I) are ✅ shipped in v1.0** as
 **Source**: `14_enterprise.tex` (259 lines) → ~280 lines + versioned content callouts.
 **Theme**: Certifications (SOC 2 Type II, ISO 27001, ISO/IEC 42001, HIPAA BAA, FedRAMP High, IL5). IAM (SAML, OIDC, SCIM, RBAC). Data protection + ZDR. 50-person rollout. Cost optimization at scale. Decision matrix.
 **Cert domains**: D1–D5 all touched (enterprise scaling); D5 primary (reliability + compliance).
-**Stale signals — HIGH**: Pricing table snapshots, model cutoff dates, government authorizations, GitHub Copilot integration status. **Frontmatter `volatility: fast-moving`** triggers the staleness banner if `last_updated > 90d`.
+**Stale signals — HIGH**: Pricing table snapshots, model cutoff dates, government authorizations, GitHub Copilot integration status. **Frontmatter `volatility: feature-surface`** (the 90-day tier; the scaffold enum is `stable-principle | architectural-pattern | feature-surface`, with no `fast-moving`) triggers the staleness banner once `last_verified` ages past 90 days.
 **MDX-native**: Interactive 50-person rollout timeline. Cost calculator (developers × sessions/day × avg tokens → monthly cost, with caching/batch toggles). Decision matrix ("select org type → recommended deployment"). "Last updated" date prominent at top.
 
 ---
