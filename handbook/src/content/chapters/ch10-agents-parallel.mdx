@@ -131,8 +131,8 @@ Delegation is not free — every subagent spends its own context tokens — so t
 
 <Figure
   src="/figures/delegation-decision/delegation-decision.svg"
-  alt="A delegation funnel. Three neutral decision diamonds stacked vertically — 'Independent task?', 'Context-heavy or parallel?', 'More than ~2 min?'. A 'yes' to all three cascades down to 'Delegate' (green); any 'no' routes right to a single 'Do it directly' box (neutral)."
-  caption="When to delegate. Each 'no' is a reason to keep the task in your own session; only an independent, context-heavy or parallel, non-trivial task earns a subagent."
+  alt="A delegation funnel. Three neutral decision diamonds stacked vertically — 'Independent task?', 'Heavy, parallel, or a 2nd opinion?', 'More than ~2 min?'. A 'yes' to all three cascades down to 'Delegate' (green); any 'no' routes right to a single 'Do it directly' box (neutral)."
+  caption="When to delegate. Each 'no' is a reason to keep the task in your own session; only an independent, non-trivial task that is context-heavy, parallel, or needs a fresh pair of eyes earns a subagent."
   width="78%"
 />
 
@@ -220,7 +220,7 @@ claude --worktree rate-limiting
 <Figure
   src="/figures/worktree-isolation/worktree-isolation.svg"
   alt="Two side-by-side panels. Left (rose border, 'Shared working tree'): Agent A and Agent B both point to one file.py, labeled 'edits collide'. Right (green border, 'One worktree per agent'): Agent A points to wt-a/file.py and Agent B to wt-b/file.py, labeled 'no overlap'."
-  caption="Why parallel writers need worktrees. On a shared tree, two agents editing the same file collide; an isolated worktree per agent removes the overlap."
+  caption="Why parallel writers need worktrees. On a shared tree, two agents editing the same file collide live; an isolated worktree per agent removes that live collision — each writes in its own copy, and the branches merge afterward."
   width="100%"
 />
 

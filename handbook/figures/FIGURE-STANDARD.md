@@ -3,7 +3,7 @@
 **Status: v0 seed (2026-06-19).** First pass at a *consistent, brand-aligned* figure look,
 established while authoring the handbook's decision/before-after figures (ch08, ch10, ch11).
 Deliberately small and honest — it captures what we settled on and *why*, not a frozen law.
-Expect to revisit it (see [Open tensions](#open-tensions) + [Roadmap](#roadmap)).
+Expect to revisit it (see [Open tensions](#5-open-tensions) + [Roadmap](#roadmap)).
 
 **Scope today:** the 5 hand-authored handbook figures —
 `extension-decision`, `delegation-decision`, `orchestration-decision` (decision trees) +
@@ -69,7 +69,8 @@ otherwise      → remap by luminance to var(--diagram-ink | paper | grid)
 ```
 
 **Design consequence — put the category in the *border*, not the fill.** A bold Warm-Tol *stroke*
-has chroma ≈ 0.3–0.4, clears the 0.12 gate, and renders as-authored in **both** themes. A pale
+has chroma ≈ 0.24–0.50 (gold highest, plum lowest), well clear of the 0.12 gate, and renders
+as-authored in **both** themes. A pale
 *fill* (`warmblue!13`, chroma < 0.12) is read as near-neutral "paper" and **collapses to the
 dark page color in dark mode** — its category vanishes. So:
 
@@ -98,7 +99,9 @@ coherence; Tufte data-ink; Sweller load; Miller/Cowan chunking). The rules that 
 - [ ] **Long `alt`** on `<Figure>` — describe the path through the diagram for screen readers;
       the SVG `<title>`/`<desc>` are filled from `caption`/`alt` by the scaffold.
 
-## 5. Open tensions (revisit before locking a v1)
+## 5. Open tensions
+
+_Revisit these before locking a v1._
 
 1. **5 colors vs Mayer's "≤3 semantic colors."** Coherence research says fewer colors = less load.
    We deliberately run up to 5 because each is a *taught, reused code*, not decoration — defensible,
@@ -135,7 +138,9 @@ npm run build && npm run validate      # figures aren't routes; validate checks 
 - **Visual is the real gate** (codex/CI can't see renders): the set must read as one coherent
   Warm-Tol family in light *and* dark; author signs off before merge.
 
-## Roadmap (beyond the handbook — the cross-property seed)
+## Roadmap
+
+_Beyond the handbook — the cross-property seed._
 
 1. Migrate the 4 older handbook figures (`agent-loop`, `collaboration-*`, `context-budget`,
    `validation-pyramid`) to this palette for whole-book consistency.

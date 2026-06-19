@@ -27,6 +27,7 @@
   epgreen/.style={ep, draw=warmgreen, fill=warmgreen!15},
   epgold/.style={ep, draw=warmgold, fill=warmgold!16},
   epplum/.style={ep, draw=warmplum, fill=warmplum!15},
+  epneutral/.style={ep, draw=gray!60!black, fill=gray!10},
   arrow/.style={-Stealth, thick, draw=gray!60!black},
   arrowlabel/.style={font=\sffamily\small, fill=white, inner sep=1.5pt},
 ]
@@ -42,6 +43,7 @@
 
 \node[question, below=of q3] (q4) {Codify the \\ plan?};
 \node[epplum, right=of q4] (wf) {Dynamic workflows};
+\node[epneutral, below=of q4] (serial) {Stay in one \\ conversation};
 
 \draw[arrow] (q1) -- node[arrowlabel] {yes} (sub);
 \draw[arrow] (q1) -- node[arrowlabel] {no} (q2);
@@ -50,6 +52,7 @@
 \draw[arrow] (q3) -- node[arrowlabel] {yes} (at);
 \draw[arrow] (q3) -- node[arrowlabel] {no} (q4);
 \draw[arrow] (q4) -- node[arrowlabel] {yes} (wf);
+\draw[arrow] (q4) -- node[arrowlabel] {no} (serial);
 
 \end{tikzpicture}
 \end{document}
