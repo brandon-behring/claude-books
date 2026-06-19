@@ -1,0 +1,143 @@
+---
+title: "Appendix C — Extension Reference"
+part: 5
+chapter: 19
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 2, 3]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - anthropic-claude-code-hooks
+  - anthropic-claude-code-skills
+  - anthropic-claude-code-sandboxing
+  - anthropic-claude-code-vs-code
+  - anthropic-claude-code-jetbrains
+description: The look-up reference for Chapter 8 — the full hook lifecycle-event catalog, the five handler types and their timeouts, the matcher/if filtering model, a hook-debugging checklist, sandboxing, and the IDE matrix.
+---
+
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+
+_The look-up companion to [Chapter 8 — Extending Claude](/chapters/ch08-extending-claude). That chapter teaches **which** extension to reach for; this one is the reference you keep open while wiring a hook — the full event catalog, the handler types, and the debugging checklist. Not meant to be read straight through._
+
+<MarginNote variant="warning" label="Warning">
+  The hook surface moves between releases. Event names, counts, and timeouts here were verified against the live `hooks` docs on 2026-06-19; re-check before relying on a specific event in automation.
+</MarginNote>
+
+## The lifecycle events
+
+Claude Code's `settings.json` hook surface exposes **30 lifecycle events** as of 2026-06-19.<Citation src="anthropic-claude-code-hooks" /> (This is distinct from the Agent SDK's hook surface, which is a separate, smaller set — don't conflate them.) Each event fires at a defined point; a hook subscribes by event name.
+
+| Event | Fires when |
+|---|---|
+| `SessionStart` | a session begins or resumes |
+| `Setup` | `--init-only` / `--init` / `--maintenance` runs in `-p` mode |
+| `UserPromptSubmit` | the user submits a prompt, before processing |
+| `UserPromptExpansion` | a typed command expands into a prompt |
+| `PreToolUse` | before a tool call executes |
+| `PermissionRequest` | a permission dialog appears |
+| `PermissionDenied` | a tool call is denied by the auto-mode classifier |
+| `PostToolUse` | after a tool call succeeds |
+| `PostToolUseFailure` | after a tool call fails |
+| `PostToolBatch` | after a batch of parallel tool calls resolves |
+| `Notification` | Claude Code sends a notification |
+| `MessageDisplay` | while assistant message text is displayed |
+| `SubagentStart` | a subagent is spawned |
+| `SubagentStop` | a subagent finishes |
+| `TaskCreated` | a task is created via `TaskCreate` |
+| `TaskCompleted` | a task is marked completed |
+| `Stop` | Claude finishes responding |
+| `StopFailure` | the turn ends due to an API error |
+| `TeammateIdle` | an agent-team teammate is about to go idle |
+| `InstructionsLoaded` | a `CLAUDE.md` or `.claude/rules/*.md` file is loaded |
+| `ConfigChange` | a config file changes during a session |
+| `CwdChanged` | the working directory changes |
+| `FileChanged` | a watched file changes on disk |
+| `WorktreeCreate` | a worktree is being created |
+| `WorktreeRemove` | a worktree is being removed |
+| `PreCompact` | before context compaction |
+| `PostCompact` | after compaction completes |
+| `Elicitation` | an MCP server requests user input during a tool call |
+| `ElicitationResult` | after a user responds to an MCP elicitation |
+| `SessionEnd` | a session terminates |
+
+## The five handler types
+
+A subscribed hook runs one of **five handler types** (not all events support all five — some are command-only):<Citation src="anthropic-claude-code-hooks" />
+
+| Type | What it does | Default timeout |
+|---|---|---|
+| `command` | runs a shell command (JSON on stdin → JSON on stdout) | 600s |
+| `http` | POSTs the event JSON to a URL | 600s |
+| `mcp_tool` | calls a tool on an already-connected MCP server | 600s |
+| `prompt` | single-turn LLM yes/no evaluation | 30s |
+| `agent` | spawns a tool-using subagent for multi-step validation | 60s |
+
+<MarginNote variant="note" label="Note">
+  `UserPromptSubmit` lowers the `command`/`http`/`mcp_tool` default to 30s, and `MessageDisplay` lowers it to 10s — events that sit in the interactive hot path can't afford a 10-minute hook.
+</MarginNote>
+
+### Matcher vs. `if`
+
+A hook group's `matcher` targets the **tool name** (`Bash`, `Edit|Write`, `mcp__memory__.*`) — not a command pattern. To fire only on a specific command, add an **`if` field** to the handler; `if` uses [permission-rule syntax](/chapters/ch09-scaling-configuration) to match the tool name and arguments together.<Citation src="anthropic-claude-code-hooks" />
+
+```json
+{
+  "matcher": "Bash",
+  "hooks": [{
+    "type": "command",
+    "if": "Bash(git commit*)",
+    "command": "./scripts/pre-commit-lint.sh"
+  }]
+}
+```
+
+<Pitfall title="Putting the command pattern in the matcher">
+`"matcher": "Bash(git commit*)"` does **not** work — the matcher only sees the tool name, so it never matches and the hook silently never fires. The command-level filter belongs in the handler's `if` field. This is the single most common reason a "commit gate" hook does nothing.
+</Pitfall>
+
+## Debugging a hook
+
+When a hook misbehaves — and the usual symptom is that it silently does nothing — work the checklist:
+
+1. **Did it load?** Run `/hooks` (and `/skills`, `/mcp` for those) to confirm Claude Code registered it.
+2. **The I/O contract.** A `command` hook receives JSON on stdin and returns JSON on stdout. **Exit code `0` proceeds; exit code `2` blocks** the operation (any other nonzero is treated as an error but does not block). Test it standalone: `echo '{}' | ./hook.sh; echo "exit: $?"`.
+3. **Permissions + environment.** `chmod +x` the script, and use **absolute paths** — hooks run in a minimal shell, so a script that works in your terminal often fails on `PATH`.
+4. **Add logging.** Append `>> /tmp/hook-debug.log 2>&1` to the command while developing.
+5. **Timeouts.** Confirm the work fits the handler's timeout (table above); a long `command` hook on `UserPromptSubmit` (30s) will time out.
+6. **`/debug`.** The bundled `/debug` skill reads the internal debug log when the cause isn't obvious.
+
+<InsightBox title="Hooks fail closed on the harness, open on your script">
+  The harness fires the hook deterministically — that's the guarantee. But your *script's* failure is yours to handle: a hook that exits 0 on an internal error tells Claude Code "all clear" and the gate you thought you built doesn't gate. If a hook is meant to block, make its failure path exit 2, not 1, and not 0.
+</InsightBox>
+
+## Sandboxing
+
+`/sandbox` enables OS-level isolation that restricts a Bash command's filesystem and network access. Inside the sandbox, Claude can run commands without a per-action permission prompt, because the sandbox boundary — not the prompt — is what contains it. It's the safer alternative to `--dangerously-skip-permissions`: autonomy bounded by the OS rather than by trust.<Citation src="anthropic-claude-code-sandboxing" />
+
+## IDE integration matrix
+
+Claude Code runs in VS Code and JetBrains in addition to the terminal; all three share the same engine, `CLAUDE.md`, settings, and hooks.<Citation src="anthropic-claude-code-vs-code" /><Citation src="anthropic-claude-code-jetbrains" />
+
+| | VS Code | JetBrains |
+|---|---|---|
+| **Interface** | graphical chat panel | terminal + IDE overlays |
+| **CLI bundled** | yes (extension includes it; works with Cursor too) | no — install the CLI separately |
+| **Inline diffs** | extension-native, per-hunk accept/reject | IDE diff viewer |
+| **Context references** | `@`-mentions (files, with `@file#L5-10` ranges), plan-mode document, checkpoints | current selection + open file; IDE diagnostics forwarded |
+| **Status** | stable | beta — treat the surface as still settling |
+
+Teams that standardize on one IDE can commit extension-specific settings; mixed-IDE teams should rely on `CLAUDE.md` and `settings.json`, which behave identically everywhere.
+
+## See also
+
+- **[Chapter 8 — Extending Claude](/chapters/ch08-extending-claude)** — the decision framework (command → skill → hook → MCP) this appendix backs.
+- **Designing extensions** (MCP servers, custom tools, Agent SDK hook authoring) — the **Architect's Reference**, not this book.

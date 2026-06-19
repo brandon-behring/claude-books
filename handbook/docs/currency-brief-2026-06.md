@@ -43,8 +43,8 @@ Source shorthand:
 
 ## 2. Hooks — feeds: ch08, Appendix C
 
-- **Claude Code (settings.json) hook events: 29 events** as of 2026-06-18 (the audit's "30, up from ~22" is approximately right — the live docs enumerate **29**). NOTE: this is the **Claude Code settings.json** surface, distinct from the **Agent SDK** hook surface (cert `d1-05` counts the SDK's 10 Python / 20 TS callbacks — do not conflate). Source: `hooks` (as of 2026-06-18).
-- The 29 events:
+- **Claude Code (settings.json) hook events: 30 events** as of 2026-06-19 (the audit's "30" was correct — the live docs enumerate **30**, including `SessionEnd`; an earlier 29-count in this brief omitted it, corrected during the PR #25 appendix review). NOTE: this is the **Claude Code settings.json** surface, distinct from the **Agent SDK** hook surface (cert `d1-05` counts the SDK's 10 Python / 20 TS callbacks — do not conflate). Source: `hooks` (as of 2026-06-18).
+- The 30 events:
   1. `SessionStart` — session begins or resumes
   2. `Setup` — `--init-only`/`--init`/`--maintenance` in `-p` mode
   3. `UserPromptSubmit` — user submits a prompt, before processing
@@ -74,7 +74,8 @@ Source shorthand:
   27. `PostCompact` — after compaction completes
   28. `Elicitation` — an MCP server requests user input during a tool call
   29. `ElicitationResult` — after a user responds to an MCP elicitation
-  - Source: `hooks` (as of 2026-06-18).
+  30. `SessionEnd` — a session terminates
+  - Source: `hooks` (as of 2026-06-19).
 
 ---
 
