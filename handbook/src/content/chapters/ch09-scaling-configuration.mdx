@@ -119,7 +119,8 @@ The fix is conditional rules: place `.md` files in `.claude/rules/` with `paths:
 
 ```markdown
 ---
-paths: notebooks/**/*.py
+paths:
+  - "notebooks/**/*.py"
 ---
 # Notebook Rules
 - No hardcoded file paths (use config)
@@ -129,7 +130,8 @@ paths: notebooks/**/*.py
 
 ```markdown
 ---
-paths: src/models/**/*.py
+paths:
+  - "src/models/**/*.py"
 ---
 # Model Training Rules
 - Log all hyperparameters to the experiment tracker
@@ -155,14 +157,14 @@ Beyond the basic `paths:` glob, the rules system has a few capabilities worth kn
 - **User-level rules.** Place `.md` files in `~/.claude/rules/` for personal rules that apply across all your projects — communication preferences, personal tooling conventions. These load before any project's rules.
 - **Brace expansion.** Path patterns support brace expansion: `paths: {src,tests}/**/*.py` matches files in both directories with one rule.
 - **Symlinks.** Symlink a shared rule file across projects instead of duplicating it — useful when hub-and-spoke `@imports` aren't the right shape (for example, when you want the file to participate in the rules system specifically).
-- **`claudeMdExcludes`.** In `settings.json`, list directory patterns where CLAUDE.md files should _not_ be loaded. This is essential for monorepos whose dependency directories ship their own CLAUDE.md files:
+- **`claudeMdExcludes`.** In `settings.json`, list glob patterns for CLAUDE.md files that should _not_ be loaded. Patterns match against absolute file paths, so target the `CLAUDE.md` files themselves rather than bare directory names. This is essential for monorepos whose dependency directories ship their own CLAUDE.md files:
 
 ```json
 {
   "claudeMdExcludes": [
-    "node_modules",
-    "vendor",
-    "third_party"
+    "**/node_modules/**/CLAUDE.md",
+    "**/vendor/**/CLAUDE.md",
+    "**/third_party/**/CLAUDE.md"
   ]
 }
 ```
@@ -230,10 +232,11 @@ The configuration hierarchy works by **separating concerns**: CLAUDE.md for proj
 
 This chapter is the hinge between configuring _one_ project and operating _many_. Several threads pick up from here:
 
-- **Chapter 2 — Your First CLAUDE.md** _(forthcoming)_ — the single-file starting point this chapter scales out of; revisit it once the hub exists.
+- **[Chapter 2 — Your First CLAUDE.md](/chapters/ch02-first-claude-md)** — the single-file starting point this chapter scales out of; revisit it once the hub exists.
 - **Chapter 8 — Extending Claude** _(forthcoming)_ — hooks, the enforcement layer this chapter relocates uncheckable rules into, and the deeper treatment of the rules and settings surfaces.
 - **Chapter 12 — Project Lifecycle** — the [tier model in motion](/chapters/ch12-project-lifecycle): which pieces of this architecture to add on Day 1, Week 1, and Month 1 as a project matures.
-- **Chapter 15 — Enterprise Deployment** _(forthcoming)_ — the managed-settings level, where an organization pins versions and constrains models above everything an individual configures.
+- **[Chapter 15 — Team Patterns & Governance](/chapters/ch15-team-patterns)** — the team layer: how this configuration architecture is shared, standardized, and governed across a group rather than a single developer.
+- **Chapter 16 — Enterprise Deployment** _(forthcoming)_ — the managed-settings level, where an organization pins versions and constrains models above everything an individual configures.
 
 ## Common pitfalls
 

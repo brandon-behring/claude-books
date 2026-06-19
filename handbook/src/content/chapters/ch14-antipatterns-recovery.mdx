@@ -178,11 +178,14 @@ The exit criterion is the whole point: an explicit phase-transition checklist in
 
 **Root cause:** You edited a generated file, then re-ran the generator. The generator regenerates from source, destroying your manual edits.
 
-**Recovery** — you just ran `extract_features.py` and it overwrote two hours of manual YAML edits:
-1. `git checkout -- path/to/overwritten/files` to restore from the last commit.
-2. Add a `# GENERATED — do not edit manually` marker to the generated files.
-3. If manual edits are needed, edit the *source* (the `.py`, the `.tex`, the template) and re-generate. Never edit downstream.
+**Recovery** — you just ran `extract_features.py` and it overwrote two hours of manual YAML edits. Those edits were *uncommitted*, so do **not** reach for `git checkout` / `git restore --source=HEAD` on the overwritten path — that restores the last *committed* version, which never contained your edits, and can discard other uncommitted work. Recover the *change*, not the file:
+1. Check your editor's local history or backup folder first (most editors keep timestamped snapshots of unsaved/overwritten buffers) — that is the only place uncommitted edits may still exist.
+2. Reconstruct the change at the *source* — the `.py`, the `.tex`, the template, the upstream data — so the generator re-emits it. Reconstructing it once at the source is permanent; re-editing the artifact is not.
+3. Re-generate. Use `git restore --source=HEAD path/` only to *intentionally discard* a bad regenerated **output**, never to try to recover the lost manual edits.
+4. Going forward, never edit downstream — edit the source and re-generate.
 </Pitfall>
+
+To make the boundary visible, have the generator emit a `# GENERATED — do not edit manually` header into every artifact it writes — put the marker in the *generator or template*, not hand-added to the file. A marker typed directly into a generated file is wiped on the next run; one emitted by the generator is re-stamped every time.
 
 <Pitfall title="7. The Verification Gap">
 **Symptom:** AI-generated code is accepted without testing. Subtle bugs surface in production weeks later.
@@ -205,8 +208,8 @@ Always providing verification criteria, and writing tests *with* the code rather
 **Root cause:** The scope of the rewrite exceeds what can be held in context. Claude loses track of the original behavior and introduces regressions it cannot see.
 
 **Recovery** — you are three hours into a rewrite, half the tests fail, and the old and new code are mixed together:
-1. `git stash` the current mess.
-2. Return to the last working commit.
+1. `git stash push -u -m "failed rewrite"` to set the mess aside. The `-u` is load-bearing: a large rewrite adds *new* files, and a plain `git stash` leaves untracked files behind. (If you would rather keep the attempt visible, commit it on a throwaway WIP branch instead.)
+2. Return to the last working commit, then confirm `git status --short` prints nothing — a clean tree is the precondition for starting over.
 3. Start the incremental protocol: extract ONE function, write characterization tests, refactor, verify, commit.
 4. Repeat. Each step takes about twenty-five minutes and always leaves the code in a working state.
 </Pitfall>
@@ -237,9 +240,9 @@ Sometimes no single antipattern fits — Claude just keeps making the same mista
 **Diagnose the layer, not the symptom.** A persistent failure lives in exactly one of four places, and they are ordered cheapest-to-fix first:
 
 1. **The prompt.** Is the request ambiguous? Does it assume context Claude does not have? **Test:** rephrase with explicit constraints and an example of what "correct" looks like. If Claude now succeeds, the problem was prompt specificity.
-2. **CLAUDE.md.** Is there a conflicting rule, a rule too vague to enforce, or one Claude reads differently than you meant? **Test:** temporarily move it aside (`mv .claude/CLAUDE.md .claude/CLAUDE.md.bak`) and retry. If the problem disappears, a rule is interfering — add rules back incrementally to isolate the conflict.
+2. **CLAUDE.md.** Is there a conflicting rule, a rule too vague to enforce, or one Claude reads differently than you meant? **Test:** first run `/memory` to see *which* instruction files are actually loaded — Claude concatenates several, not just one: the project file (`./CLAUDE.md` **or** `./.claude/CLAUDE.md`), `CLAUDE.local.md`, the user file (`~/.claude/CLAUDE.md`), any managed-policy file, and everything under `.claude/rules/`. Renaming only `.claude/CLAUDE.md` often leaves the real offender loaded (many repos keep their main rules in the root `CLAUDE.md`). So move aside the *loaded* file(s) under test (`mv CLAUDE.md CLAUDE.md.bak`), retry, and restore afterward. If the problem disappears, a rule is interfering — add files back one at a time to isolate the conflict.
 3. **The codebase.** Does the existing code teach Claude the wrong pattern? With 50 functions using pattern A, Claude defaults to A regardless of instructions. **Test:** ask Claude *why* it chose its approach. If it cites existing code, the codebase is the teacher and your instruction is the exception — make the exception explicit ("Do NOT follow the pattern in `src/legacy/`; use `src/v2/` instead").
-4. **The model.** Genuine limitations exist — certain reasoning patterns, computations, or domain conventions a model gets wrong consistently. **Test:** retry with extended thinking (`/effort max`), then a different model (`/model sonnet`). If every model fails the same way, accept the limit and design a workaround (a verification step, a hook, or manual review).
+4. **The model.** Genuine limitations exist — certain reasoning patterns, computations, or domain conventions a model gets wrong consistently. **Test:** retry with extended thinking (`/effort max`), then switch to a *genuinely different* model tier. First check which model is active (`/status`, or open `/model`) so you do not "switch" to the model you are already on and get a false negative — then move across tiers, e.g. to a heavier model when you are on a lighter one. If every model fails the same way, accept the limit and design a workaround (a verification step, a hook, or manual review).
 </KeyIdea>
 
 In practice, roughly 80% of persistent failures live at Layer 1 (the prompt) or Layer 2 (CLAUDE.md). The common error is to jump straight to Layer 4 — "the model is wrong" — before checking whether the instructions are unambiguous and conflict-free. The layered order forces you to rule out the cheap fixes before concluding the model is at fault, and it almost always is not.
@@ -262,7 +265,17 @@ If Claude follows it, the rule works. If Claude ignores it, the rule is either t
 2. Check whether Claude refuses or flags the violation.
 3. If Claude complies without hesitation, the deny rule is not working.
 
-That last step exposes a distinction worth internalizing: deny rules in `settings.json` are **enforced by the harness** — Claude cannot bypass them. Rules in CLAUDE.md are **advisory** — Claude follows them because it is told to, not because it is prevented from violating them. For anything security-critical, use `settings.json` deny rules or hooks, not CLAUDE.md prose. (The deny-rule mechanics live in Chapter 2 _(forthcoming)_; the managed-settings enforcement layer is Chapter 15 _(forthcoming)_.)
+That last step exposes a distinction worth internalizing: deny rules in `settings.json` are **enforced by the harness** — the client blocks a *matching* tool call regardless of what Claude decides. Rules in CLAUDE.md are **advisory** — Claude follows them because it is told to, not because it is prevented from violating them. For anything security-critical, use `settings.json` deny rules or hooks, not CLAUDE.md prose.
+
+But "enforced" is only as wide as the pattern: a deny rule matches *specific tools and paths*, so a single rule rarely closes a whole behavior. `Read(.env)` blocks the Read tool but **not** `Bash(cat .env)`, `Bash(grep ... .env)`, or code Claude *writes* that opens the file at runtime — each is a different tool surface. So when the adversarial test asks Claude to "read from `.env` and log the contents," cover every path the action could take:
+
+```json
+"permissions": {
+  "deny": ["Read(./.env)", "Read(./.env.*)", "Bash(cat:*.env*)", "Bash(grep:*.env*)"]
+}
+```
+
+For secrets specifically, a tool-pattern list is hard to make exhaustive — prefer a `PreToolUse` hook (which can inspect the full command) or managed settings, and treat the deny list as defense-in-depth rather than the whole fence. (The deny-rule mechanics live in Chapter 2 _(forthcoming)_; the managed-settings enforcement layer is Chapter 15 _(forthcoming)_.)
 
 <Tip n="30" title="An untested rule is an assumption — smoke-test it in a fresh session.">
 After adding a CLAUDE.md rule, `/clear`, describe the governed task *without naming the rule*, and see whether Claude obeys unprompted. For security-critical rules, also adversarially test that the prohibited action is refused — and if it isn't, move the rule to `settings.json` or a hook.
@@ -306,18 +319,18 @@ Adding a rule and assuming it now governs behavior. Until you smoke-test it (fre
 | 3 | Over-Correcting | 3+ rounds of "not what I meant" | `/clear`; write down the exact spec, then re-prompt |
 | 4 | Infinite Exploration | reads hundreds of files; context crowded out | `/clear`; scope the question or delegate to a subagent |
 | 5 | Permanent Prototype | "working" for weeks, no tests, no exit criteria | add a DEVELOPMENT phase + characterize the critical 3 |
-| 6 | Pipeline-Direction Violation | re-running a generator overwrites manual edits | `git checkout --`; mark generated files; edit the source |
+| 6 | Pipeline-Direction Violation | re-running a generator overwrites manual edits | check editor local-history; reconstruct the change at the source + re-generate; never edit downstream |
 | 7 | Verification Gap | untested AI code; bugs surface weeks later | test the critical 3; gate commits with a hook |
-| 8 | Big-Bang Refactoring | large rewrite fails partway; codebase broken | `git stash` + reset; restart the incremental protocol |
+| 8 | Big-Bang Refactoring | large rewrite fails partway; codebase broken | `git stash push -u` (or WIP branch) + reset to a clean tree; restart the incremental protocol |
 
 **The four-layer diagnosis** (work top-down — cheap fixes first):
 
 1. **Prompt** — rephrase with constraints + a correct example.
-2. **CLAUDE.md** — move it aside and retry; add rules back to isolate the conflict.
+2. **CLAUDE.md** — `/memory` to see which files load, move the loaded one(s) aside and retry (restore after); add files back to isolate the conflict.
 3. **Codebase** — ask *why*; if Claude cites existing code, make the exception explicit.
-4. **Model** — try `/effort max`, then `/model sonnet`; if all fail alike, design a workaround.
+4. **Model** — try `/effort max`, then check the active model (`/status`) and switch to a genuinely different tier; if all fail alike, design a workaround.
 
-**Testing a rule** — smoke test (fresh session, don't name the rule, check unprompted compliance) for ordinary rules; adversarial test (ask for the prohibited action, confirm refusal) for security-critical ones. `settings.json` deny rules are enforced; CLAUDE.md rules are advisory.
+**Testing a rule** — smoke test (fresh session, don't name the rule, check unprompted compliance) for ordinary rules; adversarial test (ask for the prohibited action, confirm refusal) for security-critical ones. `settings.json` deny rules are enforced but only for the tools/paths they match (cover Read *and* Bash *and* runtime reads, or use a hook); CLAUDE.md rules are advisory.
 
 ## Practice
 

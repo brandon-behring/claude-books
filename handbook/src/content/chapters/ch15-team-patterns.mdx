@@ -64,7 +64,7 @@ A teammate edits the committed `settings.json` to set their preferred model so t
 
 ## Managed settings for IT
 
-A committed `settings.json` is a team _convention_ — any developer can still edit it, and a personal `settings.local.json` can relax it. When an organization needs policy that developers **cannot** override, that is a different layer. IT administrators can deploy `managed-settings.json` files that override all other settings.<Citation src="anthropic-claude-code-settings" /> This enables:
+A committed `settings.json` is a team _convention_, not a hard boundary: a developer can edit the committed file or run in a bypass-permissions mode — even though its deny rules can't simply be loosened by a personal `settings.local.json` (rules merge across scopes, and deny wins). When an organization needs policy that developers **cannot** override, that is a different layer. IT administrators can deploy `managed-settings.json` files that override all other settings.<Citation src="anthropic-claude-code-settings" /> This enables:
 
 - Organization-wide deny rules (sensitive-file access)
 - Mandatory hooks (security scanning, compliance checks)
@@ -94,12 +94,18 @@ A drop-in directory (`managed-settings.d/`) alongside `managed-settings.json` ac
 
 ### Managed-only settings
 
-A handful of keys are enforced **only** at the managed level — they are the mechanisms that turn "we have a policy" into "the policy is enforced" (set in a project or user file, a developer could just relax them; in `managed-settings.json` they cannot):
+Two distinct kinds of key matter here, and the distinction is what makes a policy actually binding. The first kind are **managed-only enforcement controls** — they exist solely to be set in `managed-settings.json` and they take an already-shared setting and make it exclusive:
 
-- **`allowManagedPermissionRulesOnly`** — only managed allow/deny rules apply; users and projects cannot add their own permission rules on top.
-- **`availableModels`** — restrict which models users can select (the main session, subagents, and fallback chains all honor it).
-- **`companyAnnouncements`** — display messages to users at startup (policy reminders, links to AI-usage guidelines).
+- **`allowManagedPermissionRulesOnly`** — when `true`, only managed allow/ask/deny rules apply; permission rules from project and user settings are ignored entirely instead of merging.
+- **`allowManagedHooksOnly`** — when `true`, only managed (and SDK / managed-enabled-plugin) hooks load; project and user hooks are blocked.
+- **`allowManagedMcpServersOnly`** — when `true`, only the managed `allowedMcpServers` allowlist is respected; a user can still add servers, but only allowlisted ones work.
+- **`enforceAvailableModels`** — when `true` (with a non-empty `availableModels`), the Default model is also constrained to the allowlist, not just the model picker (requires v2.1.175+).
 - **`disableBypassPermissionsMode`** — prevent the permission-skipping mode, so no one can opt out of the permission system entirely.
+
+The second kind are ordinary settings that **take effect at any scope but are only authoritative when set in managed settings** — a developer can set them in their own file, so to make them non-negotiable you place them at the managed level (which project and user settings cannot override):
+
+- **`availableModels`** — restrict which models can be selected (main session, subagents, and the advisor). On its own it bounds the picker, not the Default — pair it with `enforceAvailableModels` for a true allowlist.
+- **`companyAnnouncements`** — display messages to users at startup (policy reminders, links to AI-usage guidelines).
 
 A minimal `managed-settings.json` that pins the permission surface, the model allowlist, and a startup notice:
 
@@ -109,18 +115,22 @@ A minimal `managed-settings.json` that pins the permission surface, the model al
     "deny": ["Bash(curl *)", "Read(./.env)"],
     "disableBypassPermissionsMode": "disable"
   },
+  "allowManagedPermissionRulesOnly": true,
   "availableModels": ["sonnet", "haiku"],
+  "enforceAvailableModels": true,
   "companyAnnouncements": [
     "Review AI usage guidelines at docs.acme.com/ai"
   ]
 }
 ```
 
+Without `allowManagedPermissionRulesOnly`, permission rules from project and user settings still **merge** with the managed ones, so a lower-scope `allow` rule sits alongside the managed `deny` (deny still wins on conflict, but the surface is no longer pinned to exactly what IT set). Setting it to `true` makes the managed rules the _only_ rules that apply. Likewise `availableModels` on its own restricts the model _picker_ but a user can still land on their tier's Default model; `enforceAvailableModels: true` (requires Claude Code v2.1.175+) constrains the Default to the allowlist too, turning it into a real allowlist. To pin one exact model, list a single entry in `availableModels`.
+
 <Tip n="32" title="Use managed settings only for what must be enforced.">
-Anything a developer should be able to relax for a good reason belongs in committed `settings.json`. Reserve `managed-settings.json` — and the managed-only keys like `allowManagedPermissionRulesOnly` and `availableModels` — for the deny rules, hooks, and model limits the organization genuinely cannot allow a teammate to override.
+Anything a developer should be able to relax for a good reason belongs in committed `settings.json`. Reserve `managed-settings.json` — and the managed-only enforcement controls like `allowManagedPermissionRulesOnly` and `enforceAvailableModels` — for the deny rules, hooks, and model limits the organization genuinely cannot allow a teammate to override.
 </Tip>
 
-When hooks are configured at multiple levels they **all run** — managed, project, and local hooks fire for the same event. If they conflict (a managed hook enforces formatting that a local hook undoes), the managed hook wins. To debug unexpected hook behavior, view the merged configuration with `/hooks`, check each level's `settings.json`, and remember that a non-zero hook exit code blocks the action that triggered it — test a hook in isolation before promoting it into managed settings.
+When hooks are configured at multiple levels they **all run together** — managed, project, and local hooks that match the same event fire for it, in parallel, with identical handlers deduplicated. There is no "managed wins" precedence: a managed formatting hook and a local hook that reverses it both run, and the order is not guaranteed, so they can race. The discipline is to make hooks **idempotent and non-conflicting** rather than to rely on layering: if a hook is meant to be a gate, have it return a blocking decision (exit code 2) so the action is stopped regardless of what other hooks do, and use `allowManagedHooksOnly` when lower-scope hooks must be excluded entirely. To debug unexpected hook behavior, view the merged configuration with `/hooks`, check each level's `settings.json`, and test a hook in isolation before promoting it into managed settings.
 
 <Exercise id="ch15-ex-2">
 Your security team wants two guarantees: developers cannot add their own permission rules, and they cannot turn off the permission system. Which two managed-only keys deliver those guarantees — and why does putting the same deny rules in a committed `settings.json` _not_ deliver them?
@@ -149,7 +159,7 @@ On day one, a new teammate runs `/init` and its proposed conventions disagree wi
 Chapter 9 _(forthcoming)_ introduced the extension hierarchy — commands, skills, hooks, and MCP servers. At team scale each of these needs governance, not just authorship:
 
 - **Shared skills** — commit team skills to `.claude/skills/` in the repo so quality dashboards, pre-release checklists, and onboarding workflows benefit everyone. For an expensive skill that does a lot of reading, set `context: fork` so it runs in its own context window and does not spend teammates' context budgets on its intermediate work.
-- **Managed MCP** — deploy IT-approved MCP servers through managed settings. An allowlist prevents ad-hoc server installation while still giving the team standardized access to shared databases, ticketing systems, and monitoring tools.
+- **Managed MCP** — deploy IT-approved MCP servers through managed settings, giving the team standardized access to shared databases, ticketing systems, and monitoring tools. A name-only allowlist is not a real boundary, though: it only becomes authoritative when you set `allowManagedMcpServersOnly: true` (or use a dedicated managed MCP configuration), at which point only the managed `allowedMcpServers` are respected and a developer's ad-hoc server, while it can still be added, will not load. Without that flag, MCP servers from all scopes merge and the allowlist is advisory.
 - **Shared hook libraries** — keep common hooks (auto-format, test gates, lint) in a central repository and import them via a hub-and-spoke pattern (a shared base that projects reference, covered in Chapter 9 _(forthcoming)_). Update the hook once and every project inherits the change.
 
 The hierarchy scales naturally along the committed-versus-managed line from earlier in this chapter: commands and skills live **in the repo** for the team to share and edit, hooks live in **`settings.json`** for enforcement the team agrees to, and managed MCP lives in **managed settings** for the integrations IT controls.
@@ -208,7 +218,7 @@ Managed settings are policy a developer cannot override. Use them for what the o
 </Pitfall>
 
 <Pitfall title="Relying on a committed deny rule for security">
-A deny rule in a committed `settings.json` is a convention: a developer can edit the file or add a `settings.local.json` that loosens it. If a rule is a real security boundary, it has to live in managed settings (with `allowManagedPermissionRulesOnly`), where no user or project setting can relax it.
+A deny rule in a committed `settings.json` is a convention, but _not_ because a `settings.local.json` can override it — permission rules merge across scopes and `deny` is evaluated before `ask` and `allow`, so a local `allow` cannot loosen a project `deny`. The real bypass paths are different: a developer can edit the mutable committed file itself, work from an untrusted local copy of the repo, or run in bypass-permissions mode. If a rule is a real security boundary, it has to live in managed settings — with `allowManagedPermissionRulesOnly` so lower-scope rules are ignored and `disableBypassPermissionsMode` so no one can skip the permission system — where no user or project setting can relax it.
 </Pitfall>
 
 <Pitfall title="Onboarding that needs a separate setup guide">
@@ -223,9 +233,9 @@ Pre-PR self-review and reviewer-assist surface issues and trace downstream impac
 
 - Commit **`CLAUDE.md`** and **`.claude/settings.json`** for team standards; keep **`.claude/settings.local.json`** for personal preferences (auto-gitignored).
 - **Managed settings** (`managed-settings.json`) enforce IT policy at the highest precedence — they cannot be overridden by project or user settings.
-- **Managed-enforced keys**: `allowManagedPermissionRulesOnly` (lock the permission rules), `availableModels` (restrict selectable models), `companyAnnouncements` (startup messages), `disableBypassPermissionsMode` (block permission-skipping).
+- **Managed-only enforcement controls** (exclusive only in `managed-settings.json`): `allowManagedPermissionRulesOnly`, `allowManagedHooksOnly`, `allowManagedMcpServersOnly`, `enforceAvailableModels`, `disableBypassPermissionsMode`. **Authoritative-only-at-managed-scope settings** (work anywhere): `availableModels`, `companyAnnouncements`.
 - **Delivery**: server-managed (admin console), macOS MDM, Windows Registry, or file-based; fragments in `managed-settings.d/` merge alphabetically (numeric prefixes set order).
-- **Hooks at multiple levels all run**; on conflict, managed wins. Debug with `/hooks` and remember a non-zero exit blocks the action.
+- **Hooks at multiple levels all run together** (in parallel, identical handlers deduplicated) — there is no managed-wins precedence, so make hooks idempotent and gate with a blocking exit code 2, or use `allowManagedHooksOnly` to exclude lower scopes. Debug with `/hooks`.
 - New teammates are productive **day one** from the committed configuration — `clone → /init (compare) → settings.local.json → /check → review hooks`.
 - **Code review**: pre-PR self-review catches issues before humans see them; reviewer-assist investigates a specific concern. The human always decides.
 
@@ -250,7 +260,7 @@ Model choice is a **personal preference**, so it belongs in `settings.local.json
 </Solution>
 
 <Solution for="ch15-ex-2">
-`allowManagedPermissionRulesOnly` guarantees developers cannot add their own permission rules (only managed allow/deny rules apply), and `disableBypassPermissionsMode` guarantees they cannot turn the permission system off (it blocks the permission-skipping mode). Putting the same deny rules in a committed `settings.json` doesn't deliver either guarantee because committed settings are a convention, not policy: a developer can edit the committed file in a PR, or add a `settings.local.json` that loosens the rules, and nothing stops them from running in a mode that bypasses permissions. Only the managed layer — which project and user settings cannot override — makes the boundary actually binding.
+`allowManagedPermissionRulesOnly` guarantees developers cannot add their own permission rules (only managed allow/deny rules apply), and `disableBypassPermissionsMode` guarantees they cannot turn the permission system off (it blocks the permission-skipping mode). Putting the same deny rules in a committed `settings.json` doesn't deliver either guarantee because committed settings are a convention, not policy: while a `settings.local.json` can't override a committed `deny` (rules merge and `deny` outranks `allow`), a developer can still edit the mutable committed file itself, work from an untrusted local copy, or run in a mode that bypasses permissions. Only the managed layer — which project and user settings cannot override — makes the boundary actually binding.
 </Solution>
 
 <Solution for="ch15-ex-3">

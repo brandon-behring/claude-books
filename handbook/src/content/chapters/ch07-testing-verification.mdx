@@ -40,7 +40,7 @@ _Claude just generated two hundred lines of code that looks correct. The syntax 
 
 ## Verification is king
 
-Giving Claude a way to verify its own work is Anthropic's stated single highest-leverage practice, and practitioners arrive at the same conclusion independently: the projects that succeed are the ones with verification at every layer. The mechanism is simple. When Claude can run tests, check types, and validate output against concrete criteria, it catches its own mistakes before you ever see them — a single-pass generation becomes an iterative refinement loop.
+Giving Claude a way to verify its own work is the highest-leverage practice you can adopt, and practitioners arrive at the same conclusion independently: the projects that succeed are the ones with verification at every layer. The mechanism is simple. When Claude can run tests, check types, and validate output against concrete criteria, it catches its own mistakes before you ever see them — a single-pass generation becomes an iterative refinement loop.
 
 <KeyIdea>
 Without verification criteria, **you** are the only quality gate, inspecting every diff by hand. With them, Claude becomes a self-correcting system: it runs the checks, reads the failures, and fixes them before claiming done. That is the whole difference between "Claude said it works" and "it actually works."
@@ -79,7 +79,7 @@ def test_median_wau_empty_raises():
 ```
 
 <MarginNote variant="tip" label="Tip">
-  Both tests pass. Type checker passes. Linter passes. The session looked complete.
+  All three tests pass. Type checker passes. Linter passes. The session looked complete.
 </MarginNote>
 
 Layer 1 (types): pass. Layer 2 (lint): pass. Layer 3 (unit): pass. Layer 4 (integration): pass — the function is pure, no integration surface. Layer 5 (e2e smoke): pass — the dashboard renders a number. Layer 6 (manual review of the diff): pass — it's short and reads cleanly.
@@ -108,7 +108,7 @@ The highest-leverage thing you can hand Claude is not a better prompt but a conc
 In the median session, every automated layer was green and the code was still wrong. Which property of the unit tests let the bug survive — and what one change to the _inputs_ (not the assertions) would have caught it before the dashboard shipped?
 </Exercise>
 
-## The six automated layers
+## The six layers
 
 Layer your defenses so no single failure mode goes undetected. Each layer catches a class of bug the layers below it can't — and each costs more than the layer below, in compute, author time, or maintenance. The discipline is to run the cheap layers always and escalate to the expensive ones only when the cheap ones aren't enough.
 
@@ -152,7 +152,7 @@ def test_feature_builder_invariants(values):
     assert (result["log_amount"].dropna() >= 0).all()
 ```
 
-Hypothesis runs this on ~200 generated inputs and shrinks any failure to a minimal reproducer. Pointed at the median function — asserting "at least half the values are ≤ the result and at least half are ≥ it" — it would have failed on the first even-length input it generated.
+Hypothesis runs this on ~200 generated inputs and shrinks any failure to a minimal reproducer. Pointed at the median function — asserting "for even `n`, the result equals `(sorted_values[n//2 - 1] + sorted_values[n//2]) / 2`" (equivalently, `result == statistics.median(values)`) — it would have failed on the first even-length input it generated.
 
 **Layer 4 — Integration tests.** Catches bugs at the boundaries between modules: your function vs. the actual database, the real HTTP client, the real config loader. Cost: seconds to tens of seconds, often needing test infrastructure (a test database, a mock server, fixtures). Skip when you have very few inter-module boundaries; otherwise it is the baseline for anything past prototype.
 
@@ -339,7 +339,7 @@ Two hooks prevent most quality debt — one that lints on every write, one that 
 }
 ```
 
-The contrast is the whole argument. `CLAUDE.md` says "always run tests before committing" and Claude may forget in a long, context-degraded session. A `PreToolUse` hook matching `Bash` fires on every Bash command; the gate script (`pre-commit-gate.sh`) checks whether the command is a `git commit` and, if so, runs `pytest` first — so the tests run **every** time a commit is attempted, regardless of context state, and cannot be forgotten. A non-zero exit blocks the triggering action and the failure message is surfaced to Claude as feedback, so it reads the error and continues working rather than shipping red.
+The contrast is the whole argument. `CLAUDE.md` says "always run tests before committing" and Claude may forget in a long, context-degraded session. A `PreToolUse` hook matching `Bash` fires on every Bash command; the gate script (`pre-commit-gate.sh`) checks whether the command is a `git commit` and, if so, runs `pytest` first — so the tests run **every** time a commit is attempted, regardless of context state, and cannot be forgotten. Exit code 2 blocks the action — exit 1 (or any other non-zero code) is treated as a non-blocking error and the action proceeds — and the failure message on stderr is surfaced to Claude as feedback, so it reads the error and continues working rather than shipping red.
 
 <KeyIdea>
 The rule that decides where a standard lives: **if a standard is non-negotiable, make it a hook; if it's advisory, put it in `CLAUDE.md`.** Guidance is forgettable by design; a hook is not.
@@ -375,13 +375,13 @@ The opposite failure, and just as costly: exploration grinds to a halt, and noth
 </Pitfall>
 
 <Pitfall title="Verification criteria in your head, not in CLAUDE.md — and not behind a hook">
-If the criteria live only in your head, every session relitigates what "done" means. Encode them once in `CLAUDE.md` and every session inherits them. And for the non-negotiable checks, don't trust guidance alone: Claude can be talked out of a step or forget it under context pressure. A `Stop` or `PreToolUse` hook that exits non-zero makes the check unskippable. `CLAUDE.md` is guidance; hooks are enforcement.
+If the criteria live only in your head, every session relitigates what "done" means. Encode them once in `CLAUDE.md` and every session inherits them. And for the non-negotiable checks, don't trust guidance alone: Claude can be talked out of a step or forget it under context pressure. A `Stop` or `PreToolUse` hook that exits with code 2 makes the check unskippable (exit 1 is treated as a non-blocking error and the action proceeds). `CLAUDE.md` is guidance; hooks are enforcement.
 </Pitfall>
 
 ## Quick reference
 
 - AI-generated code _looks_ correct — verification is what makes it correct.
-- **Six automated layers**, cheap → expensive: type check → lint → unit → integration → e2e → manual.
+- **Six layers** (five automated + a manual cap), cheap → expensive: type check → lint → unit → integration → e2e → manual.
 - **Plus a seventh, human-only**: domain correctness — "the code runs, but does it solve the actual problem?" Claude can't check it for you.
 
 | # | Layer | Catches | Cost / tooling |
@@ -396,7 +396,7 @@ If the criteria live only in your head, every session relitigates what "done" me
 
 - **Phase-appropriate rigor**: Exploration → 1–3 (manual OK); Development → 1–4 (coverage > 60%); Production → all six (coverage > 80%); Critical-path → six + formal review + audit. Decide the phase in `CLAUDE.md` with a graduation checklist.
 - **Test-first**: describe the interface → Claude writes tests → Claude writes the implementation → hooks run the tests.
-- **Encode + enforce**: `CLAUDE.md` declares the criteria so Claude runs them before claiming done; a hook makes the non-negotiable ones impossible to skip. Non-zero exit blocks the action and the failure is surfaced to Claude.
+- **Encode + enforce**: `CLAUDE.md` declares the criteria so Claude runs them before claiming done; a hook makes the non-negotiable ones impossible to skip. Exit code 2 blocks the action (exit 1 is a non-blocking error and the action proceeds) and the failure is surfaced to Claude.
 
 ## Practice
 
@@ -415,11 +415,11 @@ Stand up a verification gate end-to-end for one real project. (1) Decide the pha
 <ExerciseSolutions>
 
 <Solution for="ch07-ex-1">
-The unit tests used only **odd-length inputs** (`[1, 2, 3]`, `[100]`), and the bug — returning the single middle element instead of averaging the two middle elements — only manifests on **even-length** lists, which is exactly the production shape (12 weeks). The cheapest input change that catches it: add a single even-length case with a known answer, e.g. `assert median_wau([1, 2, 3, 4]) == 2.5`. Better still, a property-based test that asserts the median property holds for _all_ generated lengths would have found it on the first even-length draw — the fix is in the inputs, not the assertions you already had.
+The unit tests used only **odd-length inputs** (`[1, 2, 3]`, `[100]`), and the bug — returning the single middle element instead of averaging the two middle elements — only manifests on **even-length** lists, which is exactly the production shape (12 weeks). The cheapest input change that catches it: add a single even-length case with a known answer, e.g. `assert median_wau([1, 2, 3, 4]) == 2.5`. Better still, a property-based test that asserts `result == statistics.median(values)` for _all_ generated lengths would have found it on the first even-length draw — the fix is in the inputs, not the assertions you already had.
 </Solution>
 
 <Solution for="ch07-ex-2">
-Property-based testing (Hypothesis, fast-check) is built for this. Instead of pinning one example, it asserts an **invariant that must hold for every input** — and a generator produces hundreds of cases, including the boundary ones you'd never hand-pick, then shrinks any failure to a minimal reproducer. A hand-written `assert f([1,2,3]) == ...` only proves the function is right on the one input you happened to choose; off-by-one bugs live precisely in the inputs you _didn't_ choose. The property ("at least half the values are ≤ the result and at least half are ≥ it," or "the output length equals the input length") is what a single example cannot express.
+Property-based testing (Hypothesis, fast-check) is built for this. Instead of pinning one example, it asserts an **invariant that must hold for every input** — and a generator produces hundreds of cases, including the boundary ones you'd never hand-pick, then shrinks any failure to a minimal reproducer. A hand-written `assert f([1,2,3]) == ...` only proves the function is right on the one input you happened to choose; off-by-one bugs live precisely in the inputs you _didn't_ choose. The property (for the median: "the result equals `statistics.median(values)` for every generated length"; for a sort: "the output length equals the input length and the output is non-decreasing") is what a single example cannot express.
 </Solution>
 
 <Solution for="ch07-ex-3">

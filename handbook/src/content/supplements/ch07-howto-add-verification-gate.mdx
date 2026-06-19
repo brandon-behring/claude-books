@@ -82,10 +82,10 @@ them, say so explicitly — do not assume they pass.
 }
 ```
 
-The `Stop` event fires when Claude tries to end its turn (i.e., when it would say "done"). If the hook exits non-zero, the action is blocked and Claude sees the failure as feedback.
+The `Stop` event fires when Claude tries to end its turn (i.e., when it would say "done"). If the hook exits with code 2, the action is blocked and Claude sees the stderr message as feedback (exit 1 is treated as a non-blocking error and the turn-end proceeds — so the gate must exit 2 to block).
 
 <MarginNote variant="note" label="Note">
-  Full hook event taxonomy and exit-code semantics live in the extending-Claude chapter (forthcoming). The shorthand: a non-zero exit on a `Stop` hook blocks the turn-end and surfaces the message to Claude.
+  Full hook event taxonomy and exit-code semantics live in the extending-Claude chapter (forthcoming). The shorthand: exit code 2 on a `Stop` hook blocks the turn-end and surfaces the stderr message to Claude — exit 1 is a non-blocking error that lets the turn end.
 </MarginNote>
 
 ### 4. Write the verify script
@@ -100,13 +100,13 @@ set -euo pipefail
 # Each layer fails fast with a clear message.
 
 echo "[1/3] type check..."
-mypy src/ || { echo "FAIL: mypy errors above. Fix before claiming done." >&2; exit 1; }
+mypy src/ || { echo "FAIL: mypy errors above. Fix before claiming done." >&2; exit 2; }
 
 echo "[2/3] lint..."
-ruff check src/ tests/ || { echo "FAIL: lint errors above." >&2; exit 1; }
+ruff check src/ tests/ || { echo "FAIL: lint errors above." >&2; exit 2; }
 
 echo "[3/3] unit tests..."
-pytest tests/ -x --quiet || { echo "FAIL: tests above. Fix before claiming done." >&2; exit 1; }
+pytest tests/ -x --quiet || { echo "FAIL: tests above. Fix before claiming done." >&2; exit 2; }
 
 echo "OK: all 3 verification layers passed."
 ```

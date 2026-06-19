@@ -100,7 +100,7 @@ A debugging session is at roughly 65% context and Claude just proposed a fix you
 
 You have several tools, each suited to a different situation. Knowing which to reach for is the chapter's central skill.
 
-- **`/clear`** — wipe context and start fresh. Use it between unrelated tasks. Cost: about thirty seconds; benefit: full attention on the next task. After `/clear`, the session is empty except for `CLAUDE.md` and any auto-memory. Cheap, complete, irreversible.
+- **`/clear`** — wipe context and start fresh. Use it between unrelated tasks. Cost: about thirty seconds; benefit: full attention on the next task. After `/clear`, the session is empty except for normal startup context — `CLAUDE.md`, any applicable `.claude/rules`, and auto-memory. Cheap, complete, irreversible.
 - **`/compact`** — summarize the conversation while preserving key decisions. Less aggressive than `/clear`: it frees the original tool outputs and message history but keeps the structural thread. Use it when a long task genuinely needs accumulated context but the window is getting large.
 - **`/rewind`** — checkpoint and roll back. Every action Claude takes creates an automatic checkpoint; double-tap `Esc` or run `/rewind` to open the menu and restore conversation only, code only, both, or summarize from a selected message. Checkpoints persist across sessions, so you can close your terminal and still rewind later.
 - **`/context`** — visualize current usage. Shows how much of the window is consumed and by what. This is your read on the budget before you decide which other command to reach for.
@@ -109,8 +109,8 @@ You have several tools, each suited to a different situation. Knowing which to r
 
 A useful framing: `/btw` is the inverse of a subagent. `/btw` sees your full conversation but has no tools; a subagent has full tools but starts with an empty context. The first half of context discipline is reaching for the right one of these the moment the budget tightens — not after quality has already dropped.
 
-<MarginNote variant="warning" label="Warning">
-  `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` can lower the auto-compaction trigger (set to `70` to compact earlier) but cannot raise it above the default; values above ~83% are silently clamped. It is undocumented and may change without notice.
+<MarginNote variant="note" label="Note">
+  The `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` env var can lower the auto-compaction percentage to compact earlier; it can only lower the threshold, never raise it. It only takes effect where Claude Code compacts *proactively* (e.g. with `CLAUDE_CODE_AUTO_COMPACT_WINDOW` set, in cloud sessions, or on models without extended context) — a niche knob, not a substitute for watching `/context`.
 </MarginNote>
 
 <Tip n="15" title="Match the cost to the severity.">
@@ -322,7 +322,7 @@ When Claude invents a function name, uses the wrong pattern, or is confidently w
 
 | Command | When | What it does | Cost |
 |---|---|---|---|
-| `/clear` | New unrelated task; whole session contaminated | Wipes the session; reloads `CLAUDE.md` only | High — loses all in-flight context |
+| `/clear` | New unrelated task; whole session contaminated | Wipes the conversation; the fresh session reloads normal startup context (`CLAUDE.md`, applicable `.claude/rules`, and auto-memory) | High — loses all in-flight context |
 | `/compact` | Mid-task, budget tight, recent work valuable | Summarizes conversation; frees old tool outputs | Medium — loses fidelity, not structure |
 | `/rewind` | Last few turns went sideways; earlier work intact | Surgical undo back to a checkpoint | Low — preserves productive earlier turns |
 | `/btw` | Steer or add a constraint without restarting | Injects a side question/note; never enters history | Lowest — zero budget cost |

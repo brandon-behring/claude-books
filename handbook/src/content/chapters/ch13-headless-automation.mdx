@@ -53,12 +53,12 @@ Claude Code offers several automation modes, each with different tradeoffs. Choo
 
 ### The progression — and its trust gates
 
-Most automation starts as a one-off `claude -p` you run by hand. When it works, it migrates: **manual headless** → **scripted fan-out** (a shell loop, `--allowedTools` for safety, JSON output for downstream consumption) → **CI integration** (GitHub Actions, triggered on PR) → **scheduled** (a recurring cloud task) → **Agent SDK** (when the shell script needs conditionals, retries, or custom tools). Each step adds reliability and removes manual intervention. The mistake is jumping to the SDK before proving the concept with a single `-p` call.
+Most automation starts as a one-off `claude -p` you run by hand. When it works, it migrates: **manual headless** → **scripted fan-out** (a shell loop, `--tools` to restrict the available toolset for safety, JSON output for downstream consumption) → **CI integration** (GitHub Actions, triggered on PR) → **scheduled** (a recurring cloud task) → **Agent SDK** (when the shell script needs conditionals, retries, or custom tools). Each step adds reliability and removes manual intervention. The mistake is jumping to the SDK before proving the concept with a single `-p` call.
 
 Each promotion should be **gated on evidence** that the current stage works without you:
 
 - **Manual → Scripted** — the prompt has produced correct results on 5+ files without modification. If you are still editing the prompt after each run, it is not ready to script.
-- **Scripted → CI** — the script has run end-to-end 3+ times with no manual intervention, output validation is automated (not "I eyeballed the diff"), and tool scoping (`--allowedTools`) is explicit.
+- **Scripted → CI** — the script has run end-to-end 3+ times with no manual intervention, output validation is automated (not "I eyeballed the diff"), and tool scoping (`--tools`) is explicit.
 - **CI → Scheduled** — CI has produced correct results for 2+ weeks, failure handling is tested (you know what happens at a rate limit or an unexpected file), and outputs are PRs, not direct commits.
 
 <KeyIdea>
@@ -78,7 +78,7 @@ A fan-out prompt works perfectly on the 5 files you tested it on, so you wire it
 Unattended pipelines need failure modes designed in advance, because Claude cannot ask you for help when you are not watching:
 
 - **Bound execution** — `--max-turns` and a budget cap prevent runaway sessions. A stuck agent burning tokens for 30 minutes is expensive.
-- **Scope tools** — `--allowedTools Read,Edit` stops an agent from running arbitrary commands. Match tools to the task, not to convenience.
+- **Scope tools** — `--tools "Read,Edit"` restricts the available toolset so an agent can't run arbitrary commands; `--disallowedTools` denies specific patterns (e.g. `"Bash(rm *)"`); `--allowedTools` is the separate auto-approve allowlist (tools that run without prompting). Match tools to the task, not to convenience.
 - **Validate output** — parse the `--output-format json` result programmatically. If it doesn't match the expected structure, fail loudly; never commit partial results.
 - **Gate before merge** — CI should produce PRs, not direct commits. A human reviews before merge. Automation eliminates toil, not judgment.
 
@@ -88,7 +88,8 @@ Use `claude -p "prompt"` for non-interactive automation.<Citation src="claude-co
 
 - `-p "prompt"` — single prompt, no interaction.
 - `--output-format json` — structured output for pipeline consumption (also `text`, `stream-json`).
-- `--allowedTools` — restrict to specific tools for safety.
+- `--tools` — restrict which built-in tools Claude can use (e.g. `--tools "Read,Edit"`); `--disallowedTools` denies specific patterns.
+- `--allowedTools` — the auto-approve allowlist: tools that run without prompting for permission (not a restriction of what's available).
 - `--model` — override the model per invocation.
 
 ### The fan-out pattern
@@ -107,16 +108,19 @@ copy the result, repeat 47 times.
 <div slot="after">
 
 ```bash
-# Test on 3 files first
-for f in $(find src/ -name "*.py" | head -3); do
+# Test on 3 files first (null-delimited: handles spaces/newlines in paths)
+n=0
+find src -name '*.py' -print0 | while IFS= read -r -d '' f; do
+  [ "$n" -ge 3 ] && break
   claude -p "Add type hints to $f" \
-    --allowedTools Read,Edit
+    --tools "Read,Edit"
+  n=$((n + 1))
 done
 
 # Review the results, then scale
-find src/ -name "*.py" | while read f; do
+find src -name '*.py' -print0 | while IFS= read -r -d '' f; do
   claude -p "Add type hints to $f" \
-    --allowedTools Read,Edit \
+    --tools "Read,Edit" \
     --output-format json >> results.jsonl
 done
 ```
@@ -124,14 +128,14 @@ done
 </div>
 </BeforeAfter>
 
-The `--allowedTools` flag scopes what Claude can do in unattended mode.<Citation src="anthropic-claude-code-best-practices" /> Glob patterns give finer control — `"Read,Edit"` is the safest pair for code modifications, and you can gate `Bash` to specific commands like `'Read,Edit,Bash(git commit *)'`. Combine `--allowedTools` with `--output-format json` and parse with `jq` to run automated quality checks before anything commits.
+The `--tools` flag restricts which built-in tools Claude can use in unattended mode — `"Read,Edit"` is the safest pair for code modifications.<Citation src="anthropic-claude-code-best-practices" /> A separate flag, `--allowedTools`, is an auto-approve allowlist (tools that run without a permission prompt), and supports pattern matching like `'Bash(git commit *)'` to pre-approve specific commands; `--disallowedTools` denies patterns such as `'Bash(rm *)'`. Combine `--tools` with `--output-format json` and parse with `jq` to run automated quality checks before anything commits.
 
 <Tip n="26" title="Test fan-out on 2–3 files before scaling.">
 A prompt that works on `src/utils.py` may do something unexpected on `src/models/network.py`. Review the first few outputs by hand, then scale with confidence — the loop will faithfully repeat a mistake 200 times.
 </Tip>
 
 <Exercise id="ch13-ex-2">
-A fan-out loop runs `claude -p` with no `--allowedTools` flag across 80 files overnight. List two distinct ways this can go wrong that scoping tools would have prevented — and explain why `--output-format json` matters even when the prompt "just edits files."
+A fan-out loop runs `claude -p` with no `--tools` flag across 80 files overnight, leaving the full toolset available. List two distinct ways this can go wrong that restricting the toolset would have prevented — and explain why `--output-format json` matters even when the prompt "just edits files."
 </Exercise>
 
 ### Permissions in headless mode
@@ -212,7 +216,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-Setup runs through an install helper (or install the GitHub app manually and add `ANTHROPIC_API_KEY` as a repository secret). Pass CLI flags through the action's arguments — `--max-turns`, `--model`, `--allowedTools` — to bound and scope the runs the same way you would locally. Authentication supports the direct API as well as AWS Bedrock and Google Vertex AI.
+Setup runs through an install helper (or install the GitHub app manually and add `ANTHROPIC_API_KEY` as a repository secret). Pass CLI flags through the action's arguments — `--max-turns`, `--model`, `--tools` — to bound and scope the runs the same way you would locally. Authentication supports the direct API as well as AWS Bedrock and Google Vertex AI.
 
 <MarginNote variant="note" label="Note">
 The exact action version, setup command, and input names move with releases. Treat the YAML above as the shape, not a frozen contract — check the current GitHub Actions docs when you wire it up.
@@ -244,7 +248,7 @@ Wiring a prompt that "worked on a few files" straight into CI. A 90%-reliable pr
 </Pitfall>
 
 <Pitfall title="Unscoped tools in unattended mode">
-Running fan-out or CI without `--allowedTools` lets an agent run arbitrary commands with no human watching. Scope tools to the task (`Read,Edit` for code edits), and reserve `--dangerously-skip-permissions` for environments you fully control.
+Running fan-out or CI without `--tools` leaves the full toolset available, so an agent can run arbitrary commands with no human watching. Restrict the toolset to the task (`--tools "Read,Edit"` for code edits, `--disallowedTools` to deny patterns), and reserve `--dangerously-skip-permissions` for environments you fully control.
 </Pitfall>
 
 <Pitfall title="Unbounded unattended runs">
@@ -263,15 +267,15 @@ Rewriting a working `claude -p` loop in the Agent SDK before the prompt is stabl
 
 - **Modes by failure cost**: headless (`claude -p`) → fan-out (shell loop) → `/batch` (Claude decomposes) → Agent SDK (programmatic) → cloud/Actions (scheduled, off-machine).
 - **Trust gates**: Manual→Scripted (5+ correct files) → Scripted→CI (3+ clean end-to-end runs, automated validation) → CI→Scheduled (2+ weeks correct, outputs are PRs).
-- **Headless flags**: `-p` (single prompt), `--output-format json`, `--allowedTools "Read,Edit"`, `--model`, `--max-turns`, `--bare` (skip discovery, faster start).
+- **Headless flags**: `-p` (single prompt), `--output-format json`, `--tools "Read,Edit"` (restrict the available toolset), `--disallowedTools` (deny patterns), `--allowedTools` (auto-approve allowlist — no prompt, not a restriction), `--model`, `--max-turns`, `--bare` (skip discovery, faster start).
 - **Schedulers**: Cloud (`/schedule`, off-machine, 1-hr min) · Desktop (local files, 1-min min) · `/loop` (session-scoped polling).
-- **GitHub Actions**: `@claude` in a PR/issue comment; pass `--max-turns`/`--model`/`--allowedTools`; direct API, Bedrock, or Vertex auth.
+- **GitHub Actions**: `@claude` in a PR/issue comment; pass `--max-turns`/`--model`/`--tools`; direct API, Bedrock, or Vertex auth.
 - **Remote Control**: drive a local session from claude.ai/code or mobile; authenticates via your claude.ai account, independent of model backend. Claude Code on the web runs entirely in the cloud.
 
 ## Practice
 
 <Practice id="ch13-pr-1" difficulty="1">
-Write a single `claude -p` command that adds type hints to one file in your project, scoped with `--allowedTools Read,Edit`. Run it. Does the output compile? Do the tests pass? If yes, scale to 3 files and review each diff. If no, refine the prompt — and note what you had to specify that you'd assumed Claude would infer.
+Write a single `claude -p` command that adds type hints to one file in your project, with the toolset restricted by `--tools "Read,Edit"`. Run it. Does the output compile? Do the tests pass? If yes, scale to 3 files and review each diff. If no, refine the prompt — and note what you had to specify that you'd assumed Claude would infer.
 </Practice>
 
 <Practice id="ch13-pr-2" difficulty="2">
@@ -289,7 +293,7 @@ Pick one recurring chore you do by hand (a dependency audit, a docs check, a dai
 </Solution>
 
 <Solution for="ch13-ex-2">
-Without `--allowedTools`, an agent can run arbitrary `Bash` — so a prompt that "just adds type hints" could, on some file, decide to run a destructive command, push a commit, or touch files outside the intended set; scoping to `Read,Edit` removes that whole class of overnight surprise. Second, even confined to edits it might modify the wrong file or introduce a non-compiling change across many files at once. `--output-format json` matters because it makes each run **machine-checkable**: you can parse every result and fail loudly on anything that doesn't match the expected structure, instead of discovering 80 silent partial edits in the morning. Unattended automation needs its validation automated too.
+Without `--tools` restricting the available toolset, an agent can run arbitrary `Bash` — so a prompt that "just adds type hints" could, on some file, decide to run a destructive command, push a commit, or touch files outside the intended set; restricting to `--tools "Read,Edit"` removes that whole class of overnight surprise (and `--disallowedTools "Bash(rm *)"` can deny specific patterns without dropping the tool entirely). Second, even confined to edits it might modify the wrong file or introduce a non-compiling change across many files at once. `--output-format json` matters because it makes each run **machine-checkable**: you can parse every result and fail loudly on anything that doesn't match the expected structure, instead of discovering 80 silent partial edits in the morning. Unattended automation needs its validation automated too.
 </Solution>
 
 <Solution for="ch13-ex-3">
