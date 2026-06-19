@@ -1,0 +1,267 @@
+---
+title: Orchestration
+part: 3
+chapter: 11
+volatility: feature-surface
+tools_compared: [claude-code]
+cert_domains: [1, 3, 5]
+introduced_in_version: "1.0.0"
+# scaffold toolsChapterSchema requires `last_verified` (drives the freshness
+# banner); the handbook convention names it `last_updated`. Both kept until the
+# schema adds the convention fields — see docs/scaffold-gaps.md.
+last_updated: 2026-06-19
+last_verified: 2026-06-19
+sources:
+  - anthropic-claude-code-agents
+  - anthropic-claude-code-workflows
+  - anthropic-claude-code-sub-agents
+  - anthropic-claude-code-goal
+description: The four ways Claude Code runs work in parallel — subagents, agent view, agent teams, and dynamic workflows — and the one question that picks between them; plus /goal, nested subagents, and the cost of fan-out.
+---
+
+import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
+import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
+import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
+import InsightBox from '@brandon_m_behring/book-scaffold-astro/components/InsightBox.astro';
+import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
+import Citation from '@brandon_m_behring/book-scaffold-astro/components/Citation.astro';
+import Tip from '@brandon_m_behring/book-scaffold-astro/components/Tip.astro';
+import Exercise from '@brandon_m_behring/book-scaffold-astro/components/Exercise.astro';
+import Practice from '@brandon_m_behring/book-scaffold-astro/components/Practice.astro';
+import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution.astro';
+import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
+import BeforeAfter from '../../components/BeforeAfter.astro';
+import ChapterSupplements from '../../components/ChapterSupplements.astro';
+
+<YouWillLearn prerequisites="Chapter 10 — you can spawn and steer a single subagent, and you know git worktrees. This chapter is about running more than one.">
+- The **four parallelism surfaces** — subagents, agent view, agent teams, dynamic workflows — and the one question that picks between them: **who holds the plan**
+- When a single subagent isn't enough, and which kind of "more" each surface is for
+- **`/goal`** — keeping a session working toward a verifiable condition without prompting each turn
+- **Nested subagents** and the fixed depth limit — what changes when a worker spawns its own workers
+- Observing and steering a running fan-out, and the cost of doing so
+</YouWillLearn>
+
+_Chapter 10 ended with one subagent: Claude delegates a side task, the worker runs in its own context, a summary comes back. This chapter starts where one worker isn't enough — a migration too large for a single conversation to track, a question worth cross-checking from several angles, a backlog you'd rather hand off and check on later. Claude Code has four ways to run work in parallel, and they look alike until you ask the question that separates them: **who holds the plan?**_
+
+<MarginNote variant="warning" label="Warning">
+  This is the fastest-moving surface in the book — commands and limits here are new in 2026 and change between releases. Everything below was verified against the live docs on 2026-06-19; check the version notes before relying on a specific flag.
+</MarginNote>
+
+{/* Tip numbers 40–42 are provisional (Part I used 1–8; Ch 6 = 9–11; Ch 12 = 12–14; the fan-out chapters took 15–39). Finalize the global sequence in reading order in Phase 4 — see handbook/docs/port-recipe.md §4. */}
+
+## Who holds the plan
+
+The four surfaces differ less in *how many* agents they run than in **who decides what runs next, and where the intermediate results live.**<Citation src="anthropic-claude-code-agents" /> Subagents and agent teams keep the plan in Claude's turn-by-turn judgment; a dynamic workflow moves the plan into a script you can read and rerun. That one distinction tells you which to reach for.
+
+| Surface | Who decides what runs next | Where results live | Reach for it when |
+|---|---|---|---|
+| **Subagents** | Claude, turn by turn | Claude's context window | a side task would flood your main conversation with output you won't reread |
+| **Agent view** (`claude agents`) | **you** — hand off, check back | each session reports to you | you have several independent tasks to dispatch and monitor at a glance |
+| **Agent teams** | a **lead** agent, turn by turn | a shared task list | Claude should split a project into pieces and keep the workers in sync |
+| **Dynamic workflows** (`/workflows`) | the **script** | script variables | the job outgrows a handful of agents, or findings need cross-checking |
+
+<KeyIdea>
+Don't pick by agent count — pick by who holds the plan. If you want to stay in each conversation, use subagents. If you want to hand work off and glance at it later, use agent view. If you want Claude to coordinate a group, use a team. If the plan is worth codifying — and the intermediate results are too bulky to live in a context window — move it into a workflow.
+</KeyIdea>
+
+The rest of this chapter takes the three "more than one subagent" surfaces in turn, then the two features that change how a long or deep run behaves: `/goal` and nested subagents.
+
+<Exercise id="ch11-ex-1">
+You ask Claude to "find every place we call the old auth API across the repo." That could be one subagent or a dynamic workflow. Using the *who-holds-the-plan* test, which fits a 20-file repo, and which fits a 2,000-file monorepo — and what specifically changes between them?
+</Exercise>
+
+## Agent view — hand off and check back
+
+`claude agents` (a CLI command — note the space; it is **not** the `/agents` panel) opens one screen to dispatch and monitor sessions running in the **background**. Each dispatched session is moved into its own git worktree automatically, so the sessions never edit the same files.<Citation src="anthropic-claude-code-agents" /> It is a **research preview**.
+
+Reach for it when you have several independent tasks and want to be the coordinator yourself: dispatch them, check status at a glance, and step in only when one needs you. Check on running work with `claude agents`, or `/tasks` for background items inside the current session.
+
+<MarginNote variant="note" label="Note">
+  `/agents` (with the slash) is the subagent panel — a **Running** tab for live subagents and a **Library** tab for custom definitions, inside one session. `claude agents` (no slash) is the background-session view. Similar names, different surfaces.
+</MarginNote>
+
+## Agent teams — a lead coordinating peers
+
+Agent teams are multiple coordinated sessions with a **shared task list and direct inter-agent messaging**, run by a lead that splits the project, assigns pieces, and keeps the workers in sync.<Citation src="anthropic-claude-code-agents" /> The status to remember: **experimental, and disabled by default** — you opt in deliberately.
+
+The catch worth internalizing: teammates are **not** worktree-isolated. Unlike agent-view sessions and subagents, which each get their own checkout, teammates share your working tree — so you must **partition the work**, giving each teammate a disjoint set of files. Skip that and two teammates will edit the same file and collide.
+
+## Dynamic workflows — move the plan into code
+
+A dynamic workflow is the heaviest tool here, and the only one where the plan leaves Claude's head. You run `/workflows` (or trigger one in conversation, below); Claude writes a **JavaScript script** that orchestrates subagents, and a runtime executes it in the background while your session stays responsive.<Citation src="anthropic-claude-code-workflows" /> The loop, the branching, and every intermediate result live in the **script's variables** — so a 500-file migration or a codebase-wide audit that would bury a single conversation in file contents instead hands you only the final answer. Workflows require **v2.1.154+** and are available on all paid plans.
+
+<BeforeAfter title="A 500-file migration: one conversation vs. a workflow">
+<div slot="before">
+
+**Subagent, turn by turn**
+
+```text
+You: migrate all 500 call sites to the new API.
+Claude: [reads file 1… edits] [reads file 2… edits] …
+        context fills with file contents; by file ~120
+        the early plan has scrolled out of the window and
+        the run loses consistency.
+```
+
+</div>
+<div slot="after">
+
+**Dynamic workflow**
+
+```text
+You: ultracode: migrate all 500 call sites to the new API.
+Claude: writes a script — fan out N workers over the file list,
+        each migrates its slice in its own context, a verify
+        stage checks each diff. Your context holds the final
+        report, not 500 file dumps.
+```
+
+</div>
+</BeforeAfter>
+
+**Triggering one.** Include the keyword `ultracode` in a prompt (or just ask in your own words — "use a workflow"), and Claude writes a workflow for that one task instead of working it turn by turn. `/effort ultracode` goes further: it combines `xhigh` reasoning with automatic orchestration, so Claude plans a workflow for *every* substantial task for the rest of the session (and uses more tokens accordingly). `/deep-research <question>` is a bundled workflow that fans web searches across angles, cross-checks the sources, and returns a cited report.<Citation src="anthropic-claude-code-workflows" /> When a run does what you wanted, press `s` in the `/workflows` view to save its script to `.claude/workflows/` — it becomes a `/command` you can rerun.
+
+<KeyIdea>
+Moving the plan into code buys more than scale. Because the orchestration is a script, it can apply a repeatable *quality* pattern, not just more agents: have independent agents adversarially review each other's findings before any are reported, or draft a plan from several angles and weigh them. That is why `/deep-research` returns a report with the claims that didn't survive cross-checking already filtered out — something a single pass can't do.
+</KeyIdea>
+
+The runtime caps a run at **up to 16 concurrent agents** and **1,000 agents total** (a runaway-loop backstop, not a budget), and a run is **resumable within the same session** — agents that already finished return cached results.<Citation src="anthropic-claude-code-workflows" />
+
+<Tip n="40" title="Pick the surface by who holds the plan.">
+Subagents and teams keep the plan in Claude's judgment; a workflow puts it in a script. If the intermediate results are too bulky for a context window, or the orchestration is worth rerunning, that's the signal to reach for a workflow rather than more subagents.
+</Tip>
+
+<Exercise id="ch11-ex-2">
+Subagents and agent-view sessions each run in their own worktree; agent-team teammates do not. Why does that single difference force you to partition an agent team's work by file, when a fan-out of subagents needs no such care?
+</Exercise>
+
+## `/goal` — keep working toward a condition
+
+The surfaces above run work *wider*. `/goal` runs one session *longer*: it sets a completion condition and Claude keeps working across turns until the condition is met, without you prompting each step.<Citation src="anthropic-claude-code-goal" /> After each turn, a **small fast model — Haiku by default** — checks whether the condition holds; if not, Claude starts another turn with the evaluator's reason as guidance. One goal is active per session; `/goal clear` stops it; the condition can run to **4,000 characters**; and it works in headless mode (`claude -p`) and through Remote Control. Under the hood it is a wrapper around a session-scoped, prompt-based **Stop hook** ([Chapter 8](/chapters/ch08-extending-claude)).
+
+There is one constraint that decides whether a goal works at all:
+
+<InsightBox title="The evaluator only sees the conversation">
+  The model checking your condition does **not** run commands or read files — it judges only what Claude has already surfaced in the transcript. So write a condition Claude's own output can *demonstrate*. "All tests in `test/auth` pass" works, because Claude runs the tests and the result lands in the transcript. "The code is correct" does not — there is nothing for the evaluator to read, so it resolves on Claude's say-so or never resolves at all.
+</InsightBox>
+
+<WorkedExample id="goal-migration" title="A goal that drives a migration to completion">
+
+```text
+/goal every call site of legacy_auth() is migrated to auth_v2(),
+`npm test` exits 0, and `git grep legacy_auth` returns nothing —
+or stop after 25 turns
+```
+
+Each turn, Claude migrates a few call sites, runs the suite, and greps. The evaluator reads the test output and the grep result *from the transcript* and returns yes/no plus a reason. The `or stop after 25 turns` clause bounds the run — Claude reports progress against it, and the evaluator can end the goal on that clause too. Contrast `/loop`, which re-runs on a fixed time interval rather than until a condition holds ([Chapter 13](/chapters/ch13-headless-automation)).
+
+</WorkedExample>
+
+<Tip n="41" title="Write /goal conditions the transcript can prove.">
+The evaluator reads the conversation, not your filesystem. Phrase the condition around something Claude's output shows — a test exit code, a grep that returns nothing, a file count — and add a turn or time clause to bound the run.
+</Tip>
+
+## Nested subagents
+
+A subagent can spawn its own subagents (as of **v2.1.172**), which means a delegation tree can go more than one level deep. Two rules shape how you design that.<Citation src="anthropic-claude-code-sub-agents" /> First, the **depth limit is 5, fixed and not configurable** — a subagent at depth five does not receive the Agent tool and cannot spawn further. Second, **only the top-level subagent's summary returns** to your conversation; the intermediate layers are invisible to you. (A *fork* — a subagent that inherits your full context — cannot spawn another fork, but it can spawn other subagent types, which count toward the depth limit.)
+
+<KeyIdea>
+Depth has a cost you can't see: a three-level delegation tree returns one summary, and everything the inner layers found is compressed into it. When you need to *observe* the intermediate work — not just its summary — a dynamic workflow, whose `/workflows` view exposes every agent, is the better tool than a deep subagent tree.
+</KeyIdea>
+
+## Observing and steering a run
+
+A fan-out is not fire-and-forget. Run `/workflows` to open a progress view: each phase with its agent count, token total, and elapsed time; drill into any agent to read its prompt, recent tool calls, and result; and steer with the footer keys — **`p`** pause/resume, **`x`** stop an agent or the whole run, **`r`** restart an agent.<Citation src="anthropic-claude-code-workflows" /> The command depends on the surface:
+
+- **`/workflows`** — running and completed workflow runs, the phase each is in, how many agents finished.
+- **`claude agents`** — every background session, its state, and which ones need your input.
+- **`/agents`** — the subagent panel for the current session (Running + Library tabs).
+- **`/tasks`** — anything running in the background of the current session; check on, attach to, or stop it.
+
+Stopping a run keeps the work already completed — you don't lose finished agents by intervening.
+
+## The cost of fan-out
+
+<InsightBox title="A fan-out multiplies tokens — price it on a slice first">
+  Running many agents at once multiplies token use: a single workflow run can cost meaningfully more than the same task in conversation, and every run counts toward your plan's usage and rate limits. Before committing to a big job, run it on a small slice — one directory instead of the whole repo, a narrow question instead of a broad one — watch the per-agent token usage in `/workflows`, and stop there if it isn't paying off. The 16-concurrent / 1,000-per-run caps bound a runaway script, but they are a backstop, not a budget. Route stages that don't need the strongest model to a smaller one.
+</InsightBox>
+
+<Tip n="42" title="Price a fan-out on a slice before the whole.">
+The agent caps stop a runaway; they don't control spend. Run a workflow on one directory or a narrow question first, read the token totals in `/workflows`, then decide whether the full job is worth it.
+</Tip>
+
+<Exercise id="ch11-ex-3">
+A teammate sets `/goal the refactor is complete and the code is correct`. The goal runs for hours and never clears — or clears with the code still broken. Explain both failure modes in terms of what the evaluator can see, then rewrite the condition so it actually resolves.
+</Exercise>
+
+## Where this goes next
+
+- **Chapter 10 — Agents & Parallel Work** — [the subagent primitive and git worktrees](/chapters/ch10-agents-parallel) this chapter orchestrates; `/batch` is the packaged subagent-plus-worktree fan-out.
+- **Chapter 13 — Headless & Automation** — [`/loop`, cloud routines, and CI](/chapters/ch13-headless-automation): work that runs *unattended on a schedule* rather than *fanned out across agents* — orchestration's sibling.
+- **Chapter 8 — Extending Claude** — [the Stop hook `/goal` wraps](/chapters/ch08-extending-claude), and the skills a saved workflow becomes.
+- **Chapter 7 — Testing & Verification** — [the verification discipline](/chapters/ch07-testing-verification) a workflow's adversarial-review stage automates; an orchestrated run is only as trustworthy as the checks inside it.
+- **Designing multi-agent _systems_** — coordinator/sub-agent topologies, `fork_session`, error propagation across agents — is a design problem, not a use-side one. It lives in the Architect's Reference (Domain 1) and the Agentic Systems Design volume (Chapters 18–20). This chapter is about *using* the surfaces; those books are about *architecting* them.
+
+## Common pitfalls
+
+<Pitfall title="A workflow where a subagent would do">
+Workflows cost setup, tokens, and a script to review. For a one-shot side task that fits a handful of agents and whose result you'll read once, a subagent is cheaper and simpler. Reach for a workflow when the job outgrows a few agents or the orchestration is worth rerunning — not by default.
+</Pitfall>
+
+<Pitfall title="Not partitioning an agent team's files">
+Teammates share your working tree (they are not worktree-isolated). Assign each teammate a disjoint set of files; if two can touch the same file, they will, and the edits collide. Partition first, then assign.
+</Pitfall>
+
+<Pitfall title="A /goal condition the evaluator can't verify">
+The evaluator reads only the transcript — it runs no commands and reads no files. A condition like "the bug is fixed" with no test result in the conversation either never resolves or resolves on Claude's unverified claim. Anchor the condition to something Claude's output demonstrates.
+</Pitfall>
+
+<Pitfall title="Forgetting the depth-5 ceiling and summary-only return">
+A nested delegation tree silently stops spawning at depth five, and only the top-level summary comes back — the inner layers' findings are compressed away. If you need to see the intermediate work, use a workflow (every agent is visible in `/workflows`), not a deep subagent tree.
+</Pitfall>
+
+<Pitfall title="Fanning out without pricing a slice">
+The 1,000-agent cap is a runaway backstop, not a budget. Launching a repo-wide workflow blind can burn a large share of your usage before you see whether it's working. Run a slice, read the token totals, then scale.
+</Pitfall>
+
+## Quick reference
+
+- **Pick the surface by who holds the plan**: subagents (Claude, turn by turn) · agent view `claude agents` (you, hand-off) · agent teams (a lead, shared task list — experimental, off by default, *partition files*) · dynamic workflows `/workflows` (a script; results in script variables).
+- **Check on running work**: `/workflows` (workflow runs) · `claude agents` (background sessions) · `/agents` (subagent panel, Running/Library) · `/tasks` (current-session background).
+- **`/goal <condition>`** set · `/goal` status · `/goal clear` stop · Haiku-evaluated after each turn · **judges only the transcript** · ≤4,000 chars · works headless (`-p`) + Remote Control · wraps a Stop hook.
+- **`/workflows`**: up to **16 concurrent** / **1,000 per run** · trigger with `ultracode` or `/effort ultracode` · `/deep-research` bundled · save a run with `s` → `.claude/workflows/` · resumable in-session.
+- **Nested subagents**: depth **5**, fixed · only the top-level summary returns · a fork can't spawn a fork.
+- **Cost**: a fan-out multiplies tokens — price it on a slice, read totals in `/workflows`, route cheap stages to a smaller model.
+
+## Practice
+
+<Practice id="ch11-pr-1" difficulty="2">
+Take three real tasks from your own work — one side lookup, one set of independent chores you'd hand off, one repo-wide change. Assign each to one of the four surfaces using the who-holds-the-plan test, and write one sentence per task on why that surface fits and the next-heaviest one doesn't.
+</Practice>
+
+<Practice id="ch11-pr-2" difficulty="3">
+Run `/deep-research` on a real question. While it runs, open `/workflows`, drill into a phase, and note the agent count, token total, and elapsed time; stop one agent with `x` and confirm the run keeps its completed work. Then write the report's value in one line — and what the same question would have cost you done by hand.
+</Practice>
+
+<Practice id="ch11-pr-3" difficulty="3">
+Set a `/goal` for a small, genuinely verifiable task (e.g. "every TODO in `src/auth/` is resolved and `npm test` exits 0, or stop after 15 turns"). Watch the per-turn evaluator reasons. If it stalls, diagnose whether the condition was transcript-verifiable, fix the wording, and rerun. Record what made the difference.
+</Practice>
+
+<ExerciseSolutions>
+
+<Solution for="ch11-ex-1">
+On a 20-file repo a single subagent fits: it greps, reads the handful of hits, and returns a summary that fits in your context — Claude holds the plan turn by turn and nothing is bulky enough to need codifying. On a 2,000-file monorepo the same approach floods the context with matches and file contents, and the early plan scrolls out of the window. A dynamic workflow fits instead: the script holds the file list, the per-file work, and the intermediate results in variables, fanning out across agents and returning only the consolidated finding. What changes is *who holds the plan and where results live* — Claude's context for the small repo, a script for the large one — which is exactly the dividing line the chapter opens with.
+</Solution>
+
+<Solution for="ch11-ex-2">
+Subagents and agent-view sessions each get their own git worktree — a separate checkout — so even if two of them edit "the same" file they're editing different copies, and nothing collides. Agent-team teammates share your one working tree; there is no per-teammate checkout. So if two teammates are assigned overlapping files, they write to the same file on disk and their edits clobber each other. Isolation is what makes a subagent fan-out safe without coordination; its absence is what forces you to partition a team's work by file up front.
+</Solution>
+
+<Solution for="ch11-ex-3">
+The evaluator reads only the conversation. "The refactor is complete" is checkable if Claude surfaces a grep or build result, but "the code is correct" has nothing the evaluator can read — so either it never sees evidence and the goal runs forever, or it accepts Claude's own assertion that the code is correct and clears with the code still broken. Both failures trace to a condition the transcript can't prove. A resolvable rewrite: `every call site is migrated (\`git grep old_api\` returns nothing), \`npm test\` exits 0, and \`npm run typecheck\` is clean — or stop after 30 turns`. Each clause is something Claude runs and the result lands in the transcript for the evaluator to judge.
+</Solution>
+
+</ExerciseSolutions>
+
+<ChapterSupplements chapter={11} />
