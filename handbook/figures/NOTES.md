@@ -4,6 +4,12 @@ Per-figure technique observations + cross-figure patterns + open questions, capt
 
 ## Locked palette (all figures)
 
+> **Superseded (2026-06-19) → see [`FIGURE-STANDARD.md`](./FIGURE-STANDARD.md).** The stock-color
+> palette below (`blue!70!black` / `orange` / `teal`) is retired in favour of the brand **Warm-Tol**
+> category palette. The 4 figures authored against it (`agent-loop`, `collaboration-*`,
+> `context-budget`, `validation-pyramid`) still use these colors until the migration lands; the per-figure
+> *technique* notes below remain accurate. New figures follow the standard, not this block.
+
 ```latex
 % Apply in every .tex source for visual consistency:
 box/.style       = { draw=blue!70!black,   fill=blue!8,   rounded corners=2pt },

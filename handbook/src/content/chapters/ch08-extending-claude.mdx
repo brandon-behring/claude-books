@@ -24,6 +24,7 @@ description: The extension decision framework — command → skill → hook →
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import WorkedExample from '@brandon_m_behring/book-scaffold-astro/components/WorkedExample.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
@@ -65,6 +66,13 @@ The four mechanisms form a ladder. Each rung adds capability **and** setup cost;
 
 Read the axis as: **capability increases as you climb; so does setup and maintenance cost.** Start at the bottom; promote only when you hit a rung's limit.
 </KeyIdea>
+
+<Figure
+  src="/figures/extension-decision/extension-decision.svg"
+  alt="A five-question decision ladder: neutral diamonds cascade downward, each branching right on 'yes' to a color-coded extension type. Reusable prompt? → Command (blue). Multi-step procedure? → Skill (green). Fires on an event? → Hook (rose). Needs an external tool? → MCP server (plum). Bundling several? → Plugin (gold). Each 'no' drops to the next question."
+  caption="The extension decision ladder — stop at the first 'yes'. Command before skill, skill before hook, hook before MCP; the last question packages several of these into a plugin. Colors key the extension types used through the chapter."
+  width="90%"
+/>
 
 <MarginNote variant="tip" label="Tip">
   Start with the simplest mechanism. Promote only when you hit its limits — never the other way round.

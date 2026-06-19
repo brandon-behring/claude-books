@@ -20,6 +20,7 @@ description: The four ways Claude Code runs work in parallel — subagents, agen
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
+import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 import Pitfall from '@brandon_m_behring/book-scaffold-astro/components/Pitfall.astro';
 import MarginNote from '@brandon_m_behring/book-scaffold-astro/components/MarginNote.astro';
 import KeyIdea from '@brandon_m_behring/book-scaffold-astro/components/KeyIdea.astro';
@@ -64,6 +65,13 @@ The four surfaces differ less in *how many* agents they run than in **who decide
 <KeyIdea>
 Don't pick by agent count — pick by who holds the plan. If you want to stay in each conversation, use subagents. If you want to hand work off and glance at it later, use agent view. If you want Claude to coordinate a group, use a team. If the plan is worth codifying — and the intermediate results are too bulky to live in a context window — move it into a workflow.
 </KeyIdea>
+
+<Figure
+  src="/figures/orchestration-decision/orchestration-decision.svg"
+  alt="A four-question decision tree on 'who holds the plan': neutral diamonds cascade downward, each branching right on 'yes' to a color-coded surface. Offload a side task? → Subagents (blue). Hand off, check later? → Agent view (green). Coordinate a group? → Agent teams (gold). Codify the plan? → Dynamic workflows (plum). A 'no' to all four ends at a neutral 'Stay in one conversation' terminal."
+  caption="Picking an orchestration surface by who holds the plan. Each 'no' moves down to the next surface; answer 'no' to all four and you stay in one conversation. Colors match the four surfaces the chapter covers."
+  width="88%"
+/>
 
 The rest of this chapter takes the three "more than one subagent" surfaces in turn, then the two features that change how a long or deep run behaves: `/goal` and nested subagents.
 
@@ -119,6 +127,13 @@ Claude: writes a script — fan out N workers over the file list,
 
 </div>
 </BeforeAfter>
+
+<Figure
+  src="/figures/serial-vs-orchestrated/serial-vs-orchestrated.svg"
+  alt="Two side-by-side panels. Left (rose border, 'One conversation'): a sequence 'read + edit file 1 → file 2 → file 3 …' beside a filling bar labeled 'context floods'. Right (green border, 'Dynamic workflow'): a '/workflows script' (plum) fans out to three 'worker' nodes (blue) that feed a 'report' node (green), labeled 'only the report returns'."
+  caption="Serial vs orchestrated. One conversation accumulates every file in its context; a workflow holds the plan in a script and returns only the final report, keeping the window clean."
+  width="100%"
+/>
 
 **Triggering one.** Include the keyword `ultracode` in a prompt (or just ask in your own words — "use a workflow"), and Claude writes a workflow for that one task instead of working it turn by turn. `/effort ultracode` goes further: it combines `xhigh` reasoning with automatic orchestration, so Claude plans a workflow for *every* substantial task for the rest of the session (and uses more tokens accordingly). `/deep-research <question>` is a bundled workflow that fans web searches across angles, cross-checks the sources, and returns a cited report.<Citation src="anthropic-claude-code-workflows" /> When a run does what you wanted, press `s` in the `/workflows` view to save its script to `.claude/workflows/` — it becomes a `/command` you can rerun.
 
