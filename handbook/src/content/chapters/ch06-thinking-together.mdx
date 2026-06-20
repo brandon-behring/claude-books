@@ -9,7 +9,7 @@ introduced_in_version: "1.0.0"
 # scaffold toolsChapterSchema requires `last_verified` (drives the freshness
 # banner); the handbook convention names it `last_updated`. Both kept until the
 # schema adds the convention fields — see docs/scaffold-gaps.md.
-last_updated: 2026-06-18
+last_updated: 2026-06-20
 last_verified: 2026-06-18
 sources:
   - anthropic-claude-code-best-practices
@@ -31,6 +31,7 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 import ChapterSupplements from '../../components/ChapterSupplements.astro';
+import BookLink from '@brandon_m_behring/book-scaffold-astro/components/BookLink.astro';
 
 <YouWillLearn prerequisites="Chapters 1–4: you can write a precise prompt, configure CLAUDE.md, and run a verification loop. This chapter changes *how* you prompt, not *what* you prompt for.">
 - The **third frame** — _interview_ — that sits between delegating to Claude and pair-programming with it
@@ -169,6 +170,8 @@ The "before" delegates. Claude will fix something — possibly the right thing, 
 
 These patterns share one shape: **make Claude do work that is harder to fake than producing a fluent answer.** Each fits a different stage of a task. The flowchart above says _which_ to reach for; the quadrant below says _how they relate_ — by direction of inquiry (who probes whom) and workflow stage (before action vs. after a symptom).
 
+The patterns are not Claude-specific — they work with any capable agent. For the cross-tool treatment, where the same moves appear as collaboration modes across Claude Code, Gemini CLI, and Codex CLI (with where the tools converge and diverge), see <BookLink book="agentic-coding" to="06-thinking-together/#operation">Agentic Coding's collaboration modes</BookLink>. Below they keep their Claude-Code shape and the exact prompts.
+
 <Figure
   src="/figures/collaboration-quadrant/collaboration-quadrant.svg"
   alt="2x2 axis. X-axis: Pre-action on left, Post-symptom on right. Y-axis: You probe Claude on top, Claude probes you on bottom. Four patterns plotted as teal nodes: top-left Feynman (you teach; Claude critiques), top-right Hypothesis Debugging (you ask; Claude enumerates), bottom-left Pre-mortem (Claude asks; you imagine failure), bottom-right Interview (Claude asks; you supply evidence)."
@@ -192,10 +195,6 @@ to gather first.
 ```
 
 The "cheapest evidence first" clause matters: without it Claude proposes investigations that read half the codebase; with it, it scopes to the one log line or test that resolves the question fastest.
-
-<KeyIdea>
-Rubber-duck debugging works because articulating the problem reveals the gap. Claude-as-duck works better because the duck talks back — it asks the questions you would not ask yourself, because you already "know" the answer. (Sometimes you are wrong about what you know.)
-</KeyIdea>
 
 ### Pre-mortem
 
@@ -296,7 +295,7 @@ negatives, overflow. Which behaviors surprise me?
 
 Writing test cases forces you to articulate expectations you have not stated. When a case surprises you — the function does something you did not expect — you have discovered a requirement that was implicit. The test did not verify your code; it interrogated your assumptions.
 
-**Property-based tests** are the sharpest version. Instead of specific inputs, they assert _invariants_ that must hold for all inputs ("output length equals input length"; "output is a permutation of input"). When one fails on a randomly generated input, it has found an edge case neither you nor Claude anticipated — a boundary in your understanding, not just your code. (These are the same property-based tests that form the sixth layer of Chapter 7's validation architecture, used here as a thinking tool rather than a gate.)
+**Property-based tests** are the sharpest version: assert _invariants_ that hold for all inputs, and a failure on a randomly generated input reveals a boundary in your understanding, not just your code. (They return as the sixth layer of Chapter 7's validation architecture — a thinking tool here, a gate there.) The exploration-vs-verification distinction is tool-agnostic; <BookLink book="agentic-coding" to="06-thinking-together/#mode-2-tests-as-thinking-tools">Agentic Coding develops it as a collaboration mode</BookLink>.
 
 <Exercise id="ch6-ex-2">
 You ask Claude to "write tests for `parse_date()`." If you are _not_ sure what the function should do at the boundaries, what is the higher-leverage version of that request — and what is it you are actually trying to learn?
@@ -304,7 +303,7 @@ You ask Claude to "write tests for `parse_date()`." If you are _not_ sure what t
 
 ## Getting genuine comparisons, not validation
 
-Claude has a strong tendency to validate whatever approach you present first. Say "I'm thinking about using Redis for caching" and Claude explains why Redis is a good choice; say "Memcached" instead and it explains why Memcached is. This sycophancy is the biggest obstacle to using Claude as a genuine thinking partner — and the fix is structural, not attitudinal. You cannot ask Claude to "be honest." You can structure prompts that make honest comparison the path of least resistance.
+Claude has a strong tendency to validate whatever approach you present first. Say "I'm thinking about using Redis for caching" and Claude explains why Redis is a good choice; say "Memcached" instead and it explains why Memcached is. This sycophancy is the biggest obstacle to using Claude as a genuine thinking partner — and the fix is structural, not attitudinal. You cannot ask Claude to "be honest." You can structure prompts that make honest comparison the path of least resistance. Sycophancy is a property of LLMs generally, not Claude alone; <BookLink book="agentic-coding" to="06-thinking-together/#mode-4-anti-sycophancy-structures">Agentic Coding covers the cross-tool structures</BookLink>, while the techniques, red flags, and rewordings below are tuned to Claude Code.
 
 <Tip n="10" title="Make honesty the path of least resistance.">
 You can't ask Claude to "be honest." Strip the load-bearing preference from your prompt and ask Claude to reach the conclusion from the evidence — so the honest comparison is the easy answer, not the brave one.
@@ -381,6 +380,7 @@ The most valuable ADR section is **Alternatives Considered**. Claude suggests al
 
 The patterns here recur, each at greater depth:
 
+- **Agentic Coding — Thinking together** — the same patterns as tool-agnostic _collaboration modes_ (Claude Code · Gemini CLI · Codex CLI), with convergence/divergence and a team case study. <BookLink book="agentic-coding" to="06-thinking-together/">Read it for the cross-tool *why*</BookLink>.
 - **Chapter 5 — Context as currency** _(forthcoming)_ — the interview pattern is highest-leverage early in a session, before context fills.
 - **Chapter 7 — Testing & verification** _(forthcoming)_ — hypothesis-debugging output is verifiable where a delegated fix is not; property-based tests return there as gates.
 - **Chapter 8 — Extending Claude** _(forthcoming)_ — once a prompt pattern saves you time three sessions running, promote it from terminal history to a shared command or skill. Start personal, then share.

@@ -18,6 +18,7 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import BookLink from '@brandon_m_behring/book-scaffold-astro/components/BookLink.astro';
 
 *Your prompts are precise, your briefing doc is tuned, your tests pass. But every interaction follows the same pattern — you delegate, the agent executes, you verify. Something is missing. You are using the agent as a tool you configure, not a collaborator you think with. The techniques in this chapter are about the shift: from configure-delegate-verify to think-together-discover-build-better.*
 
@@ -50,6 +51,8 @@ The agent is a thinking partner with no memory, a tendency to agree, and occasio
 ## Operation
 
 Five collaboration modes. Each is a prompt pattern, not a feature of any specific tool — they work across Claude Code, Gemini CLI, and Codex CLI because they operate on the *shape of the conversation*, not the tool's surface.
+
+For these modes applied concretely in one tool — a worked Claude Code debugging session that recovers from a confident, sycophantic guess, plus Claude-specific red flags and commands — see <BookLink book="handbook" to="chapters/ch06-thinking-together/#a-debugging-session-that-starts-wrong">the Handbook's *Thinking Together*</BookLink>.
 
 ### Mode 1: Hypothesis-driven debugging
 

@@ -9,7 +9,7 @@ introduced_in_version: "1.0.0"
 # scaffold toolsChapterSchema requires `last_verified` (drives the freshness
 # banner); the handbook convention names it `last_updated`. Both kept until the
 # schema adds the convention fields — see docs/scaffold-gaps.md.
-last_updated: 2026-06-18
+last_updated: 2026-06-20
 last_verified: 2026-06-18
 description: The eight ways developers undermine themselves with Claude Code — each with a recovery guide — plus the four-layer failure diagnosis and how to smoke-test and adversarially test a CLAUDE.md.
 ---
@@ -25,6 +25,7 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 import BeforeAfter from '../../components/BeforeAfter.astro';
 import ChapterSupplements from '../../components/ChapterSupplements.astro';
+import BookLink from '@brandon_m_behring/book-scaffold-astro/components/BookLink.astro';
 
 <YouWillLearn prerequisites="Chapters 1–13: the agent loop, context hygiene (Ch 5), the testing architecture (Ch 7), CLAUDE.md scaling (Ch 9), and the refactoring protocol (Ch 12). This chapter is what to do when those disciplines slip.">
 - The **eight antipatterns** that most reliably wreck a session — each with its **symptom, root cause, and a recovery guide for when you are already stuck**
@@ -37,6 +38,8 @@ _Three hours in, Claude is hallucinating function names and ignoring your CLAUDE
 {/* Tip numbers 28–30 are provisional (Part I used 1–8; later ports use 9+). Finalize the global sequence in reading order at the fan-out — see handbook/docs/port-recipe.md §4. */}
 
 Each antipattern below follows the same shape: the **symptom** you will actually notice, the **root cause** underneath it, and a numbered **recovery** for when prevention came too late. Read the symptoms first — that is how you will recognize yourself.
+
+The antipatterns themselves are not Claude-specific — every agent has characteristic misuse patterns. <BookLink book="agentic-coding" to="11-antipatterns-recovery/#operation">Agentic Coding catalogs the same set cross-tool</BookLink> (Claude Code · Gemini CLI · Codex CLI), with where the failure modes converge and diverge. This chapter keeps the **Claude-Code recovery mechanics** — the exact commands, hooks, and `settings.json` rules that get you out.
 
 ## Antipatterns of context and session discipline
 
@@ -236,6 +239,8 @@ The Permanent Prototype and the Verification Gap have nearly identical recoverie
 
 Sometimes no single antipattern fits — Claude just keeps making the same mistake across sessions. Before blaming the model, work through four layers **in order**. The order matters because the cheap fixes live at the top, and fixing the wrong layer wastes time.
 
+The four-layer framework is tool-agnostic — <BookLink book="agentic-coding" to="11-antipatterns-recovery/#the-four-failure-layers">Agentic Coding develops it for any agent</BookLink>. The instruments below (`/memory`, `/effort max`, `/status`) are the Claude-Code way to probe each layer.
+
 <KeyIdea>
 **Diagnose the layer, not the symptom.** A persistent failure lives in exactly one of four places, and they are ordered cheapest-to-fix first:
 
@@ -285,6 +290,7 @@ After adding a CLAUDE.md rule, `/clear`, describe the governed task *without nam
 
 Each antipattern's prevention path lives in an earlier chapter; this chapter is where they converge as failure modes. The spiral closes here:
 
+- **Agentic Coding — Anti-patterns & recovery** — the same eight antipatterns and the four-layer diagnosis as tool-agnostic patterns, with convergence/divergence across agents and a team case study. <BookLink book="agentic-coding" to="11-antipatterns-recovery/">Read it for the cross-tool catalog</BookLink>.
 - **Chapter 5 — Context as Currency** _(forthcoming)_ — the two-failure rule and the `/clear` discipline behind three of the four context antipatterns.
 - **Chapter 6 — [Thinking Together](/chapters/ch06-thinking-together)** — hypothesis debugging, the structured frame that prevents Over-Correcting before the first prompt.
 - **Chapter 7 — Testing & Verification** _(forthcoming)_ — the validation architecture the Verification Gap punishes the absence of.

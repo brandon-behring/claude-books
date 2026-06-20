@@ -18,6 +18,7 @@ import TryThis from '@brandon_m_behring/book-scaffold-astro/components/TryThis.a
 import Recovery from '@brandon_m_behring/book-scaffold-astro/components/Recovery.astro';
 import Convergence from '@brandon_m_behring/book-scaffold-astro/components/Convergence.astro';
 import Divergence from '@brandon_m_behring/book-scaffold-astro/components/Divergence.astro';
+import BookLink from '@brandon_m_behring/book-scaffold-astro/components/BookLink.astro';
 
 *Three hours in, the agent is hallucinating function names and ignoring rules that were working fine at session start. What went wrong? More importantly: how do you escape? This chapter is reactive — the catalog of characteristic failures every practitioner eventually hits, with a concrete recovery guide for each.*
 
@@ -46,6 +47,8 @@ When the agent keeps failing on the same problem across sessions, the temptation
 4. **The model.** Genuine limitations exist — certain reasoning patterns, mathematical computations, or domain-specific conventions the model gets wrong consistently. *Test:* try max reasoning depth; try a different model; if all fail the same way, accept the limitation and design a workaround (verification step, hook, or manual review).
 
 In practice, the large majority of persistent failures resolve at Layer 1 or Layer 2. Practitioners who jump to "the model is wrong" usually haven't verified their instructions are unambiguous and conflict-free.
+
+Each layer has tool-specific instruments. For the Claude-Code ones — the commands that probe each layer, plus how to smoke-test and adversarially test a rule — see <BookLink book="handbook" to="chapters/ch14-antipatterns-recovery/#systematic-diagnosis-the-four-failure-layers">the Handbook's four-layer diagnosis</BookLink>.
 
 ## Operation
 
