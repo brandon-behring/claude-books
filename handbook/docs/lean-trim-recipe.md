@@ -9,7 +9,7 @@ port recipe (`./port-recipe.md` — this is its de-dupe sibling).
 several duplicate tool-agnostic principle that **agentic-coding** (rung 2) now owns. The lean-trim pass
 keeps the handbook **lean-but-standalone**: full on the Claude-specific *how*, **compact** on shared
 principle, with a `<BookLink>` breadcrumb that *invites* the deeper rung — never "see the other book for the
-real version" (`BOOK-MAP.md:88` standalone doctrine stays intact).
+real version" (`BOOK-MAP.md:34` standalone doctrine stays intact).
 
 ## 1. When to apply
 
@@ -38,6 +38,12 @@ For each section in the handbook chapter, classify:
 
 Most sections mix both — **split** them: keep the Claude-specific sentences, compact the principle around them.
 
+**Breadcrumb-only is a valid outcome.** When a chapter's body is already mostly Claude-specific *how* (e.g.
+ch14's antipattern recoveries + the four-layer *instruments*), there is little tool-agnostic prose to
+compact — the de-dupe is then the **breadcrumb alone**, acknowledging AC owns the cross-tool catalog. Don't
+manufacture trims: in the pilot, ch06 (principle-heavy) compacted prose, while ch14 (recovery-heavy) added
+breadcrumbs and removed nothing — both correct. Expect the fan-out to split the same way per chapter.
+
 ## 3. The replace pattern — compact treatment + breadcrumb
 
 Trim depth is **compact, not maximal** (decided 2026-06-20): leave a tighter-but-real treatment, not a
@@ -64,11 +70,14 @@ Breadcrumbs are **bidirectional** (the series convention: cross-refs are bidirec
 | handbook | `/handbook/chapters/<slug>/` | `chapters/<slug>/#<anchor>` |
 | agentic-coding | `/agentic-coding/<slug>/` (no `/chapters/`) | `<slug>/#<anchor>` |
 
-- `siblingBooks` must be wired in both books' `astro.config.mjs` (done — PR1) or `<BookLink>` throws at build.
+- `siblingBooks` must be wired in both books' `astro.config.mjs` (done — already on `main`, landed in #31) or `<BookLink>` throws at build.
 - **Anchors are auto-slugged headings** (`### Mode 1: Hypothesis-driven debugging` → `#mode-1-hypothesis-driven-debugging`).
   Target a **stable heading**, and **verify the anchor against the target's real headings** — the `to` path
   is unvalidated upstream (scaffold #167), so a typo is a silent dead link.
 - Import: `import BookLink from '@brandon_m_behring/book-scaffold-astro/components/BookLink.astro';`
+- **Keep down-rung links sparse** — ≤3–4 per chapter, each to a *distinct* target section, placed at the
+  relevant section. Don't stack an umbrella link (e.g. `#operation`) with separate links to its own
+  sub-sections unless each is genuinely useful where it sits.
 
 ## 5. Preserve the spine + apparatus
 
@@ -87,8 +96,8 @@ A trim must not break the chapter's standalone structure (`../PEDAGOGY.md`, tuto
   for **both** the handbook and agentic-coding (the AC reverse-breadcrumb edit needs its own build).
 - [ ] `grep` the built HTML for the BookLink hrefs → confirm the `/agentic-coding/<slug>/#<anchor>` and
   `/handbook/chapters/<slug>/#<anchor>` shapes; **cross-check each anchor against the target's real
-  headings** (the `to` is unvalidated — scaffold #167). **This grep is the required checked-link
-  artifact for every lean-trim PR** until #167 lands automated validation — paste it into the PR.
+  headings** (the `to` is unvalidated — scaffold #167). **Summarize the resolved hrefs in the PR**
+  (built-HTML grep or a source-heading check) — the required checked-link step until #167 lands validation.
 - [ ] Keep cross-book links to **stable** target headings, and avoid naming volatile tool-surface
   detail (slash-commands, flags) *in the sibling book* — name it where it's verified, and breadcrumb to
   it (a reverse breadcrumb into agentic-coding must not import the handbook's command surface).
