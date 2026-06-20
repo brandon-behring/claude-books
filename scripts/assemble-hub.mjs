@@ -1,12 +1,18 @@
 /**
  * assemble-hub.mjs — combined-dist assembler for claude-books.brandon-behring.dev.
  *
- * Each book builds to <book>/dist with base '/<subroute>/' (Astro keeps assets at
- * dist root and base-prefixes links). This copies each book's dist into the apex
- * dist/<subroute>/ and writes the hub landing at dist/index.html, so ONE Cloudflare
- * Worker ([assets] dir=./dist in wrangler.toml) serves the whole apex — no per-book
- * Workers, no service-binding proxy. Run by the root `build` script after the
- * workspace builds.
+ * Each workspace builds to <ws>/dist (the four books with base '/<subroute>/',
+ * the hub with base '/'). This copies each BOOK build into the apex
+ * dist/<subroute>/, then copies the HUB build onto the apex dist/ root
+ * (index.html, /search/, /pagefind/, favicon.svg, _astro/…). ONE Cloudflare
+ * Worker ([assets] dir=./dist in wrangler.jsonc) serves the whole apex — no
+ * per-book Workers, no service-binding proxy. Run by the root `build` script
+ * after the workspace builds.
+ *
+ * The hub landing is now a REAL book-scaffold-astro page (hub/src/pages/
+ * index.astro), folded onto the shared spine (#27) — it is no longer a
+ * hand-written HTML string here. Display data (titles/lenses/blurbs) lives in
+ * the hub page; this script only needs each book's build dir + apex slug.
  *
  * Handbook is content-incomplete (draft): served but noindex via robots.txt.
  */
@@ -14,10 +20,10 @@ import { cpSync, rmSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BOOKS = [
-  { dir: 'architect-reference', slug: 'architect', title: "The Claude Architect's Reference", lens: 'Cert', blurb: 'Self-contained CCA-F (D1–D5) study guide' },
-  { dir: 'agentic-systems-design', slug: 'design', title: 'Agentic Systems Design', lens: 'Design', blurb: 'Engineering agentic systems (multi-volume)' },
-  { dir: 'agentic-coding', slug: 'agentic-coding', title: 'Agentic Coding', lens: 'Use', blurb: 'Cross-tool principles — Claude Code, with Gemini CLI and Codex CLI as context' },
-  { dir: 'handbook', slug: 'handbook', title: 'Handbook', lens: 'Use', blurb: 'Claude Code in daily practice', draft: true },
+  { dir: 'architect-reference', slug: 'architect' },
+  { dir: 'agentic-systems-design', slug: 'design' },
+  { dir: 'agentic-coding', slug: 'agentic-coding' },
+  { dir: 'handbook', slug: 'handbook', draft: true },
 ];
 
 const ROOT = process.cwd();
@@ -32,56 +38,15 @@ for (const b of BOOKS) {
   console.log(`  assembled ${b.dir}/dist → dist/${b.slug}/${b.draft ? '  (draft, noindex)' : ''}`);
 }
 
-const card = (b) => `      <li>
-        <a href="/${b.slug}/"><span class="lens">${b.lens}</span> ${b.title}</a>
-        <p>${b.blurb}</p>
-      </li>`;
-const live = BOOKS.filter((b) => !b.draft).map(card).join('\n');
+// Hub landing — a real scaffold page (hub/ workspace). Copy its build onto the
+// apex root: index.html + /search/ + /pagefind/ + favicon.svg + _astro/… merge
+// alongside the book subdirs above (no path collisions — books live under their
+// own slugs). This replaces the old hand-written index.html + favicon copy. #27.
+const hubDist = join(ROOT, 'hub', 'dist');
+if (!existsSync(hubDist)) throw new Error('Missing build output: hub/dist — run the hub build first (npm run build --workspaces).');
+cpSync(hubDist, OUT, { recursive: true });
+console.log('  assembled hub/dist → dist/ (apex landing, on the shared scaffold spine)');
 
-writeFileSync(join(OUT, 'index.html'), `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>claude-books — a Claude-centered book series (Use · Cert · Design)</title>
-  <meta name="description" content="A Claude-centered, four-book series on building with Claude Code and engineering agentic systems — on book-scaffold-astro." />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <style>
-    :root { color-scheme: light dark; --fg: #1a1a1a; --muted: #666; --bg: #fafafa; --accent: #5a4fcf; }
-    @media (prefers-color-scheme: dark) { :root { --fg: #e8e8e8; --muted: #9a9a9a; --bg: #14141a; } }
-    * { box-sizing: border-box; }
-    body { margin: 0; font: 16px/1.6 ui-sans-serif, system-ui, sans-serif; color: var(--fg); background: var(--bg); }
-    main { max-width: 44rem; margin: 0 auto; padding: 4rem 1.5rem; }
-    h1 { font-size: 1.9rem; margin: 0 0 .25rem; }
-    .tagline { color: var(--muted); margin: 0 0 2.5rem; }
-    .note { color: var(--muted); font-size: .9rem; margin: 2rem 0 0; }
-    ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
-    li { border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent); border-radius: 10px; padding: 1.1rem 1.25rem; }
-    li a { font-size: 1.15rem; font-weight: 600; text-decoration: none; color: var(--fg); }
-    li a:hover { color: var(--accent); }
-    .lens { display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid currentColor; border-radius: 4px; padding: .05rem .4rem; margin-right: .5rem; vertical-align: middle; }
-    li p { color: var(--muted); margin: .4rem 0 0; font-size: .95rem; }
-    footer { margin-top: 3rem; color: var(--muted); font-size: .85rem; }
-    footer a { color: inherit; }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>claude-books</h1>
-    <p class="tagline">A Claude-centered series on building with Claude Code and engineering agentic systems — on <a href="https://github.com/brandon-behring/book-scaffold-astro">book-scaffold-astro</a>.</p>
-    <ul>
-${live}
-    </ul>
-    <p class="note">Two <strong>Use</strong> books: <em>Agentic Coding</em> (above) is the cross-tool principles layer — Claude Code as the home lens. The <strong>Handbook</strong> — Claude Code, day to day — is in active draft (Part I live) and joins the lineup at its v1.0.</p>
-    <footer><a href="https://brandon-behring.dev">brandon-behring.dev</a></footer>
-  </main>
-</body>
-</html>
-`);
-
+// robots.txt last (after the hub copy) so it always wins: handbook is draft.
 writeFileSync(join(OUT, 'robots.txt'), 'User-agent: *\nDisallow: /handbook/\n');
-
-// Apex favicon: the hand-written hub landing links /favicon.svg — copy the series mark
-// (the Claude logo) from an assembled book so the root tab icon resolves (no /favicon.ico 404).
-cpSync(join(OUT, 'agentic-coding', 'favicon.svg'), join(OUT, 'favicon.svg'));
-console.log('  wrote dist/index.html (hub landing) + dist/robots.txt (handbook noindex) + dist/favicon.svg');
+console.log('  wrote dist/robots.txt (handbook noindex)');
