@@ -1,0 +1,91 @@
+---
+import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
+
+// The series' three live books. Handbook is content-incomplete (draft →
+// noindex via robots.txt) and omitted from the index until its v1.0 — it is
+// still copied to /handbook/ by scripts/assemble-hub.mjs. The slugs here
+// mirror that script's copy loop (display data lives here; copy data there).
+const BOOKS = [
+  { slug: 'architect',      lens: 'Cert',   title: "The Claude Architect's Reference", blurb: 'Self-contained CCA-F (D1–D5) study guide.' },
+  { slug: 'design',         lens: 'Design', title: 'Agentic Systems Design',           blurb: 'Engineering agentic systems (multi-volume).' },
+  { slug: 'agentic-coding', lens: 'Use',    title: 'Agentic Coding',                   blurb: 'Cross-tool principles — Claude Code, with Gemini CLI and Codex CLI as context.' },
+];
+---
+<Base
+  title="claude-books — a Claude-centered book series (Use · Cert · Design)"
+  description="A Claude-centered, four-book series on building with Claude Code and engineering agentic systems — on book-scaffold-astro."
+  showSidebar={false}
+>
+  <article class="prose hub">
+    <h1>claude-books</h1>
+    <p class="subtitle"><em>A Claude-centered series on building with Claude Code and engineering agentic
+    systems — on <a href="https://github.com/brandon-behring/book-scaffold-astro">book-scaffold-astro</a>.</em></p>
+
+    <ul class="book-list">
+      {BOOKS.map((b) => (
+        <li class="book-card">
+          <a href={`/${b.slug}/`}><span class="lens">{b.lens}</span>{b.title}</a>
+          <p>{b.blurb}</p>
+        </li>
+      ))}
+    </ul>
+
+    <p class="note">Two <strong>Use</strong> books: <em>Agentic Coding</em> (above) is the cross-tool
+    principles layer — Claude Code as the home lens. The <strong>Handbook</strong> — Claude Code, day to
+    day — is in active draft (Part I live) and joins the lineup at its v1.0.</p>
+
+    <footer class="hub-footer"><a href="https://brandon-behring.dev">brandon-behring.dev</a></footer>
+  </article>
+</Base>
+
+<style>
+  /* Page-local landing layout. The spine (accent, fonts, dark-mode) is
+     inherited from Base.astro + scaffold tokens — every value below is a
+     scaffold token (accent = --color-link = #3B6FA0; auto-themes in dark),
+     so this is the sanctioned scoped-style pattern (cf. the scaffold's own
+     pages/index.astro), NOT a hand-maintained fork of the spine. */
+  .book-list {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-12) 0 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .book-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+  }
+  .book-card > a {
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .lens {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-link);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-sm);
+    padding: 0.05rem 0.4rem;
+    margin-right: var(--space-2);
+    vertical-align: middle;
+  }
+  .book-card > p {
+    color: var(--color-text-muted);
+    margin: var(--space-2) 0 0;
+    font-size: 0.95rem;
+  }
+  .note {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: var(--space-8);
+  }
+  .hub-footer {
+    margin-top: var(--space-12);
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+</style>
