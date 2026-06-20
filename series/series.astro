@@ -1,0 +1,80 @@
+---
+/**
+ * series.astro — "How the series fits together" (the shared reader orientation page).
+ *
+ * CANONICAL SOURCE: /series/series.astro at the repo root. `scripts/sync-series.mjs`
+ * copies it into each book's src/pages/series.astro (predev + prebuild), so every book
+ * serves an identical /series route from one source. The per-book copy is a gitignored
+ * build artifact — EDIT THIS FILE, not the copies.
+ *
+ * Cross-book links use absolute deploy paths (/handbook/, /agentic-coding/, /architect/,
+ * /design/) — one Cloudflare Worker serves all subpaths from a shared origin, so absolute
+ * links resolve from inside any book. (In standalone local dev only the current book is
+ * served, so sibling links 404 locally — expected; they resolve in the assembled deploy.)
+ * When the books move to subdomains (#14), switch these to <BookLink> with siblingBooks set.
+ */
+import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
+---
+<Base
+  title="How the series fits together"
+  description="A reader's map to the Claude books — a depth ladder from using Claude Code today, to why agentic coding works across tools, to engineering agentic systems, plus the certification study guide."
+>
+  <article class="prose">
+    <h1>How the series fits together</h1>
+    <p>
+      These books are one set, read at the depth you need. Three of them form a
+      <strong>depth ladder</strong> — each rung goes deeper than the last — and a fourth runs
+      alongside as the certification path. Start at the rung that matches your question. Each book
+      stands on its own and points onward when you want more.
+    </p>
+
+    <h2>The depth ladder</h2>
+
+    <h3>1. Handbook — <em>use Claude Code well, today</em></h3>
+    <p>
+      Day-to-day practice with Claude Code: sessions, <code>CLAUDE.md</code>, workflows, config — with
+      worked examples and exercises on your own project. Lean by design: it teaches the Claude-specific
+      <em>how</em> in full and points up the ladder for the deeper <em>why</em>.
+      <a href="/handbook/">Read the Handbook →</a>
+    </p>
+
+    <h3>2. Agentic Coding — <em>understand why it works, across tools</em></h3>
+    <p>
+      The principles beneath the practice, compared across Claude Code, Gemini CLI, and Codex CLI:
+      where the tools <strong>converge</strong> (settled practice) and <strong>diverge</strong> (open
+      design space). Read this when you want the reasoning, not just the commands — or when you're
+      choosing between tools. <a href="/agentic-coding/">Read Agentic Coding →</a>
+    </p>
+
+    <h3>3. Agentic Systems Design — <em>engineer agentic systems</em></h3>
+    <p>
+      The deepest rung: the discipline of designing agentic systems — environment, context, tools,
+      orchestration, evaluation, operations. Reference-altitude and multi-volume. Read this when
+      you're building the system, not just using the tool.
+      <a href="/design/">Read Agentic Systems Design →</a>
+    </p>
+
+    <h2>Alongside the ladder</h2>
+
+    <h3>The Claude Architect's Reference — <em>pass the certification</em></h3>
+    <p>
+      A self-contained study guide for Anthropic's <em>Claude Certified Architect — Foundations</em>
+      (domains D1–D5): teach-from-scratch prose, diagnostics, worked examples, and a question bank.
+      Orthogonal to the ladder — the exam path. <a href="/architect/">Read the Architect's Reference →</a>
+    </p>
+
+    <h3>Glossary — <em>the shared vocabulary</em></h3>
+    <p>
+      A deep-linkable term layer shared by every book: one canonical definition per term, not a
+      read-through book. You'll meet it through inline term links as you read.
+    </p>
+
+    <h2>Which one should I read?</h2>
+    <ul>
+      <li><strong>“I just want to get work done with Claude Code.”</strong> → Handbook.</li>
+      <li><strong>“Why does this work — and how do other agent CLIs compare?”</strong> → Agentic Coding.</li>
+      <li><strong>“I'm designing an agentic system.”</strong> → Agentic Systems Design.</li>
+      <li><strong>“I'm sitting the CCA-F exam.”</strong> → The Architect's Reference.</li>
+    </ul>
+  </article>
+</Base>

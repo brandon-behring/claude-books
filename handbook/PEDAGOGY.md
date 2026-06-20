@@ -2,6 +2,11 @@
 
 The pedagogical model for the `claude-books` handbook. This doc formalizes what's implicit in the LaTeX source (`~/claude-best-practices/`), fills the gaps, and proposes conventions for how multi-format content (chapters + supplements + reference + explanation) coexists without becoming a "mash up = no style."
 
+> **Series-level pedagogy now lives at [`../docs/PEDAGOGY.md`](../docs/PEDAGOGY.md)** — the cross-book
+> genre→device matrix + series-wide conventions (volatility enum, MarginNote-as-guideline, `<Tag>`
+> scoping, figures). This doc holds **handbook-specific** decisions; where they overlap, the series doc
+> is canonical.
+
 **Status**: **Draft (2026-05-23).** Visual-design sections are filled from Phase A research notes in `../docs/research/11-pedagogy/`. Other sections still have explicit **OPEN** markers where the user is exploring options. See `decisions log` at end for the live state of each choice.
 
 This doc is a reference for future contributors. Read once; refer when applying the model.
