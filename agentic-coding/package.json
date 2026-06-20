@@ -5,8 +5,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "predev": "npm run build:labels --if-present",
-    "prebuild": "npm run build:labels --if-present && npm run validate --if-present",
+    "predev": "npm run build:labels --if-present && npm run sync:series",
+    "prebuild": "npm run build:labels --if-present && npm run sync:series && npm run validate --if-present",
+    "sync:series": "node ../scripts/sync-series.mjs agentic-coding",
     "build:labels": "book-scaffold build-labels",
     "build:figures": "book-scaffold build-figures",
     "build:notebooks": "book-scaffold render-notebooks",

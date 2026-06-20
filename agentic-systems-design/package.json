@@ -5,8 +5,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "predev": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present",
-    "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run validate --if-present && npm run validate:design",
+    "predev": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run sync:series",
+    "prebuild": "npm run build:bib --if-present && npm run build:labels --if-present && npm run build:tips --if-present && npm run sync:series && npm run validate --if-present && npm run validate:design",
+    "sync:series": "node ../scripts/sync-series.mjs agentic-systems-design",
     "build:bib": "book-scaffold build-bib",
     "build:labels": "book-scaffold build-labels",
     "build:tips": "BOOK_CHAPTERS_DIR=src/content/chapters book-scaffold build-tips",

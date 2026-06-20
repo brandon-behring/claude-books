@@ -19,6 +19,15 @@ The books target the publicly-known taxonomy. The confidential v0.1 PDF is inter
 
 > **2026-06-09 apparatus note (upd. 2026-06-12).** The study-apparatus **spine is wired** (scaffold v4.17 spine consumed): `examDomains` + the `questions` collection + the static `/practice-exam` route + `<ObjectiveMap>` (landing page), with a seeded **10-question bank** (2/domain, chapter-grounded). This matrix still tracks *chapter coverage* (unchanged); the question bank's per-domain coverage is its own auto-derived `<ObjectiveMap>` surface. **Upstream epic #122 closed 2026-06-10** — the heavier components (#110 Diagnostic / #111 PartReview / #112-UI ExamRunner / #113 AssessmentTest / #114 answers appendix / #115 Glossary / #116 flashcards) all shipped in v4.19–v4.22. Remaining is in-repo: **adopt the layer (Sprint 1) + expand the bank (Sprint 2)** — see [`ROADMAP.md`](./ROADMAP.md) Horizon 1 + [`scaffold-gaps.md`](./scaffold-gaps.md).
 
+> **2026-06-19 note — Agentic Coding & this matrix.** The series' second Use book, **Agentic Coding**
+> (`agentic-coding/`, cross-tool: Claude Code · Gemini CLI · Codex CLI; folded in via PR #18), is
+> **deliberately not a column here.** It is principle-first / tool-agnostic — not authored to the CCA-F
+> task areas — so it is **not a cert-coverage owner**. Its cert relation is **comparative context** at the
+> principle level (mainly D1 orchestration, D3 config). It is the depth ladder's "why" rung (see
+> [`BOOK-MAP.md`](./BOOK-MAP.md)), reached from the handbook's breadcrumbs — not exam-prep coverage. Adding
+> it as a column would over-claim exam alignment it doesn't have. (Per the [series pedagogy & positioning
+> audit](./audits/2026-06-19_series-pedagogy-and-positioning-audit.md), Part E item 2.)
+
 ## Domain 1 — Agentic Architecture & Orchestration (27%)
 
 Primary owner: **architect-reference**. Cross-references: handbook ch on agents/parallel work (use-side only); Design's applied volume (field cases) on multi-agent setups.

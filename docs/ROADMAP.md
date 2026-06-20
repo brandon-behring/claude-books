@@ -24,10 +24,13 @@ applied volume (see [Next](#next--re-set-2026-06-17)).
 | `agentic-systems-design/` | Design | The broad book — **multi-volume** (see below) | **Live** — Vols 1–3 drafted, **Design v1.0 COMPLETE 2026-06-14** (28 ch / 34 pages); applied (v2.0) pending |
 | `glossary/` | Vocabulary | Shared deep-link term layer — **infrastructure, not a book** | v1 shipped 2026-06-13 — 70-term bank + sync infra; cert consumer live |
 
-> **The two Use books are complementary by altitude** — **handbook** = Claude-Code-specific daily practice
-> (sessions, CLAUDE.md, workflows); **agentic-coding** = tool-agnostic principles *above* any one tool,
-> situating Claude Code among its peer CLI agents (Gemini CLI · Codex CLI). The series is **Claude-centered**:
-> Claude is the home lens; cross-tool is comparative context.
+> **The books form a depth ladder** (decided 2026-06-19) — **handbook** (use Claude Code today) → **agentic-coding**
+> (why it works, across tools) → **agentic-systems-design** (engineer it); the **Architect's Reference** is the
+> orthogonal exam path. The two Use books are complementary by altitude: handbook = Claude-Code-specific daily
+> practice, **lean-but-standalone** (full on the *how*, brief on principles, breadcrumbs inviting the deeper rung);
+> agentic-coding = tool-agnostic principles *above* any one tool (Claude Code = home lens; Gemini CLI · Codex CLI =
+> comparative context). The principle *core* of a shared concept canonically deepens one rung up. See the
+> [series pedagogy & positioning audit](./audits/2026-06-19_series-pedagogy-and-positioning-audit.md).
 
 **Agentic Systems Design — the volumes** (foundation-first):
 Vol 1 **Environment & Context** → Vol 2 **Tools & Orchestration** → Vol 3 **Evaluation & Operations**

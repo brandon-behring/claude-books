@@ -19,6 +19,10 @@ dist/
 # scripts/sync-glossary.mjs (predev/prebuild). Source of truth is glossary/terms/.
 */src/content/glossary/
 
+# Generated series page — synced from canonical /series/series.astro by
+# scripts/sync-series.mjs (predev/prebuild). Source of truth is /series/series.astro.
+*/src/pages/series.astro
+
 # Editor / OS
 .DS_Store
 .idea/

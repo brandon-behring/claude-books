@@ -20,11 +20,31 @@ Each book is a distinct **scope** with a one-word **lens** — the question it a
 | Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | **Vols 1–3 drafted — Design v1.0 COMPLETE 2026-06-14** (28 ch); applied (v2.0) pending |
 | Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | v1 shipped 2026-06-13 (cert consumer) — **not a read-through book** |
 
+## The depth ladder
+
+The four books form a deliberate **depth ladder** — pick the rung that matches how deep you need to go:
+
+1. **handbook** — *use Claude Code well, today.* Claude-specific daily practice.
+2. **agentic-coding** — *understand why agentic coding works — and where the tools differ.* The principle / cross-tool "why" layer.
+3. **agentic-systems-design** — *engineer agentic systems.* The deepest, reference-altitude rung.
+
+**The Architect's Reference is orthogonal** — the exam path, self-contained, not a rung on the ladder.
+**The Glossary is cross-cutting** — the shared vocabulary every rung links into.
+
+Each rung is **standalone**: a breadcrumb *invites* the deeper book, it never says "see the other book
+for the real version" (see *Cross-reference convention*). For a shared concept, the **principle core
+canonically deepens one rung up** (e.g., the *why* of context rot lives in agentic-coding; the handbook
+keeps the Claude-specific commands + a brief pointer). Grounded in the 2026-06-19 series pedagogy &
+positioning audit ([`docs/audits/2026-06-19_series-pedagogy-and-positioning-audit.md`](./audits/2026-06-19_series-pedagogy-and-positioning-audit.md)),
+which verified the handbook ↔ agentic-coding split is genuine (keep both) and mapped the de-dupe.
+
 ## Handbook = Use
 
 Claude Code in **daily practice** — sessions, CLAUDE.md, workflows, config, productivity. How-to
 altitude, scoped to the CLI/agent tool (not the API or claude.ai). The rewrite of the
-`claude-best-practices` draft (16 ch).
+`claude-best-practices` draft (16 ch). **Rung 1 of the depth ladder — lean-but-standalone:** full on
+the Claude-specific *how*, brief on principles, with breadcrumbs inviting agentic-coding (rung 2) for
+the cross-tool *why*.
 
 ## Agentic Coding = Use (cross-tool)
 
@@ -33,8 +53,9 @@ and Codex CLI side by side. Principle-first: each chapter uses a uniform Represe
 Evolution skeleton and tracks where the tools **converge** (stable practice) and **diverge** (open
 design space). 17 chapters + 6 appendices (per-tool companions, a source archive, glossary, maturity
 model). Distinct from the Handbook (Claude-Code-specific daily practice); this is the tool-agnostic layer
-*above* any one tool. Within the **Claude-centered** series, **Claude Code is the home lens** here — Gemini
-CLI and Codex CLI appear as comparative context, not co-equal subjects. Folded into the series via PR #18
+*above* any one tool — **rung 2 of the depth ladder**, the "why" layer the handbook's breadcrumbs point to
+(the principle core of a shared concept canonically deepens here). Within the **Claude-centered** series,
+**Claude Code is the home lens** here — Gemini CLI and Codex CLI appear as comparative context, not co-equal subjects. Folded into the series via PR #18
 (which also added the Cloudflare deploy hub).
 
 ## Architect's Reference = Cert
@@ -88,12 +109,17 @@ Refines the earlier "Design points outward only / zero inbound XRefs" rule:
 - **Every explanation is complete where it sits** — never "see the other book for the real version."
 - **Cross-refs are bidirectional breadcrumbs** — pointers to parallel coverage, so updating a topic
   surfaces every place it lives. Neither direction is load-bearing (each explanation is complete in
-  place), which keeps Design cleanly extractable. XRefs resolve via `src/data/labels.json`
-  (`<XRef id="...">`).
+  place), which keeps Design cleanly extractable.
+- **Link mechanism:** **in-book** links use `<XRef id="...">` (resolves via `src/data/labels.json`);
+  **cross-book** links use `<BookLink>` (the books are separate Astro apps / subdomains) or plain prose —
+  `<XRef>` cannot cross app boundaries. The depth-ladder breadcrumbs (handbook → agentic-coding → design)
+  are `<BookLink>`s.
 
 ```
-Architect's Reference (Cert) ──breadcrumb──▶ Agentic Systems Design (Design)
-                            ◀──breadcrumb───
+Depth ladder:  handbook ──invite──▶ agentic-coding ──invite──▶ agentic-systems-design
+               (use today)          (why / cross-tool)         (engineer it)
+
+Cert (orthogonal):  Architect's Reference ◀──breadcrumb──▶ Agentic Systems Design
 ```
 
 ## Cert ownership at a glance (matrix: [`docs/cert-coverage.md`](./cert-coverage.md))
