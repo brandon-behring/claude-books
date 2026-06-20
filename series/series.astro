@@ -7,13 +7,24 @@
  * serves an identical /series route from one source. The per-book copy is a gitignored
  * build artifact — EDIT THIS FILE, not the copies.
  *
- * Cross-book links use absolute deploy paths (/handbook/, /agentic-coding/, /architect/,
- * /design/) — one Cloudflare Worker serves all subpaths from a shared origin, so absolute
- * links resolve from inside any book. (In standalone local dev only the current book is
- * served, so sibling links 404 locally — expected; they resolve in the assembled deploy.)
- * When the books move to subdomains (#14), switch these to <BookLink> with siblingBooks set.
+ * Cross-book links are centralized in the BOOK_PATHS map below (same-origin apex
+ * subpaths) — one Cloudflare Worker serves all subpaths from a shared origin, so they
+ * resolve from inside any book. (In standalone local dev only the current book is served,
+ * so sibling links 404 locally — expected; they resolve in the assembled deploy.) These
+ * are navigational CTAs; the subdomain migration (#14) updates BOOK_PATHS. In-chapter
+ * cross-book references use <BookLink> (the siblingBooks registry), not this page.
  */
 import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
+
+// BOOK_PATHS — the ONE place this page's cross-book hrefs are defined (mirrors the
+// siblingBooks registry in each astro.config.mjs). Same-origin apex subpaths: the
+// intended contract until the subdomain migration (#14).
+const BOOK_PATHS = {
+  handbook: '/handbook/',
+  agenticCoding: '/agentic-coding/',
+  design: '/design/',
+  architect: '/architect/',
+};
 ---
 <Base
   title="How the series fits together"
@@ -35,7 +46,7 @@ import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
       Day-to-day practice with Claude Code: sessions, <code>CLAUDE.md</code>, workflows, config — with
       worked examples and exercises on your own project. Lean by design: it teaches the Claude-specific
       <em>how</em> in full and points up the ladder for the deeper <em>why</em>.
-      <a href="/handbook/">Read the Handbook →</a>
+      <a href={BOOK_PATHS.handbook}>Read the Handbook →</a>
     </p>
 
     <h3>2. Agentic Coding — <em>understand why it works, across tools</em></h3>
@@ -43,7 +54,7 @@ import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
       The principles beneath the practice, compared across Claude Code, Gemini CLI, and Codex CLI:
       where the tools <strong>converge</strong> (settled practice) and <strong>diverge</strong> (open
       design space). Read this when you want the reasoning, not just the commands — or when you're
-      choosing between tools. <a href="/agentic-coding/">Read Agentic Coding →</a>
+      choosing between tools. <a href={BOOK_PATHS.agenticCoding}>Read Agentic Coding →</a>
     </p>
 
     <h3>3. Agentic Systems Design — <em>engineer agentic systems</em></h3>
@@ -51,7 +62,7 @@ import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
       The deepest rung: the discipline of designing agentic systems — environment, context, tools,
       orchestration, evaluation, operations. Reference-altitude and multi-volume. Read this when
       you're building the system, not just using the tool.
-      <a href="/design/">Read Agentic Systems Design →</a>
+      <a href={BOOK_PATHS.design}>Read Agentic Systems Design →</a>
     </p>
 
     <h2>Alongside the ladder</h2>
@@ -61,7 +72,7 @@ import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
       A self-contained study guide for Anthropic's
       <a href="https://claude.com/resources/certifications"><em>Claude Certified Architect — Foundations</em></a>
       (domains D1–D5): teach-from-scratch prose, diagnostics, worked examples, and a question bank.
-      Orthogonal to the ladder — the exam path. <a href="/architect/">Read the Architect's Reference →</a>
+      Orthogonal to the ladder — the exam path. <a href={BOOK_PATHS.architect}>Read the Architect's Reference →</a>
     </p>
 
     <h3>Glossary — <em>the shared vocabulary</em></h3>

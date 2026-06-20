@@ -9,6 +9,9 @@ export default await defineBookConfig({
   styles: [toolsStyle],
   site: 'https://claude-books.brandon-behring.dev',
   base: '/handbook/',
+  // Cross-book <BookLink> registry (#96): same-origin path bases — one Worker serves
+  // all apex subpaths. Switch to full origins at the subdomain migration (#14).
+  siblingBooks: { handbook: '/handbook', 'agentic-coding': '/agentic-coding', architect: '/architect', design: '/design' },
   // Sidebar brand (scaffold v4.23, #135) — mirrors the landing page's h1; the
   // subtitle is BOOK-MAP.md's one-line lens for the Use book.
   title: 'Best Practices for Using Claude',

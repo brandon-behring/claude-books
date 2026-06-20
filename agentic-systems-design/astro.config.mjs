@@ -13,6 +13,9 @@ export default await defineBookConfig({
   styles: [toolsStyle],
   site: 'https://claude-books.brandon-behring.dev',
   base: '/design/',
+  // Cross-book <BookLink> registry (#96): same-origin path bases — one Worker serves
+  // all apex subpaths. Switch to full origins at the subdomain migration (#14).
+  siblingBooks: { handbook: '/handbook', 'agentic-coding': '/agentic-coding', architect: '/architect', design: '/design' },
   // landing: false (v4.20, #129): we own src/pages/index.astro; silences the
   // shadow warning before Astro makes the collision a hard error.
   routes: { landing: false },
