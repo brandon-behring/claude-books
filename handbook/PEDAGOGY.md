@@ -52,7 +52,7 @@ Substantial pedagogical infrastructure exists in two repos. Most of this doc is 
 
 **Micro level** — pedagogical primitives:
 
-- **Margin-note 8 categories** (`claude-best-practices.sty` ll. 232-293): Official, Tip, Warning, Cost, Enterprise, Template, Vocab, Cross-Ref. 25-word cap enforced. Color-coded per Warm Tol palette.
+- **Margin-note categories** (`claude-best-practices.sty` ll. 232-293): the LaTeX source had Official, Tip, Warning, Cost, Enterprise, Template, Vocab, Cross-Ref with a 25-word cap. **Both are retired:** current approved labels are Official / Tip / Warning / Cost / Enterprise / Template / Note, and the 25-word cap is now a **guideline, not a validator-enforced limit** (asides earn their place by function, not word count — see `CLAUDE.md`). Color-coded per the Warm-Tol palette.
 - **Pedagogical box types** (`claude-best-practices.sty` ll. 344-395):
   - `\beforeafter` — contrast pair (vague vs. precise; before/after refactor)
   - `\trybox` — 10-minute practice exercise on reader's own project
@@ -65,7 +65,7 @@ Substantial pedagogical infrastructure exists in two repos. Most of this doc is 
 
 - **Part Intros in `OUTLINE.md`** — each Part declares "you are at L_n, by end of this Part you'll be at L_{n+1}." Reinforces maturity progression at Part boundaries.
 - **`cert_domains` frontmatter** — each chapter declares which cert domains (1-5) it covers. Cross-referenced in `docs/cert-coverage.md`.
-- **`volatility` + staleness banner** — `stable-principle` / `evolving` / `fast-moving`. Banner renders for `fast-moving` content older than 90 days. Honest transparency about freshness.
+- **`volatility` + staleness banner** — `stable-principle` / `architectural-pattern` / `feature-surface` (the `evolving` / `fast-moving` names are **retired**; `feature-surface` is the 90-day tier). The scaffold maps each class to a freshness threshold against `last_verified` (feature-surface 90d / architectural-pattern 180d / stable-principle 365d). Honest transparency about freshness.
 - **Custom MDX components** (`handbook/src/components/`): `<BeforeAfter>`, `<DecisionBox>`, `<MaturityLevel>` + scaffold-inherited `<KeyIdea>`, `<TryThis>`, `<MarginNote>`, `<InsightBox>`, `<Tag>`, `<XRef>`.
 - **Research cache** (`docs/research/`) — 123+ primary-source notes feeding chapter citations.
 
