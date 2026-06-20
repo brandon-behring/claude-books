@@ -14,6 +14,9 @@ export default await defineBookConfig({
   styles: [toolsStyle],
   site: 'https://claude-books.brandon-behring.dev',
   base: '/agentic-coding/',
+  // Cross-book <BookLink> registry (#96): same-origin path bases — one Worker serves
+  // all apex subpaths. Switch to full origins at the subdomain migration (#14).
+  siblingBooks: { handbook: '/handbook', 'agentic-coding': '/agentic-coding', architect: '/architect', design: '/design' },
   title: 'Agentic Coding',
   subtitle: 'Principles & Practices — Claude Code · Gemini CLI · Codex CLI',
   // The book owns src/pages/index.astro (landing) — silence the scaffold shadow.
