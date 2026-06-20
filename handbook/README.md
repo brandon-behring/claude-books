@@ -11,7 +11,7 @@ npm run dev    # http://localhost:4321
 
 ## Authoring
 
-Chapters live under `src/content/chapters/*.mdx`. The starter `week01-hello-world.mdx` shows the frontmatter shape and basic component usage.
+Chapters live under `src/content/chapters/*.mdx`. `ch01-principles.mdx` is the canonical Part I template — the frontmatter shape, the slim chapter spine, and the full component set. See [`docs/port-recipe.md`](./docs/port-recipe.md) (port spec) + [`docs/lean-trim-recipe.md`](./docs/lean-trim-recipe.md) (de-dupe spec).
 
 Available components are documented in the toolkit's [PACKAGE_DESIGN.md §10](https://github.com/brandon-behring/book-scaffold-astro/blob/v3.0/PACKAGE_DESIGN.md#10-mdx-import-patterns).
 
