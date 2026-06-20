@@ -57,7 +57,9 @@ mismatch; using it is drift.
 | Diagnostic / PartReview | 0 / 0 | 0 / 0 | 30 / 5 | 0 / 0 |
 | Figures (`.tex`) | 14 | 0 | 0 | 18 |
 
-Reproduce: `grep -rohE "<Comp[ >/]" <book>/src/content/chapters/`. (The earlier exploration pass
+Reproduce one cell — swap `COMPONENT` for a device name (`Citation`, `Exercise`, …):
+`grep -rohE "<COMPONENT[ >/]" <book>/src/content/chapters/ | wc -l` (e.g. `<Citation[ >/]` → 97 for
+the handbook). (The earlier exploration pass
 mis-counted several of these — notably agentic-coding's citations and design's exercises; the table
 above is the corrected, reproducible set.)
 
