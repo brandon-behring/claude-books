@@ -1,5 +1,11 @@
 # Handbook — v3.0 outline
 
+> **STATUS (2026-06-20): content-complete — in v1.0 prep, not authoring.** This is the original v3.0
+> outline. All 16 chapters + 3 appendices are now **drafted on disk** (Part I shipped 2026-05-25; ch05–16 +
+> appendices ported via PRs #24/#25 on 2026-06-19; ch06/ch14 lean-ported PR #32). The per-chapter 🟡 markers
+> below **predate the fan-out** — treat ch05–16 as drafted, pending the v1.0 flip (#22 in-book link-rebase +
+> Tip-renumber/citation polish + lean-port MED pairs ch05/ch10/ch15 + draft-banner/`noindex` off).
+
 The handbook's lens: **how to *use* Claude effectively day-to-day.** Architectural design (Agent SDK loop internals, MCP server design, multi-agent pipeline architecture, structured-output JSON schema design) is **not** in this book — it lives in the Architect's Reference (companion book). Cross-references to it use plain prose links (cross-book `<XRef>` can't resolve across the separate Astro apps).
 
 **Cert-domain primary ownership** (handbook is primary for Domain 3; cross-cuts into 4 + 5):

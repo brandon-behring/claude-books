@@ -2,7 +2,7 @@
 
 This book is built with `@brandon_m_behring/book-scaffold-astro` (tools profile, currently v4.25.0; v4 BREAKING `defineStyle` API in use — `astro.config.mjs` passes `styles: [toolsStyle]`). It's the practitioner **Use** volume of the claude-books series — the "how to *use* Claude effectively" angle.
 
-**Status**: Part I prose complete (ch01–04 shipped); **Ch 6 ported as the Parts II–IV pilot** (2026-06-18, tutorial-first — see [`docs/port-recipe.md`](./docs/port-recipe.md)); ch05, 07–15 pending — see [`OUTLINE.md`](./OUTLINE.md) for the 15-chapter structure, source→target mapping, and per-chapter trim decisions.
+**Status**: **content-complete — in v1.0 prep, not authoring.** All 16 chapters + 3 appendices are drafted on disk (Part I shipped 2026-05-25; ch05–16 + appendices ported via PRs #24/#25 on 2026-06-19; ch06/ch14 lean-ported PR #32). Remaining for v1.0: **#22** in-book link-rebase (local rehype plugin + upstream) + the lean-port MED pairs (ch05/ch10/ch15) + a Tip-renumber/citation pass + dropping the draft-banner/`noindex`. See [`docs/lean-trim-recipe.md`](./docs/lean-trim-recipe.md) (de-dupe) + [`docs/port-recipe.md`](./docs/port-recipe.md) (port); [`OUTLINE.md`](./OUTLINE.md) is the original 16-ch structure (its per-chapter status markers predate the fan-out).
 
 **Where things live**:
 
