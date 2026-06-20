@@ -87,7 +87,11 @@ A trim must not break the chapter's standalone structure (`../PEDAGOGY.md`, tuto
   for **both** the handbook and agentic-coding (the AC reverse-breadcrumb edit needs its own build).
 - [ ] `grep` the built HTML for the BookLink hrefs → confirm the `/agentic-coding/<slug>/#<anchor>` and
   `/handbook/chapters/<slug>/#<anchor>` shapes; **cross-check each anchor against the target's real
-  headings** (the `to` is unvalidated — scaffold #167).
+  headings** (the `to` is unvalidated — scaffold #167). **This grep is the required checked-link
+  artifact for every lean-trim PR** until #167 lands automated validation — paste it into the PR.
+- [ ] Keep cross-book links to **stable** target headings, and avoid naming volatile tool-surface
+  detail (slash-commands, flags) *in the sibling book* — name it where it's verified, and breadcrumb to
+  it (a reverse breadcrumb into agentic-coding must not import the handbook's command surface).
 - [ ] Standalone check (§5).
 - [ ] **2-voice review** (codex + Claude; gemini gated via `AR_GEMINI_BIN=/nonexistent`): each breadcrumb
   lands on the section that owns the trimmed material, and no Claude-specific *how* was trimmed as principle.
