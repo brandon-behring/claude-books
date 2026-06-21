@@ -1,6 +1,6 @@
 {
   "name": "claude-books-hub",
-  "description": "Series HUB landing for claude-books.brandon-behring.dev — the apex index page, a book-scaffold-astro consumer. Built onto the combined dist/ root by scripts/assemble-hub.mjs, above the four book workspaces. Uses the 'academic' profile ONLY because it is the scaffold's lone chrome-free profile (see astro.config.mjs) — not for academic semantics; that pulls the katex peer deps below.",
+  "description": "Series HUB landing for claude-books.brandon-behring.dev — the apex index page, a book-scaffold-astro consumer. Built onto the combined dist/ root by scripts/assemble-hub.mjs, above the four book workspaces. Uses the 'tools' profile with Base showChrome={false} (book-scaffold-astro >=4.25.2, #163) for a chrome-light landing — no katex deps.",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -12,11 +12,8 @@
   "dependencies": {
     "@astrojs/mdx": "^5.0.3",
     "@astrojs/preact": "^5.1.1",
-    "@brandon_m_behring/book-scaffold-astro": "^4.25.0",
+    "@brandon_m_behring/book-scaffold-astro": "^4.25.2",
     "astro": "^6.3.7",
-    "katex": "^0.16.11",
-    "preact": "^10.29.1",
-    "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0"
+    "preact": "^10.29.1"
   }
 }
