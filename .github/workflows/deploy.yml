@@ -11,5 +11,5 @@ permissions:
 
 jobs:
   deploy:
-    uses: brandon-behring/deploy-workflows/.github/workflows/deploy-astro-worker.yml@v1
+    uses: brandon-behring/deploy-workflows/.github/workflows/deploy-astro-worker.yml@v2.0.2
     secrets: inherit
