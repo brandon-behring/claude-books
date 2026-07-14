@@ -74,7 +74,7 @@ Capability spends context by what sits *in* a window; coordination spends it by 
 
 One distinction prevents most orchestration confusion: the **primitive** is not the **topology**.
 
-- A **sub-agent** is the *primitive* — a single isolated unit: fresh context in, relevant result out.
+- A **sub-agent** is the *primitive* — a separate conversation history with configured startup context and bounded result/message channels.
 - A **multi-agent system** is a *topology* — how you coordinate many such units (an orchestrator delegating to workers, say).
 
 Conflating them produces both over- and under-engineering: building a multi-agent topology when one isolated sub-agent would do, or expecting a lone sub-agent to deliver what only a coordinated topology can. The orchestration half of this volume treats them as different objects — the isolation primitive first, the coordination of many second — and gates the topology on cost, because coordinating agents is not free.
@@ -97,7 +97,7 @@ The chapters move along the two axes — first what capability to expose, then h
 
 **Coordination — how many windows, and how they cooperate.**
 
-- **Sub-agents** — the context-isolation primitive: a fresh window that inherits nothing and returns only the result.
+- **Sub-agents** — the context-isolation primitive: fresh conversation history, explicitly composed startup context, and a narrow result channel.
 - **Multi-agent** — the coordination topology, and the cost gate that decides whether it is worth it.
 
 <Figure

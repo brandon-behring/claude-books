@@ -990,6 +990,7 @@
   title: Create custom subagents
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1015,6 +1016,7 @@
   title: Subagents in the SDK
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 

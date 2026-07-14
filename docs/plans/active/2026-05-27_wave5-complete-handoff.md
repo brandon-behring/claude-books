@@ -2,6 +2,16 @@
 
 **Date:** 2026-05-27 · **Branch:** `research-program-v0` (NOT merged to `main`) · **Resume at:** Wave 6 (review gate pending parent commit).
 
+> **Historical record — superseded 2026-07-14:** This handoff preserves what
+> the May run concluded; it is not current guidance. Current official Claude
+> Code documentation shows named sub-agents start with fresh conversation
+> history but receive composed startup context, can use configured models and
+> capabilities, and may communicate or resume through `SendMessage`. The
+> phrases “inherits nothing,” “cache is the source of truth,” and
+> “isolation-not-capability” below require the canonical semantic-review
+> migration before reuse. See the corrected Chapter 18 and current source
+> manifest.
+
 Supersedes `2026-05-27_wave4-complete-handoff.md` (which resumed at Wave 5 — now done).
 
 ---
