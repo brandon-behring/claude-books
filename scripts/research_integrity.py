@@ -317,6 +317,7 @@ def build_candidates(
 ) -> tuple[list[dict[str, Any]], list[str]]:
     upstream = load_jsonl(root / UPSTREAM_CANDIDATES)
     exact_index: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    manifest_only: list[dict[str, Any]] = []
     taxonomy: list[dict[str, Any]] = []
     errors: list[str] = []
     upstream_ids: set[str] = set()
@@ -354,11 +355,10 @@ def build_candidates(
             continue
         if candidate_type == "taxonomy_target":
             taxonomy.append(row)
-        elif candidate_type in {
-            "exact_source_url_and_citation_id",
-            "exact_source_url_manifest_only",
-        }:
+        elif candidate_type == "exact_source_url_and_citation_id":
             exact_index[(str(row.get("consumer_path")), str(row.get("consumer_anchor")))].append(row)
+        elif candidate_type == "exact_source_url_manifest_only":
+            manifest_only.append(row)
     output: list[dict[str, Any]] = []
     matched_upstream: set[str] = set()
     for citation in citations:
@@ -423,6 +423,54 @@ def build_candidates(
             }
             base["candidate_id"] = record_id("binding_candidate", base)
             output.append(base)
+    for upstream_row in sorted(manifest_only, key=lambda row: row["id"]):
+        path = safe_repo_path(root, upstream_row["consumer_path"])
+        assert path is not None
+        anchor = str(upstream_row.get("consumer_anchor"))
+        manifest_entry_exists = False
+        if path.is_file():
+            try:
+                manifest = yaml.safe_load(path.read_text(encoding="utf-8")) or []
+            except (OSError, yaml.YAMLError) as exc:
+                errors.append(
+                    f"manifest-only upstream candidate cannot load "
+                    f"{upstream_row['consumer_path']}: {exc}"
+                )
+                manifest = []
+            manifest_entry_exists = isinstance(manifest, list) and any(
+                isinstance(item, dict) and str(item.get("id")) == anchor
+                for item in manifest
+            )
+        if not manifest_entry_exists:
+            errors.append(
+                "upstream manifest-only source candidate no longer resolves: "
+                f"{upstream_row['id']}"
+            )
+            continue
+        matched_upstream.add(str(upstream_row["id"]))
+        base = {
+            "schema_version": "1.0.0-candidate",
+            "release_id": config["release_id"],
+            "candidate_type": "dossier-source-to-manifest-entry",
+            "dossier_id": upstream_row.get("dossier_id"),
+            "claim_id": None,
+            "source_id": upstream_row.get("source_id"),
+            "citation_occurrence_id": None,
+            "citation_id": anchor,
+            "consumer_repo": "claude-books",
+            "consumer_path": upstream_row["consumer_path"],
+            "anchor": f"manifest:{anchor}",
+            "content_sha256": sha256_file(path),
+            "release_role": "index",
+            "status": "pending",
+            "basis": [upstream_row["id"]],
+            "limitation": (
+                "exact source reuse in a manifest does not identify a "
+                "claim-bearing passage or verify entailment"
+            ),
+        }
+        base["candidate_id"] = record_id("binding_candidate", base)
+        output.append(base)
     for upstream_row in sorted(taxonomy, key=lambda row: row["id"]):
         path = safe_repo_path(root, upstream_row["consumer_path"])
         assert path is not None
@@ -448,7 +496,7 @@ def build_candidates(
         base["candidate_id"] = record_id("binding_candidate", base)
         output.append(base)
     for row in upstream:
-        if str(row.get("candidate_type", "")).startswith("exact_") and row.get(
+        if row.get("candidate_type") == "exact_source_url_and_citation_id" and row.get(
             "id"
         ) not in matched_upstream:
             errors.append(f"upstream source candidate no longer resolves: {row.get('id')}")

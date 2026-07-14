@@ -6,13 +6,13 @@
   ],
   "canonical_toolkit_v1_valid": true,
   "dossier_count": 102,
-  "migration_commit": "63b1de2789d116b861ab6523359ada849548a05a",
-  "migration_generated_digest": "ee74fa481ebf9d3b1a145decc32cfe5e82273f5c14eab410669b74b631c8315f",
+  "migration_commit": "008c7a6fa8cfb039df7c898d821dd1beaafda582",
+  "migration_generated_digest": "85f8f282e538544ad8b22c52e116ade54222d04636b3bf9374e86c0ded2ed5a7",
   "migration_schema_version": "1.0.0",
   "release_id": "rr-20260714.1",
   "report_sha256": {
-    "corpus_census": "9f165a839f23220322f50c39c436b17e42534140fc5cfb3f6fea3d0d0f650a68",
-    "migration_validation": "068dfc63a259576a41e96e20350298b011b4362481c45de09a8f693a1767212c",
+    "corpus_census": "1d415b6c19c2dbf50557e61a45c90842b3d43ec59928b285b45b3a1ae4725e2a",
+    "migration_validation": "4f8af6716fc3b5b1f95e9548390ddc98b96de35bce8ed8d6d8ee665104958910",
     "relevant_dossier_census": "08cd80dda64de7485995a3fcda485ace381442565bab4f29c04e7559996e76ff"
   },
   "schema_version": "claude-books.dossier-release-pin/1.0.0",

@@ -2,15 +2,15 @@
   "artifacts": [
     {
       "path": "research-integrity/citation-inventory.jsonl",
-      "sha256": "03e04581e615e6600d827f822cd6e04fb032d7cf6e760a65afb46661738f1256"
+      "sha256": "641db490bed23ff21a583222e9b5c46e2ec42c7f39c0999a7c81b234da920f6b"
     },
     {
       "path": "research-integrity/config.json",
-      "sha256": "a7b462fabd775fd230fe2ff2ed4cb14b70508c70e9fbd9fe83ccedf0d5a9b5ca"
+      "sha256": "00fe9f1bf6eccb0e62f4f0aa841febed0e7830a69fd24d8dc3fb3f405f2d1b48"
     },
     {
       "path": "research-integrity/consumer-binding-candidates.jsonl",
-      "sha256": "bdf0c75b9630eb59098187ae36515b2ad118ed553555f0984e3f335d56eabd14"
+      "sha256": "baa121848f69e56753fcadf51147cd9d6c7cbd5202481ffa53175dcdde8a11fd"
     },
     {
       "path": "research-integrity/consumer-bindings.jsonl",
@@ -18,11 +18,11 @@
     },
     {
       "path": "research-integrity/dossier-release.json",
-      "sha256": "37339788d9207baf95eaeb28b44e36cd4f866d3d8d5f70480c6488e5fb963033"
+      "sha256": "923dfd00abc43eea90ce664c01945dd655ee27556c47b70e914918914dac7d09"
     },
     {
       "path": "research-integrity/release-status.json",
-      "sha256": "fae5cdaf6006b4360ce7d998cf268ad00f68a3bff5b20632eb586b42ae66d299"
+      "sha256": "ec4f7dc3bdef6a739f0a448315a34f6e9e5861e62f48bc66e4070bf9fcd48966"
     },
     {
       "path": "research-integrity/schemas/consumer-binding.schema.json",
@@ -34,16 +34,16 @@
     },
     {
       "path": "research-integrity/upstream/migration-consumer-binding-candidates.jsonl",
-      "sha256": "11038ff52d93599e041762c7f1de0e1e81c38371a5281b93713dc95fad66963f"
+      "sha256": "6ffe9dfb3090c675b7978fce55be274109f988d1bfc205e469faf171d8e7fbeb"
     }
   ],
-  "dossier_release_sha256": "37339788d9207baf95eaeb28b44e36cd4f866d3d8d5f70480c6488e5fb963033",
+  "dossier_release_sha256": "923dfd00abc43eea90ce664c01945dd655ee27556c47b70e914918914dac7d09",
   "generated_at": "2026-07-14T00:00:00-04:00",
   "lock_version": "1",
   "release_id": "rr-20260714.1",
   "schema_version": "1.0.0",
   "toolkit": {
-    "commit": "37c58177917612aab9a97504cf7d9b08aa0d453f",
-    "version": "3.0.0-alpha.1"
+    "commit": "d5f4da901ecb1b5d35e279b1e97379a57737be1f",
+    "version": "3.0.0-alpha.2"
   }
 }

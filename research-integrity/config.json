@@ -11,24 +11,24 @@
   },
   "dossiers": {
     "canonical_toolkit_v1_valid": true,
-    "corpus_census_sha256": "9f165a839f23220322f50c39c436b17e42534140fc5cfb3f6fea3d0d0f650a68",
+    "corpus_census_sha256": "1d415b6c19c2dbf50557e61a45c90842b3d43ec59928b285b45b3a1ae4725e2a",
     "dossier_count": 102,
-    "migration_commit": "63b1de2789d116b861ab6523359ada849548a05a",
-    "migration_generated_digest": "ee74fa481ebf9d3b1a145decc32cfe5e82273f5c14eab410669b74b631c8315f",
+    "migration_commit": "008c7a6fa8cfb039df7c898d821dd1beaafda582",
+    "migration_generated_digest": "85f8f282e538544ad8b22c52e116ade54222d04636b3bf9374e86c0ded2ed5a7",
     "migration_schema_version": "1.0.0",
-    "migration_validation_sha256": "068dfc63a259576a41e96e20350298b011b4362481c45de09a8f693a1767212c",
+    "migration_validation_sha256": "4f8af6716fc3b5b1f95e9548390ddc98b96de35bce8ed8d6d8ee665104958910",
     "relevant_dossier_census_sha256": "08cd80dda64de7485995a3fcda485ace381442565bab4f29c04e7559996e76ff",
     "source_commit": "7c045bb036a7184f6bc95e8beed29cd72168619e",
     "structurally_validated_count": 102,
-    "upstream_candidate_sha256": "11038ff52d93599e041762c7f1de0e1e81c38371a5281b93713dc95fad66963f"
+    "upstream_candidate_sha256": "6ffe9dfb3090c675b7978fce55be274109f988d1bfc205e469faf171d8e7fbeb"
   },
   "force_blocked": true,
   "generated_at": "2026-07-14T00:00:00-04:00",
   "release_id": "rr-20260714.1",
   "schema_version": "1.0.0",
   "toolkit": {
-    "commit": "37c58177917612aab9a97504cf7d9b08aa0d453f",
-    "plugin_version": "3.0.0-alpha.1",
-    "python_version": "3.0.0a1"
+    "commit": "d5f4da901ecb1b5d35e279b1e97379a57737be1f",
+    "plugin_version": "3.0.0-alpha.2",
+    "python_version": "3.0.0a2"
   }
 }

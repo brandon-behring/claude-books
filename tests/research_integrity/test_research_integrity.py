@@ -25,8 +25,8 @@ class ResearchIntegrityTests(unittest.TestCase):
     def test_current_repository_is_integrity_valid_but_blocked(self) -> None:
         errors, counts = validate(ROOT)
         self.assertEqual([], errors)
-        self.assertEqual(1469, counts["citation_occurrences"])
-        self.assertEqual(2712, counts["binding_candidates"])
+        self.assertEqual(1495, counts["citation_occurrences"])
+        self.assertEqual(2738, counts["binding_candidates"])
         self.assertEqual(0, counts["canonical_bindings"])
         status = load_json(ROOT / "research-integrity/release-status.json")
         self.assertEqual("blocked", status["state"])
@@ -65,6 +65,17 @@ class ResearchIntegrityTests(unittest.TestCase):
         self.assertTrue(candidates)
         self.assertTrue(all(row["claim_id"] is None for row in candidates))
         self.assertTrue(all(row["status"] in {"pending", "stale"} for row in candidates))
+
+    def test_manifest_only_upstream_matches_remain_index_candidates(self) -> None:
+        candidates = load_jsonl(ROOT / "research-integrity/consumer-binding-candidates.jsonl")
+        manifest_only = [
+            row
+            for row in candidates
+            if row["candidate_type"] == "dossier-source-to-manifest-entry"
+        ]
+        self.assertEqual(2, len(manifest_only))
+        self.assertTrue(all(row["citation_occurrence_id"] is None for row in manifest_only))
+        self.assertTrue(all(row["release_role"] == "index" for row in manifest_only))
 
     def _copy_fixture(self, destination: Path) -> None:
         shutil.copytree(ROOT / "research-integrity", destination / "research-integrity")
