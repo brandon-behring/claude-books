@@ -85,10 +85,10 @@ Foundation-first, problem-first within context:
 **Tags/caveats:** official/practitioner mix; **never launder a portable context-rot percentage.** Live research front (architectural-vs-trainable) — recheck.
 
 ### C2. Context Assembly: Engineering the Window *(the response)*
-**Backing:** `context_assembly` (21 atoms; **pilot / deepest**; source = `agent_index/` + `dashboard.md`, no `synthesis.md`). **Cert:** D5. **Recheck:** volatile 2026-06-25 / active 2026-08-24. **Richest pattern catalog.**
+**Backing:** `context_assembly` (21 atoms; **pilot / deepest**; source = `agent_index/` + `dashboard.md`, no `synthesis.md`). **Cert:** D5. **Verified:** 2026-07-14. **Recheck:** active 2026-08-24. **Richest pattern catalog.**
 **Thesis:** the harness owns the boundary deciding what enters the window, and when — assembly is the engineering discipline that answers context rot.
 **Explanatory sections** (5 claim families): KV-cache stability · loading strategy (just-in-time vs preload; pre/post-commitment) · compaction · attention/positional placement · assembly-as-prompt (filesystem-as-state, context budget).
-**Pattern section** (the deepest): cache-stable prefixes · JIT loading · compaction protocol · positional placement · budget allocation. (The three Lumer cache atoms → cost-lever / dynamic-tail rule / caching-can-hurt caveat.)
+**Pattern section** (the deepest): cache-stable prefixes · JIT loading · compaction protocol · positional placement · budget allocation. Cache impact follows actual prefix changes: in Claude Code `/compact` rebuilds the conversation layer while unchanged earlier layers may still hit; do not generalize that product behavior into universal whole-cache invalidation. (The three Lumer cache atoms → cost-lever / dynamic-tail rule / caching-can-hurt caveat.)
 **Tags/caveats:** mostly official + practitioner; 1/21 corroborated (positional bias). Pull section detail from the dossier's `agent_index/` during authoring.
 
 ### C3. Memory: Persisting Context Across Sessions
@@ -254,17 +254,17 @@ Gaps to close before the Part is truly complete, and how each resolves:
 
 ### ch24 — *Observability: Seeing What the Agent Did*
 **Backing:** `ops_observability`. **Cert:** D5. **Volatility:** feature-surface (Claude Code commands + OTel GenAI convention both volatile). **Recheck:** after 2026-08-25.
-**Thesis:** four surfaces over one ground truth — the session log — instrumented to a vendor-neutral convention.
-**Sections:** four surfaces over one ground truth (the session-log transcript) · logging = two records, two retention stories (local 30-day sweep vs SDK `SessionStore`) · OTel GenAI semantic conventions as the substrate · attribution as the provenance hook (not the approval gate) · surfacing cost at three altitudes (surfacing ≠ modeling).
-**Claims:** the session log (per-session JSONL) is the ground truth the other surfaces derive from (syn_01); instrument to the OTel GenAI *convention*, not a vendor schema — Claude Code's span tree is one realization (syn_03); the surfaced dollar figure is a local estimate that "may differ from your actual bill" — surfacing shows it, ch25 models it (syn_05).
-**Tags:** T1 by construction (Claude Code docs + OTel spec); not convergence. OTel GenAI convention is **Status: Development** — render names with a "recheck after 2026-08-25" caveat; note the `/cost`→`/usage` rename and the traces-beta vs metrics-GA split.
+**Thesis:** an agent run is reconstructed from multiple partial records — session transcript, runtime telemetry, external-system effects, and billing/usage — correlated through stable identifiers and time.
+**Sections:** correlated evidence rather than one ground truth · transcript = one partial record with two persistence paths (local 30-day default vs best-effort SDK `SessionStore` mirror) · OTel GenAI semantic conventions as the runtime substrate · attribution as a correlation signal (not an exact run pointer or approval gate) · billing/usage authority depends on authentication and provider (surfacing ≠ modeling).
+**Claims:** transcript writes can be disabled and the JSONL schema is internal, so the transcript cannot serve as a universal ledger; OTel emits independent metrics/events/optional traces with content redacted by default; external systems own evidence of effects; instrument to the OTel GenAI *convention*, not a vendor schema; a surfaced dollar estimate is not necessarily the authoritative bill.
+**Tags:** T1 by construction (Claude Code docs + current OpenTelemetry GenAI repository); not convergence. OTel GenAI convention is **Status: Development** — render names with a recheck caveat; note the `/cost`→`/usage` rename, traces-beta split, and that external subprocesses/services require their own instrumentation.
 
 ### ch25 — *Cost: The Economics of Running Agents ("Context Is Compute")*
-**Backing:** `ops_cost`. **Cert:** D5. **Volatility:** feature-surface (pricing figures volatile, 30-day staleness). **Recheck:** after 2026-06-26.
-**Thesis:** input context, not output, is the cost driver — and four composable levers manage it.
-**Sections:** "context is compute" · prompt-cache economics (read-vs-write asymmetry) · the multi-agent token multiplier as a modeling input, not a flat anti-pattern · model-tier routing + batch as the cheapen-the-spend levers · the four levers composed.
-**Claims:** input context is the spend (no first-party numeric ratio asserted) (syn_01); cache asymmetry — write 1.25×, read ≈0.1×, 5-min free-refresh TTL → pays off after one read (syn_02); multi-agent ≈15× a chat but token spend explains ≈80% of performance variance → burn is a lever (syn_03); tier ladder Haiku<Sonnet<Opus + Batch 50%, stackable with caching (syn_04).
-**Tags:** T1 first-party; not convergence. **Render the tier ladder QUALITATIVELY; print no per-MTok dollar figures.** The 4×/15× and 80%-variance are Anthropic's measurements on *their* workload, not universal constants.
+**Backing:** `ops_cost`. **Cert:** D5. **Volatility:** feature-surface (pricing figures volatile, 30-day staleness). **Verified:** 2026-07-14. **Recheck:** after 2026-08-13.
+**Thesis:** an agent bill is workload-shaped — uncached input, cache writes/reads, output, model, tools/runtime, and modifiers can dominate in different workloads — and composable levers target the measured terms.
+**Sections:** workload-shaped bill · prompt-cache economics (read-vs-write asymmetry plus TTL/reuse conditions) · the multi-agent token multiplier as a modeling input, not a flat anti-pattern · model-tier routing + batch as rate levers · measured volume reduction and the levers composed.
+**Claims:** repeated context often dominates long trajectories but is not a universal cost law; output/thinking or server tools can dominate other workloads; cache asymmetry — 5-min write 1.25×, 1-hour write 2×, read ≈0.1×, breaking even after one or two reads respectively; multi-agent ≈15× is one research workload; Batch discounts input and output 50% for async work.
+**Tags:** T1 first-party; not convergence. **Render routing QUALITATIVELY; print no per-MTok dollar figures.** Fetch live rates for production budgets. The 4×/15× and 80%-variance are Anthropic's measurements on *their* workload, not universal constants.
 
 ### ch26 — *Human-in-the-Loop: Keeping a Human in Control*
 **Backing:** `ops_hitl`. **Cert:** D5/D1. **Volatility:** feature-surface (Claude Code modes/checks shift per release).
@@ -282,7 +282,7 @@ Gaps to close before the Part is truly complete, and how each resolves:
 
 ### *(Optional)* ch28 — *Operating the Whole: Eval + Ops as One Loop* (capstone)
 **Backing:** authored synthesis over the six dossiers. **Cert:** D4/D5. **Volatility:** architectural-pattern.
-**Thesis:** the closed operate-and-improve loop — production failures (seen via ch24) → eval suite (ch23) → fixes; plus the unsolved trade-offs (autonomy↔control, cost↔performance, utility↔security) presented honestly.
+**Thesis:** the closed operate-and-improve loop — production failures reconstructed from correlated evidence (ch24) → eval suite (ch23) → fixes bounded by measured workload cost, oversight, and security; plus the unsolved trade-offs presented honestly.
 **Tags:** authored framing — **flag clearly as not dossier-backed.** Decide once ch21–26 drafted.
 
 ### Provenance (Vol 3)

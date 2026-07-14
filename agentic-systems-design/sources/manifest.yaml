@@ -257,6 +257,7 @@
   title: Claude Code settings
   author: Anthropic
   captured_at: 2026-05-26T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -476,6 +477,7 @@
   title: Prompt caching
   author: Anthropic
   captured_at: 2026-05-26T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -487,15 +489,6 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
-
-- id: cc-cache-regression
-  url: https://github.com/anthropics/claude-code/issues/29230
-  title: "Claude Code v2.1.62 — Server-Side KV Cache Stale Context Regression (P1)"
-  author: Taylor (issue reporter)
-  publish_date: 2026-01-01
-  captured_at: 2026-05-26T00:00:00Z
-  tier: T3-practitioner
-  tool: claude-code
 
 - id: langchain-context
   url: https://www.langchain.com/blog/context-engineering-for-agents
@@ -1008,6 +1001,7 @@
   title: Explore the context window
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1146,11 +1140,12 @@
   tool: cross-tool
 
 # ch24 — observability
-- id: claude-code-claude-directory
-  url: https://code.claude.com/docs/en/claude-directory
-  title: Explore the .claude directory
+- id: claude-code-sessions
+  url: https://code.claude.com/docs/en/sessions
+  title: Manage sessions
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1159,6 +1154,7 @@
   title: Persist sessions to external storage
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1167,22 +1163,25 @@
   title: Monitoring
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
 - id: otel-genai-metrics
-  url: https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-metrics/
+  url: https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-metrics.md
   title: Semantic conventions for generative AI metrics
   author: OpenTelemetry Authors
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: cross-tool
 
 - id: otel-genai-agent-spans
-  url: https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/
+  url: https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-agent-spans.md
   title: Semantic Conventions for GenAI agent and framework spans
   author: OpenTelemetry Authors
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: cross-tool
 
@@ -1191,6 +1190,7 @@
   title: Claude Code GitHub Actions
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1199,6 +1199,7 @@
   title: Manage costs effectively
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1207,6 +1208,7 @@
   title: Track team usage with analytics
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1216,6 +1218,7 @@
   title: "Pricing - Claude API Docs"
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1224,6 +1227,7 @@
   title: "How Claude Code uses prompt caching - Claude Code Docs"
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 
@@ -1232,6 +1236,7 @@
   title: "Batch processing — Claude Docs"
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
+  last_reconfirmed: 2026-07-14
   tier: T1-official
   tool: claude-code
 

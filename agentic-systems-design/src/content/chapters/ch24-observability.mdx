@@ -6,10 +6,10 @@ volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-14
-last_verified: 2026-06-14
+last_updated: 2026-07-14
+last_verified: 2026-07-14
 sources:
-  - claude-code-claude-directory
+  - claude-code-sessions
   - claude-code-session-storage
   - claude-code-monitoring
   - otel-genai-metrics
@@ -17,8 +17,7 @@ sources:
   - anthropic-settings
   - claude-code-github-actions
   - claude-code-costs
-  - claude-code-analytics
-description: Observability is four instrumentation surfaces stacked on one ground truth — the session-log transcript. Logging persists it, OpenTelemetry GenAI conventions trace it, attribution ties a diff back to it, and cost-surfacing shows the price. The chapter holds two boundaries — attribution is a provenance hook not an approval gate, and surfacing a cost number is not modeling the economics.
+description: Agent observability is an evidence-correlation problem, not one transcript treated as universal ground truth. Session transcripts, runtime telemetry, external-system records, and billing data each capture a different slice of a run. Correlate them with stable identifiers while preserving two boundaries — attribution is a provenance signal, not an approval gate, and surfacing cost is not modeling its economics.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
@@ -36,48 +35,49 @@ import Solution from '@brandon_m_behring/book-scaffold-astro/components/Solution
 import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components/ExerciseSolutions.astro';
 import Figure from '@brandon_m_behring/book-scaffold-astro/components/Figure.astro';
 
-<YouWillLearn prerequisites="ch21's frame — observability is the 'see' surface, downstream of an eval target. ch23 scores whether a run was correct; this chapter only records what ran. Vol 1's permission model is assumed; the oversight workflow on top of it is ch26.">
-- Why observability is **four surfaces over one ground truth** — the session-log transcript — and why everything else derives from it
-- The **two retention stories** in logging — the local 30-day sweep versus the SDK's external mirror — and why conflating them loses run history
+<YouWillLearn prerequisites="ch21's frame — observability is the 'see' surface, downstream of an eval target. ch23 scores whether a run was correct; this chapter reconstructs what ran. Vol 1's permission model is assumed; the oversight workflow on top of it is ch26.">
+- Why a session transcript is **one partial record**, not universal ground truth
+- How to correlate **transcripts, runtime telemetry, external effects, and billing records** into an incident view
+- The **two retention paths** for transcripts — the local 30-day sweep versus the SDK's best-effort external mirror
 - Why you instrument to the **OpenTelemetry GenAI convention**, not a vendor schema — and why those names are still moving
-- The two boundaries that keep the surface honest: **attribution is a provenance hook, not an approval gate**, and **surfacing a cost number is not modeling the economics**
+- The two boundaries that keep the surface honest: **attribution is a provenance signal, not an approval gate**, and **surfacing a cost number is not modeling the economics**
 </YouWillLearn>
 
-_ch21 placed observability as the **see** surface: once an eval defines what "good" means, observability shows what actually happened against it. This chapter takes that surface apart. The thesis is that all of agent observability is **four instrumentation surfaces stacked on one ground truth** — the session log — and that getting the layering right (what is the record, what derives from it, and what each derived surface does and does not claim) is the whole discipline. Two of those surfaces are easy to over-read, so the chapter spends its honesty budget keeping their boundaries crisp._
+_ch21 placed observability as the **see** surface: once an eval defines what "good" means, observability helps reconstruct what happened against it. This chapter takes that surface apart. Its thesis is deliberately plural: a run leaves records in the agent harness, the telemetry pipeline, the systems the agent touched, and the billing system. None is complete by itself. The discipline is to preserve each source, correlate them, and know which question each source can actually answer._
 
-## Four surfaces over one ground truth
+## Reconstruct a run from multiple records
 
-An agent run produces exactly one authoritative record, and everything you later want to *see* is a different view of it. Claude Code writes a **session transcript** for each run — "every message, tool call, and tool result"<Tag kind="official" /><Citation src="claude-code-claude-directory" /> — as a per-session JSONL file, by default under `~/.claude/projects/`, one JSON-safe object per line.<Tag kind="official" /><Citation src="claude-code-claude-directory" /> That transcript is the **ground truth**. It is not a summary, not a dashboard, not a metric — it is the literal sequence the agent emitted and received, persisted to disk.
+Claude Code normally stores a local **session transcript** as JSONL, with entries for messages, tool use, and metadata.<Tag kind="official" /><Citation src="claude-code-sessions" /> That is valuable evidence of what the harness sent, received, and attempted. It is not a universal ledger: transcript writes can be disabled, the on-disk entry format is internal and can change, and the transcript does not by itself prove the state reached by a remote API, database, git host, or deployment system.<Citation src="claude-code-sessions" />
 
-The other three things people mean by "observability" — tracing, attribution, cost-surfacing — are not separate sources of truth. They are surfaces *derived from* that one log, or pointers *back to* it. A trace re-renders the run as spans; an attributed commit points back to the run that produced it; a cost figure is computed from the tokens the run consumed. So "what did the agent do?" is, in order, first a *logging* question (is the transcript captured and kept?), then a *tracing / attribution / surfacing* question (how do I view it, link to it, and price it?). Skip the log and the other three have nothing underneath them.
+The other records are independent evidence, not mere views of that file. OpenTelemetry exporters emit runtime metrics, events, and optional traces as the run executes; content is redacted by default, so telemetry can have timing and identifiers without the full conversation.<Tag kind="official" /><Citation src="claude-code-monitoring" /> External systems record effects — a commit SHA, CI run, database audit event, ticket transition, or API request — and are authoritative for their own state. Billing and usage systems own the charged quantities for the authentication and provider path in use.<Citation src="claude-code-costs" /> Reconstructing a run means joining those records by stable identifiers and time, then stating where gaps remain.
 
 <KeyIdea>
-Agent observability is four instrumentation surfaces over one ground truth. The **session log** — the per-session JSONL transcript of every message, tool call, and result — is the record; **tracing**, **attribution**, and **cost-surfacing** all derive from it or point back to it. Get the layering right and "what did the agent do?" has a single authoritative answer the other three surfaces only re-view.
+There is no single observability record for an agent that can act on other systems. Correlate four evidence sources: the **session transcript** for harness-visible messages and tool activity, **runtime telemetry** for timing and execution signals, **external-system records** for effects, and **billing/usage records** for spend. Each can be authoritative for its own slice; none is complete for the whole run.
 </KeyIdea>
 
-<ConceptBox term="The session log as ground truth">
-The session log is the per-session JSONL transcript Claude Code writes for each run — every message, tool call, and tool result, one JSON-safe object per line. It is the *authoritative* record of what happened: tracing re-renders it as spans, attribution links a diff back to it, and cost-surfacing prices the tokens in it. Treat the log as primary and the other three surfaces as views, and you never confuse "I have a dashboard" with "I have the record."
+<ConceptBox term="The correlated evidence bundle">
+A reconstruction assembled from records with different owners and failure modes: transcript entries, OTel events/spans, external-effect records, and provider billing or usage data. Preserve shared keys such as `session.id`, `request_id`, `tool_use_id`, workflow/run IDs, and commit SHAs wherever the interfaces expose them. Correlation produces the incident view; it does not turn any one source into universal ground truth.
 </ConceptBox>
 
-## Logging: two records, two retention stories
+## Session transcripts: one partial record, two retention paths
 
-The single most common logging error is treating "the transcript" as one thing. There are **two** records, with **two different retention owners**, and conflating them is how teams lose run history they assumed was safe.
+The transcript still matters, but its capture and retention need precise language. There are two persistence paths with different owners, and neither makes the transcript a record of effects outside the harness.
 
-The first is the **CLI local record**: the JSONL files under `~/.claude/projects/`. These are swept automatically — the `cleanupPeriodDays` setting deletes local transcript files older than a threshold whose "default is 30 days."<Tag kind="official" /><Citation src="claude-code-claude-directory" /> That sweep is a feature, not a bug: it keeps a developer's disk from filling with months of transcripts. But it means the local files are *not* a durable archive. Run history older than the window is gone unless something else kept it.
+The first is the **CLI local record** under `~/.claude/projects/`. These files are removed after 30 days by default, configurable with `cleanupPeriodDays`; writes can also be suppressed entirely.<Tag kind="official" /><Citation src="claude-code-sessions" /> The entry schema is an internal Claude Code format, so use `/export` or structured interfaces for durable consumers instead of treating raw JSONL as a stable public API.<Citation src="claude-code-sessions" />
 
-The second is the **SDK record**. From the Agent SDK, transcripts are still written to JSONL by default, but the `SessionStore` interface lets a deployment mirror those entries — "JSON-safe objects, one per line in the local JSONL"<Tag kind="official" /><Citation src="claude-code-session-storage" /> — to external storage such as S3, Redis, or a database. The retention of *that* mirror is the adapter's responsibility, not Claude Code's. So a production deployment that needs durable run history cannot lean on the local files and their 30-day sweep; it must mirror via `SessionStore` and own the retention itself.
+The second is the **SDK mirror**. `SessionStore` forwards locally written transcript entries to S3, Redis, a database, or another adapter; external retention is the adapter's responsibility.<Tag kind="official" /><Citation src="claude-code-session-storage" /> The mirror is explicitly best-effort: after bounded retries, a failed batch is dropped while the query continues, and operators must monitor `mirror_error` if completeness matters.<Citation src="claude-code-session-storage" /> A durable incident program therefore owns retention, validates the adapter, and monitors gaps rather than assuming "mirrored" means complete.
 
-<InsightBox title="Two records, two owners">
-The local files and the SDK mirror are the *same transcript* with *different retention owners*. The local sweep (`cleanupPeriodDays`, 30-day default) is automatic and time-bounded — Claude Code owns it. The `SessionStore` mirror's retention is whatever the adapter implements — *you* own it. Decide which record is your durable archive before an incident, not during one: if the answer is "the local files," your archive evaporates on a rolling 30-day window.
+<InsightBox title="Two persistence paths, two failure modes">
+The local file is time-bounded and can be disabled; the external mirror is operator-retained but best-effort. Decide what completeness you require before an incident, monitor the mirror, and remember that both paths contain the same harness-side evidence — neither substitutes for the records of systems the agent changed.
 </InsightBox>
 
 ## OpenTelemetry GenAI conventions as the substrate
 
-When you trace an agent — turn the transcript into spans and metrics a backend can query — the design question is *which vocabulary do you instrument to?* The answer is a **vendor-neutral convention**, not a vendor-specific schema.
+When you emit runtime telemetry, the design question is *which vocabulary do you instrument to?* The answer is a **vendor-neutral convention**, not a vendor-specific schema. Telemetry is produced during execution; it need not be generated by replaying a transcript.
 
 Claude Code exports three OpenTelemetry signals — "metrics as time series data via the standard metrics protocol, events via the logs/events protocol, and optionally distributed traces"<Tag kind="official" /><Citation src="claude-code-monitoring" /> — and in the trace tree, "each user prompt starts a"<Tag kind="official" /><Citation src="claude-code-monitoring" /> `claude_code.interaction` root span, with API calls, tool calls, and hook executions as its children. Crucially, the per-LLM-request span's attributes align to the "OpenTelemetry GenAI semantic convention."<Tag kind="official" /><Citation src="claude-code-monitoring" /> That alignment is the whole point: Claude Code's span tree is **one realization** of a standard the spec defines independently.
 
-On the spec side, the OpenTelemetry GenAI semantic conventions define the same vocabulary from the other direction. The standard token-usage metric is `gen_ai.client.token.usage`,<Citation src="otel-genai-metrics" /> documented as the "Number of input and output tokens used,"<Citation src="otel-genai-metrics" /> and the agent-span operation names are `create_agent`<Citation src="otel-genai-agent-spans" /> and `invoke_agent`.<Citation src="otel-genai-agent-spans" /> Instrument to *those* names and your backend — any OpenTelemetry collector — reads the run without knowing it came from Claude Code. The vendor's spans are swappable; the convention is the contract.
+On the spec side, the OpenTelemetry GenAI semantic conventions define the shared vocabulary. The standard token-usage metric is `gen_ai.client.token.usage`,<Citation src="otel-genai-metrics" /> documented as the "Number of input and output tokens used,"<Citation src="otel-genai-metrics" /> and agent operations include `create_agent` and `invoke_agent`.<Citation src="otel-genai-agent-spans" /> Instrumenting to the convention makes the telemetry portable across compatible collectors and backends. It does not make the trace complete: Claude Code tracing is opt-in, content fields are redacted by default, and a subprocess or remote service needs its own instrumentation.<Citation src="claude-code-monitoring" />
 
 Two caveats are load-bearing, and both move on a release cadence. First, the OpenTelemetry GenAI semantic conventions carry Status: **Development** — the span and metric names above (`gen_ai.client.token.usage`, `create_agent`, `invoke_agent`) may still change before the convention stabilizes, so treat them as current-as-of, not final. Second, of Claude Code's three signals, metrics and events are GA while distributed **traces are beta**;<Tag kind="official" /><Citation src="claude-code-monitoring" /> a team relying on the `claude_code.interaction` span tree should track the beta-to-GA transition. Both warrant a recheck after **2026-08-25**.
 
@@ -85,80 +85,80 @@ Two caveats are load-bearing, and both move on a release cadence. First, the Ope
 The OTel GenAI conventions are Status: Development and the names here are feature-surface — re-verify `gen_ai.client.token.usage`, `create_agent`, and `invoke_agent` against the spec after 2026-08-25; they may drift before stabilization.
 </MarginNote>
 
-## Attribution is the provenance hook, not the approval gate
+## Attribution is a correlation signal, not the approval gate
 
-The third surface ties an agent's *output* back to the run that produced it. In Claude Code, attribution to git commits and pull requests is a configurable setting<Tag kind="official" /><Citation src="anthropic-settings" /> — by default, commits carry a `Co-Authored-By` git trailer "which can be customized or disabled."<Tag kind="official" /><Citation src="anthropic-settings" /> The commit itself becomes the handle: from a merged diff you can walk back to the session log and trace that produced it. In CI the same hook holds — a `@claude` mention triggers an Action so that "Claude can analyze your code, create pull requests, implement features, and fix bugs,"<Tag kind="official" /><Citation src="claude-code-github-actions" /> and the commit is stamped with the GitHub-App actor identity rather than the generic Actions user, which is why CI must run "using the GitHub App or custom app (not Actions user)"<Tag kind="official" /><Citation src="claude-code-github-actions" /> for those commits to be attributable.
+Attribution connects an external effect to the actor or workflow that produced it. In Claude Code, git attribution is configurable; commits carry a `Co-Authored-By` trailer by default, and that trailer can be customized or disabled.<Tag kind="official" /><Citation src="anthropic-settings" /> In CI, GitHub App identity provides another provenance signal.<Tag kind="official" /><Citation src="claude-code-github-actions" /> Neither signal alone identifies an exact session or trace. A reliable chain stores explicit correlation metadata — for example a session, trace, workflow, request, or tool-use ID — alongside the external record, then verifies the effect in the system that owns it. Claude Code telemetry exposes identifiers such as `session.id`, `request_id`, and `tool_use_id` for those joins.<Citation src="claude-code-monitoring" />
 
-Here is the boundary the chapter will not let blur: attribution is a **provenance hook**, not an **approval gate**. It records *which run produced this diff* — it does not decide *whether the diff may be merged*. That decision — the human-in-the-loop review and the gate before an irreversible action — is the oversight workflow, and ch26 owns it. The two are easy to conflate because they touch the same pull request, but they answer different questions: provenance is "where did this come from?", approval is "may this proceed?". Read a `Co-Authored-By` trailer as a gate and you have mistaken a label for a checkpoint.
+Here is the boundary the chapter will not let blur: attribution is a **provenance signal**, not an **approval gate**. It helps answer "where did this come from?"; it does not decide "may this proceed?". That decision — the human-in-the-loop review before an irreversible action — is the oversight workflow, and ch26 owns it. Read a trailer as either an exact run pointer or a gate and you have asked a label to carry evidence it does not contain.
 
 <MarginNote variant="note" label="Note">
-Provenance and approval both attach to the same PR, which is why they get confused. Attribution (here) is "which run made this"; the gate (ch26) is "may this proceed." A trailer is a label, not a checkpoint.
+Provenance and approval both attach to the same PR, which is why they get confused. Attribution here is evidence about origin; exact run correlation requires an explicit shared identifier, and the gate (ch26) answers whether the change may proceed. A trailer is a label, not a checkpoint or a session ID.
 </MarginNote>
 
-## Surfacing cost at three altitudes — surfacing is not modeling
+## Billing and usage records — surfacing is not modeling
 
-The fourth surface is the cost and usage a team actually watches, and it lives at three altitudes. The most local is the in-CLI `/usage` command, whose Session block "shows detailed token usage statistics for your current session"<Tag kind="official" /><Citation src="claude-code-costs" /> — what one developer reads mid-run. Above that is the Team/Enterprise analytics dashboard, which surfaces usage and adoption metrics behind a viewer-role gate — "Admins and Owners can view the dashboard."<Tag kind="official" /><Citation src="claude-code-analytics" /> And at the top is the Console spend view, which surfaces "daily API costs in dollars alongside user count."<Tag kind="official" /><Citation src="claude-code-analytics" />
+The fourth evidence source is the cost and usage a team actually watches. The in-CLI `/usage` command shows session token statistics, while organizational reporting depends on how Claude Code is authenticated: Teams and Enterprise use their organization analytics, API organizations use the Claude Console, and cloud-provider deployments use that provider's billing console.<Tag kind="official" /><Citation src="claude-code-costs" /> OpenTelemetry can stream near-real-time per-user usage into an observability stack, but it is another measurement path rather than a replacement for the applicable billing system.<Citation src="claude-code-costs" />
 
 <MarginNote variant="tip" label="Tip">
 The in-CLI usage command was renamed from `/cost` to `/usage`. Command names are feature-surface and drift per release — re-verify after 2026-08-25.
 </MarginNote>
 
-But the surfaced number carries a caveat that defines the boundary. The dollar figure in `/usage` "is an estimate computed locally from token counts and may differ from your actual bill"<Tag kind="official" /><Citation src="claude-code-costs" /> — the authoritative figure lives in the Console. That single sentence draws the line: surfacing *shows* the number and *points to* where the authoritative one lives; it does **not model the economics**. The per-developer dollar-per-day modeling, the token-reduction tactics, the question of which lever actually moves the bill — that is ch25's subject, and the input-context cost driver ch25 unpacks. Observability tells you *what a run cost as a local estimate*; cost modeling tells you *how to make it cost less*. Mistake the surfaced estimate for the bill, or for an economic model, and you will optimize against a number that was never authoritative.
+The local dollar figure carries a caveat that defines the boundary: it is "an estimate computed locally from token counts and may differ from your actual bill."<Tag kind="official" /><Citation src="claude-code-costs" /> For an API user, the Console is authoritative; for subscription and cloud-provider paths, the relevant organization or provider surface differs.<Citation src="claude-code-costs" /> Surfacing *shows* measurements and points to the applicable billing record; it does **not model the economics**. Which token class, model, cache behavior, tool charge, or runtime term drives the bill is ch25's workload-specific question.
 
 <Figure
   src="/figures/observability-surfaces/observability-surfaces.svg"
-  caption="Four observability surfaces over one ground truth. At the base, the session log — the per-session JSONL transcript of every message, tool call, and tool result. Deriving from it: tracing (OTel GenAI spans and metrics), attribution (diff/PR back to the run), cost-surfacing (three altitudes — /usage, team dashboard, Console spend), and logging/retention (the local 30-day sweep versus the SDK SessionStore). The four surfaces are built on the one log."
-  alt="A wide blue box at the base labeled 'Session log — the ground truth, per-session JSONL transcript: every message, tool call, tool result'. Four teal boxes sit above it, each with an arrow pointing down to the log: 'Tracing — OTel GenAI spans & metrics', 'Attribution — diff / PR back to the run', 'Cost-surfacing — /usage to dashboard to Console spend', and 'Logging / retention — 30-day sweep vs SDK SessionStore'. A dashed caption strip beneath reads 'four surfaces over one ground truth — instrument what the agent did, not just whether it finished'."
+  caption="A run is reconstructed by correlation, not by promoting one record to universal ground truth. Join the session transcript, runtime telemetry, external-system effects, and billing or usage records with stable identifiers and time; preserve each source's independent failure modes and authority."
+  alt="Four evidence boxes feed a central correlation box. The sources are 'Session transcript — messages, tool activity, metadata', 'Runtime telemetry — metrics, events, optional traces', 'External effects — git, CI, APIs, databases, audit logs', and 'Billing and usage — provider or organization records'. The center reads 'Correlate by session, request, tool, workflow IDs and time'. A note says 'no single source is complete; each is authoritative only for its own slice'."
   width="100%"
   id="fig-observability-surfaces"
 />
 
 <WorkedExample id="ch24-routing-an-observability-question" title="Routing an observability question to its surface">
 
-A team says: *"We shipped a bad PR last week. We can't reconstruct what the agent was reasoning about, the trace backend doesn't recognize our spans, and the bill looks high — what failed and where?"*
+A team says: *"We shipped a bad PR last week. We can't reconstruct the conversation and tool sequence, the trace backend doesn't recognize our spans, and the bill looks high — what failed and where?"*
 
 Route each part to its surface before fixing anything:
 
-- **"Can't reconstruct what it was reasoning about"** is a **logging** question. The transcript is the ground truth — but if the run was a week old and lived only in the local files, `cleanupPeriodDays` may already be irrelevant (30 days is the default), yet the deeper issue is whether it was ever mirrored. If there is no `SessionStore` mirror, the record may simply not exist to reconstruct from. The fix is durable logging, not a better dashboard.
-- **"Trace backend doesn't recognize our spans"** is a **tracing-convention** question. If the backend was wired to vendor-specific names, it cannot read a standard collector. Instrument to the OTel GenAI convention (`gen_ai.*`, `create_agent`/`invoke_agent`) so any collector reads the run — while remembering those names are still Development-status.
-- **"We shipped a bad PR"** has an **attribution** part and a *non*-attribution part. Attribution can tell you *which run* produced the diff (the `Co-Authored-By` trailer, the GitHub-App identity) — that is provenance. Whether a human gate *should have stopped it* is **not** an observability question at all; it is ch26's oversight workflow.
-- **"The bill looks high"** is a **cost-surfacing** question only up to the number. `/usage` surfaces a local estimate that "may differ from your actual bill"; the Console holds the authoritative figure. *Why* it is high and *how to reduce it* is ch25's modeling — surfacing stops at showing the number.
+- **"Can't reconstruct the conversation"** is a **transcript-retention** question. Check whether persistence was enabled, whether the local file survived the 30-day default, and whether the best-effort `SessionStore` mirror reported gaps. Even a complete transcript shows harness-visible activity, not the final state of every external system.
+- **"Trace backend doesn't recognize our spans"** is a **tracing-convention** question. If its queries and dashboards expect vendor-specific names, portable OTel data will not have shared semantics. Instrument to the GenAI convention (`gen_ai.*`, `create_agent`/`invoke_agent`) so compatible tooling agrees on the fields — while remembering those names are still Development-status.
+- **"We shipped a bad PR"** needs the **external git/CI record** plus correlation. A trailer or app actor is provenance, but an exact run link requires a stored session, workflow, trace, request, or tool-use identifier. Whether a human gate *should have stopped it* is ch26's oversight workflow.
+- **"The bill looks high"** is a **billing/usage** question up to the number. Compare `/usage`'s local estimate with the authoritative surface for the authentication path. *Why* it is high and *how to reduce it* is ch25's modeling.
 
-Four surfaces turned one panicked failure into four located questions — and pulled the two that *aren't* observability (the approval gate, the cost model) out to their real owners.
+Four evidence sources turned one panicked failure into a reconstruction plan — and pulled the two decisions that *aren't* observability (the approval gate and the cost model) out to their real owners.
 
 </WorkedExample>
 
-<Pitfall title="Reading a derived surface as the record">
-The recurring observability failure is treating a *view* as the *record*. Three forms: trusting a dashboard while the underlying transcript was swept on the 30-day local window and never mirrored; reading a `Co-Authored-By` trailer as an approval gate when it is only provenance; and treating the `/usage` dollar figure as the bill when it is "an estimate computed locally from token counts." In every case the fix is the same — go back to the ground truth. The session log is the record; tracing, attribution, and surfacing are views of it, and a view is only as durable, as authoritative, and as load-bearing as the record beneath it.
+<Pitfall title="Promoting one partial record to universal truth">
+The recurring failure is asking one source to answer every question: using a transcript to prove a remote side effect, a trace to recover redacted content, a commit trailer to identify an exact session, or a local estimate as the bill. Build an evidence matrix before the incident: which source owns intent, execution timing, external state, and spend; which identifiers join them; and how each source can be absent or incomplete.
 </Pitfall>
 
 ## Quick reference
 
-- **One ground truth:** the session log — the per-session JSONL transcript of every message, tool call, and result — is the record; tracing, attribution, and cost-surfacing all derive from it.<Citation src="claude-code-claude-directory" />
-- **Two retention stories:** local files swept on a 30-day default (`cleanupPeriodDays`) versus the SDK `SessionStore` mirror whose retention the adapter owns — don't rely on the local files for durable history.<Citation src="claude-code-session-storage" />
-- **Trace to the convention:** instrument to the OTel GenAI names (`gen_ai.client.token.usage`, `create_agent`, `invoke_agent`), not a vendor schema; Claude Code's `claude_code.interaction` tree is one realization.<Citation src="otel-genai-metrics" />
+- **Four partial sources:** session transcript, runtime telemetry, external-system records, and billing/usage data; correlate them rather than naming one universal ground truth.
+- **Two transcript paths:** local files have a 30-day default and can be disabled; the SDK `SessionStore` mirror is externally retained but best-effort, so monitor `mirror_error`.<Citation src="claude-code-sessions" /><Citation src="claude-code-session-storage" />
+- **Trace to the convention:** instrument to the OTel GenAI names (`gen_ai.client.token.usage`, `create_agent`, `invoke_agent`), not a vendor schema; Claude Code's `claude_code.interaction` tree is one realization.<Citation src="otel-genai-metrics" /><Citation src="otel-genai-agent-spans" />
 - **Moving target:** the GenAI conventions are Status: Development and Claude Code's traces signal is beta — recheck names after 2026-08-25.<Citation src="claude-code-monitoring" />
-- **Attribution = provenance, not approval:** the `Co-Authored-By` trailer ties a diff to its run; the gate is ch26.<Citation src="anthropic-settings" />
-- **Surfacing ≠ modeling:** `/usage` shows a local estimate that "may differ from your actual bill"; modeling the economics is ch25.<Citation src="claude-code-costs" />
+- **Attribution = signal, not exact linkage or approval:** a trailer or app actor indicates provenance; store an explicit correlation ID to identify the run, and leave the gate to ch26.<Citation src="anthropic-settings" /><Citation src="claude-code-monitoring" />
+- **Surfacing ≠ modeling:** `/usage` is a local estimate; compare it with the authoritative billing surface for the authentication path, then use ch25 to model the drivers.<Citation src="claude-code-costs" />
 
 ## Practice
 
 <Exercise id="ch24-ex-1">
-The chapter claims observability is "four surfaces over one ground truth." Name the ground truth and the four surfaces, and state in one sentence why the ground truth is primary and the other three are views. Then explain the boundary the chapter draws around **attribution** — what it does claim, what it does *not* claim, and which chapter owns the thing it does not claim.
+Name the four evidence sources in the correlated bundle and state one question each can answer better than the other three. Then explain the boundary around **attribution** — what a trailer or actor identity establishes, what exact linkage additionally requires, and which chapter owns approval.
 </Exercise>
 
 <Practice id="ch24-pr-1" difficulty="2">
-Take an agent you run or have read about that writes code or files. For each of the four surfaces, write down the current state of your instrumentation: (1) **logging** — is the transcript captured, and where is it durably kept beyond the local 30-day sweep? (2) **tracing** — are you emitting to the OTel GenAI convention, a vendor schema, or nothing? (3) **attribution** — can you walk from a merged diff back to the run that produced it? (4) **cost-surfacing** — where do you watch the cost, and do you know which displayed number is an estimate versus authoritative? Then mark which gap would hurt most *during an incident* — and note explicitly any place where you were about to write down "the gate" (ch26) or "reduce the bill" (ch25), because those are not observability gaps.
+Take an agent you run or have read about that writes code or files. Inventory: (1) whether its transcript is captured and durably retained, (2) which OTel signals and content gates are enabled, (3) which git, CI, API, database, or audit records prove its external effects, and (4) where authoritative billing lives. List the identifiers that join those sources. Then mark the gap that would hurt most during an incident, while keeping "add an approval gate" in ch26 and "reduce the bill" in ch25.
 </Practice>
 
 <ExerciseSolutions>
 
 <Solution for="ch24-ex-1">
-The **ground truth** is the **session log** — the per-session JSONL transcript Claude Code writes for each run, recording every message, tool call, and tool result. The **four surfaces** are **logging** (capturing and retaining that transcript), **tracing** (re-rendering the run as OTel GenAI spans and metrics), **attribution** (tying a commit/PR back to the run that produced it), and **cost-surfacing** (showing token/dollar usage at the CLI, team-dashboard, and Console altitudes). The ground truth is primary because it is the literal, authoritative record of what the agent did; the other three are *views* — a trace re-renders it, an attributed commit points back to it, a cost figure is computed from the tokens in it — so each is only as durable and authoritative as the log beneath it. On **attribution**: it claims **provenance** — *which run produced this diff*, via the `Co-Authored-By` trailer and the GitHub-App commit identity — and it does **not** claim **approval**, i.e. it does not decide whether the diff may be merged; that gate is the human-in-the-loop oversight workflow, which **ch26** owns. Conflating the two mistakes a label for a checkpoint.
+The four sources are: **session transcript** for the messages and tool activity visible to the harness; **runtime telemetry** for timing, errors, token counts, and execution relationships; **external-system records** for the state actually reached in git, CI, an API, or a database; and **billing/usage records** for charged usage under the active provider and authentication path. Each answers its own question and can be incomplete independently. A `Co-Authored-By` trailer or GitHub App actor is a **provenance signal**, not an exact run pointer; exact linkage needs a shared session, trace, workflow, request, tool-use, or equivalent identifier recorded on both sides. None of those signals approves the change. Approval is the ch26 human-in-the-loop gate.
 </Solution>
 
 <Solution for="ch24-pr-1">
-A worked example. Take a documentation-writing agent that opens PRs. **Logging:** "Transcripts are written to the local `~/.claude/projects/` JSONL, but we never set up a `SessionStore` mirror — so anything past the 30-day `cleanupPeriodDays` sweep is gone. That is our durable-history gap." **Tracing:** "We enabled telemetry but pointed it at a vendor-named dashboard; a standard OTel collector wouldn't recognize our spans. Re-instrumenting to the GenAI convention (`gen_ai.*`, `claude_code.interaction` aligning to it) would make the backend swappable — though the names are Development-status, so I'll pin a recheck." **Attribution:** "Commits carry the default `Co-Authored-By` trailer, so I *can* walk from a merged doc-PR back to the run — provenance is fine." **Cost-surfacing:** "I watch `/usage` mid-run and the Console for the monthly figure, but I'd been treating the `/usage` dollar number as the bill — it's a local estimate that 'may differ from your actual bill.'" *Most painful during an incident:* the **logging** gap — if a bad PR shipped and the run is older than 30 days with no mirror, there is no transcript to reconstruct from, and every other surface is a view of a record that no longer exists, so I'd mirror via `SessionStore` first. *Pulled out as non-observability:* "add a human gate before the PR merges" is **ch26** (oversight), not a logging/tracing gap; and "the bill is too high, reduce it" is **ch25** (cost modeling), not cost-surfacing — surfacing only shows the number. The exercise's value is feeling that two of the four surfaces are easy to over-read into decisions they don't make.
+A documentation-writing agent opens a bad PR. **Transcript:** local JSONL exists, but the team must either archive it before the 30-day sweep or monitor a `SessionStore` mirror for dropped batches. **Telemetry:** OTel records the session, request, and tool-use identifiers, timing, and errors; prompt and tool content remain redacted unless deliberately enabled. **External effects:** the git host and CI system hold the commit SHA, actor, checks, and merge event. The workflow writes its session or trace ID into a run record keyed by that SHA, so the records can actually be joined. **Billing:** `/usage` supplies a local estimate, while the organization's authentication path determines the authoritative reporting surface. During an incident, the most damaging gap is the missing cross-system identifier: all four records could exist yet remain impossible to join confidently. Adding a merge approval is still ch26; deciding which cost term to reduce is ch25.
 </Solution>
 
 </ExerciseSolutions>

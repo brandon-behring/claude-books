@@ -6,11 +6,15 @@ volatility: stable-principle
 tools_compared: [claude-code, cross-tool]
 cert_domains: [4, 5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-14
-last_verified: 2026-06-14
+last_updated: 2026-07-14
+last_verified: 2026-07-14
 sources:
   - demystifying-evals
   - building-effective-agents
+  - claude-code-sessions
+  - claude-code-monitoring
+  - claude-code-costs
+  - anthropic-pricing
 description: The spine of the Evaluation & Operations volume. Once an agent is built, the discipline shifts from construction to operation — and the first move is to make what counts as good measurable before scaling. The chapter maps the volume's five operational surfaces (eval, observability, cost, oversight, security) and states the volume's evidence-honesty rule up front — that five of the six rest on first-party-authoritative evidence rather than triangulation, with security the one genuine convergence.
 ---
 
@@ -63,8 +67,8 @@ Operating an agent is everything that happens after it is built and running: kno
 The volume is organized as five surfaces, in the order the work naturally flows — **measure → see → spend → oversee → defend**:
 
 - **Eval — *measure.*** Define what "good" means and make it runnable: for a single prompt (ch22) and for an agent's whole trajectory (ch23).
-- **Observability — *see.*** The session log is the ground truth; tracing, attribution, and cost-surfacing all derive from it (ch24).
-- **Cost — *spend.*** Input context, not output, is the cost driver; four composable levers manage it (ch25).
+- **Observability — *see.*** Reconstruct a run by correlating retained transcript evidence, runtime telemetry, external-system records, and billing or usage data; no one source is complete (ch24).<Citation src="claude-code-sessions" /><Citation src="claude-code-monitoring" />
+- **Cost — *spend.*** Measure uncached input, cache activity, output, tool or runtime charges, and the applicable rates before naming the driver; the dominant term depends on the workload (ch25).<Citation src="claude-code-costs" /><Citation src="anthropic-pricing" />
 - **Oversight (human-in-the-loop) — *oversee.*** Keep a human in control of the irreversible or wrong action (ch26).
 - **Security — *defend.*** Establish who is *really* issuing the instruction — prompt injection and the lethal trifecta (ch27).
 
@@ -97,8 +101,8 @@ The chapters move along the five surfaces, eval first.
 
 **Operations — running against the target.**
 
-- **Observability** (ch24) — four surfaces over one session log: tracing, attribution, and cost-surfacing.
-- **Cost** (ch25) — input context as the cost driver, and the four levers that manage it.
+- **Observability** (ch24) — correlated evidence across retained transcripts, runtime telemetry, external effects, and billing or usage records.
+- **Cost** (ch25) — a workload-shaped bill and the composable levers that reduce its measured drivers.
 - **Human-in-the-loop** (ch26) — the oversight *workflow* layered on top of Vol-1's permission *model*.
 - **Security** (ch27) — the lethal trifecta as the threat model, and design-by-construction as the defense.
 
@@ -123,8 +127,8 @@ A team says: *"Our agent feels worse since last week's prompt change, and the bi
 Locate each part on a surface before acting on any of it:
 
 - **"Feels worse"** is an **eval** question (ch22/ch23). A feeling is not a measurement. Without a suite that scores the old prompt against the new one, "worse" is a vibe — and the first move is to make the regression *measurable*, not to revert on a hunch.
-- **"What did it do differently"** is an **observability** question (ch24). The session logs of the failing runs are the ground truth; read them before theorizing about causes.
-- **"The bill went up"** is a **cost** question (ch25) — and probably a context one: a longer prompt or more verbose tool output inflates input tokens, which is the cost driver.
+- **"What did it do differently"** is an **observability** question (ch24). Correlate whatever transcript was retained with runtime telemetry and the effects recorded by external systems; identify the gaps before theorizing about causes.
+- **"The bill went up"** is a **cost** question (ch25). Compare token classes and rates, cache behavior, model choice, tool or runtime charges, and run volume before blaming context.
 - Notice what is *not* here: no irreversible action is waiting on a human gate (ch26), and nothing suggests a forged instruction (ch27) — so those two surfaces stay quiet. Naming a surface also means knowing when it does not apply.
 
 The five surfaces turned a panicked "what do we do?" into four located, instrument-able questions — and the eval one comes first, because until "worse" is measurable, everything after it is guesswork.
@@ -141,7 +145,7 @@ The most common operational failure is acting on impressions instead of instrume
 - **The premise:** you cannot operate what you cannot measure, so eval comes first; "evals get harder to build the longer you wait."<Citation src="demystifying-evals" />
 - **The arc:** measure (eval) → see (observability) → spend (cost) → oversee (HITL) → defend (security).
 - **The evidence rule:** five surfaces are first-party-authoritative, not triangulated — stated as such, never dressed as convergence; security is the one genuine convergence.
-- **Boundary discipline:** each chapter owns a precise slice — ch23 calibrates the judge ch22 only uses; ch24 records what ran, ch23 scores whether it was correct; ch25 prices what ch24 surfaces.
+- **Boundary discipline:** each chapter owns a precise slice — ch23 calibrates the judge ch22 only uses; ch24 reconstructs what ran from partial records, ch23 scores whether it was correct; ch25 models the economics of the usage and billing evidence ch24 correlates.
 - **The reflex to build:** turn every "feels worse" or "seemed fine" into "measured against what?"
 
 ## Practice

@@ -6,17 +6,19 @@ volatility: architectural-pattern
 tools_compared: [claude-code, cross-tool]
 cert_domains: [4, 5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-14
-last_verified: 2026-06-14
+last_updated: 2026-07-14
+last_verified: 2026-07-14
 sources:
   - demystifying-evals
+  - claude-code-sessions
   - claude-code-monitoring
+  - claude-code-costs
   - anthropic-multi-agent-research
   - willison-trifecta
   - camel-debenedetti
   - anthropic-claude-chrome
   - claude-code-security-docs
-description: The Volume 3 capstone — the five operational surfaces as one closed operate-and-improve loop. A production failure surfaces in the session log, becomes an eval case, and drives a fix bounded by cost, oversight, and security, then it is measured again. An honest map of where Vol 3's evidence stands, the unsolved trade-offs the discipline navigates rather than solves, and a short close on Design v1.0.
+description: The Volume 3 capstone — the five operational surfaces as one closed operate-and-improve loop. A production failure is reconstructed from correlated evidence, becomes an eval case, and drives a fix bounded by measured cost, oversight, and security, then it is measured again. An honest map of where Vol 3's evidence stands, the unsolved trade-offs the discipline navigates rather than solves, and a short close on Design v1.0.
 ---
 
 import YouWillLearn from '@brandon_m_behring/book-scaffold-astro/components/YouWillLearn.astro';
@@ -46,7 +48,7 @@ _This is the capstone of the Evaluation & Operations volume, and of Design v1.0.
 
 ch21 laid the surfaces out as an arc — measure → see → spend → oversee → defend. Read once, left to right, that looks like a pipeline with an end. It is not. The output of operating an agent is *information about how it failed*, and that information flows back to the start: a wrong answer or a near-miss in production is exactly the raw material an eval is made of.
 
-So the surfaces close. Observability (ch24) is where a failure first becomes visible — the session log is the ground truth a regression is read from.<Citation src="claude-code-monitoring" /> Eval (ch22–23) is where that observed failure is turned into a *repeatable measurement* — a new test case, derived from a real failure, exactly as the eval discipline prescribes.<Citation src="demystifying-evals" /> The fix that follows is bounded by the other three surfaces: it has a cost (ch25), it may need a human gate if it touches something irreversible (ch26), and it must not open a trifecta leg (ch27). Then you measure again. That is the loop.
+So the surfaces close. Observability (ch24) is where a failure first becomes reconstructable: correlate the optional session transcript with runtime telemetry and the records of external systems, rather than assuming one file is complete.<Citation src="claude-code-sessions" /><Citation src="claude-code-monitoring" /> Eval (ch22–23) turns that evidence into a *repeatable measurement* — a new test case derived from a real failure.<Citation src="demystifying-evals" /> The fix that follows is bounded by the other three surfaces: it has a workload-shaped cost (ch25), it may need a human gate if it touches something irreversible (ch26), and it must not open a trifecta leg (ch27). Then you measure again. That is the loop.
 
 <KeyIdea>
 Operating an agent is a closed loop, not a one-time setup. Failures seen in production (observability) become measurements (eval) that drive fixes — fixes priced by cost, gated by oversight, and constrained by security — whose effect is then measured again. The five surfaces are the instruments; the loop is the discipline.
@@ -58,12 +60,12 @@ The closed cycle that operating an agent actually is: a production failure is *s
 
 ## The loop in motion
 
-Trace one turn of it. An agent ships a subtly wrong result. It surfaces because someone reads the session log — the transcript is the one record every other surface derives from (ch24). You reproduce the failure, and instead of patching by hand and moving on, you make it a *case*: a small, unambiguous eval task drawn from this real failure (ch22 for a prompt, ch23 for a trajectory), so that "fixed" becomes something you can measure rather than something you feel. You change the prompt, the tool, or the guardrail. Now the other three surfaces bound the change: you check that the fix has not ballooned the input context that drives cost (ch25); if the fix lets the agent take a more irreversible action, you put a human gate in front of it (ch26); and you confirm the fix has not handed an attacker a new leg of the trifecta (ch27). Finally you re-run the eval. The suite is now one case stronger, and the loop is ready for the next failure.
+Trace one turn of it. An agent ships a subtly wrong result. A user report identifies the effect; the external system confirms the state reached; telemetry locates the failing request or tool call; and, when retained, the transcript supplies the harness-visible conversation (ch24). You reproduce the failure and make it a *case*: a small, unambiguous eval task drawn from the correlated evidence (ch22 for a prompt, ch23 for a trajectory), so that "fixed" becomes measurable. You change the prompt, tool, or guardrail. Now the other surfaces bound the change: compare the fix's uncached input, cache activity, output, tool/runtime charges, and model mix rather than assuming context is the driver (ch25); gate irreversible actions (ch26); and avoid opening a trifecta leg (ch27). Finally, re-run the eval.
 
 <Figure
   src="/figures/operate-improve-loop/operate-improve-loop.svg"
-  caption="The operate-and-improve loop. A production run's failure is seen in the session log (observability, ch24), turned into a repeatable eval case (ch22–23), and fixed — with the fix bounded by cost (ch25), oversight (ch26), and security (ch27) — after which it is measured again and the loop returns to production. Each pass leaves the eval suite one case stronger."
-  alt="A clockwise cycle of four stages. Stage 1 'Production run'. Stage 2 'See the failure — session log (ch24)'. Stage 3 'Make it an eval case (ch22–23)'. Stage 4 'Fix it', with three bounding labels attached — 'cost (ch25)', 'oversight (ch26)', 'security (ch27)'. An arrow returns from stage 4 to stage 1 labeled 'measure again'. A note in the centre reads 'each pass leaves the eval suite one case stronger'."
+  caption="The operate-and-improve loop. A production failure is reconstructed from correlated evidence (ch24), turned into a repeatable eval case (ch22–23), and fixed within measured cost (ch25), oversight (ch26), and security (ch27) constraints. Each pass returns to production with a stronger eval suite."
+  alt="A clockwise cycle of four stages. Stage 1 'Production run'. Stage 2 'Reconstruct the failure — correlated evidence (ch24)'. Stage 3 'Make it an eval case (ch22–23)'. Stage 4 'Fix it', bounded by 'measured cost (ch25)', 'oversight (ch26)', and 'security (ch27)'. An arrow returns from the fix to production labeled 'measure again'."
   width="100%"
   id="fig-operate-improve-loop"
 />
@@ -106,7 +108,7 @@ The most common way the loop breaks is treating its surfaces as one-time configu
 
 ## Quick reference
 
-- **One loop, not five checklists:** see the failure (ch24) → make it a measurement (ch22–23) → fix it within cost/oversight/security budgets (ch25/26/27) → measure again.
+- **One loop, not five checklists:** reconstruct the failure from correlated evidence (ch24) → make it a measurement (ch22–23) → fix it within measured cost/oversight/security budgets (ch25/26/27) → measure again.
 - **Every failure becomes a permanent eval case** — that is what leaves the suite stronger each pass; skipping it is why regressions return.
 - **The evidence map:** eval/observability/cost/oversight are first-party-authoritative, not triangulated;<Citation src="demystifying-evals" /> security is the one genuine convergence;<Citation src="camel-debenedetti" /> the ~15× is one workload's datapoint;<Citation src="anthropic-multi-agent-research" /> defenses reduce, not eliminate.<Citation src="anthropic-claude-chrome" />
 - **Three unsolved trade-offs:** autonomy ↔ control, cost ↔ performance, utility ↔ security — navigated per workload, not solved.
@@ -125,11 +127,11 @@ Take an agent you operate or have read about and walk it once around the operate
 <ExerciseSolutions>
 
 <Solution for="ch28-ex-1">
-The loop: (1) a production run produces a failure; (2) the failure is *seen* in the session log (observability); (3) it is turned into a repeatable *eval case* derived from the real failure; (4) it is *fixed*, with the fix bounded by cost (don't balloon input context), oversight (gate it if it is irreversible), and security (don't open a trifecta leg); and then you *measure again*, which returns to step 1 with a stronger suite. The step whose omission breaks the loop is **turning the failure into an eval case** (step 3): if you fix the failure without adding a test that measures whether it stays fixed, nothing closes the loop back to measurement. Regressions then recur because the only record that the bug was ever fixed is the patch itself — there is no standing measurement that fails if a later change reintroduces it, so the same failure can return unnoticed until it shows up in production again. The eval case is what converts a one-time patch into a permanent guarantee.
+The loop: (1) a production run produces a failure; (2) the failure is reconstructed by correlating transcript evidence when available, runtime telemetry, and external-system effects; (3) it becomes a repeatable *eval case*; (4) it is fixed within measured cost, oversight, and security constraints; and then the system is measured again. Omitting the eval case breaks the loop: the patch leaves no standing measurement that fails when a later change reintroduces the behavior. The eval case converts an incident into a durable regression check.
 </Solution>
 
 <Solution for="ch28-pr-1">
-A worked example. Take a customer-support agent that drafts replies and can issue refunds. **Failure seen:** a customer reports the agent promised a refund it should have escalated; you find it by reading the session log of that conversation (ch24) — the transcript shows the tool call and the reasoning. **Eval case derived:** a trajectory eval (ch23) built from that exact transcript — given this customer message and account state, the agent must escalate, not auto-refund — plus, if the root cause was prompt wording, a prompt-level case (ch22) on the instruction that misfired. **Fix:** tighten the policy in the system prompt and require a tool precondition. **Bounded by:** cost (ch25) — the tighter prompt adds context tokens on every call, a small permanent cost to weigh; oversight (ch26) — a refund above a threshold is irreversible, so it now hits an approval gate rather than firing autonomously; security (ch27) — confirm the refund tool cannot be triggered by injected content in a customer message (an untrusted-content leg), or the fix has opened a hole. **Re-measure:** run the new eval cases; "fixed" is now a green test, not a hope. **Trade-offs:** on autonomy↔control the refund gate moves it toward control (slower, safer); on cost↔performance the richer prompt is a deliberate small spend for accuracy; on utility↔security gating refunds costs some self-service utility to close an exfiltration-adjacent risk. What would move it: higher refund volume might justify a calibrated auto-approve threshold (back toward autonomy) once the eval suite is trusted enough to catch regressions. The point of the exercise is that the fix is never just a prompt edit — it is a loop pass with three budgets and three tensions, all named.
+A customer-support agent drafts replies and can issue refunds. **Failure reconstructed:** a customer report supplies the symptom; the refund service's audit log proves whether money moved; OTel identifiers locate the tool call; and a retained transcript supplies the conversation the harness saw. **Eval case derived:** build a trajectory case from the customer message and account state that requires escalation rather than auto-refund. **Fix:** tighten the policy and require a tool precondition. **Bounded by:** cost (ch25) — measure whether the change affects uncached input, cache reuse, output/thinking, model, or tool calls; oversight (ch26) — gate refunds above the chosen threshold; security (ch27) — prevent untrusted customer content from triggering the tool. **Re-measure:** run the new case and inspect the same correlated evidence. The loop pass is larger than a prompt edit: it leaves a regression test, an auditable effect, and explicit cost, control, and security trade-offs.
 </Solution>
 
 </ExerciseSolutions>

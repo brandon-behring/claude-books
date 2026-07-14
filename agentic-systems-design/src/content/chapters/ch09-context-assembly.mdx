@@ -6,8 +6,8 @@ volatility: feature-surface
 tools_compared: [claude-code, cross-tool]
 cert_domains: [5]
 introduced_in_version: "0.1.0"
-last_updated: 2026-06-13
-last_verified: 2026-06-13
+last_updated: 2026-07-14
+last_verified: 2026-07-14
 sources:
   - ji-manus
   - anthropic-prompt-caching
@@ -16,7 +16,8 @@ sources:
   - anthropic-code-exec-mcp
   - effective-context-engineering
   - effective-harnesses
-  - cc-cache-regression
+  - anthropic-context-window
+  - claude-code-prompt-caching
   - liu-lost-middle
   - hsieh-found-middle
   - harada-manyifeval
@@ -47,7 +48,7 @@ import ExerciseSolutions from '@brandon_m_behring/book-scaffold-astro/components
 - The mental model: the window is **assembled** each turn from regions with different stability and roles
 - Why prefix **cache stability** is an economic variable, and how to protect it
 - **Just-in-time** loading — keep pointers, resolve to data on demand
-- **Compaction** — summarize vs checkpoint-and-restart, and the stale-prefix risk
+- **Compaction** — summarize vs checkpoint-and-restart, and how actual prefix changes affect caching
 - **Attention placement** — the U-shaped curve, the instruction budget, and recitation
 - Why the assembled window **is itself a prompt**
 </YouWillLearn>
@@ -86,8 +87,8 @@ What enters the window during a turn is a choice, not a default. The just-in-tim
 
 The premise: the window "must be treated as a finite resource with diminishing marginal returns."<Tag kind="official" /><Citation src="effective-context-engineering" /> When it fills, you summarize (`/compact`) or you checkpoint-and-restart — the harness pattern of "finding a way for agents to quickly understand the state of work when starting with a fresh context window,"<Citation src="effective-harnesses" /> i.e., a progress file plus checkpoints rather than lossy in-context summarization.
 
-<Pitfall title="Compaction can invalidate the cache">
-Compaction is a cache-invalidation boundary: a shipping-product regression report (since closed as not-planned) reasons that "any prefix cached before compaction is guaranteed stale after it."<Citation src="cc-cache-regression" /> (Reporter-asserted, not Anthropic-confirmed.) The interaction matters — the same compaction that saves window space can cost you the cache savings if the prefix is rebuilt. Checkpoint-and-restart with a small, re-derivable prefix sidesteps both.
+<Pitfall title="Compaction changes the conversation prefix">
+Cache reuse follows the request's **actual matching prefix**: changing a block changes its cache key and the content that follows it.<Tag kind="official" /><Citation src="anthropic-prompt-caching" /> In Claude Code, `/compact` replaces conversation history with a shorter summary, so the **conversation layer** misses and rebuilds on the next turn; the stable system-prompt layer is reused, and project context can hit if `CLAUDE.md` and memory are unchanged.<Tag kind="official" /><Citation src="claude-code-prompt-caching" /> That is a Claude Code behavior, not a universal law that compaction invalidates every layer in every harness. Measure cache reads and creations after the boundary, then fix the prefix layer that actually changed.
 </Pitfall>
 
 ## Attention placement — position is not neutral
@@ -131,7 +132,7 @@ Mirroring the previous chapter's router, map an observed symptom to the assembly
 - **Symptom: latency and cost climb every turn, even on small tasks.** → *Cache instability* — something perturbs the prefix. Reach for **stable prefix** + **dynamic content at the tail**.
 - **Symptom: quality decays as a long session or file grows.** → *Unbounded loading* — too much is resident at once. Reach for **just-in-time loading** and **compact-or-checkpoint**.
 - **Symptom: the agent ignores an instruction you know is loaded.** → *Misplacement* — it is sagging mid-window. Reach for **place at the edges; recite the goal**.
-- **Symptom: cost spikes right after a long session compacts.** → *Cache invalidation at the compaction boundary*. Reach for **checkpoint-and-restart with a small prefix**.
+- **Symptom: cache creation rises after a long session compacts.** → *A prefix layer changed*. Compare cache reads with cache creations and identify whether conversation, project context, system prompt, or model changed; do not assume the whole cache was lost.
 - **Symptom: a multi-part prompt is parsed wrong.** → *Unstructured assembly*. Reach for **structure with delimiters**.
 
 ## Patterns
@@ -142,7 +143,7 @@ Mirroring the previous chapter's router, map an observed symptom to the assembly
 
 **Just-in-time loading.** *Sketch:* keep pointers; resolve to data on demand. *When to use:* large/optional context.<Citation src="effective-context-engineering" /> *Mechanics:* store identifiers (paths, queries); fetch via tools; defer tool defs too.<Citation src="anthropic-code-exec-mcp" /> *Remember:* preload the minimum; the window is finite.
 
-**Compact or checkpoint.** *Sketch:* manage the window when it fills. *When to use:* long sessions.<Citation src="effective-harnesses" /> *Mechanics:* prefer checkpoint-and-restart from a progress file over lossy summarize. *Remember:* compaction can invalidate the cache — keep the restart prefix small.
+**Compact or checkpoint.** *Sketch:* manage the window when it fills. *When to use:* long sessions.<Citation src="effective-harnesses" /> *Mechanics:* choose a structured summary or checkpoint-and-restart from a progress file; in Claude Code, `/compact` replaces history with a summary while reusing unchanged earlier layers.<Citation src="anthropic-context-window" /><Citation src="claude-code-prompt-caching" /> *Remember:* cache impact follows the prefix layers that actually change — verify reads versus creations.
 
 **Place at the edges; recite the goal.** *Sketch:* exploit the U-shaped attention curve. *When to use:* load-bearing instructions; long tasks.<Citation src="liu-lost-middle" /> *Mechanics:* put critical content at an edge; re-emit goals at the tail (`todo.md`).<Citation src="ji-manus" /> *Remember:* the middle is where attention sags.
 
@@ -153,7 +154,7 @@ Mirroring the previous chapter's router, map an observed symptom to the assembly
 - **The window is assembled** from pre-commitment / loaded / history / placement regions.
 - **Stable prefix** = cost + latency lever (41–80% / 13–31%); dynamic content at the tail.
 - **JIT loading:** keep pointers, resolve on demand; the window is finite.
-- **Compaction:** prefer checkpoint-and-restart; mind the stale-prefix/cache interaction.
+- **Compaction:** summarize or checkpoint-and-restart; cache impact is conditional on which prefix layers actually change.
 - **Placement:** edges beat the middle (U-shaped bias); budget instructions; recite goals at the tail.
 - **Assembly is a prompt:** engineer tool descriptions and structure.
 
