@@ -15,6 +15,12 @@ sources:
   - anthropic-define-tools
   - writing-tools-for-agents
 description: A tool's failure contract — which channel a failure travels down, what its text says, and whether the schema could have prevented it. The two regimes (Messages-API is_error vs MCP isError + JSON-RPC), why is_error turns a failure into a recoverable signal, the normative execution-vs-protocol error split, and the difference between steering a retry and preventing the error.
+provenance:
+  ai_tools: [Claude Code]
+  audit_history:
+    - date: 2026-06-02
+      type: independent
+      file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
 import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';

@@ -14,6 +14,12 @@ sources:
   - anthropic-structured-outputs
   - agent-sdk-agent-loop
 description: Constrained decoding eliminates schema errors, never semantic ones — valid JSON can still hold wrong data. The architect's job is the layer above the schema, discriminating the two error kinds, encoding semantic checks into the schema itself, and closing a bounded validate-feed-back-retry loop that escalates to a human on exhaustion.
+provenance:
+  ai_tools: [Claude Code]
+  audit_history:
+    - date: 2026-06-02
+      type: independent
+      file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
 import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';

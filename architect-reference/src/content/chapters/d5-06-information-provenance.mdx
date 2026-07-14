@@ -13,6 +13,12 @@ sources:
   - anthropic-citations
   - anthropic-models-overview
 description: An architect tracks where each claim came from and when its data is valid. The native Citations API ties quoted text to real document spans so a source cannot be fabricated; the provenance triple is the schema-friendly fallback; and a model's knowledge cutoff bounds what it can be trusted to know without a dated source.
+provenance:
+  ai_tools: [Claude Code]
+  audit_history:
+    - date: 2026-06-02
+      type: independent
+      file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
 import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';

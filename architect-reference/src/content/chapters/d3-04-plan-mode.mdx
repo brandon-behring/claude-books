@@ -14,6 +14,12 @@ sources:
   - claude-code-model-config
   - agent-sdk-permissions
 description: Plan mode restricts Claude to read-only research and a written proposal — no edits — and approving the plan exits the mode into a write mode. Choosing plan versus going direct is a risk-containment decision, not a named-mode toggle; "direct execution" is simply working in a write mode. The opusplan alias pairs the mode with a model-per-phase split — Opus plans, Sonnet executes.
+provenance:
+  ai_tools: [Claude Code]
+  audit_history:
+    - date: 2026-06-02
+      type: independent
+      file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
 import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
