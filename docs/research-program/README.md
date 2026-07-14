@@ -5,8 +5,9 @@
 > and are validated by [`docs/research-integrity/README.md`](../research-integrity/README.md).
 > Release `rr-20260714.1` is deliberately blocked: structural/hash validation is
 > not semantic review and does not authorize release or synthesis-KB ingestion.
-> The legacy pipeline descriptions below remain historical context until the
-> canonical toolkit-v1 corpus migration is accepted.
+> The legacy pipeline descriptions below remain historical context. The
+> canonical toolkit-v1 corpus projection is structurally valid, but its claims,
+> freshness state, and consumer mappings still require review.
 
 This directory is the **content backbone** for the book series: a *living* topic graph
 that grows into an explorable **knowledge graph** of everything relevant to the books, kept

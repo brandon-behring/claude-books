@@ -6,7 +6,7 @@
     },
     {
       "path": "research-integrity/config.json",
-      "sha256": "d63b0f84eb51f6a3117a4774b9b8a563aa15aa7a34e3ac45f19c2a53f8a1c80d"
+      "sha256": "a7b462fabd775fd230fe2ff2ed4cb14b70508c70e9fbd9fe83ccedf0d5a9b5ca"
     },
     {
       "path": "research-integrity/consumer-binding-candidates.jsonl",
@@ -18,11 +18,11 @@
     },
     {
       "path": "research-integrity/dossier-release.json",
-      "sha256": "8a3e060a2269485d59b160d8489ac24b3fd6fdab0ddd672dcf9643b7a0f9581a"
+      "sha256": "37339788d9207baf95eaeb28b44e36cd4f866d3d8d5f70480c6488e5fb963033"
     },
     {
       "path": "research-integrity/release-status.json",
-      "sha256": "88b0accccdec670108fabbc6ed2edd7945881453136e8e019ec8d8db1fefd50b"
+      "sha256": "fae5cdaf6006b4360ce7d998cf268ad00f68a3bff5b20632eb586b42ae66d299"
     },
     {
       "path": "research-integrity/schemas/consumer-binding.schema.json",
@@ -37,7 +37,7 @@
       "sha256": "11038ff52d93599e041762c7f1de0e1e81c38371a5281b93713dc95fad66963f"
     }
   ],
-  "dossier_release_sha256": "8a3e060a2269485d59b160d8489ac24b3fd6fdab0ddd672dcf9643b7a0f9581a",
+  "dossier_release_sha256": "37339788d9207baf95eaeb28b44e36cd4f866d3d8d5f70480c6488e5fb963033",
   "generated_at": "2026-07-14T00:00:00-04:00",
   "lock_version": "1",
   "release_id": "rr-20260714.1",

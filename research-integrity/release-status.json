@@ -23,7 +23,7 @@
   "unresolved_findings": [
     "DR-semantic-review-pending",
     "FP-freshness-configuration-pending",
-    "TK-corpus-contract-v1-migration-required"
+    "DR-canonical-release-manifest-unavailable"
   ],
   "waivers": []
 }

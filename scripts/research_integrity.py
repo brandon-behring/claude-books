@@ -485,9 +485,9 @@ def dossier_release(config: dict[str, Any]) -> dict[str, Any]:
             "migration_validation": dossier["migration_validation_sha256"],
         },
         "blocking_conditions": [
-            "migration records do not validate against toolkit canonical v1 schemas",
             "semantic dossier review is incomplete",
             "no coordinated dossier release manifest has reviewer acceptance",
+            "canonical claim-to-consumer bindings have not been adjudicated",
         ],
     }
 
@@ -517,7 +517,7 @@ def release_status(
         "unresolved_findings": [
             "DR-semantic-review-pending",
             "FP-freshness-configuration-pending",
-            "TK-corpus-contract-v1-migration-required",
+            "DR-canonical-release-manifest-unavailable",
         ],
         "waivers": [],
         "reviewer_acceptance": [],

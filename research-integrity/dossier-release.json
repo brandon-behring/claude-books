@@ -1,18 +1,18 @@
 {
   "blocking_conditions": [
-    "migration records do not validate against toolkit canonical v1 schemas",
     "semantic dossier review is incomplete",
-    "no coordinated dossier release manifest has reviewer acceptance"
+    "no coordinated dossier release manifest has reviewer acceptance",
+    "canonical claim-to-consumer bindings have not been adjudicated"
   ],
-  "canonical_toolkit_v1_valid": false,
+  "canonical_toolkit_v1_valid": true,
   "dossier_count": 102,
-  "migration_commit": "1a52a7cf4145fe9eb989c0cb7733999249dfd2a6",
-  "migration_generated_digest": "7e42241fa59ce00990f9e4b15a10215cc19c9538f7c5fa847a9948de4cb15ae7",
-  "migration_schema_version": "1.0.0-migration",
+  "migration_commit": "63b1de2789d116b861ab6523359ada849548a05a",
+  "migration_generated_digest": "ee74fa481ebf9d3b1a145decc32cfe5e82273f5c14eab410669b74b631c8315f",
+  "migration_schema_version": "1.0.0",
   "release_id": "rr-20260714.1",
   "report_sha256": {
-    "corpus_census": "0d30e6f6e4f5403fe77fdc4cfa59b2209aa7fc997f57588398245c0506287cbb",
-    "migration_validation": "1b29fff4bcb77687507f56cb226bb8cc228a03eb2806b9f36cf1375aa5b74b92",
+    "corpus_census": "9f165a839f23220322f50c39c436b17e42534140fc5cfb3f6fea3d0d0f650a68",
+    "migration_validation": "068dfc63a259576a41e96e20350298b011b4362481c45de09a8f693a1767212c",
     "relevant_dossier_census": "08cd80dda64de7485995a3fcda485ace381442565bab4f29c04e7559996e76ff"
   },
   "schema_version": "claude-books.dossier-release-pin/1.0.0",

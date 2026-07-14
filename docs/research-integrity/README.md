@@ -15,8 +15,9 @@ Release `rr-20260714.1` is **blocked**.
   citations without a dossier match, and 23 topic-level taxonomy targets.
 - `consumer-bindings.jsonl` is empty because no claim-to-passage mapping has yet
   completed semantic adjudication.
-- The pinned dossier snapshot is structurally validated but uses the provisional
-  migration contract, not the toolkit's canonical v1 records.
+- The pinned dossier snapshot validates as 102/102 against the toolkit's exact
+  canonical v1 contracts. Every dossier and claim remains review-blocked, and
+  no dossier `release.json` exists.
 
 A passing integrity check means paths, citations, generated artifacts, and
 hashes agree. It does **not** mean claims are correct, current, semantically
@@ -61,7 +62,7 @@ authorization gate. It intentionally fails for `rr-20260714.1`.
 
 Do not mark this release ready until all of the following are true:
 
-1. The dossier corpus validates against toolkit schema version `1.0.0`.
+1. Keep the dossier corpus validating against toolkit schema version `1.0.0`.
 2. Every material passage is bound to an adjudicated stable claim ID.
 3. Every active binding validates against the bundled ConsumerBinding v1 schema
    and its content hash matches the current consumer file.
