@@ -13,6 +13,12 @@ sources:
   - augment-multi-agent-failure
   - anthropic-april-23-postmortem
 description: In a chain of agents an error does not stay local — an upstream ambiguity becomes a downstream wrong decision, and concurrent faults compound into degradation no single component test reproduces. The defenses are structured error context across boundaries, independent validation, and circuit breakers.
+provenance:
+  ai_tools: [Claude Code]
+  audit_history:
+    - date: 2026-06-02
+      type: independent
+      file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
 import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';

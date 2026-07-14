@@ -10,7 +10,9 @@
  */
 import type { GetStaticPaths } from 'astro';
 import { getCollection, render } from 'astro:content';
+import type { Provenance } from '@brandon_m_behring/book-scaffold-astro';
 import Chapter from '@brandon_m_behring/book-scaffold-astro/layouts/Chapter.astro';
+import ProvenanceBlock from '@brandon_m_behring/book-scaffold-astro/components/Provenance.astro';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const chapters = await getCollection(
@@ -25,8 +27,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
+const provenance = (entry.data as { provenance?: Provenance }).provenance ?? null;
 ---
 
 <Chapter entry={entry} headings={headings}>
   <Content />
+  <ProvenanceBlock data={provenance} />
 </Chapter>

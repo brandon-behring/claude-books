@@ -15,6 +15,12 @@ sources:
   - anthropic-structured-outputs
   - agent-sdk-agent-loop
 description: Forcing a known-shape JSON result has two generations. The classic pattern borrows the tool-call channel as a typed output slot; the modern features (strict tool use and output_config.format) use grammar-constrained decoding to make a non-conforming shape unrepresentable. The JSON-Schema subset, additionalProperties false, and the per-request limits are the surfaces to know.
+provenance:
+  ai_tools: [Claude Code]
+  audit_history:
+    - date: 2026-06-02
+      type: independent
+      file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
 import Diagnostic from '@brandon_m_behring/book-scaffold-astro/components/Diagnostic.astro';
