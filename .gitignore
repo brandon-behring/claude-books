@@ -56,3 +56,6 @@ claude-books-continuity/
 # Source-archive fetch cache — runtime artifacts, never published
 agentic-coding/sources/cache/*
 !agentic-coding/sources/cache/.gitkeep
+# Python validation caches
+__pycache__/
+*.py[cod]

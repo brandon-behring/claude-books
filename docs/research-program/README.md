@@ -1,5 +1,13 @@
 # Research program — the living knowledge backbone for claude-books
 
+> **Active integrity state (2026-07-14):** citation inventory, dossier-consumer
+> candidates, and upstream hashes now live under [`research-integrity/`](../../research-integrity/)
+> and are validated by [`docs/research-integrity/README.md`](../research-integrity/README.md).
+> Release `rr-20260714.1` is deliberately blocked: structural/hash validation is
+> not semantic review and does not authorize release or synthesis-KB ingestion.
+> The legacy pipeline descriptions below remain historical context until the
+> canonical toolkit-v1 corpus migration is accepted.
+
 This directory is the **content backbone** for the book series: a *living* topic graph
 that grows into an explorable **knowledge graph** of everything relevant to the books, kept
 current over time. It is the in-repo, version-controlled spine; the heavy verified research

@@ -1,0 +1,34 @@
+{
+  "books": [
+    "agentic-coding",
+    "agentic-systems-design",
+    "architect-reference",
+    "handbook"
+  ],
+  "consumer_repository": {
+    "base_commit": "efdeac724e356ec7c3533bfba404f0516a5095cc",
+    "name": "claude-books"
+  },
+  "dossiers": {
+    "canonical_toolkit_v1_valid": false,
+    "corpus_census_sha256": "0d30e6f6e4f5403fe77fdc4cfa59b2209aa7fc997f57588398245c0506287cbb",
+    "dossier_count": 102,
+    "migration_commit": "1a52a7cf4145fe9eb989c0cb7733999249dfd2a6",
+    "migration_generated_digest": "7e42241fa59ce00990f9e4b15a10215cc19c9538f7c5fa847a9948de4cb15ae7",
+    "migration_schema_version": "1.0.0-migration",
+    "migration_validation_sha256": "1b29fff4bcb77687507f56cb226bb8cc228a03eb2806b9f36cf1375aa5b74b92",
+    "relevant_dossier_census_sha256": "08cd80dda64de7485995a3fcda485ace381442565bab4f29c04e7559996e76ff",
+    "source_commit": "7c045bb036a7184f6bc95e8beed29cd72168619e",
+    "structurally_validated_count": 102,
+    "upstream_candidate_sha256": "11038ff52d93599e041762c7f1de0e1e81c38371a5281b93713dc95fad66963f"
+  },
+  "force_blocked": true,
+  "generated_at": "2026-07-14T00:00:00-04:00",
+  "release_id": "rr-20260714.1",
+  "schema_version": "1.0.0",
+  "toolkit": {
+    "commit": "37c58177917612aab9a97504cf7d9b08aa0d453f",
+    "plugin_version": "3.0.0-alpha.1",
+    "python_version": "3.0.0a1"
+  }
+}

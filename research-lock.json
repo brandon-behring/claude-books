@@ -1,0 +1,49 @@
+{
+  "artifacts": [
+    {
+      "path": "research-integrity/citation-inventory.jsonl",
+      "sha256": "03e04581e615e6600d827f822cd6e04fb032d7cf6e760a65afb46661738f1256"
+    },
+    {
+      "path": "research-integrity/config.json",
+      "sha256": "d63b0f84eb51f6a3117a4774b9b8a563aa15aa7a34e3ac45f19c2a53f8a1c80d"
+    },
+    {
+      "path": "research-integrity/consumer-binding-candidates.jsonl",
+      "sha256": "bdf0c75b9630eb59098187ae36515b2ad118ed553555f0984e3f335d56eabd14"
+    },
+    {
+      "path": "research-integrity/consumer-bindings.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "research-integrity/dossier-release.json",
+      "sha256": "8a3e060a2269485d59b160d8489ac24b3fd6fdab0ddd672dcf9643b7a0f9581a"
+    },
+    {
+      "path": "research-integrity/release-status.json",
+      "sha256": "88b0accccdec670108fabbc6ed2edd7945881453136e8e019ec8d8db1fefd50b"
+    },
+    {
+      "path": "research-integrity/schemas/consumer-binding.schema.json",
+      "sha256": "8e28de04a1b0310cac2eb0bf2df04e6fca1e3af01e322e57d03f7fea8b38c6e3"
+    },
+    {
+      "path": "research-integrity/schemas/research-lock.schema.json",
+      "sha256": "0b296bcf8a1e55b375d14023c30e89efd9fb0d11f4118077217d26549b12e758"
+    },
+    {
+      "path": "research-integrity/upstream/migration-consumer-binding-candidates.jsonl",
+      "sha256": "11038ff52d93599e041762c7f1de0e1e81c38371a5281b93713dc95fad66963f"
+    }
+  ],
+  "dossier_release_sha256": "8a3e060a2269485d59b160d8489ac24b3fd6fdab0ddd672dcf9643b7a0f9581a",
+  "generated_at": "2026-07-14T00:00:00-04:00",
+  "lock_version": "1",
+  "release_id": "rr-20260714.1",
+  "schema_version": "1.0.0",
+  "toolkit": {
+    "commit": "37c58177917612aab9a97504cf7d9b08aa0d453f",
+    "version": "3.0.0-alpha.1"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "blocking_conditions": [
+    "canonical dossier release is unavailable",
+    "claim-to-passage semantic adjudication is incomplete",
+    "canonical consumer bindings are incomplete",
+    "dossier source watches and semantic reviews are incomplete"
+  ],
+  "candidate_binding_count": 2712,
+  "candidate_type_counts": {
+    "dossier-source-to-frontmatter-source": 614,
+    "dossier-source-to-inline-citation": 1780,
+    "taxonomy-target": 23,
+    "unmapped-frontmatter-source": 104,
+    "unmapped-inline-citation": 191
+  },
+  "canonical_binding_count": 0,
+  "citation_occurrence_count": 1469,
+  "release_id": "rr-20260714.1",
+  "reviewer_acceptance": [],
+  "schema_version": "claude-books.research-release-status/1.0.0",
+  "semantic_review_complete": false,
+  "state": "blocked",
+  "unresolved_findings": [
+    "DR-semantic-review-pending",
+    "FP-freshness-configuration-pending",
+    "TK-corpus-contract-v1-migration-required"
+  ],
+  "waivers": []
+}

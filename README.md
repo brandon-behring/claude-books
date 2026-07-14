@@ -27,6 +27,12 @@ npm install                    # at repo root
 cd handbook && npm run dev     # localhost:4321  (or: npm -w agentic-systems-design run dev)
 ```
 
+Research citations and dossier-consumer candidates are hash-pinned by
+[`research-lock.json`](./research-lock.json). Run `npm run research:validate`
+before committing citation or source-manifest changes. The current research
+release is structurally valid but intentionally blocked pending semantic review;
+see [`docs/research-integrity/README.md`](./docs/research-integrity/README.md).
+
 ## License
 
 Content: [CC BY 4.0](./LICENSE).
