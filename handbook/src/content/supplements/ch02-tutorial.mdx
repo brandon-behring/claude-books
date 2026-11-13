@@ -20,7 +20,7 @@ import BeforeAfter from '../../components/BeforeAfter.astro';
 - What `CLAUDE.md` does — the **briefing document** Claude reads at the start of every session
 - How to generate a starter with **`/init`** and trim it to what Claude needs every time
 - What to **include**, what to **exclude**, and why a short file beats a long one
-- Your first **deny rules** — the one configuration that is never wrong to add on day one
+- Your first **deny rules**
 </YouWillLearn>
 
 > **Guided walkthrough.** Work through this alongside your own project. For the canonical reference — with inline exercises, end-of-chapter practice, numbered Tips, and citations — read the chapter [Your First CLAUDE.md](/chapters/ch02-first-claude-md).
@@ -144,7 +144,7 @@ So what stays out? What Claude can infer from the code, long explanations, aspir
 
 ## Your first deny rules
 
-`CLAUDE.md` instructions are advisory — a clever prompt can talk Claude out of one. Deny rules are absolute: enforced by the permission system, not interpreted by the model. Before Claude reads anything, protect your secrets. Create `.claude/settings.json`:
+`CLAUDE.md` instructions are advisory — a clever prompt can talk Claude out of one. Deny rules are enforced by the permission system, not interpreted by the model. Before Claude reads anything, protect your secrets. Create `.claude/settings.json`:
 
 ```json
 {
@@ -161,10 +161,14 @@ So what stays out? What Claude can infer from the code, long explanations, aspir
 ```
 
 <MarginNote variant="warning" label="Warning">
-  A `CLAUDE.md` line saying "don't read secrets" can be overridden by a prompt; a `deny` rule cannot. Use the enforced one for anything irreversible.
+  A `CLAUDE.md` line saying "don't read secrets" can be overridden by a prompt.
 </MarginNote>
 
-Deny rules are the one configuration never wrong to add on day one: they cost nothing in context, never trip in normal work (Claude has no business reading your `.env`), and block the one truly irreversible mistake — a leaked secret. Commit `.claude/settings.json` next to `CLAUDE.md`.
+<MarginNote variant="note" label="Official">
+  Permission rules: <a href="https://code.claude.com/docs/en/permissions">code.claude.com/docs/en/permissions</a>. Sandboxing: <a href="https://code.claude.com/docs/en/sandboxing">code.claude.com/docs/en/sandboxing</a>
+</MarginNote>
+
+Commit `.claude/settings.json` next to `CLAUDE.md`.
 
 ## Where this goes next
 

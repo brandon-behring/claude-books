@@ -97,10 +97,10 @@ A prohibition fences off one option; a positive instruction names the target. Na
 | | `CLAUDE.md` | `.claude/settings.json` deny |
 |---|---|---|
 | **Nature** | Advisory context | Enforced policy |
-| **Holds** | Commands, architecture, conventions, verification bars | Paths Claude must never touch |
+| **Holds** | Commands, architecture, conventions, verification bars | Denied paths |
 | **Override** | A prompt or injection can talk Claude out of it | Cannot be overridden by conversation |
 | **Cost** | Context tokens (read every session) | None (lives in settings, not the prompt) |
-| **Use for** | How to work in the project | Anything irreversible — secrets |
+| **Use for** | How to work in the project | Paths that hold secrets |
 
 ## Deny-rule glob reference
 
@@ -111,8 +111,8 @@ A prohibition fences off one option; a positive instruction names the target. Na
   "Read(**/*.pem)",         // key/cert material anywhere
   "Read(**/*.key)",
   "Read(**/credentials*)",
-  "Write(.env*)",           // also block creating one
-  "Bash(cat .env*)"         // close the shell bypass
+  "Edit(.env*)",            // blocks editing and creating one (Edit rules cover Write)
+  "Bash(cat .env*)"
 ] } }
 ```
 

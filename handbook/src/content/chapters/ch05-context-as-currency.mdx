@@ -104,7 +104,7 @@ You have several tools, each suited to a different situation. Knowing which to r
 
 - **`/clear`** — wipe context and start fresh. Use it between unrelated tasks. Cost: about thirty seconds; benefit: full attention on the next task. After `/clear`, the session is empty except for normal startup context — `CLAUDE.md`, any applicable `.claude/rules`, and auto-memory. Cheap, complete, irreversible.
 - **`/compact`** — summarize the conversation while preserving key decisions. Less aggressive than `/clear`: it frees the original tool outputs and message history but keeps the structural thread. Use it when a long task genuinely needs accumulated context but the window is getting large.
-- **`/rewind`** — checkpoint and roll back. Every action Claude takes creates an automatic checkpoint; double-tap `Esc` or run `/rewind` to open the menu and restore conversation only, code only, both, or summarize from a selected message. Checkpoints persist across sessions, so you can close your terminal and still rewind later.
+- **`/rewind`** — checkpoint and roll back. Double-tap `Esc` or run `/rewind` to open the menu and restore conversation only, code only, both, or summarize from a selected message. What checkpoints cover: [code.claude.com/docs/en/checkpointing](https://code.claude.com/docs/en/checkpointing).
 - **`/context`** — visualize current usage. Shows how much of the window is consumed and by what. This is your read on the budget before you decide which other command to reach for.
 - **`/btw`** — ask a side question without growing context. The answer appears in a dismissible overlay and never enters conversation history.<Citation src="anthropic-claude-code-interactive-mode" /> It works even while Claude is processing, draws only on what is already in context (no tool access), and costs nothing against your budget. Use it liberally to steer: "BTW, keep using the existing `HttpError` pattern, do not introduce a new error class."
 - **Subagents** — delegate context-heavy research to isolated agents. Results return to your session; the research context does not. Subagents get their full treatment in [Chapter 10](/chapters/ch10-agents-parallel); orchestrating many of them is [Chapter 11](/chapters/ch11-orchestration).
@@ -123,7 +123,7 @@ The customizing-compaction knobs — `/compact <focus>` to direct the summary, t
 
 ## The status line: zero-cost monitoring
 
-Claude Code displays a configurable status line showing session metrics in real time.<Citation src="claude-code-overview" /> By default it shows the active model, git branch, session cost, and context-window usage percentage. It runs entirely locally — zero API tokens consumed — and is the early-warning system for context degradation. When usage enters the 60–70% range, proactively `/compact` or `/clear`; do not wait for quality to drop before acting.
+Claude Code displays a configurable status line showing session metrics in real time.<Citation src="claude-code-overview" /> It runs entirely locally — zero API tokens consumed — and is the early-warning system for context degradation. When usage enters the 60–70% range, proactively `/compact` or `/clear`; do not wait for quality to drop before acting.
 
 Four metrics earn a glance:
 
@@ -132,22 +132,18 @@ Four metrics earn a glance:
 - **Git branch** — confirms you are working in the right context, which matters when switching between worktrees.
 - **Model** — confirms which model is active, important after a `--model` override or a skill-level model switch.
 
-You can extend it with a custom script whose output is appended to the default display:
-
-```bash
-# ~/.claude/statusline.sh — runs locally, never sent to API
-#!/bin/bash
-echo "env: ${APP_ENV:-dev}"
-```
+<MarginNote variant="note" label="Official">
+  Status line configuration: <a href="https://code.claude.com/docs/en/statusline">code.claude.com/docs/en/statusline</a>
+</MarginNote>
 
 The status line costs nothing and prevents the most common failure mode: context degradation discovered only after quality has already dropped. Enable it on day one.
 
 <Tip n="16" title="Watch the token counter; act before the cliff.">
-The status line's context-usage percentage is free and always-on. When it approaches 60–70%, `/compact` or `/clear` proactively. Auto-compaction fires later (~83%), but by then quality has already slipped.
+The status line's context-usage percentage is free. When it approaches 60–70%, `/compact` or `/clear` proactively. Auto-compaction fires later (~83%), but by then quality has already slipped.
 </Tip>
 
 <Exercise id="ch05-ex-2">
-The status line shows model, git branch, session cost, and context %. Two developers each ignore one of these. The first burns a whole session's quality without noticing; the second edits the wrong worktree. Which metric did each ignore, and why is the context-% blindness the more insidious of the two?
+Two developers each ignore one of the four metrics above. The first burns a whole session's quality without noticing; the second edits the wrong worktree. Which metric did each ignore, and why is the context-% blindness the more insidious of the two?
 </Exercise>
 
 ## The two-failure rule
@@ -330,7 +326,7 @@ When Claude invents a function name, uses the wrong pattern, or is confidently w
 | `/btw` | Steer or add a constraint without restarting | Injects a side question/note; never enters history | Lowest — zero budget cost |
 | `/context` | Anytime you need to read the budget | Visualizes window usage by source | Zero |
 
-Cost ordering: `/btw` < `/rewind` < `/compact` < `/clear`. The status line surfaces context %, cost, branch, and model for free — watch the percentage.
+Cost ordering: `/btw` < `/rewind` < `/compact` < `/clear`.
 
 **The two-failure rule.** First failure: iterate, refine the prompt. Second failure on the same problem: stop — the session is the bottleneck. Reset with `/btw`, `/rewind`, or `/clear`, encoding the lesson into the next prompt.
 
@@ -349,7 +345,7 @@ For one working day, track correction rounds. Every time a task takes more than 
 </Practice>
 
 <Practice id="ch05-pr-3" difficulty="3">
-Configure a custom status line script that appends one project-specific signal to the default display (the active environment, the current branch's CI status, or a token budget marker). Run a normal session with it enabled and note the first moment the context-% reading would have changed a decision you made — a `/compact` you took earlier, or a `/clear` you would otherwise have skipped.
+Configure a custom status line script (<a href="https://code.claude.com/docs/en/statusline">code.claude.com/docs/en/statusline</a>) that shows one project-specific signal: the active environment, the current branch's CI status, or a token budget marker. Run a normal session with it enabled and note the first moment the context-% reading would have changed a decision you made — a `/compact` you took earlier, or a `/clear` you would otherwise have skipped.
 </Practice>
 
 <ExerciseSolutions>

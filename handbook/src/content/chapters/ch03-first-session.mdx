@@ -182,7 +182,9 @@ The best results come from tight feedback loops: correct Claude the moment you n
 | "Undo that" | Ask Claude to revert its last change in plain language | One specific edit was wrong |
 | `/clear` | Reset the context entirely | The whole direction is wrong — start over (the two-failure rule) |
 
-Every action Claude takes creates a checkpoint automatically, so rewinding is a free save point — you can always go back if Claude takes a wrong turn.
+<MarginNote variant="note" label="Official">
+  Checkpoints and rewind: <a href="https://code.claude.com/docs/en/checkpointing">code.claude.com/docs/en/checkpointing</a>
+</MarginNote>
 
 <MarginNote variant="warning" label="Warning">
   Exact key bindings (the interrupt key, the rewind chord, `Shift+Tab` mode cycling) shift between releases. Learn the *moves*; confirm the current keys in Claude Code docs.
@@ -191,7 +193,7 @@ Every action Claude takes creates a checkpoint automatically, so rewinding is a 
 In current Claude Code, the interrupt is the **Esc** key and rewind is reachable via the **`/rewind`** command (historically also a double-**Esc** chord). Treat those specific bindings as the volatile part: the durable skill is knowing that *interrupt-now* and *rewind-to-a-checkpoint* both exist and are cheap. If a key does not do what this book says, check the interactive-mode reference rather than fighting it.<Citation src="anthropic-claude-code-interactive-mode" />
 
 <Tip n="6" title="Interrupt early; recover with a checkpoint.">
-Stop Claude the moment it drifts and rewind to a checkpoint — both are cheap and reversible. The expensive mistake is letting a wrong direction run to completion.
+Stop Claude the moment it drifts and rewind to a checkpoint. The expensive mistake is letting a wrong direction run to completion.
 </Tip>
 
 <Exercise id="ch3-ex-3">
@@ -279,7 +281,7 @@ Letting Claude edit straight into a multi-file change in unfamiliar code. A misu
 - Put a verification criterion in every prompt — it lets Claude self-correct.
 - `/clear` between unrelated tasks; `/compact` to continue a long one.
 - Two-failure rule: after two corrections, `/clear` and re-prompt.
-- Interrupt early (Esc), rewind to a checkpoint (`/rewind`) — both cheap, both reversible.
+- Interrupt early (Esc), rewind to a checkpoint (`/rewind`).
 - Plan Mode (read-only) before risky or unfamiliar changes; skip it for one-sentence diffs.
 - Key bindings and permission-mode names drift between releases — verify against current docs.
 
