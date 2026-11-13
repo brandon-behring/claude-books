@@ -15,6 +15,9 @@ dist/
 **/dist-pdf/
 **/.pagefind/
 
+# Python bytecode (scripts/freshness/)
+__pycache__/
+
 # Generated glossary copies — synced from the canonical glossary/terms/ by
 # scripts/sync-glossary.mjs (predev/prebuild). Source of truth is glossary/terms/.
 */src/content/glossary/

@@ -52,7 +52,7 @@ The whole rule: **include what Claude cannot infer; exclude what it can.**
 
 ## Deny rules on day one
 
-`CLAUDE.md` is **advisory** (a prompt can override it). Deny rules in `.claude/settings.json` are **enforced** (the permission system blocks them — no prompt or injection gets past). Protect secrets the enforced way:
+`CLAUDE.md` is **advisory** (a prompt can override it). Deny rules in `.claude/settings.json` are **enforced** by the permission system. Protect secrets the enforced way:
 
 ```json
 { "permissions": { "deny": [
@@ -62,7 +62,7 @@ The whole rule: **include what Claude cannot infer; exclude what it can.**
 ] } }
 ```
 
-They cost nothing in context, never trip in normal work, and block the one irreversible mistake — a leaked secret. **Commit both files.**
+**Commit both files.** Permission rules: [code.claude.com/docs/en/permissions](https://code.claude.com/docs/en/permissions).
 
 ## What spirals from here
 

@@ -68,15 +68,17 @@ Reading is the common leak, but a generated credential or a `.env` written by a 
       "Read(**/*.pem)",
       "Read(**/*.key)",
       "Read(**/credentials*)",
-      "Write(.env*)",
+      "Edit(.env*)",
       "Edit(secrets/**)"
     ]
   }
 }
 ```
 
+A syntax pitfall worth knowing: Claude Code checks file permissions against `Read(<glob>)` and `Edit(<glob>)` rules. An `Edit` rule applies to every built-in tool that edits files — Edit, Write, and NotebookEdit — while a `Write(<glob>)` or `NotebookEdit(<glob>)` entry is accepted but never matches. `Edit(.env*)` above therefore blocks both editing an existing `.env` and creating a new one.
+
 <MarginNote variant="note" label="Official">
-  Permission entries gate tools by argument: `Read(...)`, `Write(...)`, `Edit(...)`, and `Bash(...)`. Settings + permission syntax: <a href="https://code.claude.com/docs/en/settings">code.claude.com/docs/en/settings</a>
+  Permission entries gate tools by argument: `Read(...)`, `Edit(...)`, and `Bash(...)`. Settings + permission syntax: <a href="https://code.claude.com/docs/en/settings">code.claude.com/docs/en/settings</a>
 </MarginNote>
 
 ### 4. Block the shell paths that read secrets indirectly
@@ -111,10 +113,14 @@ Claude should **refuse** — reporting that the path is denied by your permissio
 
 ## Expected outcome
 
-Every session in this project starts with the secret paths off-limits, enforced by the permission system. No prompt, no injected instruction, and no `Bash` bypass can talk Claude into reading them — and the protection travels with the repo for every teammate.
+Every session in this project starts with the secret paths off-limits, enforced by the permission system. The protection travels with the repo for every teammate.
+
+<MarginNote variant="note" label="Official">
+  Permission rules: <a href="https://code.claude.com/docs/en/permissions">code.claude.com/docs/en/permissions</a>. Sandboxing: <a href="https://code.claude.com/docs/en/sandboxing">code.claude.com/docs/en/sandboxing</a>
+</MarginNote>
 
 <KeyIdea>
-Deny rules are **enforced policy**, not advisory text. A `CLAUDE.md` line that says "don't read secrets" is a request the model can be argued out of; a `deny` entry is a wall the model never reaches past. For anything irreversible — a leaked credential — use the wall.
+Deny rules are **enforced policy**, not advisory text. A `CLAUDE.md` line that says "don't read secrets" is a request the model can be argued out of.
 </KeyIdea>
 
 ## When this fails

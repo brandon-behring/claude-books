@@ -136,7 +136,7 @@ The session-loop shape has converged faster than almost any other pattern in age
 **Convergence: auto-accept modes.** All three tools expose some form of "let the agent run a sequence of tool calls without per-step approval." Claude's `acceptEdits` / `bypassPermissions`<Citation src="claude-code-permission-modes" />, Gemini's tool-level allowlists, Codex's command-approval config all serve the same need: once trust is established for a specific kind of operation, stop gating it. The safety envelope differs; the mechanism is the same.
 
 <Divergence axis="course-correction primitives">
-  Claude Code has the richest correction surface — `Esc` pauses mid-action, `Esc+Esc` opens a full checkpoint rewind menu (restore conversation, code, or both to any prior turn), every tool call auto-creates a checkpoint, checkpoints persist across sessions. Gemini CLI's `/undo` handles partial rewind. Codex CLI relies on git as the rewind mechanism. If your workflow leans on fine-grained undo, Claude's surface is decisively ahead; if you're already git-disciplined, Codex's simplicity is fine.
+  Claude Code has the richest correction surface — `Esc` pauses mid-action, `Esc+Esc` opens a full checkpoint rewind menu (restore conversation, code, or both to any prior turn). Checkpoint scope: <a href="https://code.claude.com/docs/en/checkpointing">code.claude.com/docs/en/checkpointing</a>. Gemini CLI's `/undo` handles partial rewind. Codex CLI relies on git as the rewind mechanism. If your workflow leans on fine-grained undo, Claude's surface is decisively ahead; if you're already git-disciplined, Codex's simplicity is fine.
 </Divergence>
 
 <Divergence axis="session persistence + resumption">

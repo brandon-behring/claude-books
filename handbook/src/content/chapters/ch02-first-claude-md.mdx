@@ -39,7 +39,7 @@ import ChapterSupplements from '../../components/ChapterSupplements.astro';
 - What `CLAUDE.md` actually does — the **briefing document** Claude reads at the start of every session
 - How to generate a starter with **`/init`** and trim it to the conventions Claude needs every time
 - What to **include**, what to **exclude**, and why a short file beats a long one
-- Your first **deny rules** — the one configuration that is never wrong to add on day one
+- Your first **deny rules**
 </YouWillLearn>
 
 _Claude keeps asking the same questions about your project. It does not know your build command, your test runner, or where things live. Every session starts with you re-explaining context that should be obvious. Chapter 1 ended on "the codebase is the curriculum" — this chapter adds the configuration layer that reinforces it. The fix takes five minutes._
@@ -172,7 +172,7 @@ Your 180-line `CLAUDE.md` includes the full install sequence, a paragraph on the
 
 ## Your first deny rules
 
-Before Claude reads a single file, protect your secrets. `CLAUDE.md` instructions are **advisory** — Claude does its best to honor them, but a cleverly-worded prompt or an injected instruction can talk it out of one. Deny rules are **absolute**: they are enforced by the permission system, not interpreted by the model, so they cannot be overridden by conversation or prompt injection.<Citation src="anthropic-claude-code-settings" />
+Before Claude reads a single file, protect your secrets. `CLAUDE.md` instructions are **advisory** — Claude does its best to honor them, but a cleverly-worded prompt or an injected instruction can talk it out of one. Deny rules are enforced by the permission system, not interpreted by the model.<Citation src="anthropic-claude-code-settings" />
 
 Create `.claude/settings.json` at the project root:
 
@@ -191,13 +191,17 @@ Create `.claude/settings.json` at the project root:
 ```
 
 <MarginNote variant="warning" label="Warning">
-  Deny rules are enforced, not advised. A `CLAUDE.md` line saying "don't read secrets" can be overridden by a prompt; a `deny` rule cannot.
+  Deny rules are enforced, not advised. A `CLAUDE.md` line saying "don't read secrets" can be overridden by a prompt.
 </MarginNote>
 
-Deny rules are the one configuration that is never wrong to add on day one. They cost nothing in context (they live in `settings.json`, not the prompt), they never cause false negatives in normal work — Claude has no business reading your `.env` anyway — and they prevent the one class of mistake that is genuinely irreversible: leaking a secret into a commit, a log, or a transcript. Commit `.claude/settings.json` alongside `CLAUDE.md` so the protection travels with the repo.
+<MarginNote variant="note" label="Official">
+  Permission rules: <a href="https://code.claude.com/docs/en/permissions">code.claude.com/docs/en/permissions</a>. Sandboxing: <a href="https://code.claude.com/docs/en/sandboxing">code.claude.com/docs/en/sandboxing</a>
+</MarginNote>
+
+Commit `.claude/settings.json` alongside `CLAUDE.md` so the protection travels with the repo.
 
 <Tip n="4" title="Add deny rules for secrets before the first prompt.">
-Deny rules are enforced by the permission system, cost nothing in context, and block the one irreversible mistake — a leaked secret — so they are the safest thing to configure on day one.
+Deny rules are enforced by the permission system and cost nothing in context.
 </Tip>
 
 ## Two files, version-controlled
@@ -207,7 +211,7 @@ You now have two artifacts, and they do different jobs. Keeping the distinction 
 | Artifact | Nature | Holds | Override |
 |---|---|---|---|
 | `CLAUDE.md` | Advisory context | Commands, architecture, conventions, verification bars | Prompt can talk Claude out of a rule |
-| `.claude/settings.json` deny rules | Enforced policy | Paths Claude must never read or touch | Cannot be overridden by conversation |
+| `.claude/settings.json` deny rules | Enforced policy | Denied paths | Cannot be overridden by conversation |
 
 Commit both to version control. They are part of how your project is built, the same as your linter config — and like the codebase itself, they teach every session and every teammate the same lesson without you in the room.
 

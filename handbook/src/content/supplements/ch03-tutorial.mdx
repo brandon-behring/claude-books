@@ -114,7 +114,9 @@ The durable idea: **interrupt early, recover cheaply.** Correct Claude the momen
 | "Undo that" | Revert the last change in plain language | One specific edit was wrong |
 | `/clear` | Reset the context entirely | The whole direction was wrong |
 
-Every action Claude takes is an automatic checkpoint, so rewinding is a free save point.
+<MarginNote variant="note" label="Official">
+  Checkpoints and rewind: <a href="https://code.claude.com/docs/en/checkpointing">code.claude.com/docs/en/checkpointing</a>
+</MarginNote>
 
 <MarginNote variant="warning" label="Warning">
   Exact key bindings (interrupt, rewind chord, `Shift+Tab` cycling) shift between releases. Learn the moves; confirm current keys in the Claude Code docs.

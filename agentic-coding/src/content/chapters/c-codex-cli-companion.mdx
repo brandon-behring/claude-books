@@ -83,7 +83,7 @@ These gaps are narrowing over time — the convergence axis of Ch 15 applies —
 
 Codex authenticates via API key or via Azure OpenAI's credential chain.<Citation src="codex-cli-auth" /> Key management in enterprise deployments typically routes through a secrets store (HashiCorp Vault, AWS Secrets Manager, Azure Key Vault); the CLI reads the key from an environment variable that the secrets infrastructure populates.
 
-For interactive personal use, the pattern is the OpenAI API key in `~/.codex/config.toml` or equivalent.<Citation src="codex-cli-config-reference" /> Keep the key out of committed files; the same discipline applies to Gemini and Claude secrets.
+Codex sign-in and API-key setup: <a href="https://learn.chatgpt.com/docs/auth">learn.chatgpt.com/docs/auth</a>. Keep the key out of committed files; the same discipline applies to Gemini and Claude secrets.
 
 ## When Codex CLI is the right fit
 

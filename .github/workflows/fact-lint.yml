@@ -1,0 +1,28 @@
+name: fact-lint
+
+# Fails when any book repeats a statement already found false or unsafe
+# (scripts/freshness/known_false.tsv). Runs on every pull request, with no path filter,
+# because a phrase can come back in any book.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  known-false:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Self-test (every fixture still matches its pattern)
+        run: python3 scripts/freshness/known_false.py --self-test
+      - name: Unit tests
+        run: python3 -m unittest discover -s scripts/freshness -v
+      - name: Scan the books
+        run: python3 scripts/freshness/known_false.py

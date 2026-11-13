@@ -57,7 +57,7 @@ _Chapter 15 turned one developer's practice into a team standard. This chapter s
 
 ## Security and compliance
 
-A security review opens with one question: which certifications do you hold? Claude Code is built on Anthropic's security program; the first-party security documentation names **SOC 2 Type 2** and **ISO 27001**, with reports and certificates available at the Anthropic Trust Center.<Citation src="anthropic-claude-code-security" /> The Enterprise offering adds a **HIPAA-ready** deployment, and further attestations (such as ISO/IEC 42001) are published alongside them.<Citation src="anthropic-claude-enterprise" />
+A security review opens with one question: which certifications do you hold? Claude Code is built on Anthropic's security program; the first-party security documentation names **SOC 2 Type 2** and **ISO 27001**, with reports and certificates available at the Anthropic Trust Center.<Citation src="anthropic-claude-code-security" /> Further attestations (such as ISO/IEC 42001) are published alongside them.<Citation src="anthropic-claude-enterprise" />
 
 <KeyIdea>
 Don't paste a certification list into a deployment doc — cite the [Trust Center](https://trust.anthropic.com). The list changes as new attestations land, and the Trust Center is both the authoritative, dated source and the artifact a security reviewer will actually accept. A frozen list in a wiki is stale the day an audit renews.
@@ -79,7 +79,7 @@ For organization rollouts, Claude's Enterprise plan provides the identity contro
 
 ### Data protection
 
-Session data travels over **TLS**, and Enterprise adds **custom data-retention controls**.<Citation src="anthropic-claude-code-security" /><Citation src="anthropic-claude-enterprise" /> On training, the security page points to the **Consumer and Commercial Terms** rather than stating the semantics inline — so cite those for the specifics, not the security page: consumer tiers (Free, Pro, Max) are **opt-in** (training is off unless a user enables it), while commercial products (the API, Team, Enterprise) follow the Commercial Terms, where the default is not-trained-on. Zero Data Retention is available for commercial and API use; confirm the current terms in the Commercial Terms / privacy documentation before citing a specific guarantee.
+Session data travels over **TLS**.<Citation src="anthropic-claude-code-security" /> On training, the security page points to the **Consumer and Commercial Terms** rather than stating the semantics inline — so cite those for the specifics, not the security page: consumer tiers (Free, Pro, Max) are **opt-in** (training is off unless a user enables it), while commercial products (the API, Team, Enterprise) follow the Commercial Terms, where the default is not-trained-on. Zero Data Retention: [code.claude.com/docs/en/zero-data-retention](https://code.claude.com/docs/en/zero-data-retention). Confirm the current terms in the Commercial Terms / privacy documentation before citing a specific guarantee.
 
 <MarginNote variant="note" label="Note">
   The consumer training toggle (opt-in, de-identified, up to five years if enabled) is a *consumer* setting. Don't assume it describes how Team/Enterprise/API data is handled — those follow the Commercial Terms, where the default is not-trained-on.
@@ -209,7 +209,7 @@ The opt-in training setting is a consumer-tier control. Team/Enterprise/API data
 
 ## Quick reference
 
-- **Certifications**: SOC 2 Type 2 + ISO 27001 (first-party); HIPAA-ready (Enterprise); full current list at **trust.anthropic.com** — cite it, don't freeze it.
+- **Certifications**: SOC 2 Type 2 + ISO 27001 (first-party); full current list at **trust.anthropic.com** — cite it, don't freeze it.
 - **IAM (Enterprise)**: SSO, SCIM provisioning, role-based access with fine-grained permissioning, domain capture, audit logs, Compliance API.
 - **Government**: FedRAMP High + DoD IL-4/5 **via Bedrock GovCloud**; FedRAMP-High via **Vertex Assured Workloads** — platform authorization, not Claude-direct.
 - **Governance**: managed settings (`availableModels`/`enforceAvailableModels`, `requiredMinimumVersion`, `disableWorkflows`, `allowManagedHooksOnly`, `disableRemoteControl`) + admin toggles + OpenTelemetry + audit logs + spend caps.
