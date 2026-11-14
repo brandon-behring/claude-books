@@ -33,7 +33,7 @@ const about = chapters.find((c) => c.id === '00-design');
 ---
 <Base
   title="Agentic Coding"
-  description="Engineering with AI coding agents — Claude Code, Gemini CLI, and Codex CLI — as a single cross-tool practice. Principle-first, with every chapter tracking where the tools converge and diverge."
+  description="Engineering with AI coding agents — Claude Code, Gemini CLI, and Codex CLI — as a single cross-tool practice. A principle-first draft."
 >
   <article class="prose">
     <h1>Agentic Coding</h1>
@@ -49,12 +49,16 @@ const about = chapters.find((c) => c.id === '00-design');
     appear as comparative context — where the tools converge and diverge. For Claude-Code-specific daily
     practice (sessions, CLAUDE.md, workflows, config), see the companion <strong>Handbook</strong> (in draft).</p>
 
-    <p><small><em>Status: v0.2.0 — content-complete (17 chapters + 6 appendices); v1.0 pending the planned
-    version-branch infrastructure.</em></small></p>
+    <p><strong>Status: a draft about durable principles.</strong> Its comparisons of Claude Code, Gemini CLI
+    and Codex CLI describe the tools as they were in mid-2026. They are not a current comparison, and the
+    book does not chart when each tool took up a practice. Check any tool-specific detail against that
+    tool's own documentation before you rely on it.</p>
+
+    <p><small><em>Version 0.2.0, a draft: 17 chapters and 6 appendices.</em></small></p>
 
     {about && (
       <p><strong>New here? Start with <a href={href(about.id)}>How this book is designed</a></strong> —
-      the reading guide to chapter structure, freshness stamps, and the convergence/divergence model.</p>
+      the reading guide to how its chapters are built and dated.</p>
     )}
 
     <h2>Chapters</h2>
@@ -88,10 +92,9 @@ const about = chapters.find((c) => c.id === '00-design');
     )}
 
     <section>
-      <h3>Tracking the field</h3>
-      <p>The <a href={`${BASE}convergence/`}>convergence dashboard</a> shows, per pattern, when each tool
-      (Claude Code · Gemini CLI · Codex CLI) adopted it — so you can see which practices have settled and
-      which are still diverging.</p>
+      <h3>Comparing the tools over time</h3>
+      <p>The page that charted when each tool adopted each practice is withdrawn while its data is
+      rebuilt from current sources.</p>
     </section>
   </article>
 </Base>

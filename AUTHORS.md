@@ -27,7 +27,7 @@ Co-authored with **Claude** (Anthropic, via Claude Code).
 - **No autonomous PEDAGOGY decision-log status changes from OPEN to DECIDED.** Status promotion requires human approval; Claude can propose, not commit.
 - **No autonomous scaffold-issue filings without showing the user the issue body first.** (Six scaffold issues #56-#61 were filed autonomously during the 2026-05-23 pedagogy round; this is the codification of going-forward discipline, not a retroactive rebuke.)
 - **No autonomous changes to design docs at `docs/design/`** without explicit user direction. The design archaeology is human-curated.
-- **No final acceptance of any factual claim.** Human reviews every chapter against the cited primary sources before promotion to `validated` status.
+- **No final acceptance of any factual claim.** The chapters were drafted and checked with AI agents; a human has not yet reviewed each one against its cited sources, and no chapter has been promoted to `validated` status. Corrections are reviewed by the human author one batch at a time: a table giving each change's old text, new text, supporting quote, source link and verdict, plus a reading of every changed practice-question answer, self-check answer and glossary definition against its source page.
 
 This project follows the AI-collaboration disclosure norms set by ACM 2023, Nature 2023, and COPE 2023. AI tooling is not listed as an author of the work; the human author takes final responsibility for what ships.
 

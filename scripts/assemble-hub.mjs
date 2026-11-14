@@ -14,16 +14,19 @@
  * hand-written HTML string here. Display data (titles/lenses/blurbs) lives in
  * the hub page; this script only needs each book's build dir + apex slug.
  *
- * Handbook is content-incomplete (draft): served but noindex via robots.txt.
+ * Every book is served with `X-Robots-Tag: noindex` while its corrections are under way: the script
+ * writes those rules into dist/_headers, which the Worker's static-asset server applies and does not
+ * serve. robots.txt allows everything, because a crawler must fetch a page to read its noindex
+ * header. The hub landing stays indexable.
  */
-import { cpSync, rmSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { cpSync, rmSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BOOKS = [
   { dir: 'architect-reference', slug: 'architect' },
   { dir: 'agentic-systems-design', slug: 'design' },
   { dir: 'agentic-coding', slug: 'agentic-coding' },
-  { dir: 'handbook', slug: 'handbook', draft: true },
+  { dir: 'handbook', slug: 'handbook' },
 ];
 
 const ROOT = process.cwd();
@@ -35,7 +38,7 @@ for (const b of BOOKS) {
   const src = join(ROOT, b.dir, 'dist');
   if (!existsSync(src)) throw new Error(`Missing build output: ${b.dir}/dist — run the book build first (npm run build --workspaces).`);
   cpSync(src, join(OUT, b.slug), { recursive: true });
-  console.log(`  assembled ${b.dir}/dist → dist/${b.slug}/${b.draft ? '  (draft, noindex)' : ''}`);
+  console.log(`  assembled ${b.dir}/dist → dist/${b.slug}/`);
 }
 
 // Hub landing — a real scaffold page (hub/ workspace). Copy its build onto the
@@ -47,6 +50,14 @@ if (!existsSync(hubDist)) throw new Error('Missing build output: hub/dist — ru
 cpSync(hubDist, OUT, { recursive: true });
 console.log('  assembled hub/dist → dist/ (apex landing, on the shared scaffold spine)');
 
-// robots.txt last (after the hub copy) so it always wins: handbook is draft.
-writeFileSync(join(OUT, 'robots.txt'), 'User-agent: *\nDisallow: /handbook/\n');
-console.log('  wrote dist/robots.txt (handbook noindex)');
+// Search: noindex on every book, written last (after the hub copy). Rules are appended to any
+// _headers a build already produced, so none is lost. `/<slug>/*` matches the book's index too.
+const HEADERS = join(OUT, '_headers');
+const existing = existsSync(HEADERS) ? readFileSync(HEADERS, 'utf8').trimEnd() + '\n\n' : '';
+const noindex = BOOKS.map((b) => `/${b.slug}/*\n  X-Robots-Tag: noindex\n`).join('\n');
+writeFileSync(HEADERS, `${existing}# Books are drafts under correction: keep them out of search results.\n${noindex}`);
+console.log(`  wrote dist/_headers (noindex: ${BOOKS.map((b) => `/${b.slug}/`).join(' ')})`);
+
+// robots.txt allows every path: a Disallow would stop crawlers from reading the noindex header.
+writeFileSync(join(OUT, 'robots.txt'), 'User-agent: *\nAllow: /\n');
+console.log('  wrote dist/robots.txt (allow all)');

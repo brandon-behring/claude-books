@@ -22,7 +22,9 @@ export default await defineBookConfig({
   subtitle: 'Claude Code in daily practice',
   // landing: false (v4.20, #129): we own src/pages/index.astro; silences the
   // shadow warning before Astro makes the collision a hard error.
-  routes: { landing: false },
+  // convergence: false — the cross-tool adoption page is withdrawn until its data is rebuilt (the
+  // tools profile turns it on by default).
+  routes: { landing: false, convergence: false },
   // #22: base-rebase root-relative in-book links (/chapters/, /supplements/) in the built
   // HTML so they resolve under `base` in the combined deploy — one net for markdown prose,
   // consumer components, AND the scaffold's own /chapters index. Local bridge; canonical

@@ -16,7 +16,7 @@ Each book is a distinct **scope** with a one-word **lens** — the question it a
 |---|---|---|---|---|---|
 | Handbook | `handbook/` | **Use** | How do I use Claude Code effectively, day to day? | use-side; D3 primary owner | Part I prose (4 ch, ch01–04); ch05–15 outline |
 | Agentic Coding | `agentic-coding/` | **Use** | How do I build software with AI coding agents — across tools? | use-side; cross-tool (D1/D3) | 17 ch + 6 appendices (Claude Code · Gemini CLI · Codex CLI); folded in via PR #18 |
-| The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I design to (and pass) the CCA-F domains D1–D5? | **is** the cert map | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
+| The Claude Architect's Reference | `architect-reference/` | **Cert** | How do I study the CCA-F domains D1–D5? | organized around the cert's five domains | 30 ch authored, Round-2 study-guide COMPLETE (2026-06-02) |
 | Agentic Systems Design | `agentic-systems-design/` | **Design** | How do I engineer agentic systems? (broad — **multi-volume**) | reference-altitude depth for D1/D2/D5 | **Vols 1–3 drafted — Design v1.0 COMPLETE 2026-06-14** (28 ch); applied (v2.0) pending |
 | Glossary | `glossary/` | **Vocabulary** | What does this term mean? | shared terms, deep-linked | v1 shipped 2026-06-13 (cert consumer) — **not a read-through book** |
 
@@ -60,9 +60,10 @@ model). Distinct from the Handbook (Claude-Code-specific daily practice); this i
 
 ## Architect's Reference = Cert
 
-Exam-prep altitude. Maps 1:1 to Anthropic's *Claude Certified Architect — Foundations* five domains.
-A **self-contained study guide** (Round-2, 2026-06-02): a reader passes the cert using **only** this
-book. It may **duplicate** Design material freely — being self-contained is the point — and links to
+Exam-prep altitude. Organized around the five domains publicly described for Anthropic's *Claude
+Certified Architect — Foundations*; an unscored study companion, independent of Anthropic.
+A **self-contained study guide** (Round-2, 2026-06-02): written so a reader can study every domain
+from this book alone. It may **duplicate** Design material freely — being self-contained is the point — and links to
 Design via optional "go deeper" breadcrumbs.
 
 ## Agentic Systems Design = Design (multi-volume)

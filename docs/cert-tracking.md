@@ -1,12 +1,12 @@
 # Cert ecosystem tracking
 
-Weekly diff log for Anthropic's Claude Certified Architect (CCA) ecosystem. The books in this repo align to its publicly-known domain taxonomy; this log captures changes so we know when to update.
+Diff log for Anthropic's Claude Certified Architect (CCA) ecosystem, kept by hand. The Architect's Reference is organized around its publicly described domain taxonomy; this log captures changes so we know when to update.
 
 ## How this works
 
-A weekly scheduled remote agent fetches the watch list (below), compares against the previous snapshot, and appends findings as a new dated entry under "Diff log."
+Someone checks the watch list (below) by hand, compares it against the previous snapshot, and appends findings as a new dated entry under "Diff log." No scheduled agent runs (none was configured when checked on 2026-11-14), and the log holds one entry, the 2026-05-22 baseline.
 
-If you're a human reading this: scan the latest entry to see what changed in the last week. The "Current snapshot" section is updated each time something material changes — the diff log is the running history.
+If you're a human reading this: scan the latest entry to see what changed since the previous check. The "Current snapshot" section is updated each time something material changes — the diff log is the running history.
 
 ## Watch list
 
@@ -59,7 +59,7 @@ If you're a human reading this: scan the latest entry to see what changed in the
 - >1,000 customers spending >$1M annualized (doubled from 500 in Feb 2026)
 - 17× API volume YoY (Code w/ Claude SF, May 6 2026)
 
-**Confidential reference document** in this repo (`instructor_..._Claude+Certified+Architect+...pdf`): v0.1 dated Feb 10 2025; marked "Confidential Need to Know" on every page. **Treated as internal research aid only**; not cited verbatim in book content.
+**Sources.** This log and the books use public material only.
 
 ## Diff log
 
@@ -75,4 +75,4 @@ Sources confirmed via web search this date:
 - https://claudecertifications.com/ — third-party free study guide
 - https://dev.to/aws-builders/the-claude-certified-architect-exam-5-domains-6-scenarios-and-everything-you-need-to-know-4le3 — public summary of 5 domains + 6 scenarios
 
-Public material confirms domain weights and scenarios match the v0.1 PDF (the taxonomy itself is public, even though the PDF is marked NTK).
+The domain taxonomy and scenarios above come from public sources.

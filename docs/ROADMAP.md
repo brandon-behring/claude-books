@@ -119,8 +119,8 @@ above) — consolidating freshness work that was scattered across the old ops/de
 | `youtube_talks` pool | external dossier | freshness pass | re-check the 26 caption-pending; **re-run `synthesis.md`** to fold in the 2 Whisper-filled talks |
 
 **Committed build:**
-- **Revive the weekly cert-tracking agent** on a real schedule (scheduled remote agent diffing the
-  cert/course surfaces) — the manual cadence had become a chore.
+- **Revive weekly cert tracking** on a real schedule (an agent that diffs the cert/course surfaces;
+  none runs today) — the manual cadence had become a chore.
 - **Change-digest** — a recurring *what's new · what changed · new samples · book-impact* digest sourced
   from the `source-registry` feeds (monthly / per-release).
 - **Scheduled freshness/automation agent** — wire the `source-registry` `[feed]`s + the freshness

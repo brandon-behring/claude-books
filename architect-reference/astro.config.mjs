@@ -34,7 +34,9 @@ export default await defineBookConfig({
   // the shared term layer. Terms are authored once in the repo-root glossary/terms/
   // and synced (gitignored) into src/content/glossary/ by scripts/sync-glossary.mjs
   // (predev/prebuild); the flashcards deck derives from that glossary collection.
-  routes: { practiceExam: true, answers: true, glossary: true, flashcards: true, landing: false },
+  // practiceExam: false — scoring is off; every question stays readable, with its answer, on /answers/.
+  // convergence: false — the cross-tool adoption page is withdrawn (the tools profile turns it on).
+  routes: { practiceExam: false, answers: true, glossary: true, flashcards: true, landing: false, convergence: false },
   // routes: { tips: true } — DEFERRED (same scaffold gap as the other books: the
   // package's pages/tips.astro hardcodes a path that mis-resolves under npm-workspace
   // hoisting and hard-fails the build). See docs/scaffold-gaps.md.

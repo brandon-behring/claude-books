@@ -18,7 +18,9 @@ export default await defineBookConfig({
   siblingBooks: { handbook: '/handbook', 'agentic-coding': '/agentic-coding', architect: '/architect', design: '/design' },
   // landing: false (v4.20, #129): we own src/pages/index.astro; silences the
   // shadow warning before Astro makes the collision a hard error.
-  routes: { landing: false },
+  // convergence: false — the cross-tool adoption page is withdrawn until its data is rebuilt (the
+  // tools profile turns it on by default).
+  routes: { landing: false, convergence: false },
   // routes: { tips: true } — DEFERRED (same scaffold gap as the handbook: the
   // package's pages/tips.astro hardcodes a path that mis-resolves under
   // npm-workspace hoisting and hard-fails the build). <Tip> still renders inline

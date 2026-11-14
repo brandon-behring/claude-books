@@ -21,7 +21,7 @@ provenance:
   ai_tools: [Claude Code]
   audit_history:
     - date: 2026-06-02
-      type: independent
+      type: AI agents, one pass
       file: docs/audits/2026-06-02_architect-reference-cert-book-independent-review.md
 ---
 
@@ -131,7 +131,7 @@ Step 4 of the round-trip hides two cases the exam specifically tests, because bo
 A handler that lets an exception propagate turns a recoverable tool failure into a dead agent. The loop's whole value is that the model reads results and adapts; an error is just a result. Return `{ "type": "tool_result", "tool_use_id": …, "content": "<error text>", "is_error": true }` and let the model decide what to do next.
 </Pitfall>
 
-**Parallel calls must be answered together.** When a single response contains *more than one* `tool_use` block, the API requires every corresponding `tool_result` in the **next user message** — you cannot answer one tool now and defer the other to a later turn. Execute them (concurrently when they are read-only and independent; serially when one mutates state another reads), collect all results, and send them as one batch. The mechanics of when to parallelize live in [D2.3](./d2-03-tool-choice-distribution) — for the loop, the rule to hold is: *all of a turn's results return together, keyed by `tool_use_id`.*
+**Parallel calls must be answered together.** When a single response contains *more than one* `tool_use` block, the API requires every corresponding `tool_result` in the **next user message** — you cannot answer one tool now and defer the other to a later turn. Execute them (concurrently when they are read-only and independent; serially when one mutates state another reads), collect all results, and send them as one batch. The mechanics of when to parallelize live in [D2.3](/architect/chapters/d2-03-tool-choice-distribution/) — for the loop, the rule to hold is: *all of a turn's results return together, keyed by `tool_use_id`.*
 
 <KeyIdea>
 The `tool_use_id` is the join key of the whole protocol. A failed call is a `tool_result` with `is_error: true`; parallel calls are several `tool_result` blocks in one user message, each matched to its `tool_use` by `tool_use_id`. Drop or defer one and the next request is malformed.
