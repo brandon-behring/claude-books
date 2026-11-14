@@ -9,6 +9,7 @@
  * scaffold v4.24 #140/#141).
  */
 import { defineBookConfig, toolsStyle } from '@brandon_m_behring/book-scaffold-astro';
+import reviewLabel from './src/lib/review-label-integration.mjs';
 
 // Fonts are never inlined as data: URIs. Vite inlines any asset under 4 KiB, and one subset of the
 // scaffold's code font is that small; the scaffold's Content-Security-Policy (font-src 'self')
@@ -55,5 +56,5 @@ export default await defineBookConfig({
   // convergence: false — the cross-tool adoption page is withdrawn until its data is rebuilt (the
   // tools profile turns it on by default). The data stays in changelog/, unrendered.
   routes: { landing: false, convergence: false },
-  extraIntegrations: [noInlineFonts, noticeClearOfButtons],
+  extraIntegrations: [noInlineFonts, noticeClearOfButtons, reviewLabel()],
 });

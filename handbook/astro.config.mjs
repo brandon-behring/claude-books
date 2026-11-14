@@ -5,6 +5,7 @@
  */
 import { defineBookConfig, toolsStyle } from '@brandon_m_behring/book-scaffold-astro';
 import rebaseInbook from './src/lib/rebase-inbook-integration.mjs';
+import reviewLabel from './src/lib/review-label-integration.mjs';
 
 // Single source for the book's base — used by both `base:` and the in-book link rebaser (#22).
 const BASE = '/handbook/';
@@ -61,7 +62,7 @@ export default await defineBookConfig({
   // HTML so they resolve under `base` in the combined deploy — one net for markdown prose,
   // consumer components, AND the scaffold's own /chapters index. Local bridge; canonical
   // fix filed upstream (drop when the scaffold ships base-aware prose/page links).
-  extraIntegrations: [rebaseInbook({ base: BASE }), noInlineFonts, noticeClearOfButtons],
+  extraIntegrations: [rebaseInbook({ base: BASE }), noInlineFonts, noticeClearOfButtons, reviewLabel()],
   // routes: { tips: true } — DEFERRED to the deploy phase. The package's
   // pages/tips.astro hardcodes `../../../src/data/tips.json`, which mis-resolves
   // under npm-workspace hoisting (reaches repo-root src/, not handbook/src/) and

@@ -106,7 +106,7 @@ Tables are used for tool comparisons in the Operation section, as shorthand for 
 
 The book itself evolves over time. Three mechanisms make that visible:
 
-**Freshness stamps.** The chapter header shows `Last verified 2026-04-17`. When a reader sees an older date on a volatile claim, they know to double-check against current tool docs before relying on it.
+**Freshness stamps.** The chapter header shows `Last reviewed 2026-04-17`: the date the chapter was last reviewed, not a promise that it is still correct. When a reader sees an older date on a volatile claim, they know to double-check against current tool docs before relying on it.
 
 **Version branches (planned).** When multi-version deploys land, each published version will stay live at its own URL (`/v1.0/`, `/v1.1/`) and a version selector in the header will let readers switch — so practices documented in one version don't disappear when the next ships; they become historical reference. *(Not yet live: the header has no version selector yet.)*
 
@@ -117,12 +117,12 @@ The book itself evolves over time. Three mechanisms make that visible:
 The volatility badge in the header signals how likely a chapter is to date:
 
 - `stable-principle` — rarely changes. Read anytime.
-- `architectural-pattern` — revises on major tool versions. Glance at the last-verified date.
+- `architectural-pattern` — revises on major tool versions. Glance at the last-reviewed date.
 - `feature-surface` — changes with minor versions. Check the date, and cross-reference against current tool release notes.
 
 <Recovery
   pattern="Reading stale practice"
-  symptom="A tactical chapter was last verified more than 6 months ago; tool versions have changed since."
+  symptom="A tactical chapter was last reviewed more than 6 months ago; tool versions have changed since."
 >
   Skim the principle narrative (Representation section) — that layer is designed to age well. Treat the Operation section as evidence for the principle, not a current recipe. Check the tool's own release notes for specifics.
 </Recovery>
