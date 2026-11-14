@@ -61,7 +61,7 @@ As of the bootstrap, only **Ch1 of the handbook** is in this repo as a Phase 0 s
 - **Tracking mechanism** (set up alongside Phase 0.5 — small standalone task, doesn't block scaffold work):
   - `docs/cert-tracking.md` — records last-known version/date, domain weights, course catalog, deltas observed.
   - Watch list: `anthropic.com/news`, `claude.com/resources/courses`, `claude.com/resources/certifications`, `anthropic.skilljar.com`.
-  - **Cadence: weekly**, planned as a scheduled agent (via the `/schedule` skill) that would fetch and diff the watch list and write findings to `docs/cert-tracking.md`. (As of 2026-11-14 no such agent runs; the log is kept by hand.)
+  - **Cadence: weekly.** Implemented as a **scheduled remote agent** (via `/schedule` skill) that fetches and diffs the watch list and writes findings to `docs/cert-tracking.md`. Weekly automation > manual cadence given the active rollout phase.
 
 ## Roadmap
 
