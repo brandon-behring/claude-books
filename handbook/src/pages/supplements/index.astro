@@ -8,6 +8,11 @@
  * clearly-labeled "Drafts" section and noindexed on their own pages.
  */
 import { getCollection } from 'astro:content';
+import bookConfig from 'virtual:book-scaffold/book-config';
+
+// This page has its own HTML shell, so the scaffold's layout does not put the book's status
+// notice on it. Show the same notice here, from the one place it is written (astro.config.mjs).
+const status = bookConfig.releaseStatus;
 
 const entries = await getCollection('supplements');
 const published = entries.filter((e) => !e.data.draft);
@@ -102,9 +107,22 @@ const kindColor = (kind: string): string => {
       section.drafts { margin-top: 3rem; padding-top: 1.5rem; border-top: 2px solid #fde68a; }
       section.drafts h2 { color: #78350f; }
       section.drafts .draft-note { color: #92400e; font-size: 0.95rem; margin-top: -0.25rem; }
+      p.status-notice {
+        border-left: 3px solid #b45309;
+        background: #fffbeb;
+        color: #78350f;
+        padding: 0.5rem 0.75rem;
+        margin: 0 0 1.5rem;
+        font-size: 0.875rem;
+      }
     </style>
   </head>
   <body>
+    {status && (
+      <p class="status-notice" role="note">
+        <strong>{status.state.toUpperCase()}:</strong> {status.message}
+      </p>
+    )}
     <h1>Handbook supplements</h1>
     <p class="subtitle">
       The handbook's secondary-disclosure layer — alternate ways to consume each chapter:
