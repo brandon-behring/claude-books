@@ -1,5 +1,10 @@
 # Deploy runbook — `claude-books.brandon-behring.dev`
 
+> **Status (2026-11-14): completed.** Every step below is done: the secrets are set, the repo is
+> public, the domain answers, and each push to `main` deploys through GitHub Actions. Only Actions
+> report checks on `main`'s recent commits, so no competing Workers Build remains. This file is kept as
+> the record of how the site was set up.
+
 **Mechanism: GitHub Actions → `brandon-behring/deploy-workflows`** (the *book* pattern — same as
 ssm-foundations, double_ml_time_series, dlai-study-notes). **Not** Cloudflare Workers Builds (that's
 the *guides* pattern). `.github/workflows/deploy.yml` runs `npm ci` + `npm run build` +

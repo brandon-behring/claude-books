@@ -40,8 +40,7 @@ __pycache__/
 # Playwright MCP runtime
 .playwright-mcp/
 
-# Confidential — Anthropic cert exam guide (marked "Need to Know" on every page).
-# Internal research aid only; not for public distribution. See plan + cert-tracking docs.
+# Local study PDFs stay out of the repo; book content cites public sources only.
 instructor_*.pdf
 
 # Cross-machine continuity bundle — out-of-repo memory + plan-file transfer artifact.

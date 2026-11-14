@@ -1,30 +1,28 @@
 ---
 /**
- * /assessment — whole-book front-matter assessment test (Sybex "where do I
- * stand?" convention: a stand-alone page before chapter 1, linked from the
- * landing). <AssessmentTest> samples a cross-domain form from the question
- * bank, scores it client-side, and routes weak domains to their chapters.
+ * /assessment — kept as a short note so existing links still land somewhere useful. The scored
+ * assessment test (<AssessmentTest>) is withdrawn; the practice-exam route is off in
+ * astro.config.mjs. Every question stays readable, with its answer, on /answers/.
  */
 import Base from '@brandon_m_behring/book-scaffold-astro/layouts/Base.astro';
-import AssessmentTest from '@brandon_m_behring/book-scaffold-astro/components/AssessmentTest.astro';
+
+const BASE = import.meta.env.BASE_URL;
 ---
 <Base
-  title="Assessment test — The Claude Architect's Reference"
-  description="Cross-domain assessment test for the Claude Certified Architect — Foundations (CCA-F) domains D1–D5: find your weak domains before you start reading."
+  title="Assessment test (withdrawn) — The Claude Architect's Reference"
+  description="The scored assessment test is withdrawn; every practice question, with its answer and rationale, is on the answers page."
 >
   <article class="prose">
-    <h1>Assessment test</h1>
+    <h1>Assessment test (withdrawn)</h1>
     <p>
-      Before you read anything, find out where you stand. This test samples questions across all
-      five CCA-F domains and scores them in your browser; the readout points you at the domains —
-      and the chapters — where your answers were shaky. Strong domains you can skim on a first
-      pass; weak ones deserve a close read.
+      The scored assessment test is withdrawn. Its questions were written against Claude Code and
+      the Claude API as they were in mid-2026, and some answer keys are under review, so a score
+      would not measure what it claimed to.
     </p>
     <p>
-      Without JavaScript the questions still render below as a manual self-check, with each answer
-      behind a reveal. For the complete bank grouped by domain, see the
-      <a href="/practice-exam/">practice question bank</a>.
+      Every practice question, with its answer and rationale, is on the
+      <a href={`${BASE}answers/`}>answers page</a>. Use the questions to test your understanding of a
+      chapter, not to predict an exam result.
     </p>
-    <AssessmentTest />
   </article>
 </Base>

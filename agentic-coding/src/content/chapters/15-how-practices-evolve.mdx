@@ -113,29 +113,32 @@ The mixed-class chapter is the dangerous case — a chapter that's mostly stable
 Every tool's releases feed a per-tool changelog. Every pattern feeds a shared registry. Joined, they produce the convergence timeline.
 
 ```yaml
+# The shape only: every version and date below is a placeholder. Fill each one
+# from the tool's own release notes, never from memory.
+
 # changelog/tools/claude-code.yaml — per tool
 tool: claude-code
 versions:
-  - version: "2.9"
-    date: 2026-03-27
+  - version: "X.Y.Z"
+    date: YYYY-MM-DD
     changes:
       - pattern: briefing-docs
         kind: changed
-        note: "CLAUDE.md hub-and-spoke documented as default architecture"
+        note: "<what the release notes say changed>"
 
 # changelog/patterns.yaml — shared across tools
 - id: plan-mode
   name: "Plan mode"
   category: safety
-  convergence_date: 2026-03-05   # date all three tools landed it
+  convergence_date: YYYY-MM-DD   # date the last of the three tools shipped it
 
 - id: subagents
   name: "Subagent delegation"
   category: scale
-  convergence_date: null         # not yet converged
+  convergence_date: null         # not yet shipped by all three
 ```
 
-A dashboard — rendered programmatically from these YAML files — surfaces the current state: which patterns have converged, which are in flight, which are divergent. The dashboard is the meta-artifact of the entire methodology: it makes the evolution of the field *visible* rather than implicit.
+A dashboard rendered from these files can show which patterns have converged, which are in flight, and which are divergent. It is only as good as its entries: a timeline fed by stale or unchecked versions misleads more than no timeline. This book's own dashboard is withdrawn for that reason while its data is rebuilt from current sources.
 
 <SkillBox title="Volatility-classify a new chapter in 60 seconds">
   Read your draft once with one question: *What is the highest-volatility claim in this chapter?* If the answer is a specific command name or flag, the chapter is feature-surface and needs quarterly review. If the answer is the shape of a convention, the chapter is architectural-pattern — review on major releases. If the answer is a property of the substrate (attention, entropy, software engineering fundamentals), the chapter is stable-principle — review annually. The whole-chapter flag takes the class of its highest-volatility claim; isolate the claim into its own callout if it's the only volatile thing in an otherwise-stable chapter.

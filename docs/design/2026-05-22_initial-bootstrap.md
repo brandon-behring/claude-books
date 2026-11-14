@@ -37,7 +37,7 @@ As of the bootstrap, only **Ch1 of the handbook** is in this repo as a Phase 0 s
 13. **Cert-inspired components** (all four): `<Scenario>`, `<CheckYourself>`, `<Domain>` badge, `<TaskStatement>` block.
 14. **Shared glossary** at workspace level — `glossary/` is a fourth member; both/all books deep-link in.
 15. **Cert tracking is an ongoing concern** — `docs/cert-tracking.md` + watch list + monthly check (auto-or-manual TBD).
-16. **Confidential PDF stays internal** — the v0.1 cert exam guide in this repo is marked Confidential NTK. Use as internal research aid only; public book content cites the publicly-available taxonomy and the free Anthropic Academy courses.
+16. **Public sources only** — public book content cites the publicly-available taxonomy and the free Anthropic Academy courses.
 17. **Outline phase per book — yes, but not yet** (after Phase 0.5).
 18. **Pace & working mode** — left open. Decided per-phase.
 19. **No pandoc** — manual rewrite. Use MDX components LaTeX couldn't.
@@ -53,8 +53,8 @@ As of the bootstrap, only **Ch1 of the handbook** is in this repo as a Phase 0 s
 
 - **Claude Certified Architect — Foundations (CCA-F)** officially launched **March 12, 2026** as part of the new Claude Partner Network ($100M investment).
 - **Format**: 60 multiple-choice questions, 120-minute proctored exam, partner-gated. Free study via Anthropic Academy.
-- **5-domain taxonomy is public** (covered widely by dev.to, Substack, explainx.ai, certsafari.com, claudecertifications.com, Udemy). Same domains and weights as the PDF you supplied.
-- **The v0.1 PDF** in this repo is marked **"Confidential Need to Know"** on every page — it appears to be early-adopter / beta-program material. Plan treats it as **internal research aid only**; public-facing book content aligns to the *publicly available* domain taxonomy, not the PDF's verbatim task statements or sample questions.
+- **5-domain taxonomy is public** (covered widely by dev.to, Substack, explainx.ai, certsafari.com, claudecertifications.com, Udemy).
+- Public-facing book content aligns to the *publicly available* domain taxonomy.
 - **Anthropic Academy** (anthropic.skilljar.com) hosts ~17 free courses (~15-20 hrs of content) covering: AI Fluency, Claude Code 101, Claude Code in Action, Subagents, Agent Skills, Building with the Claude API (8 hrs, 10 quizzes — biggest course), Intro to MCP, MCP Advanced Topics, plus Bedrock and Vertex tracks. These are major **T1 source citations** for the Architect's Reference and acceptable cross-references for the Handbook.
 - **Future tiers planned** (per Anthropic announcements): Sellers, Architects (higher-tier than Foundations), Developers — to be introduced later in 2026. Likely 2027+ content opportunity.
 - **Competitive landscape exists**: third-party study guides, blog syntheses, Udemy courses, free practice questions already online. Differentiation = depth, empirical grounding (field-guide), long-lasting reference value vs. cheat-sheet ephemera.

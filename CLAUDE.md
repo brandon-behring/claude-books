@@ -40,9 +40,9 @@ Books consume `@brandon_m_behring/book-scaffold-astro` (sibling repo at `~/book-
 
 ## Cert alignment
 
-Books align to Anthropic's *Claude Certified Architect — Foundations* 5-domain taxonomy (publicly known). Tracked weekly in [`docs/cert-tracking.md`](./docs/cert-tracking.md) via a scheduled remote agent. Per-domain coverage matrix in [`docs/cert-coverage.md`](./docs/cert-coverage.md).
+The Architect's Reference is organized around the publicly described 5-domain taxonomy of Anthropic's *Claude Certified Architect — Foundations*. It is an unscored study companion, independent of Anthropic, and claims no alignment beyond that structure. Changes are logged by hand in [`docs/cert-tracking.md`](./docs/cert-tracking.md) (no scheduled agent runs). Per-domain coverage matrix in [`docs/cert-coverage.md`](./docs/cert-coverage.md).
 
-The confidential v0.1 PDF in this repo (`instructor_..._Claude+Certified+Architect+...pdf`) is **internal research aid only** — do not cite verbatim in book content. Public-facing material cites the publicly-available taxonomy and the free Anthropic Academy courses.
+Book content cites public sources only: the publicly described taxonomy and the free Anthropic Academy courses. Do not commit, cite or quote non-public exam material (`.gitignore` keeps local study PDFs out of the repo).
 
 ## Build
 
@@ -53,4 +53,4 @@ cd handbook && npm run dev   # localhost:4321  (or: npm -w agentic-systems-desig
 
 ## Licensing
 
-All book content: CC BY 4.0. Scaffold package: MIT (consumed via npm). "Edit this page" links + GitHub Discussions per chapter enable community contribution.
+All book content: CC BY 4.0. Scaffold package: MIT (consumed via npm). Contributions come through pull requests; the site has no per-page edit links or discussion threads.

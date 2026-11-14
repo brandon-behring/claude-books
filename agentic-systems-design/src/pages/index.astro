@@ -13,21 +13,26 @@ const VOLS = [
 const inVol = (v) => chapters.filter((c) => (c.data.chapter ?? 0) >= v.lo && (c.data.chapter ?? 0) <= v.hi);
 const grouped = new Set(VOLS.flatMap((v) => inVol(v)).map((c) => c.id));
 const rest = chapters.filter((c) => !grouped.has(c.id));
+// Links carry the book's base ('/design/'): this page has no link rebaser, and a root-relative
+// href would leave the book.
+const BASE = import.meta.env.BASE_URL;
 ---
-<Base title="Agentic Systems Design — engineering agentic systems (Volumes 1–3)" description="The broad, multi-volume discipline of engineering agentic systems: the environment an agent acts in, the context it reasons over, then tools, orchestration, evaluation, and operations. Volumes 1–3 complete; authored from strict-live research.">
+<Base title="Agentic Systems Design — engineering agentic systems (Volumes 1–3)" description="The broad, multi-volume discipline of engineering agentic systems: the environment an agent acts in, the context it reasons over, then tools, orchestration, evaluation, and operations. Volumes 1–3, in draft.">
   <article class="prose">
     <h1>Agentic Systems Design</h1>
     <p class="subtitle"><em>Engineering agentic systems · Volumes 1–3</em></p>
 
     <p>The broad discipline of engineering the system around a capable model — the <strong>environment</strong> an agent acts in and the <strong>context</strong> it reasons over, then the <strong>tools</strong> it uses, how those are <strong>orchestrated</strong>, and how the whole is <strong>evaluated and operated</strong>. Delivered foundation-first across three volumes.</p>
 
-    <h2>The volumes <small>(Design v1.0 — all complete)</small></h2>
+    <p><strong>Status: a draft.</strong> Some chapters, and the figures that depend on them, are under review; read them as drafts, not as settled guidance. Statements about specific products and models describe them as they were in mid-2026, so check them against the vendor's current documentation.</p>
+
+    <h2>The volumes <small>(drafts)</small></h2>
     <ol>
       <li><strong>Volume 1 — Environment &amp; Context</strong> — the environment an agent acts in + the context it reasons over.</li>
       <li><strong>Volume 2 — Tools &amp; Orchestration</strong> — tool &amp; MCP design, tool minimization, sub-agents, multi-agent, build-vs-buy a harness.</li>
       <li><strong>Volume 3 — Evaluation &amp; Operations</strong> — evals &amp; validation, observability, cost, oversight / HITL, security.</li>
     </ol>
-    <p><strong>Design v1.0 = Volumes 1–3</strong> (28 chapters, all complete). A later <strong>problem-first applied volume (v2.0)</strong> will re-traverse the material through real problems. (Prompting lives in the <em>Handbook</em> and the <em>Architect's Reference</em>, not a Design volume.)</p>
+    <p><strong>Volumes 1–3</strong> hold 28 chapters, drafted. A later <strong>problem-first applied volume (v2.0)</strong> will re-traverse the material through real problems. (Prompting lives in the <em>Handbook</em> and the <em>Architect's Reference</em>, not a Design volume.)</p>
 
     <h2>Chapters</h2>
     {VOLS.map((v) => (
@@ -36,7 +41,7 @@ const rest = chapters.filter((c) => !grouped.has(c.id));
         <ul>
           {inVol(v).map((c) => (
             <li>
-              <a href={`/chapters/${c.id}/`}>
+              <a href={`${BASE}chapters/${c.id}/`}>
                 {c.data.chapter ? `Chapter ${c.data.chapter}: ` : ''}{c.data.title}
               </a>
             </li>
@@ -49,7 +54,7 @@ const rest = chapters.filter((c) => !grouped.has(c.id));
         <h3>Additional</h3>
         <ul>
           {rest.map((c) => (
-            <li><a href={`/chapters/${c.id}/`}>{c.data.title}</a></li>
+            <li><a href={`${BASE}chapters/${c.id}/`}>{c.data.title}</a></li>
           ))}
         </ul>
       </section>
@@ -57,9 +62,9 @@ const rest = chapters.filter((c) => !grouped.has(c.id));
 
     <h2>Other pages</h2>
     <ul>
-      <li><a href="/chapters/">Chapter listing</a> (auto-generated)</li>
-      <li><a href="/search/">Search</a> (Pagefind)</li>
-      <li><a href="/references/">References</a></li>
+      <li><a href={`${BASE}chapters/`}>Chapter listing</a> (auto-generated)</li>
+      <li><a href={`${BASE}search/`}>Search</a> (Pagefind)</li>
+      <li><a href={`${BASE}references/`}>References</a></li>
     </ul>
   </article>
 </Base>

@@ -91,7 +91,7 @@ A few notes wrote `cert_domains` with `D` prefix (e.g., `[D4, D5]`) instead of t
 
 ## Maintenance
 
-- **Weekly cert tracking**: the existing `docs/cert-tracking.md` scheduled remote agent (cron `0 13 * * 1`) catches cert/Academy/Partner Network changes. Notes here are not auto-refreshed.
+- **Cert tracking**: `docs/cert-tracking.md` is kept by hand; no scheduled agent runs (checked 2026-11-14). Notes here are not auto-refreshed.
 - **Per-source refresh**: to re-verify a single note, re-fetch its `canonical_url`, compare against the existing `Key takeaways` + `Quoted` blocks, update `last_verified_at`. If material change, set `supersedes` chain rather than overwrite.
 - **Coverage gaps**: tracked per topic README's "Open questions for this topic" section. The D4 thin coverage flagged above is the highest-priority follow-up.
 

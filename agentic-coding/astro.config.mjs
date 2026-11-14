@@ -20,5 +20,7 @@ export default await defineBookConfig({
   title: 'Agentic Coding',
   subtitle: 'Principles & Practices — Claude Code · Gemini CLI · Codex CLI',
   // The book owns src/pages/index.astro (landing) — silence the scaffold shadow.
-  routes: { landing: false },
+  // convergence: false — the cross-tool adoption page is withdrawn until its data is rebuilt (the
+  // tools profile turns it on by default). The data stays in changelog/, unrendered.
+  routes: { landing: false, convergence: false },
 });
