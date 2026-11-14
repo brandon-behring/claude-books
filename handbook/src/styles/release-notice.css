@@ -1,0 +1,15 @@
+/* The scaffold's corner buttons (.chrome-buttons) are fixed at the top right of every page, and the
+   release notice is the first thing on the page, so the buttons cover part of its text. This keeps
+   the notice clear of them: room on the right on wide screens, below the buttons on narrow ones.
+   Bridge for a scaffold gap (docs/scaffold-gaps.md): drop it when the scaffold lays the two out
+   together. The doubled class outranks the component's own scoped rule. */
+aside.pre-release-banner.pre-release-banner {
+  padding-right: 12rem;
+}
+
+@media (max-width: 48rem) {
+  aside.pre-release-banner.pre-release-banner {
+    padding-right: var(--space-3);
+    margin-top: 3.5rem;
+  }
+}

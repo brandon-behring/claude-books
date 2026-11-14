@@ -10,8 +10,13 @@
  * carry a DRAFT marker + noindex, and are segregated out of the index + nav.
  */
 import { getCollection, render } from 'astro:content';
+import bookConfig from 'virtual:book-scaffold/book-config';
 import PocLayout from '@brandon_m_behring/book-scaffold-astro/components/PocLayout.astro';
 import '@brandon_m_behring/book-scaffold-astro/styles/poc-layouts.css';
+
+// This page has its own HTML shell, so the scaffold's layout does not put the book's status
+// notice on it. Show the same notice here, from the one place it is written (astro.config.mjs).
+const status = bookConfig.releaseStatus;
 
 export async function getStaticPaths() {
   const entries = await getCollection('supplements');
@@ -24,6 +29,9 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const isDraft = entry.data.draft === true;
+// The title is built here, not in the template: the compiler misplaces a ")" that follows an
+// expression inside <title>. That cut the title short and put a stray ")" at the top of the page.
+const pageTitle = `${entry.data.title} — Supplement (${entry.data.kind})`;
 ---
 
 <!doctype html>
@@ -32,7 +40,7 @@ const isDraft = entry.data.draft === true;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     {isDraft && <meta name="robots" content="noindex" />}
-    <title>{entry.data.title} — Supplement ({entry.data.kind})</title>
+    <title>{pageTitle}</title>
     <style>
       :root {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -102,9 +110,22 @@ const isDraft = entry.data.draft === true;
         margin-left: 0;
         color: #555;
       }
+      p.status-notice {
+        border-left: 3px solid #b45309;
+        background: #fffbeb;
+        color: #78350f;
+        padding: 0.5rem 0.75rem;
+        margin: 0 0 1.5rem;
+        font-size: 0.875rem;
+      }
     </style>
   </head>
   <body>
+    {status && (
+      <p class="status-notice" role="note">
+        <strong>{status.state.toUpperCase()}:</strong> {status.message}
+      </p>
+    )}
     <header class="poc-meta">
       <nav><a href="/supplements">← All supplements</a></nav>
       <p>

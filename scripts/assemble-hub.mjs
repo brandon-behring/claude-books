@@ -18,6 +18,11 @@
  * writes those rules into dist/_headers, which the Worker's static-asset server applies and does not
  * serve. robots.txt allows everything, because a crawler must fetch a page to read its noindex
  * header. The hub landing stays indexable.
+ *
+ * Security headers: each workspace build writes the scaffold's default rules (one `/*` block with a
+ * Content-Security-Policy and four other headers) to its own _headers. Only the file at the site
+ * root takes effect. The hub's copy lands there and covers every book, so the books' copies are
+ * removed, after a check that each says exactly what the hub's says.
  */
 import { cpSync, rmSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -50,10 +55,27 @@ if (!existsSync(hubDist)) throw new Error('Missing build output: hub/dist — ru
 cpSync(hubDist, OUT, { recursive: true });
 console.log('  assembled hub/dist → dist/ (apex landing, on the shared scaffold spine)');
 
-// Search: noindex on every book, written last (after the hub copy). Rules are appended to any
-// _headers a build already produced, so none is lost. `/<slug>/*` matches the book's index too.
+// Security headers: keep the hub's _headers at the root and drop each book's copy. A copy below the
+// root has no effect and would be served as an ordinary file. A book whose rules differ from the
+// hub's stops the build, so that no rule is dropped unseen.
 const HEADERS = join(OUT, '_headers');
-const existing = existsSync(HEADERS) ? readFileSync(HEADERS, 'utf8').trimEnd() + '\n\n' : '';
+const siteRules = existsSync(HEADERS) ? readFileSync(HEADERS, 'utf8') : null;
+for (const b of BOOKS) {
+  const own = join(OUT, b.slug, '_headers');
+  if (!existsSync(own)) continue;
+  if (siteRules === null) {
+    throw new Error(`${b.dir}/dist has a _headers file but hub/dist has none. Only the root file takes effect, so the hub build must emit the rules too.`);
+  }
+  if (readFileSync(own, 'utf8') !== siteRules) {
+    throw new Error(`${b.dir}/dist/_headers differs from hub/dist/_headers. Only the root file takes effect: merge the book's rules into it by hand (as '/${b.slug}/*' rules) before deploying.`);
+  }
+  rmSync(own);
+}
+if (siteRules !== null) console.log('  kept hub/dist/_headers at the root; removed the identical copy in each book');
+
+// Search: noindex on every book, written last (after the hub copy). Rules are appended to the
+// _headers the hub build produced, so none is lost. `/<slug>/*` matches the book's index too.
+const existing = siteRules !== null ? siteRules.trimEnd() + '\n\n' : '';
 const noindex = BOOKS.map((b) => `/${b.slug}/*\n  X-Robots-Tag: noindex\n`).join('\n');
 writeFileSync(HEADERS, `${existing}# Books are drafts under correction: keep them out of search results.\n${noindex}`);
 console.log(`  wrote dist/_headers (noindex: ${BOOKS.map((b) => `/${b.slug}/`).join(' ')})`);
