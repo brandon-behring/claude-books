@@ -41,7 +41,7 @@ Key defaults at time of capture:
 ## What's different about context
 
 <Divergence axis="context window size">
-  Gemini's long-context capability is the clearest single axis of divergence. Gemini's production models ship multi-hundred-thousand to multi-million-token context windows, substantially above Claude's and OpenAI/Codex's.<Citation src="gemini-cli-readme" /> The *practical* consequence is not that you should stuff more into context (Ch 2's warnings about context rot apply regardless of window size) but that certain workload shapes — large-repo code review, whole-monorepo reasoning, long-document synthesis — are genuinely more tractable in Gemini. This is Gemini's sharpest capability advantage as of the chapter's last-verified date.
+  Gemini's long-context capability is the clearest single axis of divergence. Gemini's production models ship multi-hundred-thousand to multi-million-token context windows, substantially above Claude's and OpenAI/Codex's.<Citation src="gemini-cli-readme" /> The *practical* consequence is not that you should stuff more into context (Ch 2's warnings about context rot apply regardless of window size) but that certain workload shapes — large-repo code review, whole-monorepo reasoning, long-document synthesis — are genuinely more tractable in Gemini. This is Gemini's sharpest capability advantage as of the chapter's last-reviewed date.
 </Divergence>
 
 The corollary is discipline. A long-context model tempts the anti-pattern Ch 2 warns about: *adding more because the budget allows it*. The right use of Gemini's context is to *reduce pre-processing* (less forced summarization, less aggressive chunking) when the task genuinely needs many files in view at once, not to make context hygiene optional.

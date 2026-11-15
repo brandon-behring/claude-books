@@ -26,3 +26,10 @@ jobs:
         run: python3 -m unittest discover -s scripts/freshness -v
       - name: Scan the books
         run: python3 scripts/freshness/known_false.py
+      # The build step that removes the freshness verdict and renames the date label
+      # (src/lib/review-label-integration.mjs in each book). It needs no dependencies.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Review-label build step (unit tests)
+        run: node --test scripts/freshness/review_label.test.mjs
