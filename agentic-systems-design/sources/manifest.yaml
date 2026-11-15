@@ -260,6 +260,14 @@
   tier: T1-official
   tool: claude-code
 
+- id: claude-code-settings-reference
+  url: https://code.claude.com/docs/en/settings-reference
+  title: All settings
+  author: Anthropic
+  captured_at: 2026-11-15T00:00:00Z
+  tier: T1-official
+  tool: claude-code
+
 - id: anthropic-sandboxing-docs
   url: https://code.claude.com/docs/en/sandboxing
   title: Configure the sandboxed Bash tool
@@ -487,15 +495,6 @@
   captured_at: 2026-05-26T00:00:00Z
   tier: T3-practitioner
   tool: cross-tool
-
-- id: cc-cache-regression
-  url: https://github.com/anthropics/claude-code/issues/29230
-  title: "Claude Code v2.1.62 — Server-Side KV Cache Stale Context Regression (P1)"
-  author: Taylor (issue reporter)
-  publish_date: 2026-01-01
-  captured_at: 2026-05-26T00:00:00Z
-  tier: T3-practitioner
-  tool: claude-code
 
 - id: langchain-context
   url: https://www.langchain.com/blog/context-engineering-for-agents
@@ -1144,9 +1143,9 @@
   tool: cross-tool
 
 # ch24 — observability
-- id: claude-code-claude-directory
-  url: https://code.claude.com/docs/en/claude-directory
-  title: Explore the .claude directory
+- id: claude-code-sessions
+  url: https://code.claude.com/docs/en/sessions
+  title: Manage sessions
   author: Anthropic
   captured_at: 2026-05-27T00:00:00Z
   tier: T1-official
@@ -1169,7 +1168,7 @@
   tool: claude-code
 
 - id: otel-genai-metrics
-  url: https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-metrics/
+  url: https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-metrics.md
   title: Semantic conventions for generative AI metrics
   author: OpenTelemetry Authors
   captured_at: 2026-05-27T00:00:00Z
@@ -1177,7 +1176,7 @@
   tool: cross-tool
 
 - id: otel-genai-agent-spans
-  url: https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/
+  url: https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-agent-spans.md
   title: Semantic Conventions for GenAI agent and framework spans
   author: OpenTelemetry Authors
   captured_at: 2026-05-27T00:00:00Z

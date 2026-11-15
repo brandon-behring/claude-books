@@ -71,7 +71,7 @@ This is why this book is scoped the way it is: the model is a given (you choose 
 
 A harness decomposes into three layers, and its defining job is owning the boundary between them.
 
-- **Context** — the assembled window the model reasons over. It is "a critical but finite resource for AI agents"<Tag kind="official" /><Citation src="effective-context-engineering" /> — a budget, not free memory.
+- **Context** — the assembled window the model reasons over. It must be "treated as a finite resource with diminishing marginal returns"<Tag kind="official" /><Citation src="effective-context-engineering" /> — a budget, not free memory.
 - **Environment** — the substrate the agent acts in: the repository, the filesystem, scripts, a running process. A long-running harness "asks the model to set up the initial environment" before work begins.<Citation src="effective-harnesses" />
 - **Context-assembly** — the boundary between them. Rather than dumping the environment into the window, agents keep lightweight references and "use these references to dynamically load data into context at runtime using tools."<Citation src="effective-context-engineering" />
 

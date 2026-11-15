@@ -1,6 +1,6 @@
 % The operate-and-improve loop for Ch28 ("Operating the Whole") — the Vol 3 / Design v1.0 capstone.
 % Standalone TikZ; compiled by `book-scaffold build-figures` via pdflatex -> pdftocairo -> SVG.
-% Clockwise cycle: production run -> see the failure (observability) -> make it an eval case ->
+% Clockwise cycle: production run -> reconstruct the failure (observability) -> make it an eval case ->
 % fix it (bounded by cost/oversight/security) -> measure again -> back to production.
 \documentclass[tikz,border=4mm]{standalone}
 \usepackage{tikz}
@@ -20,7 +20,7 @@
 
 % four stages in a clockwise diamond
 \node[stage] (prod)  at (4.5,4)  {Production run};
-\node[stage] (see)   at (9,2)    {See the failure\\{\scriptsize session log (ch24)}};
+\node[stage] (see)   at (9,2)    {Reconstruct failure\\{\scriptsize evidence join (ch24)}};
 \node[stage] (evalc) at (4.5,0)  {Make it an eval case\\{\scriptsize (ch22--23)}};
 \node[fix]   (fix)   at (0,2)    {Fix it};
 
@@ -32,7 +32,7 @@
   node[pos=0.5, above, font=\sffamily\scriptsize, text=gray!45!black] {measure again} (prod);
 
 % the fix is bounded by the other three surfaces
-\node[bound, left=5pt of fix, text width=2.5cm] {bounded by:\\cost (ch25)\\oversight (ch26)\\security (ch27)};
+\node[bound, left=5pt of fix, text width=2.5cm] {bounded by:\\measured cost (ch25)\\oversight (ch26)\\security (ch27)};
 
 % centre note
 \node[align=center, font=\sffamily\scriptsize\itshape, text=teal!40!black, text width=3.3cm]

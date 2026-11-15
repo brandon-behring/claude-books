@@ -1,9 +1,8 @@
-% Four composable cost levers feeding one bill, over the "context is compute" base — for Ch25
+% Four composable cost levers feeding a workload-shaped bill — for Ch25
 % ("Cost: The Economics of Running Agents"). Standalone TikZ; compiled by `book-scaffold
 % build-figures` via pdflatex -> pdftocairo -> SVG.
-% Base = "context is compute" (input context is the spend). Four levers STACK onto it, not compete:
-% (1) reduce input context (the driver), (2) prompt caching (write ~1.25x / read ~0.1x),
-% (3) model-tier routing (Haiku < Sonnet < Opus, qualitative), (4) Batch API (50% discount).
+% Base = measured token mix and rates plus tool/runtime charges. Four levers stack where applicable:
+% (1) reduce measured volume, (2) cache reusable input, (3) route model tier, (4) batch async work.
 % NO dollar figures anywhere — ratios and qualitative ordering only.
 \documentclass[tikz,border=4mm]{standalone}
 \usepackage{tikz}
@@ -24,17 +23,17 @@
   note/.style={font=\sffamily\scriptsize, text=gray!35!black}
 ]
 
-% --- the "context is compute" base ---
+% --- the measured cost base ---
 \node[base] (base) at (0,0)
-  {\textbf{Context is compute} --- input context is the spend (not output generation)};
+  {\textbf{Workload-shaped bill} --- token mix $\times$ rates + tool and runtime charges};
 
 % --- four composable levers, left to right, sitting ON the base ---
 \node[driver] (l1) at (-5.1,2.1)
-  {\textbf{1. Reduce input context}\\{\scriptsize the driver --- spend less to begin with}};
+  {\textbf{1. Reduce measured volume}\\{\scriptsize input, output, tools, runtime}};
 \node[lever]  (l2) at (-1.7,2.1)
-  {\textbf{2. Prompt caching}\\{\scriptsize write \textasciitilde1.25$\times$ / read \textasciitilde0.1$\times$}};
+  {\textbf{2. Prompt caching}\\{\scriptsize reuse must clear write premium + TTL}};
 \node[lever]  (l3) at (1.7,2.1)
-  {\textbf{3. Model-tier routing}\\{\scriptsize Haiku $<$ Sonnet $<$ Opus}};
+  {\textbf{3. Model-tier routing}\\{\scriptsize cheapest model that clears the task}};
 \node[lever]  (l4) at (5.1,2.1)
   {\textbf{4. Batch API}\\{\scriptsize 50\% discount (async)}};
 
@@ -47,7 +46,7 @@
 \node[note] at (0,3.55) {four composable levers --- they stack, they do not compete};
 
 % --- the base feeds one bill ---
-\node[bill] (bill) at (0,-2.0) {\textbf{one bill}\\{\scriptsize the token spend you pay}};
+\node[bill] (bill) at (0,-2.0) {\textbf{measured total}\\{\scriptsize reconcile to billing}};
 \draw[flow] (base.south) -- (bill.north);
 
 \end{tikzpicture}

@@ -13,6 +13,7 @@ sources:
   - building-effective-agents
   - anthropic-multi-agent-research
   - effective-context-engineering
+  - anthropic-subagents-docs
 description: The capstone of the Tools & Orchestration volume — composing its chapters into one sequenced design workflow on the spine's two axes (capability and coordination), the recurring decision points, an honest map of the evidence tiers, and the boundary this volume leaves to Operations.
 provenance:
   ai_tools: [Claude Code]
@@ -47,7 +48,7 @@ Integrative synthesis, grounded in the prior chapters — not a new evidence cha
 
 ## The two axes are one system
 
-The volume opened on two axes the spine drew: **capability** — what you expose to the agent — and **coordination** — how many isolated windows you run. Eight chapters in, the payoff is that they are not separate subjects but two ways of spending **one currency**. Context is "a critical but finite resource for AI agents,"<Tag kind="official" /><Citation src="effective-context-engineering" /> and both axes draw on it: capability spends the window directly (every tool, abstraction, and prompt sits in it), and coordination spends it by multiplication (every agent is another window to fill and pay for).
+The volume opened on two axes the spine drew: **capability** — what you expose to the agent — and **coordination** — how many isolated windows you run. Eight chapters in, the payoff is that they are not separate subjects but two ways of spending **one currency**. Context "must be treated as a finite resource with diminishing marginal returns,"<Tag kind="official" /><Citation src="effective-context-engineering" /> and both axes draw on it: capability spends the window directly (every tool, abstraction, and prompt sits in it), and coordination spends it by multiplication (every agent is another window to fill and pay for).
 
 <KeyIdea>
 Both axes reduce to the context window, so both inherit the same default: **add only when the workflow demonstrably needs it.** On the capability axis that means *subtract*; on the coordination axis it means *isolate only when there's context to quarantine or independent work to fan out*. "Can I add this?" is the wrong question on either axis; "what does it cost in the window, and is the work worth it?" is the right one.
@@ -61,7 +62,7 @@ The chapters fall into a natural order when you design a real agent's tools and 
 2. **Subtract the tool set to the workflow** (ch14). The smallest set that covers the work beats a complete one: "more tools don't always lead to better outcomes."<Tag kind="official" /><Citation src="anthropic-writing-tools" /> Consolidate overlaps; make each tool's response high-signal; load on demand only when scale forbids subtracting.
 3. **Wire external capability least-privilege** (ch15). Reach across MCP against a capability-negotiated protocol, designing to its security obligations rather than assuming it enforces them — and against a known moving target.
 4. **Shape the I/O** (ch16, ch17). Use the prompting craft for what goes in (examples first), and the output levers for what comes back — preferring the grammar-backed guarantee, stated with its limits, over a recover-after-the-fact retry loop.
-5. **Reach for coordination only when the work fans out** (ch18, ch19). A sub-agent is isolation, not capability — use it to quarantine context, parallelize, or clean-room review. Escalate to a multi-agent topology only when subtasks are genuinely independent *and* the value clears the cost.
+5. **Reach for coordination only when the work fans out** (ch18, ch19). A sub-agent adds isolation, and any added capability comes from its configuration — use it to quarantine context, parallelize, or run a fresh-trajectory review.<Citation src="anthropic-subagents-docs" /> Escalate to a multi-agent topology only when subtasks are genuinely independent *and* the value clears the cost.
 
 <ConceptBox term="Capability first, coordination last">
 Steps 1–4 are the capability axis (what to expose, and how to shape its I/O); step 5 is the coordination axis (how many windows). The order matters: most "my agent is slow/unreliable" problems are capability-axis problems (too many overlapping tools, verbose responses) that are cheaper to fix than any topology change. Exhaust the capability axis before spending windows on coordination.
@@ -129,7 +130,7 @@ Take a real or imagined agent and design it end-to-end across both axes: the har
 <ExerciseSolutions>
 
 <Solution for="ch20-ex-1">
-A representative pass for a code-review agent: (1) **build vs. buy** — configure an existing harness, don't build (start direct, grounded in ch13); (2) **tool set** — a small set (read diff, post comment, run tests), consolidating any overlapping search tools (ch14's subtract-first); (3) **MCP** — if it reaches an external code host, wire it least-privilege with audience-bound tokens (ch15); (4) **output** — use structured outputs / `strict` for the machine-read review payload, stated with its limits (ch17); (5) **coordination** — a clean-room *verifier* sub-agent to filter false positives is justified (isolation, ch18), but a full multi-agent topology is not — review subtasks share too much context to fan out and would fail the cost gate (ch19). The weakest-tier exposure is the coordination choice (the multi-agent worth-it question is contested) and any reliance on the ~15× figure; keep it reversible by starting single-agent-plus-verifier and only escalating if a genuinely parallel workload appears — re-checking the field rather than committing to a topology up front.
+A representative pass for a code-review agent: (1) **build vs. buy** — configure an existing harness, don't build (start direct, grounded in ch13); (2) **tool set** — a small set (read diff, post comment, run tests), consolidating any overlapping search tools (ch14's subtract-first); (3) **MCP** — if it reaches an external code host, wire it least-privilege with audience-bound tokens (ch15); (4) **output** — use structured outputs / `strict` for the machine-read review payload, stated with its limits (ch17); (5) **coordination** — a fresh-trajectory *verifier* sub-agent to filter false positives is justified (isolation, ch18), but a full multi-agent topology is not — review subtasks share too much context to fan out and would fail the cost gate (ch19). The weakest-tier exposure is the coordination choice (the multi-agent worth-it question is contested) and any reliance on the ~15× figure; keep it reversible by starting single-agent-plus-verifier and only escalating if a genuinely parallel workload appears — re-checking the field rather than committing to a topology up front.
 </Solution>
 
 <Solution for="ch20-pr-1">
