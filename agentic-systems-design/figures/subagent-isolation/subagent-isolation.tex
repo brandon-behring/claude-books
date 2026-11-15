@@ -1,8 +1,8 @@
 % Isolation-contract figure for Ch18 ("Sub-Agents: The Context-Isolation Primitive").
 % Standalone TikZ; compiled by `book-scaffold build-figures` via pdflatex -> pdftocairo -> SVG.
-% Main conversation -> one prompt string (the only input channel) -> fresh sub-agent window that
-% inherits nothing; its reads/tool-calls/dead-ends stay inside; only the final message returns.
-% fork_session deliberately inverts the input side (carries parent context in); return unchanged.
+% Main conversation -> delegation plus configured startup context -> named sub-agent with fresh
+% history. Intermediate work remains in the sub-agent transcript; completion and optional
+% messages cross bounded channels. A fork deliberately inherits the full parent conversation.
 \documentclass[tikz,border=4mm]{standalone}
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, calc}
@@ -11,11 +11,13 @@
 \begin{tikzpicture}[
   font=\sffamily,
   mainbox/.style={draw=blue!70!black, fill=blue!8, rounded corners=3pt, align=center,
-    text width=3.0cm, minimum height=2.6cm, inner sep=6pt},
+    text width=3.2cm, minimum height=3.0cm, inner sep=7pt},
   subbox/.style={draw=teal!70!black, fill=teal!10, rounded corners=3pt, align=center,
-    text width=3.4cm, minimum height=2.6cm, inner sep=6pt},
+    text width=4.1cm, minimum height=3.0cm, inner sep=7pt},
   inner/.style={draw=gray!55!black, fill=gray!6, rounded corners=2pt, align=center,
-    text width=3.0cm, inner sep=3pt, font=\scriptsize},
+    text width=3.8cm, inner sep=4pt, font=\scriptsize},
+  forkbox/.style={draw=orange!75!black, fill=orange!8, rounded corners=3pt, align=center,
+    text width=4.1cm, minimum height=1.05cm, inner sep=5pt},
   chan/.style={-Stealth, very thick, draw=gray!55!black},
   ret/.style={-Stealth, very thick, draw=teal!60!black},
   forkarr/.style={-Stealth, thick, draw=orange!75!black, dash pattern=on 2pt off 2pt}
@@ -24,25 +26,38 @@
 \node[mainbox] (main) at (0,0)
   {{\bfseries Main conversation}\\[3pt]\footnotesize holds the full context};
 
-\node[subbox] (sub) at (6.6,0)
-  {{\bfseries Sub-agent}\\{\bfseries fresh window}\\[3pt]\footnotesize inherits nothing:\\no history, no tool\\results, no system prompt};
+\node[subbox] (sub) at (9.5,0)
+  {{\bfseries Named sub-agent}\\{\bfseries fresh history}\\[4pt]
+   \footnotesize configured model + effort\\
+   prompt + tools + permissions\\
+   memory + MCP\\explicitly preloaded skills};
 
-% the only input channel
-\draw[chan] (main.east) -- (sub.west)
-  node[midway, above=1pt, font=\sffamily\footnotesize, align=center] {prompt string\\(the only input channel)};
+% configured startup context
+\draw[chan] ($(main.east)+(0,0.65)$) -- ($(sub.west)+(0,0.65)$)
+  node[midway, above=2pt, font=\sffamily\footnotesize, align=center]
+  {delegation + configured startup context};
+
+% normal completion path
+\draw[ret] ($(sub.west)+(0,0)$) -- ($(main.east)+(0,0)$)
+  node[midway, above=2pt, font=\sffamily\footnotesize, text=teal!45!black]
+  {completion result};
+
+% optional bounded communication
+\draw[ret, <->] ($(main.east)+(0,-0.65)$) -- ($(sub.west)+(0,-0.65)$)
+  node[midway, below=2pt, font=\sffamily\footnotesize, text=teal!45!black, align=center]
+  {optional direction + messages\\and later resumption};
 
 % what stays inside the sub-agent
-\node[inner, below=0.25cm of sub] (stays) {reads · tool calls · dead ends\\\emph{stay here}};
-\draw[draw=teal!55!black, -Stealth] (stays.north) -- (sub.south);
+\node[inner, below=0.7cm of sub] (stays)
+  {separate transcript: reads · tool calls · dead ends\\\emph{do not merge into the parent history}};
+\draw[draw=teal!55!black, -Stealth] (sub.south) -- (stays.north);
 
-% the return contract
-\draw[ret] ($(sub.south west)+(0.1,0.2)$) to[out=210, in=-30] ($(main.south east)+(-0.1,0.2)$)
-  node[midway, below=1pt, font=\sffamily\footnotesize, text=teal!45!black] {only the final message};
-
-% fork_session inverts the input side
-\draw[forkarr] ($(main.east)+(0,-0.95)$) -- ($(sub.west)+(0,-0.95)$)
-  node[midway, below=1pt, font=\sffamily\footnotesize, text=orange!55!black, align=center]
-  {\texttt{fork\_session}: carries parent\\context in (return unchanged)};
+% a fork is an alternate continuity path, not the named agent above
+\node[forkbox, above=1.0cm of sub] (fork)
+  {{\bfseries Forked agent}\\\footnotesize full parent conversation\\inherited};
+\draw[forkarr] (main.north) to[out=65, in=180]
+  node[pos=0.58, above=2pt, font=\sffamily\footnotesize, text=orange!55!black]
+  {deliberate continuity path} (fork.west);
 
 \end{tikzpicture}
 \end{document}

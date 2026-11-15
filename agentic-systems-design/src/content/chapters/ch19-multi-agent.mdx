@@ -83,7 +83,7 @@ The convergence is what licenses treating the loop as the reusable coordinator p
 
 A coordinator that only generates is incomplete; the pattern's natural complement is a **verifier** — a dedicated reviewer, separate from the workers. In practice, Anthropic "used an LLM judge that evaluated each output against criteria in a rubric"<Tag kind="official" /><Citation src="anthropic-multi-agent-research" /> (factual accuracy, citation accuracy, completeness, source quality, tool efficiency) — LLM-as-judge applied *inside* the orchestrated system. At the workflow level this is the evaluator-optimizer: "one LLM call generates a response while another provides evaluation and feedback in a loop."<Tag kind="official" /><Citation src="building-effective-agents" />
 
-This is the same separate-the-reviewer move the sub-agent chapter's clean-room verifier made, now applied across the orchestrated system: workers generate, a verifier reviews. *How* to calibrate that judge — its score scale, rubric reliability — is the Operations volume's evaluation subject, not this chapter's; here the verifier is a structural role, not a measured instrument.
+This is the same separate-the-reviewer move the sub-agent chapter's fresh-trajectory verifier made, now applied across the orchestrated system: workers generate, a verifier reviews. *How* to calibrate that judge — its score scale, rubric reliability — is the Operations volume's evaluation subject, not this chapter's; here the verifier is a structural role, not a measured instrument.
 
 ## The cost gate — and a genuinely open question
 
@@ -149,7 +149,7 @@ Task size is not the gate; **parallelizability** is. A big, interdependent task 
 
 **Run the coordinator loop.** *Sketch:* decompose → delegate (focused briefs) → aggregate. *When to use:* the lead's core job.<Citation src="building-effective-agents" /> *Mechanics:* each brief carries objective, output format, tool guidance, boundaries; the lead synthesizes results. *Remember:* two independent first-party posts describe this same loop — it is a pattern, not an idiom.
 
-**Add a clean-room verifier.** *Sketch:* a dedicated LLM judge reviews worker output against a rubric. *When to use:* whenever generation should be checked by something other than the generator.<Citation src="anthropic-multi-agent-research" /> *Mechanics:* rubric dimensions (accuracy, completeness, source quality, …); generation and review separated. *Remember:* judge *calibration* is the Operations volume's job; here it's a structural role.
+**Add a fresh-trajectory verifier.** *Sketch:* a dedicated LLM judge reviews worker output against a rubric. *When to use:* whenever generation should be checked by something other than the generator.<Citation src="anthropic-multi-agent-research" /> *Mechanics:* rubric dimensions (accuracy, completeness, source quality, …); generation and review separated. *Remember:* judge *calibration* is the Operations volume's job; here it's a structural role.
 
 **Gate hard on parallelizability.** *Sketch:* go multi-agent only when the work fans out into independent subtasks. *When to use:* the go/no-go before building anything.<Citation src="anthropic-multi-agent-research" /> *Mechanics:* shared-context/high-dependency work is a poor fit; multi-agent runs ~15× a chat's tokens (one first-party datapoint). *Remember:* most tasks fail this gate — defaulting back to a single agent is the common, correct outcome.
 
